@@ -1,0 +1,123 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:WikiProject_France/Queries/Langues/snippet_2.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:WikiProject_France/Queries/Langues/snippet_2.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_France/Queries/Langues> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+# Liste des projets Wikimedia localisés dans les langues régionales et minoritaires de France
+# telles que définies par la DGLFLF
+# auxquelles s'ajoutent le français et le luxembourgeois
+# Manquent : 
+# - Wikisource/Wiktionary/Wikibooks/Wikiquote/Wikivoyage en alémanique (sur als:, voir Notes)
+
+SELECT DISTINCT ?language ?languageLabel ?wpURL ?wiktURL ?wsURL ?wnURL ?wqURL ?wbURL ?wvURL ?wvoyURL
+WHERE 
+{
+  { VALUES ?language {
+    wd:Q150
+    wd:Q33302
+    wd:Q9051
+    wd:Q33491
+    wd:Q13955
+    }
+  } UNION
+  { ?language wdt:P361/wdt:P361 wd:Q496250 . }
+  
+  ?wp wdt:P31 wd:Q10876391 .
+  ?wp p:P407 ?wpLangStatement .
+  ?wpLangStatement ps:P407 ?language .
+  ?wp wdt:P856 ?wpURL .
+  
+  OPTIONAL {
+    ?wikt wdt:P31 wd:Q22001389 .
+    ?wikt p:P407 ?wiktLangStatement .
+    ?wiktLangStatement ps:P407 ?language .
+    ?wikt wdt:P856 ?wiktURL .
+  }
+  
+  OPTIONAL {
+    ?ws wdt:P31 wd:Q15156455 .
+    ?ws p:P407 ?wsLangStatement .
+    ?wsLangStatement ps:P407 ?language .
+    ?ws wdt:P856 ?wsURL .
+  }
+
+  OPTIONAL {
+    ?wn wdt:P31 wd:Q20671729 .
+    ?wn p:P407 ?wnLangStatement .
+    ?wnLangStatement ps:P407 ?language .
+    ?wn wdt:P856 ?wnURL .
+  }
+
+  OPTIONAL {
+    ?wq wdt:P31 wd:Q22001361 .
+    ?wq p:P407 ?wqLangStatement .
+    ?wqLangStatement ps:P407 ?language .
+    ?wq wdt:P856 ?wqURL .
+  }
+  
+  OPTIONAL {
+    ?wb wdt:P31 wd:Q22001316 .
+    ?wb p:P407 ?wbLangStatement .
+    ?wbLangStatement ps:P407 ?language .
+    ?wb wdt:P856 ?wbURL .
+  }
+
+  OPTIONAL {
+    ?wv wdt:P31 wd:Q22001390 .
+    ?wv p:P407 ?wvLangStatement .
+    ?wvLangStatement ps:P407 ?language .
+    ?wv wdt:P856 ?wvURL .
+  }
+  
+  OPTIONAL {
+    ?wvoy wdt:P31 wd:Q19826567 .
+    ?wvoy p:P407 ?wvoyLangStatement .
+    ?wvoyLangStatement ps:P407 ?language .
+    ?wvoy wdt:P856 ?wvoyURL .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+} ORDER BY ?languageLabel
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

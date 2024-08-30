@@ -1,0 +1,141 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:Request_a_query/Archive/2020/03/snippet_27.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:Request_a_query/Archive/2020/03/snippet_27.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/03> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+
+################
+# Checking whether strings from the titles of publications already exist as lexemes
+# The query has three parts:
+#   I - get a list of publications on a given topic
+#  II - extract strings from the titles
+# III - check whether these strings exist as Wikidata lexemes
+################
+
+SELECT DISTINCT
+  ?word ?wordUrl
+  ?form ?formLabel
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+  (GROUP_CONCAT(DISTINCT ?featureLabel; separator=" // ") AS ?features)
+  ?sense ?senseLabel
+  (IRI(CONCAT("https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file&width=100&wpvalue=", 
+          SUBSTR(STR(SAMPLE(?images)), 52))) AS ?sense_image)
+WHERE {
+
+#   I - get a list of publications on a given topic
+  
+  {
+    SELECT DISTINCT ?x ?title WHERE {
+      ?x wdt:P921 wd:Q202864 ;  # Zika virus
+         wdt:P1476 ?title.
+      FILTER(STRLEN(?title) >= 6)
+    }
+    LIMIT 10
+  }
+  
+#  II - extract strings from the titles
+  
+  BIND(LCASE(?title) AS ?ltitle)
+  BIND(REPLACE(?ltitle, "^.*?(\\b\\w{6,}\\b).*$", "$1") AS ?w1)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w1), "^.*?(\\b\\w{6,}\\b).*$", "$1") AS ?w2)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w2), "^.*?(\\b\\w{6,}\\b).*$", "$1") AS ?w3)
+  VALUES ?w_ { 1 2 3 }
+  BIND(IF(?w_ = 1, ?w1, IF(?w_ = 2, ?w2, ?w3)) AS ?word)
+  FILTER(REGEX(?word, "^\\w+$")) # since ?w may evaluate to an empty string, e.g. for one-word titles
+
+  FILTER (LANG(?word) = "en")
+  
+# III - check whether these strings exist as Wikidata lexemes
+# This part is taken from https://tools.wmflabs.org/ordia/text-to-lexemes
+  
+  OPTIONAL {
+    ?form ontolex:representation ?word . 
+    OPTIONAL {
+      ?form wikibase:grammaticalFeature ?feature .
+      BIND(STR(?feature) AS ?default_featureLabel)
+      OPTIONAL {
+        ?feature rdfs:label ?featureLabel_ .
+        FILTER (LANG(?featureLabel_) = "en")
+      }
+      BIND(COALESCE(?featureLabel_, ?default_featureLabel) AS ?featureLabel)
+    }
+    ?form ontolex:representation ?formLabel .
+  
+# START OF PROBLEMATIC SECTION    
+#    ?lexeme ontolex:lexicalForm ?form .
+#
+#    ?lexeme wikibase:lexicalCategory ?lexical_category .
+#    BIND(STR(?lexical_category) AS ?default_lexical_categoryLabel)
+#    OPTIONAL {
+#      ?lexical_category rdfs:label ?lexical_categoryLabel_ .
+#      FILTER (LANG(?lexical_categoryLabel_) = 'en')
+#    }
+#    BIND(COALESCE(?lexical_categoryLabel_, ?default_lexical_categoryLabel) AS
+#	 ?lexical_categoryLabel)
+#      
+#	  
+#    ?lexeme wikibase:lemma ?lexemeLabel .
+#
+#    OPTIONAL {
+#      ?lexeme ontolex:sense ?sense .
+#      BIND(SUBSTR(STR(?sense), 32) AS ?senseLabel)
+#      OPTIONAL {
+#        ?sense wdt:P18 ?images .
+#      }
+#    }
+# END OF PROBLEMATIC SECTION    
+    
+  }
+  BIND(IF(BOUND(?form), "", CONCAT("search?language=en&q=", ?word)) AS ?wordUrl)
+  
+}
+GROUP BY
+  ?word ?wordUrl ?form ?formLabel
+  ?lexeme ?lexemeLabel ?lexical_category ?lexical_categoryLabel
+  ?sense ?senseLabel
+ORDER BY ?word
+
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

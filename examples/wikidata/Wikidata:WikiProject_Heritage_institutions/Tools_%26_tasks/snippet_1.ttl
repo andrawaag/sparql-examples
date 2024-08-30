@@ -1,0 +1,91 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks/snippet_1.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks/snippet_1.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+{{SPARQL
+|query = SELECT ?item
+       ?glamID
+	   ?Label_en
+       ?Description_en
+       (group_concat(distinct ?Alias_en;separator="; ") as ?Aliases_en)    #Concatenate the values in order not to get several rows per item.
+       ?Label_de
+       ?Description_de
+       (group_concat(distinct ?Alias_de;separator="; ") as ?Aliases_de)
+       (replace(group_concat(distinct ?Type;separator="; "), "http://www.wikidata.org/entity/", "") as ?Types)  #Strip the path in order to get only the Q-number.
+       (group_concat(distinct ?TypeLabel_en;separator="; ") as ?TypeLabels_en)
+       (replace(group_concat(distinct ?Municipality;separator="; "), "http://www.wikidata.org/entity/", "") as ?Municipalities)   
+       (group_concat(distinct ?MunicipalityLabel_de;separator="; ") as ?MunicipalityLabels_de)
+       (replace(group_concat(distinct ?Canton;separator="; "), "http://www.wikidata.org/entity/", "") as ?Cantons)
+       (group_concat(distinct ?CantonLabel_de;separator="; ") as ?CantonLabels_de)
+  WHERE {
+  {?item wdt:P31 ?museum . ?museum wdt:P279* wd:Q33506 } 
+    UNION {?item wdt:P31 ?archive . ?archive wdt:P279* wd:Q166118 } 
+    UNION {?item wdt:P31 ?library . ?library wdt:P279* wd:Q7075 } 
+    UNION {?item wdt:P31 ?memory . ?memory wdt:P279* wd:Q1497649 } . 
+  {?item wdt:P131/wdt:P17 wd:Q39 }
+    UNION {?item wdt:P131/wdt:P17 wd:Q347 } .  
+  OPTIONAL { ?item wdt:P3066 ?glamID. }
+  OPTIONAL { ?item rdfs:label ?Label_en . FILTER (lang(?Label_en) = "en") }
+  OPTIONAL { ?item rdfs:label ?Label_de . FILTER (lang(?Label_de) = "de") } 
+  OPTIONAL { ?item skos:altLabel ?Alias_en . FILTER (lang(?Alias_en) = "en") }
+  OPTIONAL { ?item skos:altLabel ?Alias_de . FILTER (lang(?Alias_de) = "de") } 
+  OPTIONAL { ?item schema:description ?Description_en . FILTER (lang(?Description_en) = "en") }
+  OPTIONAL { ?item schema:description ?Description_de . FILTER (lang(?Description_de) = "de") } 
+  OPTIONAL { ?item wdt:P31 ?Type. }
+  OPTIONAL { ?item wdt:P31/rdfs:label ?TypeLabel_en . FILTER (lang(?TypeLabel_en) = "en") }  
+  OPTIONAL { ?item wdt:P131 ?Municipality . FILTER EXISTS {?Municipality wdt:P31 wd:Q70208} }  
+  OPTIONAL { ?item wdt:P131/rdfs:label ?MunicipalityLabel_de . FILTER EXISTS {?MunicipalityLabel_de ^rdfs:label/wdt:P31 wd:Q70208} . FILTER (lang(?MunicipalityLabel_de) = "de") }
+  OPTIONAL { ?item wdt:P131 ?Canton . FILTER EXISTS {?Canton wdt:P31 wd:Q23058} }
+  OPTIONAL { ?item wdt:P131/rdfs:label ?CantonLabel_de . FILTER EXISTS {?CantonLabel_de ^rdfs:label/wdt:P31 wd:Q23058} . FILTER (lang(?CantonLabel_de) = "de") }  
+  OPTIONAL { ?item wdt:P17 ?Country. }
+  OPTIONAL { ?item wdt:P17/rdfs:label ?CountryLabel_de . FILTER (lang(?CountryLabel_de) = "de") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }    
+}
+group by ?item                          #List all the variables for which the values are not concatenated!
+         ?glamID
+         ?Label_en ?Description_en 
+         ?Label_de ?Description_de 
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

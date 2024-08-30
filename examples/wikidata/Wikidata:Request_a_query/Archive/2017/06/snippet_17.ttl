@@ -1,0 +1,90 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:Request_a_query/Archive/2017/06/snippet_17.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:Request_a_query/Archive/2017/06/snippet_17.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2017/06> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+
+SELECT
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = ", ") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = ", ") AS  ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT   ?genreLabel ; separator = ", ") AS   ?genreLabels)
+      WHERE {
+        # test values
+        #VALUES ?game {
+        #  wd:Q4850488    # Baldur's Gate III: The Black Hound (should have "no value" due to being cancelled)
+        #  wd:Q4931588    # Bob's Game (should have "no value" due to not being released yet)
+        #  wd:Q5315330    # Dunjonquest (1979)
+        #  wd:Q5250229    # Deep Labyrinth (should have multiple dates)
+        #  wd:Q1462499    # Starflight (1986, has multiple genres)
+        #  wd:Q23647080   # God Wars: Beyond Time (should have blank date since the property does not exist)
+        #}
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = "en").  # we mainly want English labels
+
+        OPTIONAL {?game wdt:P577       ?date}
+        BIND(YEAR(?date) AS ?dateYear).    # faster substitute
+
+        OPTIONAL {
+          ?game wdt:P136 ?genre.
+          ?genre rdfs:label ?genreString.
+          FILTER(?genre != wd:Q744038).
+          FILTER(LANG(?genreString) = "en").
+          BIND(STR(?genreString) AS ?genreLabel).    # faster substitute
+        }
+
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language "en".
+        }
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

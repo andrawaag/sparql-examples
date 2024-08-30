@@ -1,0 +1,68 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:Request_a_query/Archive/2022/05/snippet_7.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:Request_a_query/Archive/2022/05/snippet_7.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2022/05> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+
+#defaultView:Graph
+select ?person ?linkedPerson ?linkedPersonLabel ?type ?personLabel (?type as ?edgeLabel) {
+   ?person wdt:P937 wd:Q641;
+           wdt:P106 ?activity .
+  
+  values ?activity { 
+    wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196
+  }
+  
+  ?person wdt:P2032|wdt:P570 ?datafine .
+  
+{ ?person wdt:P1327 ?linkedPerson .  bind("business partner" as ?type)  } union 
+{ ?person wdt:P22 ?linkedPerson .  bind("father" as ?type) } union 
+{ ?person wdt:P23 ?linkedPerson .  bind("mother" as ?type)  } union 
+{ ?person wdt:P40 ?linkedPerson .  bind("son" as ?type) } union 
+{ ?person wdt:P26 ?linkedPerson .  bind("partner" as ?type) }
+FILTER ("1850-01-01"^^xsd:dateTime > ?datafine) 
+SERVICE wikibase:label { bd:serviceParam wikibase:language "it,en" . }
+}
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

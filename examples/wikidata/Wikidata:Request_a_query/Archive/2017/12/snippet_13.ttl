@@ -1,0 +1,81 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/Wikidata:Request_a_query/Archive/2017/12/snippet_13.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/Wikidata:Request_a_query/Archive/2017/12/snippet_13.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2017/12> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+SELECT ?item ?date1 ?p1 ?c1 ?r1 ?refurl1 ?angesi1Label ?i1 ?date2 ?p2 ?c2 ?r2 ?refurl2 ?angesi2Label ?i2 WHERE
+{
+  ?item wdt:P3217 ?sbl .
+  ?item p:P569 ?date1stm .
+  ?date1stm psv:P569 ?date1node .
+  ?date1node wikibase:timeValue ?date1 .
+  ?date1node wikibase:timePrecision ?p1 .
+  ?date1node wikibase:timeCalendarModel ?cal1 .
+  BIND(IF(?cal1=wd:Q1985727,'G',IF(?cal1= wd:Q1985786, 'J', '?')) AS ?c1) 
+  ?date1stm wikibase:rank ?rank1 .
+  BIND(IF(?rank1=wikibase:PreferredRank,'P',IF(?rank1= wikibase:NormalRank, 'N', 'D')) AS ?r1) 
+  OPTIONAL { ?date1stm prov:wasDerivedFrom ?ref1.
+     OPTIONAL { ?ref1 pr:P854 ?refurl1 . }
+     OPTIONAL { ?ref1 pr:P248 ?angesi1 . }
+     OPTIONAL { ?ref1 pr:P143/wdt:P424 ?i1 . }
+  }
+  ?item p:P569 ?date2stm .
+  ?date2stm psv:P569 ?date2node .
+  ?date2node wikibase:timeValue ?date2 . 
+  ?date2node wikibase:timePrecision ?p2 .
+  ?date2node wikibase:timeCalendarModel ?cal2 .
+  BIND(IF(?cal2=wd:Q1985727,'G',IF(?cal2= wd:Q1985786, 'J', '?')) AS ?c2) 
+  ?date2stm wikibase:rank ?rank2 .
+  BIND(IF(?rank2=wikibase:PreferredRank,'P',IF(?rank2= wikibase:NormalRank, 'N', 'D')) AS ?r2)
+  OPTIONAL { ?date2stm prov:wasDerivedFrom ?ref2 .
+     OPTIONAL { ?ref2 pr:P854 ?refurl2 . }
+     OPTIONAL { ?ref2 pr:P248 ?angesi2 . }
+     OPTIONAL { ?ref2 pr:P143/wdt:P424 ?i2 . }
+  }
+  FILTER(?date1<?date2)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "sv,en". }
+}
+ORDER BY ?item ?refurl1 ?refurl2
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

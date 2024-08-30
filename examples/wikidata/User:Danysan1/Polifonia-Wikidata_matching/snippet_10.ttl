@@ -1,0 +1,98 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/User:Danysan1/Polifonia-Wikidata_matching/snippet_10.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/User:Danysan1/Polifonia-Wikidata_matching/snippet_10.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/User:Danysan1/Polifonia-Wikidata_matching> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+
+CONSTRUCT {
+  ?prop rdf:type owl:DataTypeProperty;
+         rdfs:label ?propLabel;
+        #  rdfs:domain ?domain;
+         rdfs:range ?range;
+         schema:description ?propDescription;
+         skos:altLabel ?propAlias;
+         owl:equivalentProperty ?equivalentProp;
+         rdfs:subPropertyOf ?superProp.
+  # ?domain rdf:type owl:Class;
+  #         rdfs:label ?domainLabel;
+  #         owl:unionOf ( ?domainElement ).
+} WHERE {
+  {
+    ?prop wdt:P31/wdt:P279* wd:Q27525351.
+  } UNION {
+    ?prop wdt:P6104 wd:Q5830855.
+  }
+
+  VALUES (?type ?range) { # https://www.wikidata.org/wiki/Help:Data_type#Technical_details
+    (wikibase:Quantity xsd:decimal)
+    (wikibase:Time xsd:dateTime)
+    (wikibase:Monolingualtext xsd:string)
+    (wikibase:String xsd:string)
+    (wikibase:MusicalNotation xsd:string)
+  }
+  ?prop wikibase:propertyType ?type;
+        rdfs:label ?propLabel FILTER(lang(?propLabel) = 'en').
+  
+  # BIND(IRI(REPLACE(
+  #     STR(?prop),
+  #     'http://www.wikidata.org/entity/',
+  #     'https://raw.githubusercontent.com/Danysan1/unibo-ke-matching-ontologies/main/wikidata/ontology/domain/'
+  #   )) AS ?domain).
+  # BIND(REPLACE(STR(?prop),'http://www.wikidata.org/entity/','domain of ') AS ?domainLabel).
+  # OPTIONAL {
+  #   ?prop p:P2302 [
+  #     ps:P2302 wd:Q21503250;
+  #     pq:P2308 ?domainElement;
+  #     pq:P2309 wd:Q21503252
+  #   ].
+  # }
+
+  OPTIONAL { ?prop schema:description ?propDescription FILTER(lang(?propDescription) = 'en'). }
+  OPTIONAL { ?prop skos:altLabel ?propAlias FILTER(lang(?propAlias) = 'en'). }
+  OPTIONAL { ?prop wdt:P1628 ?equivalentProp. }
+  OPTIONAL { ?prop wdt:P1647 ?superProp. }
+}
+ORDER BY ?prop
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

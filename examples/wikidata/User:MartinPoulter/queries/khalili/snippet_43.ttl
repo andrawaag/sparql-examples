@@ -1,0 +1,77 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/User:MartinPoulter/queries/khalili/snippet_43.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/User:MartinPoulter/queries/khalili/snippet_43.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/khalili> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+#title:Translations relevant to the Khalili Collections partnership
+SELECT ?item1Label ?langname ?sitelink ?articleCreationDate
+WHERE {
+VALUES ?item1 {wd:Q3336241 wd:Q66455644 wd:Q66458747 wd:Q63160499 wd:Q66454754 wd:Q66456991 wd:Q66457023 wd:Q66458773 wd:Q66455051 wd:Q27763745 wd:Q92731365 wd:Q95639662 wd:Q11481067 wd:Q2982930 wd:Q46103484 wd:Q21664940 wd:Q11362747 wd:Q11566135 wd:Q106372429 wd:Q66455355 wd:Q6735263 wd:Q107060104 wd:Q13142198 wd:Q110621552 wd:Q3042743 wd:Q21074703 wd:Q113673240 wd:Q6735866 wd:Q107663626 wd:Q64746992 wd:Q16641327 wd:Q12810868 wd:Q2827531 wd:Q115048320 wd:Q4480950 wd:Q109811416 wd:Q122258635 wd:Q122067620}
+?sitelink schema:about ?item1 . # get Wikimedia pages
+FILTER(CONTAINS(str(?sitelink), ".wikipedia.org/")) # only Wikipedia articles
+?sitelink schema:inLanguage ?langcode; schema:name ?title ; schema:isPartOf ?site.
+OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langlabel FILTER(lang(?langlabel) = "en") } # Convert short code to full language name
+BIND(COALESCE(?langlabel, ?langcode) AS ?langname)
+BIND(REPLACE(SUBSTR(STR(?site), 9), '/', '') AS ?endpoint)
+OPTIONAL{
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api "Generator" ; 
+    wikibase:endpoint ?endpoint ;
+    mwapi:generator "allpages" ;
+    mwapi:gapfrom ?title ;
+    mwapi:gapto ?title ;
+    mwapi:prop "revisions" ;
+    mwapi:rvdir "newer" ;
+    wikibase:limit "once" .
+    ?t wikibase:apiOutput "revisions/rev/@timestamp" .
+    ?o wikibase:apiOrdinal true
+  } 
+FILTER (?o = 0)
+BIND (xsd:dateTime(?t) AS ?articleCreationDate)
+}
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en" }
+} ORDER BY DESC(?articleCreationDate) ?item1Label
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,65 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/User:MartinPoulter/queries/collections/snippet_66.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/User:MartinPoulter/queries/collections/snippet_66.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/User:MartinPoulter/queries/collections> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+SELECT (SUBSTR(STR(?thing),32) AS ?q) (SUBSTR(STR(?prop),37) as ?p) (SUBSTR(STR(?item),32) AS ?itemq) ?itemLabel ?fullwork (SUBSTR(STR(?coll),32) as ?collq) ?inventory ?url (GROUP_CONCAT(SUBSTR(STR(?artist),32);separator=" ") AS ?artists)
+(GROUP_CONCAT(?typeLabel; separator=", ") AS ?types) ?from (YEAR(?latest) AS ?to) ?precision WHERE {
+VALUES ?coll {wd:Q636400 wd:Q82133 wd:Q1456119 wd:Q6941088} # Ashmolean, Bodleian, PRM, MHS
+?item p:P195 [ps:P195 ?coll; pq:P217 ?inventory].
+VALUES ?prop {wdt:P180 wdt:P170 wdt:P1774 wdt:P138} # depicted, creator, school of, named after
+?item ?prop ?thing; wdt:P31 ?type.
+OPTIONAL {?item wdt:P973 ?url FILTER(CONTAINS(STR(?url), ".ox.ac.uk") || CONTAINS(STR(?url), "ashmolean.org") )}
+OPTIONAL {?item wdt:P953 ?fullwork FILTER(CONTAINS(STR(?fullwork), ".ox.ac.uk") || CONTAINS(STR(?fullwork), "ashmolean.org") )}
+FILTER (BOUND(?fullwork) || BOUND(?url) )
+OPTIONAL {?item wdt:P170 ?artist}
+OPTIONAL {?item p:P571 [pq:P1319 ?earliest; pq:P1326 ?latest] }
+OPTIONAL {?item p:P571/psv:P571 [ wikibase:timePrecision ?precision; wikibase:timeValue ?year ] }
+BIND(IF (BOUND(?earliest), YEAR(?earliest), YEAR(?year)) AS ?from)
+SERVICE wikibase:label { bd:serviceParam wikibase:language "en" .
+?item rdfs:label ?itemLabel. ?type rdfs:label ?typeLabel }
+} GROUP BY ?thing ?prop ?item ?itemLabel ?fullwork ?inventory ?url ?coll ?from ?latest ?precision
+ORDER BY DESC(?prop) ?from ?to
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .

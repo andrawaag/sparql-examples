@@ -1,0 +1,73 @@
+@prefix ex: <https://sparql.uniprot.org/.well-known/sparql-examples/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix wiki: <https://www.wikidata.org/wiki/> .
+
+ex:sparqlrdf/User:PAC2/Tour_de_France/snippet_9.ttl a sh:SPARQLExecutable,
+        sh:SPARQLSelectExecutable ;
+    rdfs:comment "Sparql query from file sparqlrdf/User:PAC2/Tour_de_France/snippet_9.ttl"^^rdf:HTML ;
+    dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
+    dcterms:isVersionOf <https://www.wikidata.org/wiki/User:PAC2/Tour_de_France> ;
+    sh:select """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wds: <http://www.wikidata.org/entity/statement/>
+PREFIX wdv: <http://www.wikidata.org/value/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+PREFIX wdref: <http://www.wikidata.org/reference/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prn: <http://www.wikidata.org/prop/reference/value-normalized/>
+PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX wdata: <http://www.wikidata.org/wiki/Special:EntityData/>
+
+PREFIX schema: <http://schema.org/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX bds: <http://www.bigdata.com/rdf/search#>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+{{SPARQL2|query = #title: List of all stage winners by number of wins
+SELECT ?winner ?winnerLabel (COUNT(*) AS ?count) ?wins WHERE {
+  ?tour wdt:P31 wd:Q33881;
+        rdfs:label ?tourLabel.
+  FILTER(LANG(?tourLabel) = "[AUTO_LANGUAGE]" )
+ ?item wdt:P361 ?tour;
+    rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = "[AUTO_LANGUAGE]" )
+  ?item wdt:P585 ?date. 
+  ?item p:P1346 ?statement.
+  ?statement ps:P1346 ?winner.
+  ?statement pq:P642 wd:Q20882747 .
+  ?winner rdfs:label ?winnerLabel.
+  FILTER((LANG(?winnerLabel)) = "[AUTO_LANGUAGE]" )
+  BIND(
+    URI(
+      CONCAT(
+        "https://query.wikidata.org/embed.html#%23title%3A%20List%20of%20satge%20winners%2C%20ordered%20by%20number%20of%20wins%0ASELECT%20%3Ftour%20%3FtourLabel%20%3Fitem%20%3FitemLabel%20%3Fdate%20WHERE%20%7B%0A%20%20%3Ftour%20wdt%3AP31%20wd%3AQ33881%3B%0A%20%20%20%20rdfs%3Alabel%20%3FtourLabel.%0A%20%20FILTER%28%28LANG%28%3FtourLabel%29%29%20%3D%20%22%5BAUTO_LANGUAGE%5D%22%29%0A%20%20%3Fitem%20wdt%3AP361%20%3Ftour%3B%0A%20%20%20%20rdfs%3Alabel%20%3FitemLabel.%0A%20%20FILTER%28%28LANG%28%3FitemLabel%29%29%20%3D%20%22%5BAUTO_LANGUAGE%5D%22%29%0A%20%20%3Fitem%20wdt%3AP585%20%3Fdate%3B%0A%20%20%20%20p%3AP1346%20%3Fstatement.%0A%20%20%3Fstatement%20ps%3AP1346%20wd%3A",
+        SUBSTR(STR(?winner),32), 
+        "%3B%0A%20%20%20%20pq%3AP642%20wd%3AQ20882747.%0A%7D%0AORDER%20BY%20%3Fdate"
+        )
+    ) AS ?wins)
+}
+GROUP BY ?winner ?winnerLabel ?wins
+ORDER BY DESC(?count)
+
+""" ;
+    schema:target <https://query.wikidata.org/sparql/> .
