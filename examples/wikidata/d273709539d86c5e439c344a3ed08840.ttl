@@ -1,0 +1,72 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d273709539d86c5e439c344a3ed08840> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel 
+WITH {
+  SELECT ?item1 WHERE {
+    VALUES ?item1 { wd:Q28537550 wd:Q430682 wd:Q69562155 wd:Q69561988 wd:Q571 wd:Q155626 wd:Q2664039 wd:Q3560705 wd:Q160236 wd:Q4010432 wd:Q382307 wd:Q42745 wd:Q65966004 wd:Q15221656 wd:Q17494007 wd:Q23402 wd:Q65966300 wd:Q49135 }
+  }
+} AS %item1
+
+WITH {
+  SELECT (?item1 AS ?item2) WHERE {
+    INCLUDE %item1.
+  }
+} AS %item2
+
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.
+  ?item1 ?wdt ?item2.
+  ?edge wikibase:directClaim ?wdt;
+        a wikibase:Property.
+  OPTIONAL { ?item1 wdt:P18 ?image1. }
+  OPTIONAL { ?item2 wdt:P18 ?image2. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment """Example queries [edit] Some Wikidata queries I've crafted that may be interesting to people. Contents 1 Example queries 1.1 Sports arenas 1.2 Knowledge graph 1.2.1 Simplify Query 1.3 Knowledge graph for Portrait of Madame X 1.4 Knowledge graph of Met objects and depictions 1.5 Knowledge graph of Met objects, depictions and creators 1.6 Knowledge graph of Hudson River School artists and works 1.7 Knowledge graph of Hudson River School works and depictions 1.8 Knowledge graph of women related to folklore and their professions 1.9 Met Afrofuturism room Sports arenas [edit] Query of US pro sports teams, where they play, and what they are named after - https://w.wiki/5G$7 Could use some help to complete this! Team names - TABernacle session to edit Wikidata content Sports arena names - TABernacle session to edit Wikidata content Knowledge graph [edit] This is a neat query that creates a connected graph of Wikidata items first posed by Martin Poulter (link) and optimized by Lucas Werkmeister (link). Given a list of Wikidata items provided in a VALUES array, use a SPARQL query to find all the relationships among them and then graph them. Knowledge graph of Death of Socrates from The Met The following query uses these:Items: Socrates (Q913)   , The School of Athens (Q186953)   , trial of Socrates (Q3110066)   , The Death of Socrates (Q1752990)   , Raphael (Q5597)   , Jacques-Louis David (Q83155)   , BEIC Digital Library (Q51955019)   , The Death of Socrates (Q20539433)   Properties: image (P18)    Features: Graph (Q24515287)  #defaultView:Graph
+SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel 
+WITH {
+  SELECT ?item1 WHERE {
+    VALUES ?item1 { wd:Q913 wd:Q186953 wd:Q3110066 wd:Q1752990 wd:Q5597 wd:Q83155 wd:Q51955019 wd:Q20539433 }
+  }
+} AS %item1
+
+WITH {
+  SELECT (?item1 AS ?item2) WHERE {
+    INCLUDE %item1.
+  }
+} AS %item2
+
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.
+  ?item1 ?wdt ?item2.
+  ?edge wikibase:directClaim ?wdt;
+        a wikibase:Property.
+  OPTIONAL { ?item1 wdt:P18 ?image1. }
+  OPTIONAL { ?item2 wdt:P18 ?image2. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Simplify Query [edit] I really like the stories that these KGs tell. However, rather than using a non-standard BlazeGraph extension, why not just use VALUES twice? #defaultView:Graph
+SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel 
+WHERE {
+  VALUES ?item1 { wd:Q913 wd:Q186953 wd:Q3110066 wd:Q1752990 wd:Q5597 wd:Q83155 wd:Q51955019 wd:Q20539433 }
+  VALUES ?item2 { wd:Q913 wd:Q186953 wd:Q3110066 wd:Q1752990 wd:Q5597 wd:Q83155 wd:Q51955019 wd:Q20539433 }
+  ?item1 ?wdt ?item2.
+  ?edge wikibase:directClaim ?wdt;
+        a wikibase:Property.
+  OPTIONAL { ?item1 wdt:P18 ?image1. }
+  OPTIONAL { ?item2 wdt:P18 ?image2. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Vladimir Alexiev (talk) 12:57, 18 November 2023 (UTC) Knowledge graph for Portrait of Madame X [edit] This knowledge graph shows how one portrait painting from The Met's collection has had a lasting influence in art, fashion, cinema and literature. The Portrait of Madame X (Q2664039) by John Singer Sargent was such a scandal at the time that only a knowledge graph can capture all the breadth of its impact. It inspired dress that Rita Hayworth wore in the film Gilda, was also the subject of two different books. After the painting was made, it inspired other artists to paint their own portraits of the Madame Virginie Amélie Avegno Gautreau. Show Wikidata knowledge graph Knowledge graph for Portrait of Madame X The following query uses these:Items: Study of Mme Gautreau (Q28537550)   , Tate (Q430682)   , I am Madame X (Q69562155)   , Strapless: John Singer Sargent and the Fall of Madame X (Q69561988)   , book (Q571)   , John Singer Sargent (Q155626)   , Portrait of Madame X (Q2664039)   , Virginie Amélie Avegno Gautreau (Q3560705)   , Metropolitan Museum of Art (Q160236)   , black dress of Rita Hayworth (Q4010432)   , Gilda (Q382307)   , Rita Hayworth (Q42745)   , Madame Pierre Gautreau (Q65966004)   , Gibbes Museum of Art (Q15221656)   , Madame Gautreau (Q17494007)   , Musée d'Orsay (Q23402)   , Madame Gautreau Drinking a Toast (Q65966300)   , Isabella Stewart Gardner Museum (Q49135)   Properties: image (P18)    Features: Graph (Q24515287)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fuzheado/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

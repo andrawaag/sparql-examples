@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1aafda834491364cd378620d002669c0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?frutto
+WHERE
+{
+  ?frutto colore giallo.
+  ?frutto sapore aspro.
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, il servizio di query di Wikidata, è un potente strumento per accedere ai contenuti di Wikidata. Questa guida ti insegnerà come usarlo. Leggi anche il tutorial interattivo di Wikimedia Israele Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included.  Contents 1 Prima di iniziare 2 SPARQL di base 3 La nostra prima query 3.1 Completamento automatico 4 Modelli di triple avanzate 5 Istanze e classi 5.1 Percorsi delle proprietà 6 Qualificatori 7 ORDER e LIMIT 7.1 Esercizio 7.1.1 Libri di Arthur Conan Doyle 7.1.2 Elementi chimici 7.1.3 Affluenti del Mississippi 7.1.4 Affluenti del Mississippi II 8 OPTIONAL 9 Espressioni, FILTER e BIND 9.1 Tipi di dati 9.2 Operatori 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Raggruppamento 10.1 Popolazioni delle città 10.2 Materiali per la pittura 10.3 Pistole per produttore 10.4 Editori per numero di pagine 10.4.1 HAVING 10.5 Riepilogo delle funzioni aggregatrici 10.6 wikibase:Label and aggregations 11 VALUES 12 Label in multiple languages 13 E oltre… 14 Vedi anche Prima di iniziare Questa guida sembra molto lunga, forse addirittura intimidatoria. Per favore, non lasciare che ti spaventi! SPARQL è complicato, ma delle semplici basi già ti faranno fare molta strada – se vuoi, puoi smettere di leggere dopo #La nostra prima query, e ne saprai già abbastanza per scrivere molte query interessanti. Le sezioni successive aggiungono informazioni su questi argomenti che puoi usare per scrivere differenti query. Ognuna di esse ti darà la possibilità di scrivere query ancora più interessanti, ma nessuna di esse è indispensabile - puoi smettere di leggere in qualsiasi momento e avrai comunque utili informazioni!Se non hai mai sentito prima parlare di Wikidata, SPARQL o WDQS, ecco una breve spiegazione di questi termini: Wikidata è un database delle conoscenze. Contiene molte dichiarazioni come “la capitale del Canada è Ottawa”, o “La Gioconda è un dipinto a olio su tavola di legno di pioppo”, o “l'oro ha una capacità termica di 25 418 joule per mole-kelvin”. SPARQL è un linguaggio per formulare domande (query) per i database delle conoscenze. Con il giusto database, una query SPARQL può rispondere a domande come “qual è la tonalità più popolare nella musica?” o “quale personaggio è stato interpretato dal maggior numero di attori?” o “qual è la distribuzione del tipo di sangue?” o “quali opere e di quali autori sono entrate nel pubblico dominio quest'anno?”. WDQS, Wikidata Query Service, unisce i due insieme: tu immetti una query SPARQL, lui la esegue sul dataset di Wikidata e ti mostra il risultato.  SPARQL di base Una semplice query SPARQL ha il seguente aspetto: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} La clausola SELECT elenca le variabili che si desidera vengano restituite (le variabili iniziano con un punto interrogativo), e la clausola WHERE contiene restrizioni su di esse, principalmente sotto forma di triple. Tutte le informazioni in Wikidata (e database delle conoscenze simili) sono memorizzate sotto forma di triple; quando si esegue la query, il servizio query prova a compilare le variabili con i valori effettivi in modo che le triple risultanti vengano visualizzate come nel database della conoscenza, e restituisce un risultato per ciascuna combinazione di variabili che trova. Una tripla può essere letta come una frase (ecco perché termina con un punto), con un \"soggetto\", un \"predicato\" e un \"oggetto\": SELECT ?frutto
+WHERE
+{
+  ?frutto haColore giallo.
+  ?frutto haSapore aspro.
+} I risultati per questa query potrebbero includere, ad esempio, \"limone\". In Wikidata, la maggior parte delle proprietà sono proprietà di tipo \"ha\", quindi la query si potrebbe leggere: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/it>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

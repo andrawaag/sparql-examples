@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3eb771ff55c5be3f57164395733d2ee1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?hijo
+WHERE
+{
+  #  Bach \"tiene hijo\" hijo
+  
+Bach hijo ?hijo.
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, Wikidata Query Service, es una herramienta poderosa para proporcionar información sobre el contenido de Wikidata. Esta guía te enseñará cómo usarla. Mira también el tutorial interactivo de Wikimedia Israel. Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included.  Contents 1 Antes de comenzar 2 Conceptos básicos de SPARQL 3 Nuestra primera query 3.1 Autocompletado 4 Funciones avanzadas 5 Instancias y clases 5.1 Propiedades y rutas 6 Calificadores 7 ORDER y LIMIT 7.1 Ejercicios 7.1.1 Libros de Arthur Conan Doyle 7.1.2 Elementos químicos 7.1.3 Ríos que desembocan en el Mississippi 7.1.4 Ríos que desembocan en el Mississippi II 8 OPCIONAL 9 Expresiones, FILTER y BIND 9.1 Tipos de datos 9.2 Operadores 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Agrupación 10.1 Poblaciones de ciudades 10.2 Materiales de pintura 10.3 Armas por fabricante 10.4 Editores por cantidad de páginas 10.4.1 HAVING 10.5 Sumario de las funciones agregación 10.6 wikibase:Label and aggregations 11 VALUES 12 Label in multiple languages 13 Y más allá… 14 Véase también Antes de comenzar Si bien esta guía puede parecer muy larga e intimidante, ¡no dejes que eso te asuste! El solo hecho de aprender los conceptos básicos de SPARQL te llevará lejos, incluso si dejas de leer después de #Nuestra primera query ya sabrás lo suficiente como para construir muchas consultas interesantes. Cada sección de este tutorial te permitirá crear consultas aún más complejas.Si nunca has oído hablar de Wikidata, SPARQL, o WDQS antes, aquí una breve explicación de estos términos: Wikidata es una base de datos de conocimiento. Contiene muchas declaraciones como \"la capital de Canadá es Ottawa\", o \"la Mona Lisa está pintada al óleo sobre madera de álamo\", o \"el oro tiene un punto de fusión de 1,064.18 grados Celsius\". SPARQL es un lenguaje para formular preguntas (consultas) para bases de datos de conocimiento. Con la base de datos adecuada, una consulta SPARQL podría responder a preguntas como \"¿cuál es la tonalidad más popular en la música?\" o \"¿qué personaje fue representado por la mayoría de los actores? o \"¿cuál es la distribución de los tipos de sangre? o \"¿qué obras pasaron a ser de dominio público este año?\" WDQS, el servicio de consulta de Wikidata, reúne ambas funciones: si escribes una consulta SPARQL, la ejecuta contra el conjunto de datos de Wikidata y te muestra el resultado.  Conceptos básicos de SPARQL Una consulta SPARQL sencilla tiene este aspecto: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} La cláusula SELECT enumera las variables que deseas que se respondan (las variables comienzan con un signo de interrogación), y la cláusula WHERE contiene las restricciones, principalmente en forma de ternas. Toda la información en Wikidata (y bases de datos de conocimiento similares) se almacena en forma de terna; cuando se ejecuta una consulta, el servicio de consulta intenta completar las variables con valores reales para que las ternas resultantes aparezcan en la base de datos de conocimiento, y devuelve un resultado para cada combinación de variables que encuentra. Una terna se puede leer como una oración (por eso termina con un punto), con un \"sujeto\", un \"predicado\" y un \"objeto\": SELECT ?fruta
+WHERE
+{
+  
+?fruta tieneColor amarillo.
+  ?fruta gusto agrio.
+} Los resultados para esta consulta podrían incluir, por ejemplo, “limón”. En Wikidata, la mayoría de las propiedades se pueden leer como propiedades que comienzan con “tiene”, así que la consulta podría ser en su lugar: SELECT 
+?fruta
+WHERE
+{
+  
+?fruta color amarillo.
+  ?fruta gusto agrio.
+} Lo cual se lee “?fruta tiene color ‘amarillo’” (no como “?fruta es de color ‘amarillo’” – ten esto en cuenta para los pares de propiedades como \"padre\" / \"niño\"!).Sin embargo, ese no es un buen ejemplo para WDQS. El gusto es subjetivo, por lo que Wikidata no tiene una propiedad para ello. En su lugar, pensemos en las relaciones entre padres e hijos, que en su mayoría son inequívocas. Nuestra primera query Supongamos que queremos enumerar a todos los hijos del compositor barroco Johann Sebastian Bach. Usando pseudo-elementos como en las consultas anteriores, ¿cómo escribirías esa consulta?Esperemos que tengas algo como esto: SELECT ?hijo
+WHERE
+{
+  #  hijo \"tiene padre\" Bach
+  ?hijo padre Bach.
+  # (Nota: todo lo que se escribe después de un '#' es un comentario y es ignorado por WDQS.)
+} O esto, SELECT ?hijo
+WHERE
+{
+  # hijo \"tiene padre\" Bach 
+  ?hijo papá Bach. 
+} o esto, """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/es>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

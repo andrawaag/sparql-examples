@@ -1,0 +1,177 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-db85c9ab03f29c64699c8c8164df4208> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?value ?valueLabel WHERE {
+    wd:Q193581 wdt:P400 ?value .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\". }
+}
+LIMIT 10""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Remove porno actresses from a query 2 Population of countries neighbouring Germany 3 Visualising gene structure 'is part of' relationships as diagram 4 Get all release dates, platforms, genres, etc. for a video game in one query 5 How do I get the full time series of data for items like Population or Number of Out-of-school Children? 6 Labling both axes on 'all against all' comparison using dimensions view 7 Get count of statements for specified property 8 Youngest executed criminals 9 Cities names ending en 'ac' ==> time out 10 Federated query to sparql endpoint defined in property 11 Twins with different place of birth 12 Weather station with no closure date OR closure after 1953 13 sparql 14 Release date of earliest edition of a book 15 Black/African-American and LGBT individuals in STEM 16 All articles from Wikipedia project without description 17 Search for genus & species items missing descriptions 18 Header of Query 19 Amount of current US congressmen who have a certain major 20 What is the \"inverse\" of wikibase:geoLatitude 21 Items with specific property in the radius from the point 22 Select items that are plants 23 Missing labels 24 Integration of MWAPI to parse categories runs into timeout only by de.wikipedia 25 results containing english sitelink 26 Get family and order of mammal taxa missing in a given language 27 Video game genres and OLAC catalogue 28 Authors who contributed papers to a specific journal 29 Display date of birth 30 Title or label 31 need help with a query 32 Get names and license of all Linux media players 33 Video games with a Steam Application ID imported from PCGamingWiki 34 Books that have a title in a given language but not a label in that language 35 Query on Lexemes needing fixing 36 Query a company based on its official website 37 Isolate attributes starting with a list of 1200 names 38 Female species authorities / missing species authorities 39 Categorías 40 If I have a list of DOI (P356), how can I make a list of QIDs? 41 Show only highest territorial level 42 Several categories 43 Subquery for 'joining' 44 requesting a value 45 Municipalties of Czech Republic 46 Actresses from a specific show 47 Multiple values 48 Count of tennis players by gender 49 Query Request: Band / Genre / Location 50 Using qualifiers in a query 51 Query a company based on its official website. 52 Russian districts 53 Add a column instead of a line 54 Optimizing a query for the mapframe extension 55 Largest worldwide cities per country - final tweaks on an aggregate query 56 Add reference for the number 57 Count of en.wiki biography articles 58 How to select English OR most popular non-English language Wikipedia article? 59 Is there a way to aggregate the instance of using a separator like , Remove porno actresses from a query Hello,I am training Canadian librarians at University York / Ryerson and I'd like to use the query below. It is targeting Canadian subjects that has no articles in English.Now, I would like to remove pornographic actor (Q488111), erotic photography model (Q3286043) and model (Q4610556) from that query, because it would be inappropriate to present this request with such a result in front of this audience... Thanks in advance, Benoit Rochon (talk) 12:26, 29 January 2019 (UTC) SELECT ?item ?itemLabel ?cnt WHERE {
+{
+  SELECT ?item (COUNT(?sitelink) AS ?cnt) WHERE {
+  ?item wdt:P27|wdt:P205|wdt:P17 wd:Q16 .
+  ?sitelink schema:about ?item .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  } GROUP BY ?item ORDER BY DESC (?cnt) LIMIT 1000
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\" }  
+} ORDER BY DESC (?cnt)
+ Try it! @Benoit Rochon: After a false start, query below. SELECT ?item ?itemLabel ?cnt WHERE {
+{
+  SELECT ?item (COUNT(?sitelink) AS ?cnt) WHERE {
+  ?item wdt:P27|wdt:P205|wdt:P17 wd:Q16 .
+  minus {?item wdt:P106 wd:Q488111 .}
+  minus {?item wdt:P106 wd:Q3286043 .}
+  minus {?item wdt:P106 wd:Q4610556 .}  
+  ?sitelink schema:about ?item .
+  FILTER NOT EXISTS {
+    ?article schema:about ?item .
+    ?article schema:isPartOf <https://en.wikipedia.org/> .
+  }
+  } GROUP BY ?item ORDER BY DESC (?cnt) LIMIT 1000
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr\" }  
+} ORDER BY DESC (?cnt)
+ Try it! --Tagishsimon (talk) 13:43, 29 January 2019 (UTC) Thank you Tagishsimon, once again, it was very useful. I add it in the examples. Best, Benoit Rochon (talk) 13:13, 2 February 2019 (UTC) Population of countries neighbouring Germany Hello I've come accross this query and was surprised to find Saarland (Q1201) as a country neighbouring Germany (it was at a certain time but not now). I wasn't able to find what is wrong into the Saarland (Q1201) . Bouzinac (talk) 12:31, 2 February 2019 (UTC) #Population des pays voisins de l'Allemagne
+SELECT ?year ?population ?countryLabel WHERE {
+  {
+    SELECT ?country ?year (AVG(?population) AS ?population) WHERE {
+      {        SELECT ?country (YEAR(?date) AS ?year) ?population WHERE {
+          ?country wdt:P47 wd:Q183.
+          ?country p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?population.
+          ?populationStatement pq:P585 ?date.
+          FILTER(year(?date)>=1900) .
+          #FILTER( ?country not in (wd:Q1201)).
+        }      }
+    }
+    GROUP BY ?country ?year
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ Try it! Besides, if the template {{SPARQL}} was able to clean white-not very white-spaces ? Bouzinac (talk) 12:31, 2 February 2019 (UTC) @Bouzinac: There's nothing much wrong. Items are included in the query if they have a wdt:P47 wd:Q183 property/value, which Saarland does. You need to add further conditions if you want to eliminate non-countries. --Tagishsimon (talk) 12:52, 2 February 2019 (UTC) Ok, i've found out this query (raising same Saarland problem :) ) it shows the current neighbours of Germany SELECT ?border ?borderLabel ?country1Label ?country2Label ?isLandBorder ?isMaritimeBorder ?constraint {
+  VALUES (?country1) {(wd:Q183)}
+  ?border wdt:P31 wd:Q12413618 ;
+          wdt:P17 ?country1 , ?country2 .
+  FILTER (?country1 != ?country2)
+  BIND (EXISTS {?border wdt:P31 wd:Q15104814} AS ?isLandBorder)
+  BIND (EXISTS {?border wdt:P31 wd:Q3089219} AS ?isMaritimeBorder)
+  BIND ((?isLandBorder|| ?isMaritimeBorder) AS ?constraint)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+  } ORDER BY ?country1Label
+ Try it!Bouzinac (talk) 13:15, 2 February 2019 (UTC)I tried to adapt and was able to get all (lol) countries neighbouring Germany : how to fix it ? #Population des pays voisins de l'Allemagne SELECT ?year ?population ?country2Label WHERE {{    SELECT ?country2 ?year (AVG(?population) AS ?population) WHERE {
+     {        SELECT ?country2 (YEAR(?date) AS ?year) ?population WHERE {
+         ?country wdt:P47 wd:Q183.
+         ?border wdt:P31 wd:Q12413618 ;
+         wdt:P17 ?country , ?country2 .
+         FILTER (?country != ?country2)
+         BIND (EXISTS {?border wdt:P31 wd:Q15104814} AS ?isLandBorder)
+         BIND (EXISTS {?border wdt:P31 wd:Q3089219} AS ?isMaritimeBorder)
+         BIND ((?isLandBorder|| ?isMaritimeBorder) AS ?constraint)
+         ?country2 p:P1082 ?populationStatement.
+         ?populationStatement ps:P1082 ?population.
+         ?populationStatement pq:P585 ?date.
+         FILTER(year(?date)>=1900) .
+       }
+     }
+   }
+   GROUP BY ?country2 ?year  }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }   }Thank you! Bouzinac (talk) 13:23, 2 February 2019 (UTC) Visualising gene structure 'is part of' relationships as diagram  I originally posted to project chat, but I've realised here might be a more sensible location to ask.Hello, I'm trying to encode the relationships and references in the two diagrams in w:Gene_structure within Wikidata. I feel like it should be possibly to recapitulate the structure of that diagram with a Wikidata Query network graph. Starting at Gene Edges of Property:P361, Property:P31, and Property:P279 in different colours (showing only those that have qualifier of (P642) eukaryotes. Edges down from Gene, but also across between elements Colour nodes by whether they are part of open reading frame, UTR or regulatory sequence Here is my first attempt butchered from a previous query written by Fnielsen because I cant work out the syntax enough to implement most of the features above. Any ideas on how to fix it? Evolution and evolvability (talk) 03:42, 31 January 2019 (UTC) @Evolution and evolvability: The Graph view doesn't allow to colour edges, see here. -- Luitzen (talk) 19:30, 31 January 2019 (UTC) @Luitzen: Ah, thank you. Can the edge labels be customised (e.g. 'P' for 'part of', 'i' for 'instance of'). Evolution and evolvability (talk) 01:21, 1 February 2019 (UTC) I've made an updated version, but I suspect there are still redundant parts. Any ideas on how to simplify it, perhaps with some sort of structure like this? PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+#defaultView:Graph
+# parts of a gene and their subclasses
+SELECT DISTINCT ?down ?downLabel ?up ?upLabel (\"#ff0000\" AS ?rgb) WHERE {
+  {
+    {
+      SELECT ?down ?up WHERE { # subclass of untranslated region
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q424345.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P279.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # subclass of regulatory sequence
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q3238407.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P279.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # part of coding region
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q3780824.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P361.
+        }
+      }
+    }
+  }
+  UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # instance of regulatory sequence
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q424345.
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P31.
+        }
+      }
+    }
+  }
+   UNION
+  {
+    {
+      SELECT ?down ?up WHERE { # part of gene
+        SERVICE gas:service {
+          gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\".
+          gas:program gas:in wd:Q7187. # gene
+          gas:program gas:traversalDirection \"Reverse\".
+          gas:program gas:out ?down.
+          gas:program gas:out1 ?depth.
+          gas:program gas:out2 ?up.
+          gas:program gas:linkType wdt:P361.
+        }
+      }
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,da,sv,jp,zh,ru,fr,de\". }
+}
+ Try it! I'm also struggling to work out how to use the ?edgeLabel parameter (simplified example). Any advice appreciated! Evolution and evolvability (talk) 06:02, 3 February 2019 (UTC) Get all release dates, platforms, genres, etc. for a video game in one query What I'm trying to do is create a query that can be used to get more than one property at a time. For example this query gets the platforms (platform (P400)) for the game Half-Life 2 (Half-Life 2 (Q193581)): """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

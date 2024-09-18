@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-18952a22f3681c3e45f2a7a7d34778a8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?iso ?countryLabel (SUM(?stars) as ?stars) ?fertility WHERE {
+{SELECT DISTINCT ?country ?iso WHERE {
+VALUES ?countrytypes {wd:Q6256 wd:Q3624078} # country and sovereign state
+?country wdt:P31 ?countrytypes ; wdt:P298 ?iso
+MINUS {?country wdt:P576 []} # Not dissolved
+}  }
+?country wdt:P163 ?flag.
+OPTIONAL{
+?flag p:P180 [ps:P180 ?feature ; pq:P1114 ?stars] . # quantity of feature
+?feature wdt:P279? wd:Q836708  # type of star polygon
+}
+OPTIONAL { ?country wdt:P4841 ?fertility }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?iso ?countryLabel ?fertility
+ORDER BY DESC(?stars) ?countryLabel""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

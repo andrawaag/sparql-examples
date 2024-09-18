@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e7fe5cf79bfd2cc61a3541ce3e56ae64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Stations along the Tōkaidō, the road from Tokyo to Kyoto, with images of the print series
+#defaultView:Map
+SELECT ?ord ?dist_km ?item ?itemLabel ?itemDescription ?today ?todayLabel ?todayimage ?coor ?hascoord ?print ?printimg 
+{
+	?item wdt:P31 wd:Q75093704 . 
+    OPTIONAL { ?item p:P31 [ ps:P31 wd:Q75093704 ; pq:P1545 ?ord ] }. 
+    OPTIONAL { ?item wdt:P625 ?coor0 . BIND(\"y\" as ?hascoord) }
+    OPTIONAL { ?item wdt:P131 ?today . 
+             OPTIONAL { ?today wdt:P625 ?coor1 } 
+             OPTIONAL { ?today wdt:P18 ?todayimage }
+             }
+    BIND( COALESCE ( ?coor0, ?coor1 ) as ?coor ) 
+    OPTIONAL { ?print wdt:P179 wd:Q19258119 ; wdt:P180 ?item . OPTIONAL { ?print wdt:P18 ?printimg }  }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+    wd:Q1490 wdt:P625 ?c0 . BIND( round(geof:distance(?c0, ?coor)) as ?dist_km) 
+}
+ORDER BY ?dist_km ?ord""";
+  rdfs:comment """Home Properties Tasks and Queries Want to help? Here are some ideas. Contents 1 General 1.1 Classification 2 Geography 2.1 Cleanup \"instance of Geographical Object\" 2.2 Add missing neighborhoods 2.3 Add located in the administrative territorial entity (P131) property to geographical feature (Q618123) in Japan 2.4 Stations along the Tōkaidō, the road from Tokyo) to Kyoto, with images of the print series General [edit] Classification [edit] Things related to Japan need to be classified by being given the property instance of (P31) or subclass of (P279)Query: SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P17 wd:Q17.
+  FILTER NOT EXISTS {
+    ?item wdt:P31 ?instance
+  }
+  FILTER NOT EXISTS {
+    ?item wdt:P279 ?superclass
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Number left: 8466 Geography [edit] Cleanup \"instance of Geographical Object\" [edit] Giving an object the property instance of (P31) with a value of geographical feature (Q618123) is considered a bad practice because it is not specific enough. We need to replace geographical feature (Q618123) with a more specific value. Query: SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P17 wd:Q17.
+  ?item wdt:P31 wd:Q618123.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Number left: 29 Add missing neighborhoods [edit] Not all neighborhood (Q123705) that have wikipedia pages do not have wikidata objects. We should create objects for them. Once we find a comprehensive listing of neighborhood (Q123705) we should add those as wellQuery: Petscan search We may be able to create pages from Petscan itself, just haven't figured it out yet.Number left: 55 Add located in the administrative territorial entity (P131) property to geographical feature (Q618123) in Japan [edit] Places in Japan need their located in the administrative territorial entity (P131) property setQuery:SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P17 wd:Q17;
+        wdt:P31/wdt:P279* wd:Q1503302.
+  FILTER NOT EXISTS {
+    ?item wdt:P131 ?area
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Number left: 1 Stations along the Tōkaidō, the road from Tokyo) to Kyoto, with images of the print series [edit] Items used: station of the Tōkaidō (Q75093704)   , The Fifty-three Stations of the Tōkaidō (Q19258119)   , Tokyo (Q1490)   Properties used: instance of (P31)   , coordinate location (P625)   , located in the administrative territorial entity (P131)   , image (P18)   , part of the series (P179)   , depicts (P180)   , series ordinal (P1545)   Features used: map (Q24515275)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Japan/Tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

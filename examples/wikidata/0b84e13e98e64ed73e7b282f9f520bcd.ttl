@@ -1,0 +1,58 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0b84e13e98e64ed73e7b282f9f520bcd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?item2 ?itemLabel 
+WHERE
+{
+  ?item wdt:P106 wd:Q1028181 .
+  ?item rdfs:label ?itemLabel .
+  FILTER(LANG(?itemLabel) = \"en\") .
+  ?item2 wdt:P106 wd:Q1028181 .
+  ?item2 rdfs:label ?itemLabel .
+  FILTER(str(?item) < str(?item2))
+}
+LIMIT 1000""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Wikidata items with a sitelink to any Wikisource, sorted by Wikisource language 2 Multiple item search 3 Species whose parent taxon is not a genus 4 Commonswiki link and P910 5 Commonswiki link and P373 6 Painters with duplicate labels in English 7 Birth place and gender of the \"List of articles every Wikipedia should have\" biographies 8 Who is in space now? 9 Q2657718 without qualifiers 10 All ketones that boil between 175°C and 185°C 11 Matrices 12 Population and Area as of 1990-12-31 13 Hierarchical Queries 14 List of cities in french ending \"ovie\" 15 Description containing a certain word 16 Average distance between birthplace and deathplace by year 17 Musicians with honorary degrees 18 Query for organisms whose wikipedia page is not linked to the scientific name 19 Life Sciences-related queries 19.1 Get all parts of the human body (Q23852) 20 demonym 21 Disaster-related queries 21.1 Total population living within 50km of epicenter of an earthquake at the time of the earthquake 21.2 Total population living within 50km of epicenter of a recent earthquake 21.3 Total population living within 50km of epicenters of earthquakes with a moment magnitude of 7 or higher at the time of the earthquake 21.4 Most widely used references for most recent population statements of places within 50km of epicenters of an earthquake 21.5 Total current population living within 50km of epicenters of earthquakes with a moment magnitude of 7 or higher that occurred over the last 200 years 21.6 Total current population living within 50km of epicenters of earthquakes with a moment magnitude of 7 or higher predicted for the next 100 years 21.7 Languages spoken within 50km of the epicenter of an earthquake at the time of the earthquake 21.8 Monuments within 50km of the epicenter of an earthquake at the time of the earthquake 21.9 Buildings within 50km of the epicenter of an earthquake at the time of the earthquake 21.10 Population and altitude of settlements on the coasts surrounding off-shore earthquakes 21.11 Dams and locks along a river and its tributaries 21.12 Hospitals within a geoshape 22 list of country calling codes (Q34768) 23 dates with multiple calendars 24 Physicists from Africa 25 MINUS vs FILTER NOT EXISTS 26 Occupations of people born in Utah 27 Combine two queries to match paintings with painters 28 Fehlende Artikel in de.wp mit existenten Artikeln in anderen Sprachen (Missing dewiki articles with articles in other Wikipedias) 29 List of airports in a given administrative région (or a wikipedia category ?) 30 Wikimedia permanent duplicate item (Q21286738) that have country (P17) 31 Directors of the Scuola Normale Superiore Wikidata items with a sitelink to any Wikisource, sorted by Wikisource language Haven't seen any query example with Wikisource, so this could be a good start. --Daniel Mietchen (talk) 02:04, 13 August 2017 (UTC) Only seems to work with a LIMIT (or perhaps it’s just the spotty WiFi), but here you go: SELECT ?item ?wikisourceSitelink ?wikisourceLanguage WHERE {
+  ?wikisourceSitelink schema:isPartOf [ wikibase:wikiGroup \"wikisource\" ];
+                      schema:inLanguage ?wikisourceLanguage;
+                      schema:about ?item.
+}
+ORDER BY ?wikisourceLanguage
+LIMIT 100
+ Try it! --TweetsFactsAndQueries (talk) 14:16, 13 August 2017 (UTC) Saw this only now — thanks! --Daniel Mietchen (talk) 01:00, 2 September 2017 (UTC) Multiple item search Is it possible to search multiple items (max. 100 search terms) by their labels without running into timeout? Take for example, I want to search items with names Prolog, Python, PHP etc. in one single query. Thanks. John Samuel 09:09, 3 September 2017 (UTC) Term search is always tricky, perhaps you could get better performace with SQL. Anyway: SELECT ?item ?label {
+  VALUES ?label { \"Prolog\"@en \"Python\"@en \"PHP\"@en } .
+  ?item rdfs:label ?label .
+}
+ Try it! Matěj Suchánek (talk) 16:38, 3 September 2017 (UTC) Species whose parent taxon is not a genus Hello, would it be possible to have a list of species (taxon rank (P105) = species (Q7432)) where the parent taxon (P171) is not a genus (Q34740)? (Example) Thanks, Korg (talk) 11:10, 3 September 2017 (UTC) SELECT ?item WHERE {
+  ?item wdt:P105 wd:Q7432 .
+  ?item wdt:P171 ?genus .
+  MINUS { ?genus wdt:P105 wd:Q34740 } .
+  } LIMIT 10000
+ Try it! @Korg: You probably add a bit more filtering. To filter out things like subgenus (Q3238261). Just add more \"MINUS\" lines. Multichill (talk) 11:46, 3 September 2017 (UTC) @Multichill: Thank you very much! Korg (talk) 12:02, 3 September 2017 (UTC) Commonswiki link and P910 Please, a query for items which: have a commonswiki link, beginning by \"Category:\" have P910 Visite fortuitement prolongée (talk) 13:29, 3 September 2017 (UTC) SELECT ?item ?sitelink ?category {
+  ?item wdt:P910 ?category;
+        ^schema:about [ schema:isPartOf <https://commons.wikimedia.org/>; schema:name ?sitelink ] .
+  FILTER( STRSTARTS( ?sitelink, 'Category:' ) ) .
+} LIMIT 1000
+ Try it! Matěj Suchánek (talk) 16:35, 3 September 2017 (UTC) @Visite fortuitement prolongée: this is also one of the constraints on Property talk:P910, the report is at Wikidata:Database reports/Complex_constraint_violations/P910#Items_that_link_to_a_Commons_category. Multichill (talk) 20:46, 3 September 2017 (UTC) Thank you! Visite fortuitement prolongée (talk) 20:49, 3 September 2017 (UTC) Commonswiki link and P373 Please, a query for items which: have a commonswiki link, beginning by \"Category:\" have not P373 Visite fortuitement prolongée (talk) 13:29, 3 September 2017 (UTC) SELECT ?item ?sitelink {
+  ?item ^schema:about [ schema:isPartOf <https://commons.wikimedia.org/>; schema:name ?sitelink ] .
+  FILTER( STRSTARTS( ?sitelink, 'Category:' ) ) .
+  MINUS { ?item wdt:P373 [] } .
+} LIMIT 1000
+ Try it! Matěj Suchánek (talk) 16:36, 3 September 2017 (UTC) Thank you! Visite fortuitement prolongée (talk) 20:50, 3 September 2017 (UTC) Painters with duplicate labels in English Sometimes we have multiple painters with the same name like for example Jan Steen (Q205863) and Jan Steen (Q2483000). These often get mixed up so different from (P1889) gets added so we can find these mistakes. I would like to get an overview of painter pairs where both have the same label in English, but not linked to each other with different from (P1889). I keep running into time-outs so I hope someone else has a smart way of fixing this: SELECT ?item ?item2 WHERE {
+  ?item wdt:P106 wd:Q1028181 .
+  ?item rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = \"en\") .
+  ?item2 rdfs:label ?item2Label .
+  FILTER(LANG(?item2Label) = \"en\" && !(str(?item)=str(?item2)) && ?itemLabel=?item2Label ) .
+  ?item2 wdt:P106 wd:Q1028181 .
+  } LIMIT 10
+ Try it! If this can get fixed, than the next step would be to expand to other languages and/or aliases. Multichill (talk) 11:53, 3 September 2017 (UTC) Items used: painter (Q1028181)   Properties used: occupation (P106)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

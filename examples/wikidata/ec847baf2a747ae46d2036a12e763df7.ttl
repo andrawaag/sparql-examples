@@ -1,0 +1,178 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ec847baf2a747ae46d2036a12e763df7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?qid 
+{
+  ?item wdt:P6770 ?value ; wdt:P31 wd:Q5 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\"  }
+  BIND(xsd:integer ( strafter(str(?item), \"Q\")) as ?qid) 
+  FILTER( ?qid > 	64000000 )
+}""";
+  rdfs:comment """This is an archive of past discussions. Do not edit the contents of this page. If you wish to start a new discussion or revive an old one, please do so on the current talk page. Contents 1 Garrigas 2 Malformed entries related to Semantic Scholar 3 Removing unnecessary disambiguation brackets 4 Identifiant National Football League 5 Replace imported from Wikimedia project (P143)=Minor Planet Center (Q522039) 6 Replace imported from Wikimedia project (P143)=Landesfilmsammlung Baden-Württemberg (Q24469969), Haus des Dokumentarfilms (Q1590879) 7 Replace imported from Wikimedia project (P143)=Museu d'Art Jaume Morera (Q5476145) 8 Replace imported from Wikimedia project (P143)=Italian National Institute of Statistics (Q214195) 9 Replace imported from Wikimedia project (P143)=Historical Commission of the Bavarian Academy of Sciences (Q1419226) 10 Replace imported from Wikimedia project (P143)=Natural History Museum, London (Q309388) 11 fix ALLCAPS of items imported from MIC 12 Year-qualifier for \"students count\" (P2196) values 13 Replace imported from Wikimedia project (P143)=Historic England (Q19604421) 14 Replace imported from Wikimedia project (P143)=Municipal Institute of Museums of Reus (Q23687366) 15 replace reference URL (P854) = Petscan 16 Create person items from Wikisource entries (matr. Oxonienses) 17 Add info about subject to items with generic title \"obituary\" 18 Bulk create items for given names in Russian (Cyrillic script) 19 Replace pr:P1343 with pr:P248 20 Untitled requests about Wikinews 21 Accademia delle Scienze di Torino multiple references 22 Trailing space (\" \") in labels 23 Malformed entries related to \"Swiss National Sound Archives ID\" (P6770) Garrigas Request date: 26 November 2020, by: Infovarius Link to discussions justifying the request  Task description There is a lot of sources which mention Garrigàs (Q11329) which looks like a glitch in some import. Look how many links to this small town. This \"source\" is used in many different properties. I've tried to get a list but I failed... Licence of data to import (if relevant) Discussion  Request process This section was archived on a request by: seems to be solved --- Jura 07:45, 3 December 2020 (UTC) Malformed entries related to Semantic Scholar Properties used: Semantic Scholar author ID (P4012)   SELECT ?item ?l WHERE { ?item wdt:P4012 [] ; rdfs:label ?l . FILTER( lang(?l) = \"en\" && REGEX( ?l, \"^.+ [A-Z][A-Z]$\") ) } LIMIT 2000 Try it!The above finds ca. 2000 entries. I think it would be worth checking if these don't need to be converted from: <surname>, <initials of given name> to: <initials of given name> <surname> --- Jura 21:06, 20 December 2020 (UTC) Challenge taken. Script is running. I'll move the old style names to the alias, and reformat all existing label-languages. Edoderoo (talk) 13:43, 29 December 2020 (UTC) Done You're query now remains empty. Edoderoo (talk) 15:05, 29 December 2020 (UTC) I think that this discussion is resolved and can be archived. If you disagree, don't hesitate to replace this template with your comment. Matěj Suchánek (talk) 10:01, 13 March 2021 (UTC) Removing unnecessary disambiguation brackets Request date: 18 December 2020, by: Bencemac Link to discussions justifying the request Guideline of Help:Label#Disambiguation information belongs in the description Task description Please help me clean some Hungarian labels, where country (P17) is Hungary (Q28) and instance of (P31) is a subclass of church building (Q16970). Previously, the labels were correct and followed Help:Labels, but now, thanks to a user, they are totally messed up with unnecessary disambiguation brackets. I started undoing their wrong edits, but there are too many to handle them one by one.Please change Name of the church (location) to Name of the church like this. Thanks in advance! Bencemac (talk) 09:22, 18 December 2020 (UTC) Discussion  Request process Accepted by (Edoderoo (talk) 19:33, 29 December 2020 (UTC)) and under process Done Task completed (19:33, 29 December 2020 (UTC)) This section was archived on a request by: --- Jura 09:39, 30 March 2021 (UTC) Identifiant National Football League Request date: 3 December 2020, by: Sismarinho NFL.com ID (former scheme) (P3539) (Sorry french) Bonjour, il y a un problème avec les identifiants NFL de nombreuses fiches depuis que l'architecture du site de la NFL a changé. Désormains c'est le nom de la personne. Par exemple pour Bronko Nagurski (Q927663) c'est bronko-nagurski. Un bot peut-il faire cette requête ? Task description Licence of data to import (if relevant) Discussion Please propose a new property for the new scheme. Once done, this could be filled by bot or in some other way. --- Jura 07:45, 3 December 2020 (UTC) Request process Replace imported from Wikimedia project (P143)=Minor Planet Center (Q522039) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q522039 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 48000 statements --- Jura 09:57, 6 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Landesfilmsammlung Baden-Württemberg (Q24469969), Haus des Dokumentarfilms (Q1590879) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q24469969 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q1590879 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The two queries currently find ca. 7800 statements --- Jura 09:57, 6 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Museu d'Art Jaume Morera (Q5476145) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q5476145 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 7800 statements --- Jura 09:57, 6 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Italian National Institute of Statistics (Q214195) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q214195 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 8000 statements --- Jura 09:57, 6 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Historical Commission of the Bavarian Academy of Sciences (Q1419226) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q1419226 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 8400 statements --- Jura 09:57, 6 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Natural History Museum, London (Q309388) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q309388 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 23000 statements --- Jura 09:57, 6 December 2020 (UTC) fix ALLCAPS of items imported from MIC Request date: 5 October 2020, by: Vladimir Alexiev Link to discussions justifying the request https://www.wikidata.org/wiki/Topic:Vv1zfojnvvo11oj8 initiated by @Jura1: Task description I have imported a bunch of items with MIC market code (P7534) (stock exchanges and the like), see https://editgroups.toolforge.org/b/OR/ab49ffaac2/.Some of them come with ALLCAPS names or descriptions, so they are listed at https://www.wikidata.org/wiki/Wikidata:Database_reports/Complex_constraint_violations/P7534.Can someone help with fixing the names and descriptions to \"Title Case\"? (I thought descriptions should be in \"Sentence case\" but very often they also contain the exchange name)Please note that prepositions should be in lower case, eg \"BOLSA DE COMERCIO DE SANTA FE\" should be come \"Bolsa de Comercio de Santa Fe\". Licence of data to import (if relevant) Discussion The linked constraint page lists 10 items with all-caps labels and 10 items with all-caps descriptions. You should fix this small number by hand as writing a bot for this would take hours and the correct (automatic) handling of prepositions is difficult. --Pyfisch (talk) 10:14, 5 October 2020 (UTC) 10 is just a selection. There are many more. --- Jura 10:18, 14 October 2020 (UTC) The task is more difficult since there are many acronyms that must be left as is (eg APA, OTF, OTP, NASDAQ, STOXX, etc). So the bot should only change (capitalize) usual words found in a dictionary --Vladimir Alexiev (talk) 02:49, 11 December 2020 (UTC) Request process Year-qualifier for \"students count\" (P2196) values Properties used: count of students (P2196)   , point in time (P585)   SELECT DISTINCT ?item ?itemLabel ?sl
+{
+  ?item wdt:P2196 ?value .
+  FILTER NOT EXISTS { ?item p:P2196 / pq:P585 [] }
+  ?item wikibase:sitelinks ?sl .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!The items above have student counts, but no point in time (P585)-qualifier (currently 2440 of 56228 items with the property). It would be good to find a way to add the year to these.I noticed some come from dewiki infoboxes which don't include a year either. --- Jura 06:34, 29 November 2020 (UTC)So @Jura1: where can we get the years from? Also, the way the query is written doesn't show the full extent of the problem. If a University has 1 claim with year and 100 without year, you won't count it --Vladimir Alexiev (talk) 02:55, 11 December 2020 (UTC) I'm not sure about a possible source. Maybe another language Wikipedia infobox, Wikipedia article text or an external source. Agree that more statements might need completion, but the above are most in need of it. --- Jura 07:16, 11 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Historic England (Q19604421) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q19604421 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 4300 statements --- Jura 09:57, 6 December 2020 (UTC) @Robevans123: if possible, would you make an item we could use together with stated in (P248)? See Help:Sources#Databases. I see you added in there, but maybe also the others. --- Jura 13:23, 18 December 2020 (UTC) Replace imported from Wikimedia project (P143)=Municipal Institute of Museums of Reus (Q23687366) SELECT ?item ?itemLabel ?prop ?propLabel ?value ?valueLabel ?st
+WHERE
+{
+  ?st prov:wasDerivedFrom/pr:P143 wd:Q23687366 .
+  hint:Prior hint:rangeSafe true .
+  ?item ?p ?st .
+  ?prop wikibase:claim ?p ; wikibase:statementProperty ?ps .
+  ?st ?ps ?value 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it! As imported from Wikimedia project (P143) should only be used with WMF projects, the above should be replaced with some other property, e.g. \"stated in\" or \"publisher\", and possibly a different value. The query currently finds ca. 5800 statements --- Jura 09:57, 6 December 2020 (UTC) @ESM: similar to the previous, would you make an item with could use as value for stated in (P248) ? --- Jura 13:25, 18 December 2020 (UTC) replace reference URL (P854) = Petscan SELECT *
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  ?ref pr:P854 ?value .
+  FILTER( REGEX( STR( ?value ), \"petscan\" )  )
+  ?statement prov:wasDerivedFrom ?ref;
+}
+LIMIT 200
+ Try it! reference URL (P854) could be replaced with Wikimedia import URL (P4656). --- Jura 12:35, 6 December 2020 (UTC) Sample edit [1]. Not sure how to do it with wikibase-cli --- Jura 13:40, 18 December 2020 (UTC) Create person items from Wikisource entries (matr. Oxonienses) SELECT ?item ?itemLabel ?itemDescription
+{
+	?item wdt:P1433 wd:Q19036877 . 
+	FILTER NOT EXISTS { ?item wdt:P921 [] }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! For the above, it could be interesting to create an item for each person without main subject (P921) (currently 27400).Sample: Everest, Robert (Q94820208) with s:Everest,_Robert → Robert Everest (Q104057081).for info: @Miraclepine, Charles Matthews: --- Jura 19:20, 9 December 2020 (UTC) Of course I have wondered about this. I think the proportion of people there who are not really notable would be at least 50%. That isn't a definitive argument, but I regard having to sift through numerous country vicars to do a disambiguation run as fairly undesirable. It would be rather better to have them in mix'n'match by some device. That would correspond to what has gone in with Cambridge alumni. Charles Matthews (talk) 19:39, 9 December 2020 (UTC) I tried to find a way to use Mix'n'match for Wikisource entries, but people seemed to think that it's not desirable. Maybe some filtering should be done beforehand, but it shouldn't be too complex to identify duplicates based on YOB and name once the items created. --- Jura 19:44, 9 December 2020 (UTC) Maybe ORCID is the better comparison in terms of notability. --- Jura 13:30, 18 December 2020 (UTC) Add info about subject to items with generic title \"obituary\" Items used: scholarly article (Q13442814)   Properties used: instance of (P31)   , main subject (P921)   , published in (P1433)   SELECT DISTINCT ?item ?itemLabel ?itemDescription ?pubvenueLabel
+{
+	?item wdt:P31 wd:Q13442814 . 
+    { ?item rdfs:label \"OBITUARY\"@en } UNION { ?item rdfs:label \"Obituary\"@en }
+	FILTER NOT EXISTS { ?item wdt:P921 [] }
+    OPTIONAL { ?item wdt:P1433 ?pubvenue }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it!It seems with have more than 2500 items where we lack info about the person (P921).It would be helpful if the name and possibly the lifespan of the person could be added to the items description or elsewhere. --- Jura 11:33, 18 December 2020 (UTC) Bulk create items for given names in Russian (Cyrillic script) Items used: given name (Q202444)   , Cyrillic script (Q8209)   , Russian (Q7737)   , Latin script (Q8229)   Properties used: instance of (P31)   , subclass of (P279)   , writing system (P282)   , language of work or name (P407)   SELECT ?item ?itemLabel ?itemDescription ?itemAltLabel
+{
+	?item wdt:P31/ wdt:P279? wd:Q202444 . 
+	?item wdt:P282 wd:Q8209 . 
+	?item wdt:P407 wd:Q7737 .
+	FILTER NOT EXISTS { ?item wdt:P282 wd:Q8229 }  
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,en\" }
+} Try it!Sample item: Q104431130Currently the above only finds some 310 items (or 286 if one excludes the ones that incorrectly mix them with Latin script given name items).A few more might be available, but incomplete.I think it would be interesting to have a more complete dataset available. --- Jura 23:03, 22 December 2020 (UTC) Replace pr:P1343 with pr:P248 Items used: Wikidata Sandbox (Q4115189)   , Wikidata Sandbox 2 (Q13406268)   , Wikidata Sandbox 3 (Q15397819)   Properties used: described by source (P1343)   SELECT ?item ?itemLabel ?value ?valueLabel ?statement
+WHERE
+{
+	{
+		SELECT DISTINCT ?item ?value ?statement
+		WHERE
+		{
+			?ref pr:P1343 ?value .
+			?statement prov:wasDerivedFrom ?ref .
+			?item ?p ?statement .
+		}
+	} .
+	FILTER( ?item NOT IN ( wd:Q4115189, wd:Q13406268, wd:Q15397819 ) ) .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} Try it!The query finds some 3570 references using described by source (P1343). As Epìdosis noted on Property_talk:P1343#Use_in_references, stated in (P248) would generally be the property to use. --- Jura 08:29, 23 December 2020 (UTC) Thanks Jura. I had reported the problem directly to @Ladsgroup: who had fixed some of them with his bot, but evidently there are some more needing intervention. --Epìdosis 09:16, 23 December 2020 (UTC) Yeah, I have been cleaning it up for a while now, I just need to constant re-run it. Hopefully, it'll be done soon Amir (talk) 06:23, 24 December 2020 (UTC) If new ones come up in bulk, the relevant user (or bot operator) should be advised. Trying to figure out where they came from, I found https://www.wikidata.org/w/index.php?title=Q102075911 but the redirect was deleted. @Epìdosis: Why that? Anyways, maybe Krbot could autofix occasional ones going forward. @Ivan_A._Krestinin: what do you think? --- Jura 18:50, 28 December 2020 (UTC) Regarding Q102075911: according to Wikidata:Requests for comment/Redirect vs. deletion, \"Deleting is however appropriate if an item has not been existed longer than 24 hours and if it's clear that it's not in use elsewhere.\" I surely support the autofix and I thank again @Ladsgroup: for the cleaning! --Epìdosis 20:04, 28 December 2020 (UTC) Very strange that RFC. Makes me wonder how User:Stryn determined the \"consensus\". --- Jura 08:58, 29 December 2020 (UTC) Untitled requests about Wikinews Request process Request date: 29 December 2020, by: NMaia Link to discussions justifying the request  Task description For Wikinews article (Q17633526) entries, it would also be useful to add: author (P50) Wikinews editor (Q104521649) copyright status (P6216) copyrighted (Q50423863) copyright license (P275) Creative Commons Attribution 2.5 Generic (Q18810333) published in (P1433) e.g. German Wikinews German Wikinews (Q21281266), depending on the sitelinks) title (P1476) title copied from Wikinews page title image (P18) an image inserted in the news article Licence of data to import (if relevant) Discussion NMaia (talk) 14:14, 29 December 2020 (UTC) Request process Accademia delle Scienze di Torino multiple references Request date: 30 December 2020, by: Epìdosis Link to discussions justifying the request Property talk:P8153#Multiple problems in recent import Task description Given the following query: SELECT DISTINCT ?item
+WHERE {
+  ?item wdt:P8153 ?ast .
+  ?item p:P570 ?statement.
+  ?reference1 pr:P248 wd:Q2822396.
+  ?reference2 pr:P248 wd:Q2822396.
+  ?statement prov:wasDerivedFrom ?reference1.
+  ?statement prov:wasDerivedFrom ?reference2.
+  FILTER (?reference1 != ?reference2)
+}
+ Try it! In many items there are multiple references to date of death (P570) referring to Academy of Sciences of Turin (Q2822396)=Accademia delle Scienze di Torino ID (P8153). Cases: three references: maintain the first (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+subject named as (P1810)), delete the second (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)), delete the third (stated in (P248)+retrieved (P813)) transferring the retrieved (P813) to the first three references bis: if the first is stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+subject named as (P1810)+retrieved (P813), the second and the third get simply deleted three references ter: if there is a reference with reference URL (P854) containing a string \"accademiadellescienze\", it should be deleted; maintain the second (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)), delete the third (stated in (P248)+retrieved (P813)) transferring the retrieved (P813) to the first two references: maintain the second (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)), delete the third (stated in (P248)+retrieved (P813)) transferring the retrieved (P813) to the first Repeat the above query substituting date of birth (P569) to date of death (P570). Cases: two references: maintain the first (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+subject named as (P1810)), delete the second (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+retrieved (P813)) transferring the retrieved (P813) to the first two references bis: if the first is stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+subject named as (P1810)+retrieved (P813), the second gets simply deleted two references ter: if there is a reference with reference URL (P854) containing a string \"accademiadellescienze\", it should be deleted; maintain the second (stated in (P248)+Accademia delle Scienze di Torino ID (P8153)+retrieved (P813)) Discussion @Ladsgroup: as his bot is probably ready for doing this. --Epìdosis 11:56, 30 December 2020 (UTC) Request process Trailing space (\" \") in labels Somehow I thought it wasn't possible, but the Italian label at \"Diva\" had and at Ariodante (Q22813616) still has a trailing space. Edits are from 2015/2016. I think it would be good to clean this up. Not sure what would be most efficient way to find them. --- Jura 17:48, 19 December 2020 (UTC) We can have a query like this: quarry:query/4900. There is indeed a plenty of occurrences, but it cannot use an index. Similarly, we can check for spaces at the beginning and since this can use an index, there are 217 cases. --Matěj Suchánek (talk) 08:30, 21 June 2021 (UTC) Update: the query could scan the whole database in a while, so the results are complete. --Matěj Suchánek (talk) 08:44, 21 June 2021 (UTC) Now only the following two entries need fixing: Item What Language Text Lac McKinnon (Q22666089) label sv Lac McKinnon Untitled (Q18600559) description en painting by unknown artist It is not trivial because of conflicts with other items. --Matěj Suchánek (talk) 16:33, 11 July 2021 (UTC) Thanks. I fixed the two last ones. For the lake, it needed three edits ;) https://www.wikidata.org/w/index.php?title=Q22666089&action=history --- Jura 16:44, 11 July 2021 (UTC) This section was archived on a request by: --- Jura 16:44, 11 July 2021 (UTC) Malformed entries related to \"Swiss National Sound Archives ID\" (P6770) Items used: human (Q5)   Properties used: Swiss National Sound Archives ID (P6770)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ce1f479c15d7e1927075cb70b6cf9661> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?notdab ?notdabLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q4167410 .
+  ?item wdt:P31 ?notdab . FILTER( ?notdab != wd:Q4167410 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it,en\". }
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of language labels 2 Disambiguation with multiple value of P31 3 Replicate a list from Wikipedia 4 Unexplained deprecation of ORCID iDs 5 Overview of places with names ending with same letters 6 Challenge! An up to date map of Wikimedia movement affiliates 7 EHRI authority control (Q51278630) 8 List of subsidiary 9 Sparql query per estrazione dataset per lavorare sulla mia tesi - Extract dataset regarding an argument given by input 10 All female vs male writters born in a territorial entity including all the sub-territorial entities 11 Items starting or ending with a specific word 12 Wikipedia's by country 13 Query showing the sum of statements per used property on selected items 14 List of (international) airports having only one runway 15 All items with an identifier assigned in a given administrative territorial entity including all the sub-territorial entities 16 Female librarians with no en.wp article 17 Merged people items with a Flanders Arts Institute identifier 18 WDQS servers not all up to date? 19 Merge multiple columns into one 20 Uploads with timestamps 21 Fuse 22 All newspapers and magazines in Basque language 23 norwegian citizens 24 Show media possible reach 25 Query times out. Why? 26 Query with Subform Data 27 UK MPs 28 Hi! 29 Extract hyperlinks from wikipedia page 30 List of the most used items by a peculiar property 31 List of persons that have more than one citizenship and one of them is a specific one 32 List of municipalities in a province 33 Possible to build query on pages in categories and subcategories? 34 Articles within a subject which exist on one language Wikipedia but not another 35 String in item description 36 Sampling nature label : only one to be shown 37 Query not showing the good elements 38 Retrieve item URI by title without knowing language of title List of language labels Hi, a friend of mine need for a work-related project a list of labels of items in the following languages es,pt,ro,cs,pl,ru,ar,fa,hi,zh,ja,ms of all items under the subclasses of scalar quantity (Q181175). I have no idea how to do this, but could be useful in the future in any case for me to learn it. Can you please show to me how to encode this request?--Alexmar983 (talk) 17:57, 2 November 2018 (UTC) @Alexmar983: One approach - presuming you want a table with one column per language - is below. We find ?items in the Q181175 class tree with wdt:P31/wdt:P279* and then use a series of optional requirements that ask for the rdfs:labal each filtered to just a single language. Optional is used since some items may not have labels in a particular language and would not otherwise appear. We could take a different approach to produce a 2 or 3 column output of itemnumber, label, language ... but that's very slightly more complicated so I'll duck that for now. You can add Englist as ?en / \"en\" should you need it. select ?item ?es ?pt ?ro ?cs ?pl ?ru ?ar ?fa ?hi ?zh ?ja ?ms where
+{
+  ?item wdt:P31/wdt:P279* wd:Q181175 . # The item is an instance or subclass of a scalar physical quantity 
+  optional {?item rdfs:label ?es . filter(lang(?es)=\"es\") } # get the label in whatever language - Spanish, in this case
+  optional {?item rdfs:label ?pt . filter(lang(?pt)=\"pt\") }
+  optional {?item rdfs:label ?ro . filter(lang(?ro)=\"ro\") }
+  optional {?item rdfs:label ?cs . filter(lang(?cs)=\"cs\") }
+  optional {?item rdfs:label ?pl . filter(lang(?pl)=\"pl\") }
+  optional {?item rdfs:label ?ru . filter(lang(?ru)=\"ru\") }
+  optional {?item rdfs:label ?ar . filter(lang(?ar)=\"ar\") }
+  optional {?item rdfs:label ?fa . filter(lang(?fa)=\"fa\") }
+  optional {?item rdfs:label ?hi . filter(lang(?hi)=\"hi\") }
+  optional {?item rdfs:label ?zh . filter(lang(?zh)=\"zh\") }
+  optional {?item rdfs:label ?ja . filter(lang(?ja)=\"ja\") }
+  optional {?item rdfs:label ?ms . filter(lang(?ms)=\"ms\") }              
+}
+ Try it! --Tagishsimon (talk) 18:32, 2 November 2018 (UTC) Tagishsimon that's good, he has an account he seldomly uses, I have asked him to insert some of the missing ones when he find them.--Alexmar983 (talk) 19:05, 2 November 2018 (UTC) Thanks Alexmar983. I suspect he'll find that difficult, unless you give him advice on the Babel Extension, which it looks like you have implemented on your account; without it, the user interface will not give him the facility to add in more than a few languages. --Tagishsimon (talk) 19:14, 2 November 2018 (UTC) You are right Tagishsimon about the extension, I'll tell him. he wants to learn about wikidata in any case.--Alexmar983 (talk) 19:55, 2 November 2018 (UTC) @Alexmar983: You can use the query select ?item where { ?item wdt:P31/wdt:P279* wd:Q181175 . } in the Tabernacle tool (with a 'Label' column with languages \"es,pt,ro,cs,pl,ru,ar,fa,hi,zh,ja,ms\") so that you can also edit the labels for those items in one place. Mahir256 (talk) 00:22, 3 November 2018 (UTC) Disambiguation with multiple value of P31 It's possible to have a query for items with multiple values of P31 and with one value of P31 = Q4167410 ? --ValterVB (talk) 14:42, 3 November 2018 (UTC)@ValterVB: Items used: Wikimedia disambiguation page (Q4167410)   Properties used: instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

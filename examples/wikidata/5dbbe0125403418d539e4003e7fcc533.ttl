@@ -1,0 +1,203 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5dbbe0125403418d539e4003e7fcc533> a sh:SPARQLExecutable;
+  rdfs:comment """Contents 1 MEMENTO SPARQL n°1. Interface 2 MEMENTO SPARQL n°2. Niveau débutant 2.1 What is SPARQL ? 2.2 Getting help 2.3 Anatomie d'une requête SPARQL 2.4 Motifs de triplets avancés 2.5 Symboles 2.6 Types de données 2.6.1 Nombres 2.6.2 Dates 2.6.3 Coordonnées géographiques 2.7 Opérateurs 2.8 Fonctions d'agrégation 2.9 Filtres 2.10 Combinaison de graphes 2.11 Exemple pas à pas 2.11.1 Requêtes de base 2.11.2 Grouping, filtering and sorting 2.11.3 Affichage des résultats 3 MEMENTO SPARQL n°3. Niveau avancé 3.1 Classes instances et chemins de propriétés 3.2 Qualificateurs, références, rangs 3.3 BIND, BOUND, IF, COALESCE 3.4 Fonctions 3.5 Fonctions avancées 3.6 Outils 4 A TRIER MEMENTO SPARQL n°1. Interface [edit] Objectifs de ce mémento : Présenter la structure des données Wikidata Présenter l'interface de WDQS Présenter les données de Wikidata et l'interface de WDQS File:Wikidata_Query_Service_in_Brief.pdf File:Wikidata-elements.png File:Wikidata Queries - Beginner's Interface Guide.pdf https://www.youtube.com/watch?v=hvRqzlIrmTc https://geomoer.github.io/moer-base-r/assets/data/cheatsheets/rstudio-ide.pdf Wikidata:SPARQL query service/Wikidata Query Help/SPARQL Editor/en MEMENTO SPARQL n°2. Niveau débutant [edit] Objectifs de ce mémento Identifier les lieux d'entraide Rappeler le principe des requêtes SPARQL Savoir faire les requêtes basiques Savoir faire des requêtes un peu plus avancées traitant de nombres, coordonnées et dates What is SPARQL ? [edit] SPARQL (SPARQL Protocol and RDF Query Language) est un langage de requêtes standardisé proposé et publié par le W3C. Le point de terminaison (Endpoint) SPARQL est accessible publiquement, via le client web ou via API :Wikidata : GUI https://query.wikidata.org API https://query.wikidata.org/bigdata/namespace/wdq/sparql?query={SPARQL} ou https://query.wikidata.org/sparql?query=SPARQL ? Wikimedia Commons : GUI https://commons-query.wikimedia.org API Getting help [edit] https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/fr https://commons.wikimedia.org/wiki/Commons:SPARQL_query_service/fr Anatomie d'une requête SPARQL [edit] #title: … 
+#defaultView: … 
+PREFIX … 
+SELECT … 
+WHERE {… }
+GROUP BY … 
+HAVING … 
+ORDER BY … 
+LIMIT … 
+OFFSET … 
+VALUES …
+ … Commande Description Emplacement Exemple #title Prologue #title:Titre du tableau #defaultView select a default view for results : Graph, Dimensions, Timeline, Tree, TreeMap, BubbleChart, ScatterChart, BarChart, AreaChart, LineChart, Map, ImageGrid. #defaultView:Map PREFIX déclaration des préfixes. Most prefixes that are used in common queries are supported by the engine without the need to explicitly specify them. SELECT SELECT DISTINCT type de requête SPARQL le plus courant permettant de définir les colonnes du tableau de données attendu en retour (DISTINCT permet d'enlever les lignes en double) Projection WHERE Spécifier les critères de recherche énumérés sous forme de séries de motifs de triplets Pattern WHERE {wd:P31 wdt:Q5} SERVICE https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Label_service SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". GROUP BY ordonner les résultats de la requête suivant un ou plusieurs des éléments à afficher. Optionnel : triage ascendant ou descendant Modificateur HAVING ordonner les résultats de la requête suivant un ou plusieurs des éléments à afficher. Optionnel : triage ascendant ou descendant HAVING (date>2) ORDER BY ordonner les résultats de la requête suivant un ou plusieurs des éléments à afficher. Optionnel : triage ascendant ou descendant ORDER BY DESC(?PIB) LIMIT limiter le nombre d'éléments à afficher LIMIT 100 OFFSET décaler les éléments à afficher du nombre indiqué OFFSET 10 VALUES gras = obligatoire Motifs de triplets avancés [edit] SELECT ?enfant
+WHERE {
+# individus ayant pour père Bach
+?enfant wdt:P22 wd:Q1339.}
+ 
+
+SELECT ?enfant
+WHERE {
+# individus ayant pour père Bach et mère Maria Barbara Bach
+?enfant wdt:P22 wd:Q1339.
+?enfant wdt:P25 wd:Q57487.}
+
+
+SELECT ?enfant ?enfantLabel
+WHERE {
+# version abrégée
+?enfant wdt:P22 wd:Q1339;
+               	wdt:P25 wd:Q57487.}
+				
+SELECT ?petitEnfant ?petitEnfantLabel
+WHERE {
+wd:Q1339 wdt:P40 [ wdt:P40 ?petitEnfant ].}
+		
+SELECT ?enfant ?enfantLabel ?enfantDescription ?enfantAltLabel
+WHERE {
+# version très abrégée des enfants du couple qui sont compositeurs
+  ?enfant wdt:P22   wd:Q1339;
+                    wdt:P25   wd:Q57487;
+                    wdt:P106  wd:Q36834,
+                              wd:Q486748.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\".
+ Try it! }} SELECT : liste de variables dont on souhaite connaître les valeurs. WHERE : des restrictions sur ces variables wd: préfixes des éléments wdt : préfixes des propriétés Q1339 : identifiant Wikidata de Bach P22 : propriété pour désigner le père ?xxLabel : récupérer le libellé (requiert SERVICE wikibase:label) ?xxDescription : récupérer la description (requiert SERVICE wikibase:label) ?xxAltLabel : récupérer les alias (requiert SERVICE wikibase:label) SERVICE wikibase:label : spécificité de Wikidata pour obtenir les libellés, descriptions et alias par exemple prioritairement en français, ensuite en anglais, et finalement dans la langue dans laquelle les données ont été renseignées langage naturel exemple SPARQL exemple phrase Juliette aime Roméo. point Juliette aime Roméo. conjonction (clause) Roméo aime Juliette et tue Roméo. point-virgule Roméo aime Juliette ; tue Roméo. conjonction (noms) Roméo tue Tybalt et Roméo. virgule Roméo tue Tybalt, Roméo. clause relative (proposition subordonnée) Juliette aime quelqu'un qui tue Tybalt. crochets Juliette aime [ tue Tybalt]. Symboles [edit] . : terminates a triple; : ties several properties to a subject/ : joins two properties* : recursively extends last property# : commentaire de code Types de données [edit] élément Wikidata : wd:Q42 pour Douglas Adams (Q42) booléen : 2 < 3, \"a\" = \"b\" qui renvoient True ou False chaîne de caractères : \"Douglas Adams\" texte monolingue : \"Douglas Adams\"@fr nombres : 1.23 dates : \"2012-10-29T00:00:00Z\"^^xsd:dateTime (sensible à la casse) Nombres [edit] Dates [edit] Coordonnées géographiques [edit] Opérateurs [edit] Opérateurs mathématiques disponibles : Commande Description Emplacement Exemple +, -, *, / pour additionner, soustraire, multiplier ou diviser des nombres <, >, =, !=, <=, >= pour les comparer. \"abc\" < \"abd\" est vrai (comparaison lexicographique) \"2016-01-01\"^^xsd:dateTime > \"2015-12-31\"^^xsd:dateTimewd:Q4653 != wd:Q283111 Les conditions booléennes de type ET peuvent être combinées avec && (le ET logique: a && b est vrai si a et b sont vrais) et celles de type OU avec || (le OU logique: a || b est vrai si soit l'un soit l'autre soit les deux a et b sont vrais). Fonctions d'agrégation [edit] Commande Description Emplacement Exemple COUNT SUM AVG MIN MAX SAMPLE GROUP_CONCAT Filtres [edit] Commande Description Emplacement Exemple FILTER filtrer les données selon des critères prédéfinis FILTER (?age> 40) FILTER(LANG(?humainLabel) = \"[AUTO_LANGUAGE]\"). #autre méthode que de faire appel au service de libellés
+FILTER(STRSTARTS(?humainLabel, \"Mr. \")).
+
+FILTER(!REGEX(STR(?bblid), \"[\\\\.q]\")) #filtrer avec une expression régulière
+
+FILTER ( ?item not in ( wd:Q4115189,wd:Q13406268,wd:Q15397819 ) ) #exclure des éléments spécifiques 
+
+FILTER ( NOT EXISTS { ?item  wdt:P21 [] } ) # filtrer pour n'obtenir que des propriétés non renseignées
+ Try it! Combinaison de graphes [edit] Commandes Description Exemple A.B Réunir les solutions de A et de B en combinant les valeurs de variables communes. être humains avec une date de naissance ?human wd:P31 wdt:Q5 ?human wd:P569 ?Naissance A OPTIONAL {B} Valeurs optionnelles : réunir les résultats de A et B par leur valeurs en commun. Garder toutes les solutions de A qu'il y ait une solution dans B ou non. être humains avec ou sans date de naissance ?human wd:P31 wdt:Q5 OPTIONAL {?human wd:P569 ?Naissance} {A} UNION {B} Union : réunir toutes les solutions de A et celles de B. A MINUS {B} Différence : trouver les solutions de A et celles B et ne garder que les solutions de A qui ne sont pas compatibles avec celles de B être humains sans date de naissance ?human wd:P31 wdt:Q5 MINUS {?human wd:P569 ?Naissance}  Commande Description Emplacement Exemple OPTIONAL permet d’utiliser l’information requise si elle est présente et de ne pas éliminer les solutions où elle est absente DansWHERE {…} OPTIONAL (?DateNaissance) MINUS  Exemple pas à pas [edit] s'inspirer de https://s3.amazonaws.com/assets.datacamp.com/email/other/SQL+for+Data+Science.pdf Requêtes de base [edit] Obtenir la liste de tous les chats célèbres qui sont sur Wikidata SELECT *
+WHERE {?item wdt:P31 wd:Q146.}
+ Try it! Compter le nombre de chats célèbres SELECT (COUNT(*) AS ?count)
+WHERE {?item wdt:P31 wd:Q146.}
+ Try it! Afficher les libellés en français ou en anglais SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ Try it! Liste de tous les chats avec la date de décès éventuelleSELECT ?item ?itemLabel ?décès
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  OPTIONAL {?item wdt:P570 ?décès.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". } 
+}
+ Try it!  Grouping, filtering and sorting [edit] Afficher les 10 premiers résultats SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+LIMIT 10
+ Try it! Lister les noms des chats par ordre anti-alphabétique SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+ORDER BY DESC(?itemLabel)
+ Try it! Afficher le domaine d'activité des chats SELECT ?item ?itemLabel ?occupationLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  ?item wdt:P106 ?occupation.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". } 
+}
+ORDER BY ?occupation
+ Try it! Lister les chats nés avant l'an 2000 SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  ?item wdt:P569 ?naissance.
+  FILTER(?naissance < \"2000-01-01T00:00:00Z\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". } 
+}
+ Try it! Lister des pays où sont nés 5 chats ou plus SELECT ?paysLabel (COUNT(?item) as ?total)
+WHERE
+{
+  ?item wdt:P31 wd:Q146. 
+  ?item wdt:P19 ?naissance.
+  ?naissance wdt:P17 ?pays.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". } 
+}
+GROUP BY ?paysLabel
+HAVING (?total >=5)
+ Try it! Affichage des résultats [edit] Afficher les portraits des chats#title:Chats, avec des images
+#defaultView:ImageGrid
+SELECT ?item ?itemLabel ?pic WHERE {
+  ?item wdt:P31 wd:Q146;
+    wdt:P18 ?pic.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Chats, avec des images Afficher la carte des lieux de naissance des chats #defaultView:Map
+SELECT ?item ?itemLabel ?coordonnées
+WHERE {
+  ?item wdt:P31 wd:Q146.
+  ?item wdt:P19 ?naissance.
+  ?naissance wdt:P625 ?coordonnées.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" } 
+}
+ Try it! MEMENTO SPARQL n°3. Niveau avancé [edit] Classes instances et chemins de propriétés [edit] deux propriétés pour « est » : instance of (P31) et subclass of (P279). ?oeuvre wdt:P31 wd:Q838948. # instance d'une œuvre d'art
+?oeuvre wdt:P31/wdt:P279* wd:Q838948. # instance de n'importe quelle sous-classe d'une œuvre d'art
+ Try it! wd:Q1339 wdt:P40+ ?descendant #tous les descendants de Bach, sans Bach
+wd:Q1339 wdt:P40* ?descendant #tous les descendants de Bach, avec Bach
+
+?descendant (wdt:P22|wdt:P25)+ wd:Q1339.
+ Try it! Qualificateurs, références, rangs [edit] wd:Q12418 p:P186 ?statement1.    # Mona Lisa: material used: ?statement1
+?statement1 ps:P186 wd:Q296955.  # value: oil paint
+
+wd:Q12418 p:P186 ?statement2.    # Mona Lisa: material used: ?statement2
+?statement2 ps:P186 wd:Q291034.  # value: poplar wood
+?statement2 pq:P518 wd:Q861259.  # qualifier: applies to part: painting surface
+
+wd:Q12418 p:P186 ?statement3.    # Mona Lisa: material used: ?statement3
+?statement3 ps:P186 wd:Q287.     # value: wood
+?statement3 pq:P518 wd:Q1737943. # qualifier: applies to part: stretcher bar
+?statement3 pq:P580 1951.        # qualifier: start time: 1951 (pseudo-syntax)
+ Try it! préfixe p: ne pointe pas sur l'objet, mais sur le \"nœud de déclaration\" préfixe ps: pointe sur l'objet de la déclaration préfixe pq: pointe sur les qualificatifs, prov:wasDerivedFrom pointe sur les nœuds de référence RéférencesRangInterwikis et badges BIND, BOUND, IF, COALESCE [edit] BIND(FLOOR((?Mort - ?ne)/365.2425) AS ?age).
+ Try it! https://www.youtube.com/watch?v=4MjAbt9C61Y&list=PLaa8QYrMzXNnzY-4YVM5507iZuESWVcnU&index=4 Fonctions [edit] chaînes de caractères UCASE() convert to upper-case LCASE() convert to lower-case STRLEN() length of a string SUBSTR() substring of first arg, second arg: start position; third arg: character lenght STRSTARTS() string in first arg starts with string in second arg STRENDS() string in first arg ends with string in second arg CONTAINS() string in second arg is within first arg CONTAINS(\"SPARQL\", \"QL\") is True CONCAT, ENCODE_FOR_URI, REPLACE, REGEX, STRBEFORE Opérateurs logiques sameTerm, !sameTerm more efficient and = =, !=, >, >=, <, <= AND: && OR: || IN and NOT IN ?foo IN (\"bar\", \"anotherbar\") isIRI isBlank only bank nodes FILTER (isBlank(?term)) filter out FILTER (!isBlank(?term)) isLiteral Fonctions lang returns the language tag FILTER(lang(?label) = 'es') datatype returns the datatype of a literal BIND( datatype(?shoeSize) AS ?datatype) Fonctions d'agrégation COUNT SUM AVG MIN, MAX SAMPLE GROUP_CONTACT Mathématiques ABS, ROUND, CEIL, FLOOR, RAND, COUNT, MIN, MAX, AVG, SUM< #Nombre d'êtres humains dans Wikidata
+SELECT (COUNT(*) AS ?count)
+WHERE {?item wdt:P31 wd:Q5 .}
+
+# ???
+      ?occ
+        (count(?p) as ?count)
+        (round(avg(?birthYear)) as ?avgBirthYear)
+        (avg(?deathYear - ?birthYear) as ?avgAge)
+ Try it! Arithmétique +, -, *, / Conversion xsd:integer, xsd:stringSTR, LANG, DATATYPE, URI, STRDT, STRLANG Comparaison =, !=, <, <=, >, >= Conditionnel IF, COALESCE Test isURI, isBlank, isLiteral, bound, sameTerm, langMatches, regex Date NOW, YEAR, MONTH, DAY, HOURS, MINUTES, SECONDS, TIMEZONE Constructeurs URI, BNODE, STRDT, STRLANG Wikidata:SPARQL query service/Wikidata Query Help/SPARQL Editor/en SELECT ?person ?personLabel (group_concat(?citizenshipLabel;separator=\"/\") as ?citizenships)
+ Try it!  SELECT … (YEAR(?date) as ?year)
+
+
+# événements à une date précise
+?item wdt:P585 \"+1789-07-14T00:00:00Z\"^^xsd:dateTime. 
+
+
+# événements entre deux dates
+FILTER (YEAR(?time) > 1450 && YEAR(?time) < 1454  ) 
+FILTER ((?time > \"1452-01-01\"^^xsd:dateTime) && (?time < \"1452-12-31\"^^xsd:dateTime)). 
+
+#Personnes nées en 1700 avec précision du jour ou du mois
+VALUES ?precision { 10 11 }#10 = month precision, 11 = day precision
+?item p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?time].
+FILTER (   YEAR(?time) = 1700 ).
+
+# ???
+SELECT DISTINCT (year(?birthdate) as ?birthyear) 
+
+# ???
+(CONCAT(SAMPLE(?sKey),\": \",STR(YEAR(SAMPLE(?s)))) AS ?start)
+
+# ???
+     ?p wdt:P31 wd:Q5 .
+     ?p wdt:P106 ?occ .
+     ?p p:P569/psv:P569 [
+                wikibase:timePrecision \"9\"^^xsd:integer ; # precision of at least year
+                wikibase:timeValue ?birth ];
+
+# ???
+BIND(CONCAT(STR(YEAR(?date)),\"-\",STR(MONTH(?date))) as ?yearmonth).
+
+# ???
+?person wdt:P31 wd:Q5;
+          p:P570/psv:P570 [
+                wikibase:timePrecision ?precision ;
+                wikibase:timeValue ?date ;
+              ] .
+  BIND(CONCAT(STR(YEAR(?date)),\"-\",STR(MONTH(?date))) as ?yearmonth).
+  FILTER( ?date >= \"2000-01-01T00:00:00\"^^xsd:dateTime )
+  FILTER( ?precision >= \"10\"^^xsd:integer ) # precision of at least month
+ Try it! Fonctions avancées [edit] Requêtes imbriquées : utiliser les résultats d’une requête pour formuler une autre requête ({ SELECT ... WHERE { ... } LIMIT 10 }) Requêtes fédérées Lexèmes Service MWAPI Insérer une image manquante : """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pyb_en_r%C3%A9sidence/Brouillon>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

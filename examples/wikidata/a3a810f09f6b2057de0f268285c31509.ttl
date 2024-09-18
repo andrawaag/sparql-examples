@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a3a810f09f6b2057de0f268285c31509> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:BarChart
+SELECT (SAMPLE(?_continentLabel) AS ?continent) (COUNT(?_country) AS ?battles) (SAMPLE(?_countryLabel) AS ?_countryLabel) (SAMPLE(?year) AS ?year)  WHERE {
+  ?subj wdt:P31 wd:Q178561.        # instance of battle
+  OPTIONAL { ?subj wdt:P580 ?d1. } # start date
+  OPTIONAL { ?subj wdt:P585 ?d2. } # point in time
+  OPTIONAL { ?subj wdt:P582 ?d3. } # end date
+  BIND(IF(!BOUND(?d1), IF(!BOUND(?d2), ?d3, ?d2), ?d1) AS ?date)
+  BIND(str(YEAR(?date)) AS ?year)
+  FILTER(BOUND(?year))
+  ?subj wdt:P276/wdt:P17 ?_country.
+  ?_country wdt:P30 ?_continent.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+       ?_country rdfs:label ?_countryLabel.
+       ?_continent rdfs:label ?_continentLabel.}
+  BIND((NOW()) - ?date AS ?distance)
+  FILTER((0 <= ?distance) && (?distance < 31 * 12 * 80))
+}
+GROUP BY ?year ?_country""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-1FA87ED92729F26631F5366AB1DCDC76, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-BC49CF40FDADFDCE10FC031DBD6CDA5B,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-B1A389B4462750395B70E109ADF02F2A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-468D2DA388F737AA83EE3FE029D65DBB,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-8A331C7A672940472B13059DA8568C12, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-DFBC04E69F5E6CFD7B06B4230C6661CC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-964E517E366A8B1A22F44B03628C9ECD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-FC4272FF5C6268D7360B80B520211453,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112385-FCEF2A4CDA62E438D9C25757C977634C;
+  schema:target <https://query.wikidata.org/sparql/> .

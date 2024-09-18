@@ -1,0 +1,378 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cb3762e47b1fbac20c43224cdda4f0dc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: Graph of relationships between video game databases 
+#defaultView:Graph
+SELECT DISTINCT ?item ?itemLabel ?rgb ?link ?linkLabel ?rgb2 WHERE {
+  {
+    ?item wdt:P31/wdt:P279* wd:Q55341040; # ?item is a video games database
+      wdt:P10568 ?link.                    # which is linked to ?link
+  }
+  UNION
+  {
+    ?item ^wdt:P10568 ?vgd.                 # item is linked to from ?vgd
+    ?vgd wdt:P31/wdt:P279* wd:Q55341040.    # ?vgd is a video games database
+    OPTIONAL {
+               ?item wdt:P10568 ?link.      # item might be linked to ?link
+             }
+  }
+  UNION
+  {
+    ?item99 ^wdt:P10568 ?vgd.                 # item99 is linked to from ?vgd
+    ?vgd wdt:P31/wdt:P279* wd:Q55341040.    # ?vgd is a video games database
+    ?item99 wdt:P10568 ?item.      # item99 is linked to ?item
+  }
+  OPTIONAL {
+    ?item wdt:P1687 ?property.
+  }
+  BIND(IF(BOUND(?property),\"FFA500\",\"\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  rdfs:comment """Home Activity log Data model Identifiers Queries Tasks Video game-related SPARQL queries. Contents 1 Showcase queries 1.1 Series with the most games 1.2 Upcoming video games 1.3 Recent video-game-related items with sitelinks and external identifiers 1.4 Films based on video games 1.5 All video games developed or published by a given company 1.6 Characters 1.6.1 Video game characters named after humans 1.6.2 Characters from the Mario franchise by games in which they appear 1.6.3 Games with the most player characters 1.6.4 Games with female protagonists 1.6.5 Games with female player characters 1.6.6 Games with female characters 1.6.7 Games with LGBT characters 1.6.8 Games with LGBT protagonists 1.6.9 Games with LGBT player characters 1.7 Graph of video games genres 1.8 Video games whose composer is Japanese, not born in Tokyo, and less than 25 at the time 1.9 Timeline of games per platform 1.10 Video games and their trailers 1.11 Reviews 1.11.1 Video games with a 10/10 in Edge Magazine 1.11.2 Video games with an OpenCritic “Critics recommend” rating 1.11.3 Most-cited reviewers 1.12 Video game series with the longest time time gap between a game and its direct sequel 1.13 Video games with the most expansions 1.14 Video games with the most time elapsed between their announcement and their release 1.15 Events by number of video games announced 1.16 Awards 1.16.1 Video games with the most nominations at the given award ceremony 1.16.2 Video games with the most wins at the given award ceremony 1.17 Crowdfunding 1.17.1 Money, per currency, raised by video games through Kickstarter (crowdfunding) 1.17.2 Units sold per crowdfunded games 1.18 Video games with their sequels, predecessors and so on 1.19 Information on a video game series 1.20 Graph of relationships between video game databases 2 Maintenance queries 2.1 Video games with few statements and identifiers 2.2 Games published after their sequels 2.3 DLCs not linked to the main game 2.4 Video games whose developer is headquartered in a given country but with a different country of origin 2.5 Video game released on both a handheld and home platform of the same console generation 2.6 Video Games with series that are not \"video game series\" 2.7 Video games with a subclass of video game genre (Q659563) as instance of (P31) 2.8 Video games without gameplay-related genres 2.9 Most used properties on video game items Showcase queries [edit] Series with the most games [edit] SELECT ?series (SAMPLE(?_label) AS ?label) (COUNT(?game) AS ?count)
+WHERE
+{
+  ?game wdt:P31 wd:Q7889;
+          wdt:P179 ?series.
+  ?series rdfs:label ?_label.
+  FILTER(LANG(?_label) = \"en\").
+}
+GROUP BY ?series
+ORDER BY DESC(?count)
+ Try it! (QLever) Upcoming video games [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , publication date (P577)   SELECT ?item ?itemLabel ?date WHERE {
+   ?item wdt:P31 wd:Q7889 .
+   ?item wdt:P577 ?date .
+   FILTER(?date > NOW()).
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Recent video-game-related items with sitelinks and external identifiers [edit] The following query uses these:Items: video game (Q7889)   , video game compilation (Q16070115)   , video game series (Q7058673)   , Wikidata property related to video games (Q28147643)   Properties: instance of (P31)   , formatter URL (P1630)   , Wikidata item of this property (P1629)   SELECT ?item ?qid (GROUP_CONCAT( DISTINCT ?sitelink) as ?sitelinks) (GROUP_CONCAT( DISTINCT ?identifier) as ?identifiers) {
+  VALUES ?gametype {wd:Q7889 wd:Q16070115 wd:Q7058673} .
+  ?item wdt:P31 ?gametype .
+  BIND (xsd:integer(STRAFTER(str(?item), \"Q\")) AS ?qid)
+  FILTER (?qid > 51090000) . 
+  OPTIONAL { 
+    # Get sitelinks
+    ?s schema:about ?item ; schema:inLanguage ?lang . 
+    BIND(CONCAT(\"[\", str(?s), \" \", ?lang, \"]\") as ?sitelink)
+    
+    # Get external identifiers
+    ?item ?prop ?id.
+    ?propItem wikibase:directClaim ?prop.
+    ?propItem wikibase:propertyType wikibase:ExternalId.
+    ?propItem wdt:P31 wd:Q28147643 .
+    ?propItem wdt:P1630 ?formatterurl . 
+    ?propItem wdt:P1629 ?website .
+    ?propItem rdfs:label ?propItemLabel .
+    FILTER (lang(?propItemLabel) = \"en\"). 
+    BIND(IRI(REPLACE(?id, '^(.+)$', ?formatterurl)) AS ?url).
+    BIND(CONCAT(\"[\", str(?url), \" \", ?propItemLabel, \"]\") as ?identifier)
+  } 
+} GROUP BY ?item ?qid ORDER BY DESC(?qid) LIMIT 50 Try it! Films based on video games [edit] The following query uses these:Items: film (Q11424)   , video game (Q7889)   Properties: instance of (P31)   , based on (P144)   , subclass of (P279)   SELECT ?item ?itemLabel ?videogame ?videogameLabel WHERE {
+  ?item wdt:P31 wd:Q11424.
+  ?item wdt:P144 ?videogame.
+  ?videogame (wdt:P31/wdt:P279*) wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! All video games developed or published by a given company [edit] The following query uses these:Items: video game developer (Q210167)   , Linel (Q55587315)   Properties: instance of (P31)   , developer (P178)   , publisher (P123)   , publication date (P577)   #TEMPLATE={\"template\":\"Games developed and published by ?studio\",\"variables\":{\"?studio\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q210167 . }\"} } }
+SELECT DISTINCT ?item ?itemLabel ?developer ?developerLabel ?publisher ?publisherLabel ?year WHERE {
+  BIND(wd:Q55587315 AS ?studio)
+  { ?item wdt:P178 ?studio. }
+  UNION
+  { ?item wdt:P123 ?studio. }
+  OPTIONAL { ?item wdt:P178 ?developer. }
+  OPTIONAL { ?item wdt:P123 ?publisher. }
+  OPTIONAL {
+    ?item wdt:P577 ?date.
+    BIND(YEAR(?date) AS ?year)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?year Try it! Characters [edit] Video game characters named after humans [edit] The following query uses these:Items: video game character (Q1569167)   , human (Q5)   Properties: instance of (P31)   , subclass of (P279)   , named after (P138)   SELECT DISTINCT ?item ?itemLabel ?named ?namedLabel
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q1569167.
+  ?item wdt:P138 ?named. 
+  ?named wdt:P31 wd:Q5.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! source Characters from the Mario franchise by games in which they appear [edit] The following query uses these:Items: Mario franchise character (Q33093124)   , video game (Q7889)   Properties: instance of (P31)   , characters (P674)    Features: Graph (Q24515287)  #defaultView:Graph
+SELECT ?item ?itemLabel ?game ?gameLabel (\"00FFFF\" AS ?rgb) WHERE {
+  ?item wdt:P31 wd:Q33093124.
+  ?game wdt:P674 ?item;
+    wdt:P31 wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! source Games with the most player characters [edit] The following query uses these:Items: video game (Q7889)   , player character (Q1062345)   Properties: instance of (P31)   , subclass of (P279)   , characters (P674)   , object of statement has role (P3831)   SELECT ?item ?itemLabel (COUNT(?character) AS ?playable_characters) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    p:P674 ?statement.
+  ?statement ps:P674 ?character;
+    pq:P3831 wd:Q1062345.
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC (?playable_characters) Try it! Games with female protagonists [edit] The following query uses these:Items: video game (Q7889)   , protagonist (Q215972)   , female (Q6581072)   Properties: instance of (P31)   , subclass of (P279)   , sex or gender (P21)   , characters (P674)   , narrative role (P5800)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    p:P674 ?statement.
+  ?statement ps:P674 ?character;
+    pq:P5800 wd:Q215972.
+  ?character wdt:P21 wd:Q6581072.
+} Try it! Games with female player characters [edit] The following query uses these:Items: video game (Q7889)   , player character (Q1062345)   , female (Q6581072)   Properties: instance of (P31)   , subclass of (P279)   , sex or gender (P21)   , characters (P674)   , object of statement has role (P3831)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    p:P674 ?statement.
+  ?statement ps:P674 ?character;
+    pq:P3831 wd:Q1062345.
+  ?character wdt:P21 wd:Q6581072.
+} Try it! Games with female characters [edit] The following query uses these:Items: video game (Q7889)   , female (Q6581072)   Properties: instance of (P31)   , subclass of (P279)   , characters (P674)   , sex or gender (P21)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    wdt:P674 ?character.
+  ?character wdt:P21 wd:Q6581072.
+} Try it! Games with LGBT characters [edit] The following query uses these:Items: video game (Q7889)   , LGBT (Q17884)   Properties: instance of (P31)   , subclass of (P279)   , characters (P674)   , sexual orientation (P91)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    wdt:P674 ?character.
+  ?character wdt:P91/wdt:P279* wd:Q17884.
+} Try it! Games with LGBT protagonists [edit] The following query uses these:Items: video game (Q7889)   , player character (Q1062345)   , LGBT (Q17884)   Properties: instance of (P31)   , subclass of (P279)   , sexual orientation (P91)   , characters (P674)   , object of statement has role (P3831)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    p:P674 ?statement.
+  ?statement ps:P674 ?character;
+    pq:P3831 wd:Q1062345.
+  ?character wdt:P91/wdt:P279* wd:Q17884.
+} Try it! Games with LGBT player characters [edit] The following query uses these:Items: video game (Q7889)   , player character (Q1062345)   , LGBT (Q17884)   Properties: instance of (P31)   , subclass of (P279)   , sexual orientation (P91)   , characters (P674)   , object of statement has role (P3831)   SELECT ?item ?itemLabel ?character ?characterLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    p:P674 ?statement.
+  ?statement ps:P674 ?character;
+    pq:P3831 wd:Q1062345.
+  ?character wdt:P91/wdt:P279* wd:Q17884.
+} Try it! Graph of video games genres [edit] Graph of video game genre (Q659563) and outline the ones that are linked to OLAC video game genre vocabulary ID (P6352) The following query uses these:Items: video game genre (Q659563)   , electronic game (Q2249149)   Properties: instance of (P31)   , subclass of (P279)   , OLAC video game genre vocabulary ID (P6352)    Features: Graph (Q24515287)  #defaultView:Graph
+SELECT DISTINCT ?genre ?genreLabel ?rgb ?OLAC ?_subclass_of ?_subclass_ofLabel WHERE {
+  ?genre wdt:P31 wd:Q659563.
+  OPTIONAL {
+    ?genre wdt:P279 ?_subclass_of.
+    { ?_subclass_of wdt:P31 wd:Q659563. } UNION {?_subclass_of wdt:P279 wd:Q2249149.}
+  }
+
+  OPTIONAL { ?genre wdt:P6352 ?OLAC. }
+  BIND(IF(BOUND(?OLAC), \"FFA500\", \"7FFF00\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!  Video games whose composer is Japanese, not born in Tokyo, and less than 25 at the time [edit] The following query uses these:Items: video game (Q7889)   , Japan (Q17)   , Tokyo (Q1490)   Properties: instance of (P31)   , subclass of (P279)   , composer (P86)   , publication date (P577)   , country of citizenship (P27)   , place of birth (P19)   , located in the administrative territorial entity (P131)   , date of birth (P569)   SELECT DISTINCT ?item ?itemLabel ?composer ?composerLabel ?countryLabel ?DOB ?age WHERE {
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889;
+    wdt:P86 ?composer;
+    wdt:P577 ?date.
+  ?composer wdt:P27 ?country;
+            wdt:P27 wd:Q17;
+    (p:P569/psv:P569) _:b1.
+  _:b1 wikibase:timePrecision ?precision ;
+    wikibase:timeValue ?DOB.
+  FILTER(?precision > 8). 
+      MINUS {
+    ?composer (wdt:P19/(wdt:P131*)) wd:Q1490.
+    }
+
+  BIND((YEAR(?date)) - (YEAR(?DOB)) AS ?age)
+  FILTER(?age < 25)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Timeline of games per platform [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , platform (P400)   , publication date (P577)   #title:Timeline of games per platform
+#defaultView:AreaChart
+SELECT (SAMPLE(?year) AS ?year) (COUNT(?_platform) AS ?count) (SAMPLE(?_platformLabel) AS ?platformLabel)  WHERE {
+  ?video_game wdt:P31 wd:Q7889.
+  ?video_game wdt:P400 ?_platform.
+  ?video_game wdt:P577 ?date.
+  BIND ( STR(year(?date)) as ?year )
+  FILTER(BOUND(?year))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                          ?_platform rdfs:label ?_platformLabel.}
+}
+GROUP BY ?year ?_platform
+HAVING (?count > 10) Timeline of games per platform Video games and their trailers [edit] The following query uses these:Items: video game trailer (Q65972034)   , video game (Q7889)   Properties: instance of (P31)   , subclass of (P279)   , YouTube video ID (P1651)   , video (P10)   , object of statement has role (P3831)   SELECT ?item ?itemLabel (GROUP_CONCAT(DISTINCT ?value; SEPARATOR = \" \") AS ?trailer) WHERE {
+  {
+    ?item p:P1651 ?statement.
+    ?statement ps:P1651 ?v;
+      pq:P3831 wd:Q65972034.
+    BIND(CONCAT(\"https://www.youtube.com/watch?v=\", ?v) AS ?value)
+  }
+  UNION
+  {
+    ?item p:P10 ?statement.
+    ?statement ps:P10 ?v;
+      pq:P3831 wd:Q65972034.
+    BIND(CONCAT(\"[\", STR(?v), \" C]\") AS ?value)
+  }
+  ?item (wdt:P31/(wdt:P279*)) wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC (xsd:integer(STRAFTER(STR(?item), \"Q\"))) Try it!  Reviews [edit] Video games with a 10/10 in Edge Magazine [edit] The following query uses these:Items: Edge (Q793975)   Properties: review score (P444)   , review score by (P447)   SELECT ?item ?itemLabel WHERE {
+  ?item p:P444 ?review_scoreStatement.
+  ?review_scoreStatement pq:P447 wd:Q793975;
+    ps:P444 \"10/10\".
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100 Try it! Video games with an OpenCritic “Critics recommend” rating [edit] The following query uses these:Items: OpenCritic (Q21039459)   , OpenCritic Critics Recommend (Q119576498)   Properties: review score (P444)   , review score by (P447)   , determination method (P459)   SELECT ?item ?itemLabel ?score WHERE {
+  ?item p:P444 ?review_scoreStatement.
+  ?review_scoreStatement pq:P447 wd:Q21039459;
+    pq:P459 wd:Q119576498;
+    ps:P444 ?score.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?score) Try it! Most-cited reviewers [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , subclass of (P279)   , review score (P444)   , review score by (P447)   SELECT ?reviewer ?reviewerLabel (COUNT(?item) AS ?items) WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q7889;
+        p:P444/pq:P447 ?reviewer.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?reviewer ?reviewerLabel
+ORDER BY DESC (?items) Try it! Video game series with the longest time time gap between a game and its direct sequel [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , subclass of (P279)   , publication date (P577)   , followed by (P156)   , part of the series (P179)   # Video game series with the longest time time gap between a game and its direct sequel
+# (as games can have more than one publication date [because re-releases], we only take the earliest one [using MIN])
+SELECT ?series ?seriesLabel ?years ?interval ?game ?gameLabel ?original_date_game ?sequel ?sequelLabel ?original_date_sequel WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?game_date) AS ?original_date_game) ?sequel ?sequelLabel (MIN(?sequel_date) AS ?original_date_sequel) ?series ?seriesLabel WHERE {
+      ?game (wdt:P31/(wdt:P279*)) wd:Q7889; # All video games...
+        wdt:P577 ?game_date.                # with their publication date(s)...
+      {
+        ?game p:P179 ?series_statement.     # (Unpacking the series statement)
+        ?series_statement ps:P179 ?series;  #   ...in a series...
+          pq:P156 ?sequel.                  #   ...with a sequel...
+      } UNION {                             # ...or...
+        ?game wdt:P156 ?sequel.             #   ...with a sequel...
+        OPTIONAL {
+          ?game wdt:P179 ?series            # ...maybe with a series
+        }
+      }
+      ?sequel wdt:P577 ?sequel_date.        # with its own publication date(s)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?sequel ?sequelLabel ?series ?seriesLabel
+  }
+  BIND(?original_date_sequel - ?original_date_game AS ?interval)  # Calculating the time gap between the original releases, in days...
+  BIND(ROUND(?interval / 365 ) AS ?years)                         # ...and converting to years, for convenience...
+  FILTER(?interval > 0 )                                          # Only keeping sequels published after (filtering out some bad data)
+}
+ORDER BY DESC (?interval)                                         # Longest time gaps first Try it! Video games with the most expansions [edit] The following query uses these:Items: video game (Q7889)   Properties: expansion of (P8646)   , instance of (P31)   , subclass of (P279)   SELECT ?game ?gameLabel (COUNT(?item) AS ?count) WHERE {
+  ?item wdt:P8646 ?game.
+  ?game (wdt:P31/(wdt:P279*)) wd:Q7889.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?game ?gameLabel
+ORDER BY DESC (?count) Try it! Video games with the most time elapsed between their announcement and their release [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , subclass of (P279)   , publication date (P577)   , announcement date (P6949)   #title: Video games with the most time elapsed between their announcement and their release
+# (as games can have more than one publication date [because re-releases], we only take the earliest one [using MIN])
+SELECT ?years ?interval ?game ?gameLabel ?first_publication_date ?announcement_date WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?publication_date) AS ?first_publication_date) ?announcement_date WHERE {
+      ?game (wdt:P31/(wdt:P279*)) wd:Q7889;
+        wdt:P577 ?publication_date;
+        wdt:P6949 ?announcement_date.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?announcement_date
+  }
+  BIND(?first_publication_date - ?announcement_date AS ?interval)
+  BIND(ROUND(?interval / 365 ) AS ?years)
+  FILTER(?interval > 0 )
+}
+ORDER BY DESC (?interval) Video games with the most time elapsed between their announcement and their release Events by number of video games announced [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , announcement date (P6949)   , announced at (P9731)   SELECT ?event ?eventLabel (COUNT(?video_game) as ?count) WHERE {
+  ?video_game wdt:P31 wd:Q7889;
+              p:P6949 / pq:P9731 ?event.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?event ?eventLabel
+ORDER BY DESC(?count) Try it! Awards [edit] Video games with the most nominations at the given award ceremony [edit] The following query uses these:Items: award ceremony (Q4504495)   , video game award (Q18328126)   , Pégases 2021 (Q106016685)   Properties: instance of (P31)   , facet of (P1269)   , subclass of (P279)   , developer (P178)   , nominated for (P1411)   , statement is subject of (P805)   #TEMPLATE={ \"template\":\"Video games with the most nominations at the ?ceremony award ceremony\",\"variables\":{\"?ceremony\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q4504495; wdt:P1269 ?award. ?award wdt:P279 wd:Q18328126. }\"} } }
+SELECT ?item ?itemLabel ?developer (GROUP_CONCAT(?awardLabel; SEPARATOR = \", \") AS ?awards) (COUNT(?award) AS ?nominations) WHERE {
+  BIND(wd:Q106016685 AS ?ceremony)
+  ?item p:P1411 ?statement.
+  ?statement ps:P1411 ?award;
+    pq:P805 ?ceremony.
+  OPTIONAL { ?item wdt:P178 ?developer. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?award rdfs:label ?awardLabel.
+    ?item rdfs:label ?itemLabel.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?developer
+ORDER BY DESC (?nominations) Try it! Video games with the most wins at the given award ceremony [edit] The following query uses these:Items: award ceremony (Q4504495)   , video game award (Q18328126)   , Golden Joystick Awards 2020 (Q102300180)   Properties: instance of (P31)   , facet of (P1269)   , subclass of (P279)   , developer (P178)   , award received (P166)   , statement is subject of (P805)   #TEMPLATE={ \"template\":\"Video games with the most nominations at the ?ceremony award ceremony\",\"variables\":{\"?ceremony\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q4504495; wdt:P1269 ?award. ?award wdt:P279 wd:Q18328126. }\"} } }
+SELECT ?item ?itemLabel ?developer (GROUP_CONCAT(?awardLabel; SEPARATOR = \", \") AS ?awards) (COUNT(?award) AS ?award_received) WHERE {
+  BIND(wd:Q102300180 AS ?ceremony)
+  ?item p:P166 ?statement.
+  ?statement ps:P166 ?award;
+    pq:P805 ?ceremony.
+  OPTIONAL { ?item wdt:P178 ?developer. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?award rdfs:label ?awardLabel.
+    ?item rdfs:label ?itemLabel.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?developer
+ORDER BY DESC (?award_received) Try it! Crowdfunding [edit] Money, per currency, raised by video games through Kickstarter (crowdfunding) [edit] (will be refined later on --Poslovitch (talk) 22:15, 6 August 2021 (UTC))[reply] The following query uses these:Items: video game (Q7889)   , renminbi (Q39099)   Properties: instance of (P31)   , Kickstarter project ID (P8019)   , total revenue (P2139)   #title:Money, per currency, raised by video games through Kickstarter (crowdfunding)
+#defaultView:BarChart
+SELECT ?currencyLabel (SUM(?money) AS ?totalMoney) (COUNT(?game) AS ?games) WHERE {
+  ?game wdt:P31 wd:Q7889;
+        p:P8019 ?statement. # Get the Kickstarter statement
+  ?statement pq:P2139 ?money. # Get the amount of money
+  
+  ?statement pqv:P2139 ?pqv.
+  ?pqv wikibase:quantityUnit ?currency. # Get the currency
+  
+  # FILTER (?currency != wd:Q39099) # Uncomment this to filter out the renminbi
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?currencyLabel Money, per currency, raised by video games through Kickstarter (crowdfunding) Units sold per crowdfunded games [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , units sold (P2664)   , Kickstarter project ID (P8019)   , Indiegogo project ID (P7953)   , total revenue (P2139)   SELECT ?item ?itemLabel (MAX(?units) AS ?unitsSold) ?money ?currencyLabel WHERE {
+  ?item wdt:P31 wd:Q7889. 
+  ?item wdt:P2664 ?units.
+  
+  { ?item p:P8019 ?statement. } UNION { ?item p:P7953 ?statement. } # Kickstarter and Indiegogo
+  
+  ?statement pq:P2139 ?money .
+    OPTIONAL { ?statement pqv:P2139 ?pqv .
+               ?pqv wikibase:quantityUnit ?currency }. 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?money ?currencyLabel Try it! Video games with their sequels, predecessors and so on [edit] The following query uses these:Items: video game (Q7889)   Properties: instance of (P31)   , subclass of (P279)   , part of the series (P179)   , follows (P155)   , followed by (P156)   SELECT DISTINCT ?item ?itemLabel ?follows ?followsLabel ?followed_by ?followed_byLabel ?statement WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q7889.
+  ?item p:P179 ?statement.
+  OPTIONAL { ?statement pq:P155 ?follows. FILTER (!wikibase:isSomeValue(?follows)) }
+  OPTIONAL { ?statement pq:P156 ?followed_by. FILTER (!wikibase:isSomeValue(?followed_by)) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY (UCASE(STR(?itemLabel))) Try it! Information on a video game series [edit] The following query uses these:Items: video game series (Q7058673)   , Legacy of Kain (Q289129)   Properties: instance of (P31)   , genre (P136)   , part of the series (P179)   , platform (P400)   , developer (P178)   , publication date (P577)   , follows (P155)   , followed by (P156)   #TEMPLATE={\"template\":\"Information about the ?series video games series\",\"variables\":{\"?series\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q7058673. }\"} } }
+SELECT ?series ?seriesLabel ?first_gameLabel ?first_game_date ?latest_gameLabel 
+  (GROUP_CONCAT(DISTINCT ?genreLabel; SEPARATOR = \", \") AS ?genres)
+  (GROUP_CONCAT(DISTINCT ?platformLabel; SEPARATOR = \", \") AS ?platforms) (GROUP_CONCAT(DISTINCT ?developerLabel; SEPARATOR = \", \") AS ?developers)
+WHERE {
+  BIND(wd:Q289129 AS ?series)
+  OPTIONAL {
+    ?series wdt:P136 ?genre.
+    ?genre rdfs:label ?genreLabel.
+    FILTER((LANG(?genreLabel)) = \"en\")
+  }
+  ?games wdt:P179 ?series;
+    wdt:P400 ?platform;
+    wdt:P178 ?developer.
+  OPTIONAL {
+    ?first_game p:P179 ?seriesStatement.
+    ?seriesStatement ps:P179 ?series;
+      rdf:type wdno:P155.
+    ?first_game wdt:P577 ?first_game_date
+  }
+  OPTIONAL {
+    ?latest_game p:P179 ?seriesStatement2.
+    ?seriesStatement2 ps:P179 ?series;
+      rdf:type wdno:P156.
+    ?latest_game wdt:P577 ?latest_game_date
+  }
+  ?platform rdfs:label ?platformLabel.
+  FILTER((LANG(?platformLabel)) = \"en\")
+  ?developer rdfs:label ?developerLabel.
+  FILTER((LANG(?developerLabel)) = \"en\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?series ?seriesLabel ?first_gameLabel ?first_game_date ?latest_gameLabel Try it! Graph of relationships between video game databases [edit] The following query uses these:Items: video game database (Q55341040)   Properties: instance of (P31)   , subclass of (P279)   , maintains linking to (P10568)   , Wikidata property (P1687)    Features: Graph (Q24515287)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

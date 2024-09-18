@@ -1,0 +1,718 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a1a6d61c0ffd832534e30b3923187717> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT *
+WITH
+{
+  SELECT * { ?item wdt:P31 wd:Q101352 .
+    MINUS { ?item p:P1889 [] }
+  } OFFSET 75000 LIMIT 25000
+} as %a
+WHERE
+{
+    hint:Query hint:optimizer \"None\".
+    INCLUDE %a
+    ?item rdfs:label ?l . FILTER(  lang(?l) = \"en\") 
+    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
+    FILTER( ?dab != ?item )   
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to use property/item path queries in Wikidata 2 Get all items that are instance of a specific \"value\" 3 Publication details - manage timeouts 4 Francisco de Zurbaran 5 Query for all instruments played by people affiliated with a particular organization, and the number of those people who play each instrument 6 How to query for people by first and/or last name? 7 Query to identify people, bird-, tree-types streets are named after 8 Recent changes of a specific property 9 Listing of labels from the new query builder 10 Optimizing a query with language fallback 11 WD Talk page extract 12 List of all black people 13 Number of women in Wikidata without a Wikipedia article 14 train stations with IATA Code 15 Items with sitelinks to one wikipedia and not another 16 show qualifier 17 Commons depicts data for files in a given category 17.1 Secondary questions 17.2 Applying regex to query 18 People that have married two Olympians 19 Articles on ScotsWiki with \"Fix Scots\" template, grouped by topic / instance of 20 James bond movies' whereabouts 21 Problems matching Wikipedia URLs to wikidata items 22 Trouble connecting the qualifier to a property 23 List of outdoor Italian statues/monuments dedicated to women 24 Trying to add the percent to the ?title 25 identical label - optimization 26 P31/P279* 27 Slow when in a subquery, but fast otherwise How to use property/item path queries in Wikidata I am trying to search for a solution that can connect two given items together like this. The number of properties and items in the between can define by the number of hops. SELECT ?p
+WHERE { :startNode ?p_1 :Node_1. (...) :Node_n ?p_n :endNode.}
+ Try it! Thank if somebody can help. A l p h a m a 11:30, 2 September 2021 (UTC) @Alphama: Currently gets a 'probably not' from me. I will point to the GAS service which would work were you following the same predicate for each hop. But if the predicates vary from hop to hop, with paths of different lengths, with no knowledge of what the predicate is, then woe. That might leave you with SPARQL having as many subject predicate object clauses as you want to test for, for paths of a fixed length. As normal, someone else may know better than me on this one. --Tagishsimon (talk) 12:27, 2 September 2021 (UTC) Thank for your response. I can generate a long query such as ?item1 ?p1 ?item2. ?item2 ?p2 ? item3?... but I look for a clever way such as ?item1 (?p ?item)* ?item2. What I can do now just like ?item1 wdt:P31+/wdt:P279+ ?item2. A l p h a m a 15:51, 2 September 2021 (UTC) Get all items that are instance of a specific \"value\" Hello,Is it possible to get all the items that are instance of a specific value (e.g. 'video game') without using the id of video game (Q7889) but using the actual value? I tried the below query and it does not return any item SELECT ?item ?itemLabel WHERE{   
+     ?item wdt:P31 \"video game\" 
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" 
+   } 
+}
+ Try it! Same query does work with other properties, for example this one returns an item SELECT ?item ?itemLabel WHERE{   
+     ?item wdt:P2397 \"UCZGYJFUizSax-yElQaFDp5Q\" 
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" 
+   } 
+}
+ Try it! Thanks! This one helps you get the airport with the given IATA code such as \"JFK\". SELECT ?item ?itemLabel WHERE {
+{?item wdt:P238 ?IATA
+VALUES ?IATA { \"JFK\" }.} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+ Try it! Bouzinac 💬●✒️●💛 18:29, 2 September 2021 (UTC)  @Tarfahalrashed: It is possible; whether it is advisable is another thing entirely. And there may be issues if you want the query to work on, for instance, labels of any language. First example uses a sequential property path - wdt:P31/rdfs:label (\"find me something that has a P31 value, where the P31 item has an rdfs:label equalling the (English) value\" - note the @en in the query.) SELECT ?item ?itemLabel WHERE{   
+  ?item wdt:P31/rdfs:label \"video game\"@en .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! It's also possible to unpack that query to find out what the P31 QId is - i.e. not using a sequential property path: SELECT ?item ?itemLabel ?P31 ?P31Label WHERE{   
+  ?item wdt:P31 ?P31 . 
+  ?P31 rdfs:label \"video game\"@en .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! and you could use schema:description, in place of rdfs:label, to look at items having a specified description; or skos:altLabel to look at items having a specified alias. --Tagishsimon (talk) 19:25, 2 September 2021 (UTC) Publication details - manage timeouts Hi there. I'm trying to search all publications info, with dates, and other info if available (author, location, etc)My current query is: SELECT DISTINCT
+	?item ?itemLabel ?itemDescription ?wdimage # WHAT
+	?whatis ?whatisLabel # WHAT 2 (o ?type ?typeLabel o ?sport ?sportLabel)
+	?date ?Sdate ?Edate # WHEN
+	?country ?countryLabel ?coords ?where ?whereLabel # WHERE
+	?who ?whoLabel # WHO
+	?sitelinks # METADATA (number of internal references in wikidata)
+	?extra ?extraLabel # EXTRA WHAT (o ?edition ?editionLabel)
+WHERE {
+    ?item
+        wdt:P31 ?whatis; # que es?
+        wikibase:sitelinks ?sitelinks.
+    { ?item wdt:P577 ?date; } # publication date
+        UNION 
+    { ?item wdt:P571 ?date; } # inception date
+    OPTIONAL {
+        { ?item wdt:P17 ?country; } # country
+            UNION
+        { ?item wdt:P495 ?country; } # country of origin
+    }
+    OPTIONAL {
+        ?item wdt:P18 ?wdimage .
+    }
+    OPTIONAL {
+        { ?item wdt:P61 ?who; } # descubridor o inventor
+            UNION
+        { ?item wdt:P176 ?who; } # manufacturer
+        ?who wdt:P31 ?extra. # Ver si es persona, organización o qué - Ejemplo: wd:Q5 para persona
+    }
+    OPTIONAL {
+        { ?item wdt:P1071 ?where . } # location of creation
+            UNION
+        { ?item wdt:P291 ?where . } # place of publication
+        ?where wdt:P625 ?coords .
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\" }
+}
+ Try it! I'm considering the different supported fields, like P571 or P577 for dates, P17 or P495 for countries, and so on. This fails with timeout, and my main challenge is that I don't knwo if there's something specific that affects the overall query. I have several similar queries for other searchs, with the same challenge.I also tried a few modifications, like using: wdt:P571/wdt:P577 ?date; for alternate options, but it returned an empty resultset.I don't need online info, and have no priority, so if this queries can run in the background and take longer, I'll be ok. And also are not for repetitive or online use.Hope my question is clear, and looking forward for any feedback. There's not much chance of reporting on all items having a publication date and/or an inception date - that would be high tens of millions of items (most all academic papers; much else besides). Probably need to think about a different approach? Some sort of segmentation of the graph based on class trees, perhaps? --Tagishsimon (talk) 23:04, 1 September 2021 (UTC) Thanks Tagishsimon, that was quite a fast answer! :-) I've tried narrowing that to some specific type, changing '?whatis' for wdt:P31 wd:Q482994; # album or wdt:P31 wd:Q7725634; # literary work for example, to look for music or books. First is still failing, but I could get the second. If there's such a large dataset, do you know if is there any way to get it (even if batch or waiting some day), or the only alternative would be too get a full copy and run it locally?I have other similar queries, where I don't know if the problem is the large of the resultset or perhaps some problem with the query itself. There does not look to be much else in the query that can be optimzed; you're setting a pattern for items to be included, and then asking for OPTIONAL() values. There is not (at the moment) a Quarry-type batch-run query facility for Wikidata SPARQL, and AFAIK Quarry and SQL is not much use for interrogating the triplestore. So I fear downloading a local copy is the only other option; and that's all way beyond my paygrade. --Tagishsimon (talk) 21:53, 2 September 2021 (UTC) Thanks Tagishsimon, I'll try then to reduce the resultsets using some extra conditions, and eventually combine the results later. Francisco de Zurbaran Could someone write a query for me for instance of painting (Q3305213) with creator (P170) = Francisco de Zurbarán (Q209615) and there is no catalog code (P528) with qualifier catalog (P972) = Francisco de Zurbarán, 1598-1664 (Q70004331)? I'm trying to match up all (purported) Zurbaran painting items to this book and wanting to make sure I haven't missed any. Thanks! Calliopejen1 (talk) 22:10, 2 September 2021 (UTC) @Calliopejen1: This, I think. SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q3305213 .
+  ?item wdt:P170 wd:Q209615 .
+  Filter not exists{ ?item p:P528/pq:P972 wd:Q70004331 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 22:38, 2 September 2021 (UTC) Tagishsimon Awesome, thanks! Calliopejen1 (talk) 02:19, 3 September 2021 (UTC) Query for all instruments played by people affiliated with a particular organization, and the number of those people who play each instrument Hi, I am struggling to get COUNT working correctly for this query. I've looked through a lot of examples and am still not getting it right. I would be very grateful if someone who knows SPARQL better than I do would look at this query and tell me what I'm doing wrong and how to fix it: SELECT distinct ?instrument ?instrumentLabel ?count 
+WHERE {?student wdt:P1303 ?instrument; 
+           wdt:P1416 wd:Q98035717;
+           wdt:P69 wd:Q219563.
+  {
+    SELECT (COUNT(?student) AS ?count)
+    WHERE
+    {
+      ?student wdt:P1303 ?instrument; 
+           wdt:P1416 wd:Q98035717;
+           wdt:P69 wd:Q219563.
+   }
+  }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  }
+ Try it! Thank you, --Crystal Clements, University of Washington Libraries (talk) 01:47, 2 September 2021 (UTC) @Clements.UWLib: I think mainly you were not instructing the query on what to aggregate the count - the GROUP BY statement. hth. SELECT ?instrument ?instrumentLabel (COUNT(?student) AS ?count)
+WHERE {
+  ?student wdt:P1303 ?instrument; 
+           wdt:P1416 wd:Q98035717;
+           wdt:P69 wd:Q219563.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  } GROUP BY ?instrument ?instrumentLabel
+ Try it! --Tagishsimon (talk) 10:54, 2 September 2021 (UTC) Thank you Tagishsimon! Yes this is exactly what I was going for, forgot to use GROUP BY. Derp. I appreciate your help. --Crystal Clements, University of Washington Libraries (talk) 18:44, 3 September 2021 (UTC) How to query for people by first and/or last name? HiI am trying to query a knowledge graph in natural language, for example\"How old is Michael Wechner?\"In order to do so, I analyze the question using NER which generates something likePerson/Subject: \"Michael Wechner\" Predicate: \"age\" / \"date of birth\"and translate into a SPARQL, e.g. SELECT ?item ?itemLabel ?dateOfBirth WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item ?label \"Michael Wechner\"@en .
+  OPTIONAL{?item wdt:P569 ?dateOfBirth .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! which works well, but only if the name matches exactly.I would like to do a full text / wildcard search as described athttps://stackoverflow.com/questions/39773812/how-to-query-for-people-using-wikidata-and-sparqlwhereas I also tried according tohttps://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPIbut did not get it working yet.Any help on this is very much appreciatedThanksMichael @Michaelwechner: I think the incantation you might be looking for is: SELECT DISTINCT ?item ?itemLabel ?dateOfBirth 
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"Michael Wechner haswbstatement:P31=Q5\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  OPTIONAL {?item wdt:P569 ?dateOfBirth . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 14:17, 3 September 2021 (UTC) Great, thank you very much Tagishsimon ! Query to identify people, bird-, tree-types streets are named after This query does not always return all a P21 for humans, even though it is set. Example Q108377852 is not shown as 'female'.What am I doing wrong?Query: SELECT ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+       (group_concat(DISTINCT ?berufL;separator=\", \") as ?berufe) 
+WHERE
+{
+ # ?street wdt:P31 wd:Q79007 .
+ ?objekt wdt:P31 ?ist_eine .
+  ?objekt wdt:P131 wd:Q570057 . #Verwaltungseinheit Karben
+  ?objekt wdt:P131 ?city .
+  ?objekt wdt:P138 ?person .
+  ?person wdt:P31 ?art .
+  FILTER ( ?art not in ( wd:Q16521, wd:Q55983715, wd:Q754660, wd:Q978 ) ) . #nicht Taxon, Lebewesen Trivaler Name, Falconinae, Mem
+  optional {
+    ?person wdt:P21 ?geschlecht .
+    ?person wdt:P140 ?religion .
+    ?person wdt:P106 ?beruf .
+    ?beruf rdfs:label ?berufL .
+    FILTER((LANG(?berufL)) = \"de\") .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+ORDER BY ?city ?objektLabel
+ Try it! Pandabear de (talk) 23:45, 5 September 2021 (UTC) @Pandabear de: You had a single OPTIONAL block; the item must have ALL values for any of the values to be displayed. Better probably to have discrete OPTIONAL() clauses for each independent value, and a nested OPTIONAL for the ?beruf, fwiw. I could not find Q108377852 in the result set, but the issue was clear. SELECT ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+       (group_concat(DISTINCT ?berufL;separator=\", \") as ?berufe) 
+WHERE
+{
+ # ?street wdt:P31 wd:Q79007 .
+ ?objekt wdt:P31 ?ist_eine .
+  ?objekt wdt:P131 wd:Q570057 . #Verwaltungseinheit Karben
+  ?objekt wdt:P131 ?city .
+  ?objekt wdt:P138 ?person .
+  ?person wdt:P31 ?art .
+  FILTER ( ?art not in ( wd:Q16521, wd:Q55983715, wd:Q754660, wd:Q978 ) ) . #nicht Taxon, Lebewesen Trivaler Name, Falconinae, Mem
+  optional { ?person wdt:P21 ?geschlecht .}
+  optional { ?person wdt:P140 ?religion .}
+  optional { ?person wdt:P106 ?beruf .
+    optional { ?beruf rdfs:label ?berufL . FILTER((LANG(?berufL)) = \"de\") . } 
+           }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+GROUP BY ?ist_eineLabel ?objekt ?objektLabel ?cityLabel ?personLabel ?artLabel ?geschlechtLabel ?personDescription ?religionLabel 
+ORDER BY ?city ?objektLabel
+ Try it! --Tagishsimon (talk) 00:20, 6 September 2021 (UTC) Thanks! Pandabear de (talk) 06:49, 6 September 2021 (UTC) Recent changes of a specific property Currently I am trying to search for last modifications of wikidata items like this: PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?item ?date
+                                   WHERE { ?item wdt:P31 wd:Q3305213;
+                                                            schema:dateModified ?date.}
+ Try it! Furthermore I would like to find out recent changes (adding or altering )of property P1257( iconclass) of those items. How to build this query? Many thanks in advance and regards from sunny Vienna Hippokrene (talk) 12:25, 6 September 2021 (UTC) WDQS does not provide a means of ascertaining what changes were made at the schema:dateModified ?date and so will not be able to show, or alert you, to additions or alterations of P1257. --Tagishsimon (talk) 12:31, 6 September 2021 (UTC) I think Magnus has a tool for that .. forgot how it's called. --- Jura 12:37, 6 September 2021 (UTC) Listing of labels from the new query builder Will this query be possible. Originaly buildt with the new querybuilder here https://w.wiki/3yJp and then modifyed like this:SELECT DISTINCT ?item ?itemLabel ?dob ?dobLabel ?histreg ?histregLabel WHERE { SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+ {
+   SELECT DISTINCT ?item WHERE {
+     ?item p:P27 ?statement0.
+     ?statement0 (ps:P27/(wdt:P279*)) wd:Q20.
+     ?item p:P21 ?statement1.
+     ?statement1 (ps:P21/(wdt:P279*)) wd:Q6581072.
+     ?item p:P569 ?statement_2.
+     ?statement_2 psv:P569 ?statementValue_2.
+     ?statementValue_2 wikibase:timeValue ?P569_2.
+     ?item p:P4574 ?statement3.
+     ?statement3 (ps:P4574) _:anyValueP4574.
+     MINUS {
+       ?item p:P19 ?statement4.
+       ?statement4 (ps:P19/(wdt:P279*)) _:anyValueP19.
+    OPTIONAL { ?item wdt:P569 ?dob } 
+ 
+   
+    OPTIONAL { ?item wdt:P4574 ?histreg }
+     }
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nn,nb,en,sv,fi\". }  
+   }
+   LIMIT 10000
+ } } Pmt (talk) 11:54, 28 August 2021 (UTC)Also notifying @Mohammed Sadat @Pmt: Some changes get the blank columns working again. In essence the OPTIONAL clauses were within a MINUS clause. SELECT DISTINCT ?item ?itemLabel ?dob ?dobLabel ?histreg ?histregLabel WHERE {
+ {
+   SELECT DISTINCT ?item ?dob ?histreg WHERE {
+     ?item p:P27 ?statement0.
+     ?statement0 (ps:P27/(wdt:P279*)) wd:Q20.
+     ?item p:P21 ?statement1.
+     ?statement1 (ps:P21/(wdt:P279*)) wd:Q6581072.
+     ?item p:P569 ?statement_2.
+     ?statement_2 psv:P569 ?statementValue_2.
+     ?statementValue_2 wikibase:timeValue ?P569_2.
+     ?item p:P4574 ?statement3.
+     ?statement3 (ps:P4574) _:anyValueP4574.
+     MINUS {
+       ?item p:P19 ?statement4.
+       ?statement4 (ps:P19/(wdt:P279*)) _:anyValueP19.
+     }
+     OPTIONAL { ?item wdt:P569 ?dob } 
+     OPTIONAL { ?item wdt:P4574 ?histreg }
+#     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nn,nb,en,sv,fi\". }  
+   }
+   LIMIT 10000
+ }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! --Tagishsimon (talk) 15:13, 31 August 2021 (UTC) Thanks once again! Pmt (talk) 18:13, 6 September 2021 (UTC) Optimizing a query with language fallback Two weeks ago I asked whether this query can be optimized.User:Tagishsimon was kind enough to propose an optimization. It is indeed much faster, but unfortunately we discovered that this optimized query does not give the full results. For instance, the results lack the description field for row 't Kasteel van Aemstel (Q2168591), whereas the original query has a value for that field (\"Rijksmonument op Nieuwezijds Voorburgwal 67\").This is important, because of the following scenario: Imagine I (a German person) go to Spain and open the app to see nearby Wikidata items. My phone is set to German, so I see labels and descriptions in German when there are German labels and descriptions. Because it is Spain most items have no German label/description, but showing Spanish label/description would be much better than showing nothing.Is there a way to optimize the query without losing this language fallback ability? Thanks a lot! Syced (talk) 17:11, 8 September 2021 (UTC) @Syced: In the line SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,nl,[AUTO_LANGUAGE]\". you can set the languages returned by the label service. In my example, I see it had just \"en,[AUTO_LANGUAGE]\". I've added 'nl', from where I copied the above. Add more language codes as you wish - de,fr,es, &c &c. The label service will return the first label it finds, according to the order in which you specify the codes. [AUTO_LANGUAGE] is whatever language your WD user interface is set to. I don't know of a way to get the service to return a label without specfying a set of languages. If your use has an awareness of which language the user might prefer, and you can reconfigure the order of languages, then good. If not then I guess you have to make a call on what your preferred order is. --Tagishsimon (talk) 21:09, 8 September 2021 (UTC) Thanks again for your help Tagishsimon, that's extremely helpful! I compiled this list from https://en.wikipedia.org/wiki/List_of_Wikipedias: \"${LANG},en,fr,de,es,ja,ru,it,zh,pt,ar,fa,pl,nl,id,uk,he,sv,cs,ko,vi,ca,no,fi,hu,tr,th,hi,bn,ceb,ro,sw,kk,da,eo,sr,lt,sk,bg,sl,eu,et,hr,ms,el,arz,ur,ta,te,nn,gl,az,af,bs,be,ml,ka,is,sq,uz,la,br,mk,lv,azb,mr,sh,tl,cy,ckb,ast,be-tarask,zh-yue,hy,pa,as,my,kn,ne,si,tt,ha,war,zh-min-nan,vo,min,lmo,ht,lb,gu,tg,sco,ku,new,bpy,nds,io,pms,su,oc,jv,nap,ba,scn,wa,bar,an,ksh,szl,fy,frr,als,ia,ga,yi,mg,gd,vec,ce,sa,mai,xmf,sd,wuu,mrj,mhr,km,roa-tara,am,roa-rup,map-bms,bh,mnw,shn,bcl,co,cv,dv,nds-nl,fo,hif,fur,gan,glk,hak,ilo,pam,csb,avk,lij,li,gv,mi,mt,nah,nrm,se,nov,qu,os,pi,pag,ps,pdc,rm,bat-smg,sc,to,tk,hsb,fiu-vro,vls,yo,diq,zh-classical,frp,lad,kw,mn,haw,ang,ln,ie,wo,tpi,ty,crh,nv,jbo,ay,pcd,zea,eml,ky,ig,or,cbk-zam,kg,arc,rmy,ab,gn,so,kab,ug,stq,udm,ext,mzn,pap,cu,sah,tet,sn,lo,pnb,iu,na,got,bo,dsb,chr,cdo,om,sm,ee,ti,av,bm,zu,pnt,cr,pih,ss,ve,bi,rw,ch,xh,kl,ik,bug,dz,ts,tn,kv,tum,xal,st,tw,bxr,ak,ny,fj,lbe,za,ks,ff,lg,sg,rn,chy,mwl,lez,bjn,gom,tyv,vep,nso,kbd,ltg,rue,pfl,gag,koi,krc,ace,olo,kaa,mdf,myv,srn,ady,jam,tcy,dty,atj,kbp,din,lfn,gor,inh,sat,hyw,nqo,ban,szy,awa,ary,lld,smn,skr,mad,dag,shi,nia,ki,gcr\" ... with ${LANG} being the phone's language, and it works great, fast and with nice fallback :-) Syced (talk) 10:04, 9 September 2021 (UTC) @Syced: There are also labels, descriptions and aliases in other languages than the languages which have Wikipedias. So if you want a more complete list of used language codes, please take a look at User:Mr. Ibrahem/Language statistics for items. Although I doubt that any items only have labels in languages not in the list above, it is theoretically possible. --Dipsacus fullonum (talk) 22:00, 11 September 2021 (UTC) WD Talk page extract Hello, is it possible to get the following : (for one P31, says towns of France) get (the towns of France Qid) (first 50 characters of their Wikidata talk page) ? Bouzinac 💬●✒️●💛 09:18, 14 September 2021 (UTC) @Bouzinac: It is possible but slow because you need a MWAPI call for every item. This query has a limit of 10 to avoid timeout: SELECT ?item ?itemLabel ?extract
+WHERE
+{
+  ?item wdt:P31 wd:Q484170 .
+  BIND (SUBSTR(STR(?item), 32) AS ?item_title)
+  OPTIONAL
+  {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:gapnamespace \"1\" .
+      bd:serviceParam mwapi:gapfrom ?item_title .
+      bd:serviceParam mwapi:gapto ?item_title .
+      bd:serviceParam mwapi:prop \"extracts\" .
+      bd:serviceParam mwapi:explaintext \"true\" .
+      bd:serviceParam mwapi:exchars \"50\" .
+      bd:serviceParam mwapi:exlimit \"1\" .
+      ?extract wikibase:apiOutput \"extract/text()\".
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 10
+ Try it! --Dipsacus fullonum (talk) 09:27, 15 September 2021 (UTC) This query https://w.wiki/454A with a small P31 without limit works perfectly. Thanks! List of all black people I understand that race/ethnicity are difficult classifications.I am hoping for a query that will list all (non-fictional) people that are black in order of most sitelinks. This list would include Barack Obama, Tiger Woods, Malcolm X, Nelson Mandela, Concha Buika etc.If it's possible, the list would also include any (non fictional) person who has a parent that is black. (Unless that parent is not the biological parent).Thank you very much, and If I offended, or violated some wikidata rule, I am sorry, this is my first ever query/post/edit of any wiki. Most items for persons don't have statements for race or ethnicity, so I think that is impossible due lack of data. --Dipsacus fullonum (talk) 05:45, 15 September 2021 (UTC) The query doesn't need to include all black people, but it does need to exclude people that are fictional, and does need to include anyone with the race or ethnicity of \"black people\" or a subclass of \"black people\", or a subclass of a subclass of \"black people\"...I managed to write a query that produced a list of 20,000+ African Americans, but some of them were fictional, and when I try to broaden the query, it starts excluding African Americans, even though \"African American\" is a subclass of \"Black People\" You wrote that the list would include Nelson Mandela. Wikidata has no indication that mr. Mandela have an ethnicity of \"black people\", so the task is impossible. --Dipsacus fullonum (talk) 09:45, 15 September 2021 (UTC) Number of women in Wikidata without a Wikipedia article Hi, I am trying to find out the number of women in Wikidata who do not have a Wikipedia article. My first attempt looks like this: SELECT (COUNT(*) AS ?count) WHERE {
+  ?item wdt:P21 wd:Q6581072.
+  ?item wdt:P31 wd:Q5.
+MINUS {                            
+    ?wen schema:about ?item .
+    ?wen schema:isPartOf/wikibase:wikiGroup \"wikipedia\"  . }
+}
+ Try it! Unfortunately my query times out. Is there a way to modify it (or another way to find out the number)? I don't have much experience with Wikidata and Sparql and would appreciate some help. Thanks! Rrrrraaaa (talk) 19:52, 14 September 2021 (UTC)@Rrrrraaaa: I tried SELECT (COUNT(*) AS ?count) WHERE {
+  ?item wdt:P21 wd:Q6581072.
+  ?item wdt:P31 wd:Q5.
+  ?item wikibase:sitelinks 0 .
+}
+ Try it! and it didn't timeout (53 seconds, very close!): the result is 1020075 as of now. --Epìdosis 21:37, 14 September 2021 (UTC) To split hairs, that is not drawing a distinction between absence of a wikipedia sitelink, and absence of any sitelink; a non-zero wikibase:sitelinks value does not necessarily indicate a wikipedia article. Humaniki should be able to answer the question, but doesn't seem to be able to. --Tagishsimon (talk) 21:40, 14 September 2021 (UTC) The query would give a count of zero as was first written: ?item wikibase:sitelinks 0. will match items with 0.0 sitelinks where 0.0 is a decimal number, i.e. none. You need a space between the number and the dot to search for integers. I inserted the space in the query. --Dipsacus fullonum (talk) 05:57, 15 September 2021 (UTC) Thanks a lot for your help! As @Tagishsimon: wrote, zero sitelinks unfortunately means the person is missing from all sorts of wiki projects. I've been trying to identify only women without Wikipedia articles. I've also tried to find out the number via Humaniki, but had no luck. So I would probably have to download a dump to answer the question, right? I think so, yes, unless humaniki can help. @Sek2016: might be able to provide some input? --Tagishsimon (talk) 19:36, 15 September 2021 (UTC) train stations with IATA Code I would love a list of all railway station (Q55488) (and subclasses?) that have a IATA airport code (P238) statement. And if the list showed the IATA code, even better. Thanks in advance!--Geogast 🤲 (talk) 12:36, 15 September 2021 (UTC) Something like list of IATA-indexed railway stations (Q1655167) should be the result; of course, very, very incomplete until now.--Geogast 🤲 (talk) 12:38, 15 September 2021 (UTC) @Geogast: SELECT DISTINCT ?item ?itemLabel ?IATA
+WHERE
+{
+  ?item wdt:P31/wdt:P279* wd:Q55488 .
+  ?item wdt:P238 ?IATA .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 12:51, 15 September 2021 (UTC) Oh, that was quick. Thanks a lot!!--Geogast 🤲 (talk) 13:04, 15 September 2021 (UTC) Items with sitelinks to one wikipedia and not another I'm trying to construct a query to return a list of items with enwiki links, but not hewiki sitelinks.The closest I got without timeouts is to restrict by domain: #list of items of a certain type with an enwiki sitelink but not a hewiki sitelink
+SELECT DISTINCT ?item ?itemLabel ?article1
+WHERE {
+   wd:Q197 ^wdt:P279*/^wdt:P31 ?item .  # instance or subclass of airplane
+   ?article1 schema:about ?item;
+   schema:isPartOf <https://en.wikipedia.org/>.
+   FILTER NOT EXISTS {
+      ?article2 schema:about ?item;
+            schema:isPartOf <https://he.wikipedia.org/>.
+   }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Is there a way to do this without segmenting by topic? It would be OK if there was no item label, just the list of enwiki articles. Inductiveload (talk) 22:06, 15 September 2021 (UTC) Probably not. 8.8m EN wiki sitelinks is beyond the scope of a 60s query. --Tagishsimon (talk) 22:16, 15 September 2021 (UTC) @Tagishsimon: Can it be limited somehow, e.g. so you get 200 results? Inductiveload (talk) 22:19, 15 September 2021 (UTC) @Inductiveload: Inclined to think this is the more likely way to employ a LIMIT: #list of items of a certain type with an enwiki sitelink but not a hewiki sitelink
+SELECT DISTINCT ?item ?itemLabel ?article1 WITH { SELECT ?item ?itemLabel ?article1 
+WHERE {
+   ?article1 schema:about ?item;
+   schema:isPartOf <https://en.wikipedia.org/>.
+} LIMIT 100000 } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS {
+      ?article2 schema:about ?item;
+            schema:isPartOf <https://he.wikipedia.org/>.
+   }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 22:32, 15 September 2021 (UTC) Amazing as always, thank you! Inductiveload (talk) 22:44, 15 September 2021 (UTC) I think it will be it bit faster if you remove DISTINCT so the engine doesn't have to search for duplicates. There wont be any without the property path. ?itemLabel can also be removed from the SELECT clause in the subquery. --Dipsacus fullonum (talk) 04:52, 16 September 2021 (UTC) Without filtering by topic or using limit, you would have to get a 8848757 - 418251 as result.--- Jura 11:16, 16 September 2021 (UTC) show qualifier I have never understood how to show qualifiers in a Query. 🤷‍♂️ For instance, I would like a query of items with the statement season (P4908) : Sons of Garmadon (Q43133862). Show me the series ordinal (P1545) qualifier (this is: its value) in the season (P4908) statement.--Geogast 🤲 (talk) 14:57, 16 September 2021 (UTC) @Geogast: Do you mean like this? SELECT ?item ?itemLabel ?number
+WHERE
+{
+  ?item p:P4908 ?statement .
+  ?statement a wikibase:BestRank . # Include only statements of best rank
+  ?statement ps:P4908 wd:Q43133862 . # Item is season of Sons of Garmadon
+  OPTIONAL { ?statement pq:P1545 ?number . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 15:44, 16 September 2021 (UTC) PS. series ordinal (P1545) has datatype string. If you want to order the results, you can cast the value to integer: SELECT ?item ?itemLabel (xsd:integer(?number) AS ?no)
+WHERE
+{
+  ?item p:P4908 ?statement .
+  ?statement a wikibase:BestRank . # Include only statements of best rank
+  ?statement ps:P4908 wd:Q43133862 . # Item is season of Sons of Garmadon
+  OPTIONAL { ?statement pq:P1545 ?number . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY ?no
+ Try it! --Dipsacus fullonum (talk) 15:53, 16 September 2021 (UTC) Actually, I didn't really see the difference between these two… However, they work really fine for me. Also, to fiddle around a bit. Thanks a lot!--Geogast 🤲 (talk) 13:27, 17 September 2021 (UTC) It's the difference between ordering the series ordinals as integers (1, 2, 3, 4, ... 10) rather than as strings (1, 10, 2, 3, 4, ... 9). --Tagishsimon (talk) 00:12, 18 September 2021 (UTC) Commons depicts data for files in a given category Hello, I'm trying to obtain all the wdt:P180 labels for files tagged using the ISA Tool for campaign #150, which works on whole categories of files at a time.My first example is the category 1930s photographs in Auckland Museum.This is what I've tried so far: PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT ?file ?title ?label
+
+WITH {
+  SELECT * WHERE {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\" .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} AS %files
+
+WITH {
+  SELECT ?depicts WHERE {
+    INCLUDE %files .
+    ?file wdt:P180 ?depicts .
+  }
+} AS %depictions
+
+WHERE {
+  INCLUDE %files .
+  INCLUDE %depictions .
+  SERVICE <https://query.wikidata.org/sparql> {
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,mi\".
+      ?depicts rdfs:label ?label .
+    }
+  }
+}
+LIMIT 50
+ Try it! However, running this results in the same label appearing for every entry, and I can't work out why. I have tried commenting-out line 37 (INCLUDE %files .) but this, of course, means the results don't include the title or label! I would like to get each labels in English and te reo Māori, and use (GROUP_CONCAT (?label; SEPARATOR=\";\") AS ?labels) to concatenate them in the same variable/column.Any help would be appreciated. Thank you. —Hugh 06:58, 31 August 2021 (UTC) @HughLilly: I think what's going on is you're getting the Cartesian product of %files x %depictions ... there's nothing in %depictions (a single column of ?depicts) to mesh it to %files (two columns, ?file & ?title). I've amended the SELECT in the %depictions subquery, and removed INCLUDE %files from the final subquery, and added EN and MI labels and aggregated the results; and I think we're now good. Got rid of the PREFIXes too, 'cos not needed for this exercise, and added |project=sdc to the SPARQL template to point to the correct report server. hth. SELECT ?file ?title (GROUP_CONCAT(DISTINCT ?mi_label;separator=\"; \") as ?miLabel) (GROUP_CONCAT(DISTINCT ?en_label;separator=\"; \") as ?enLabel)
+WITH {
+  SELECT * WHERE {
+    SERVICE wikibase:mwapi
+    {
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\" .
+      bd:serviceParam mwapi:generator \"categorymembers\" .
+      bd:serviceParam mwapi:gcmtype \"file\" .
+      bd:serviceParam mwapi:gcmlimit \"max\" .
+      ?title wikibase:apiOutput mwapi:title .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+    }
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  }
+} AS %files
+
+WITH {
+  SELECT ?file ?title ?depicts WHERE {
+    INCLUDE %files .
+    ?file wdt:P180 ?depicts .
+  }
+} AS %depictions
+
+WHERE {
+
+  INCLUDE %depictions .
+  SERVICE <https://query.wikidata.org/sparql> {
+      OPTIONAL {?depicts rdfs:label ?mi_label . filter(lang(?mi_label) = \"mi\")}
+      OPTIONAL {?depicts rdfs:label ?en_label . filter(lang(?en_label) = \"en\")}    
+    
+  }
+} group by ?file ?title
+LIMIT 50
+ Try it! --Tagishsimon (talk) 11:56, 31 August 2021 (UTC) Secondary questions Thank you very much; that's got me a bit further toward my goal. I didn't realise you needed to specify the server in the template or use two separate OPTIONAL calls for the labels, but of course that makes sense. Using A_waterfall_in_a_forest_(AM_75762-1).jpg as an example, I would also like to get some of the data in the {{Artwork}} template. I'd specifically like to get what's under the source and accession number parameters. Running a direct query on this entity doesn't appear to deliver this data. 1. How can I run a SPARQL query which operates on only one entity? 2. Can I run a query that just gets all triples, to show me what data exists? 3. How can I learn what other possible data exists at mwapi: points? For example, I know mwapi:title exists, but how do I work out what else is available? I've done some reading of the documentation and it seems like I might need to use props=text, like so -- is that correct? Do I then just need to parse the text? But how do I do this in SPARQL? Thanks again. :) —Hugh 22:32, 31 August 2021 (UTC) @Dipsacus fullonum: Is there a means, via SPARQL/mwapi, to get data from a wikipedia article or commons file template (such as {{Artwork}} from A_waterfall_in_a_forest_(AM_75762-1).jpg)? --Tagishsimon (talk) 02:16, 9 September 2021 (UTC) @Hl, Tagishsimon: If you use the parse API (action=parse) with prop=text as above you get the resulting HTML code after parsing all wiki makeup and transcluding all templates. To instead get the source text for the page use prop=wikitext like this: https://commons.wikimedia.org/w/api.php?action=parse&format=jsonfm&prop=wikitext&pageid=65558537. But you cannot access the parse API from the SPARQL mwapi. An alternative way to get the wikitext for a page – which you can use from SPARQL code – is to use the revision API (action=query&prop=revisions) with the the rvprop=content parameter like this: https://commons.wikimedia.org/w/api.php?action=query&prop=revisions&titles=File:A%20waterfall%20in%20a%20forest%20(AM%2075762-1).jpg&rvslots=main&rvprop=content. A third method is to extract a dump of the information you can search for in a page with cirrus search like this: https://commons.wikimedia.org/w/api.php?action=query&prop=cirrusbuilddoc&titles=File:A%20waterfall%20in%20a%20forest%20(AM%2075762-1).jpg. You can search for all wikipages that transclude a given template with the templates API (action=query&prop=templates) or with cirrus search using the parameter hastemplate:. But there is to my knowledge no simple way to extract the content of the template parameters other than trying a insource: search or otherwise analyze the wikitext of the page. --Dipsacus fullonum (talk) 08:45, 9 September 2021 (UTC) @Dipsacus fullonum, @Tagishsimon, thanks so much. This looks like it has set me up well for exploring what's there and parsing it. —Hugh 23:47, 9 September 2021 (UTC) Hello again, @Dipsacus fullonum. I wonder if I could trouble you for some more help? Using the Douglas Adams example here, I've worked up this query: SELECT * WHERE {
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                    mwapi:generator \"categorymembers\";
+                    mwapi:gcmtype \"file\";
+                    mwapi:gcmlimit \"max\";
+                    mwapi:prop \"revisions\";
+                    mwapi:rvprop \"content\".
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput \"@pageid\".
+    ?contentmodel wikibase:apiOutput 'revisions/rev/@contentmodel'.
+    ?contentformat wikibase:apiOutput 'revisions/rev/@contentformat'.
+    ?content wikibase:apiOutput 'revisions/rev/text()'.
+  }
+} 
+LIMIT 10
+ Try it! Only 2 of the 10 files returned by this query have text in the results, even though all of them have text in their pages. Why is this? Using File:Group posing with a hurricane damaged fence (AM 84399-1).jpg as an example, the structure of the JSON response appears to be the same. I can't find any documentation on the text() portion of the XPath statement—is there anything you could point me to? Thanks. Edit: I've been trying the above directly on WD because the Commons Query Service has been giving me HTTP 500 errors. However I've combined the queries on there and hope this query might work once the server is back up. —HughLilly (talk) (WP user page) 03:17, 17 September 2021 (UTC) @HughLilly: Each API call fetched 500 category members (due to gcmlimit=max where max is 500) but there is a lower limit for prop=revisions giving max 50 revisions per API call. That means your query fetched 500 category members of which only 50 included content of the latest revision, and then 490 of the results was randomly discarded due to LIMIT 10, leaving some results with and some without content. Your value for gcmlimit should not exceed 50 (and not the number in the LIMIT clause either as that is a waste). Another thing, you should add rvslots=main to the API call as revisions API calls without specifying the revisions slot is deprecated and may stop to work in the future. However that will change the format of the API results, so the output section of the MWAPI SPARQL code should changed accordingly. About XPath there is plenty of tutorials around e.g. at https://www.w3schools.com/xml/xpath_intro.asp, but your use of XPath wasn't the problem. A modified query will be: SELECT * WHERE {
+  BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                    mwapi:generator \"categorymembers\";
+                    mwapi:gcmtype \"file\";
+                    mwapi:gcmlimit \"10\";
+                    mwapi:prop \"revisions\";
+                    mwapi:rvslots \"main\";
+                    mwapi:rvprop \"content\";
+                    wikibase:limit \"once\".
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput mwapi:pageid.
+    ?contentmodel wikibase:apiOutput 'revisions/rev/slots/slot/@contentmodel'.
+    ?contentformat wikibase:apiOutput 'revisions/rev/slots/slot/@contentformat'.
+    ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+  }
+}
+LIMIT 10
+ Try it! . --Dipsacus fullonum (talk) 05:16, 17 September 2021 (UTC) PS. What's the point in fetching contentmodel and contentformat? Wont they always be the same for files? --Dipsacus fullonum (talk) 05:41, 17 September 2021 (UTC) The reason for that was that I simply copied the Douglas Adams example verbatim. —HughLilly (talk) (WP user page) 01:44, 20 September 2021 (UTC) @HughLilly: PPS. I forgot to include bd:serviceParam wikibase:limit \"once\". When you have LIMIT clause in the query, you should both apply the same limit to the API calls, and disable continuation calls. Otherwise all category members will be fetched regardsless. bd:serviceParam wikibase:limit 10 . can also be used for the same purpose. I edited the query. --Dipsacus fullonum (talk) 06:02, 17 September 2021 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ @Dipsacus fullonum, thank you. The LIMIT 10 was purely for testing; I want to get all the files. I take it I don't need to limit the revision by including mwapi:rvlimit \"1\";, because the API returns only the most recent revision by default? Also, if this search retrieves only the first 50 category members (i.e., files), how do I get the rest? The documentation is of little help. I've now tried to combine the two queries: SELECT
+?file
+?title
+(GROUP_CONCAT(DISTINCT ?en_label; separator=\", \") as ?labels_en)
+(GROUP_CONCAT(DISTINCT ?mi_label; separator=\", \") as ?labels_mi)
+?content
+
+WITH {
+  SELECT * WHERE {
+    BIND (URI(CONCAT('https://commons.wikimedia.org/entity/M', ?pageid)) AS ?file)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Generator\";
+                      wikibase:endpoint \"commons.wikimedia.org\";
+                      mwapi:gcmtitle \"Category:1930s photographs in Auckland Museum\";
+                      mwapi:generator \"categorymembers\";
+                      mwapi:gcmtype \"file\";
+                      mwapi:gcmlimit \"50\";
+                      mwapi:prop \"revisions\";
+                      mwapi:rvslots \"main\";
+                      mwapi:rvprop \"content\";
+                      wikibase:limit \"once\".
+      ?title wikibase:apiOutput mwapi:title.
+      ?pageid wikibase:apiOutput mwapi:pageid.
+      ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+    }
+  }
+} AS %files
+
+WITH {
+  SELECT * WHERE {
+    INCLUDE %files .
+    ?file wdt:P180 ?depicts .
+  }
+} AS %depictions
+
+WHERE {
+  INCLUDE %depictions .
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL {?depicts rdfs:label ?mi_label . filter(lang(?mi_label) = \"mi\")}
+    OPTIONAL {?depicts rdfs:label ?en_label . filter(lang(?en_label) = \"en\")}
+  }
+}
+
+GROUP BY ?file ?title ?content
+ Try it! …but this hasn't worked. I would appreciate some more help if you're able. Thanks. —Hugh (talk) 03:02, 20 September 2021 (UTC) @HughLilly: WCQS still seems to be down, so I cannot test it. But I only see one error: you should remove bd:serviceParam wikibase:limit \"once\" again. I inserted that triple to stop the MWAPI service from doing continuation calls for when there was LIMIT clause. The documentation for the revisions query is at https://commons.wikimedia.org/w/api.php?action=help&modules=query%2Brevisions. You use the revisions query in that it calls mode 1 (\"Get data about a set of pages (last revision), by setting titles or pageids.\") where you always get the last revision and where rvlimit may not be used. The documentation fails to mention the limit of max 50 results per mode 1 call; I found it by doing the API call manually in order to see how the output is formatted so I could make the XPath code. The limit however is similar to the limits of several other queries that can be embedded in a generator query. The query should work fine with gcmlimit=50: each API call fetch 50 category members each with their latest revison, and the MWAPI service will make continuation calls as long as there are more category members or until it reaches the limit set by wikibase:limit or the hard-coded limit of 10.000. --Dipsacus fullonum (talk) 06:41, 20 September 2021 (UTC) Thanks, @Dipsacus fullonum. Must this call be done against the Commons endpoint? Can I not perform it against the WD endpoint? —Hugh (talk) 08:04, 20 September 2021 (UTC) @HughLilly: Hi. The triple ?file wdt:P180 ?depicts queries the structured data at Commons, while fetching the labels uses data from Wikidata. Using WMAPI can happen from WDQS and WCQS. The query is now written to run at WCQS and access WDQS in a federated subquery. It could also be reversed, but it will still depend on both endpoints working. --Dipsacus fullonum (talk) 11:54, 20 September 2021 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ Applying regex to query @Dipsacus fullonum, Thanks once again. Having asked a Stack Overflow question and obtained the regex I need to use to extract the strings from the ?content variable, I'm stuck on trying to implement this in SPARQL. I thought I needed to use BIND and REPLACE, and read the documentation for those functions, but running this query (limited to just one file for testing purposes) does not return what I want; I don't think I actually want to replace anything, but instead extract. SELECT * WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\";
+                    wikibase:endpoint \"commons.wikimedia.org\";
+                    mwapi:generator \"revisions\";
+                    mwapi:pageids \"64827585\";
+                    mwapi:gcmtype \"file\";
+                    mwapi:gcmlimit \"1\";
+                    mwapi:prop \"revisions\";
+                    mwapi:rvslots \"main\";
+                    mwapi:rvprop \"content\";
+                    wikibase:limit \"once\".
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput mwapi:pageid.
+    ?content wikibase:apiOutput 'revisions/rev/slots/slot/text()'.
+  }
+  BIND(REPLACE(?content, \"section[^=]*=(.*?)\\\\|\", \"$1\") AS ?section)
+}
+ Try it! This is, of course, just one of three BIND statements I need to make. I would appreciate it if you could point me in the direction of some documentation that might help me achieve my goal. If it's too difficult or computationally intensive to do this in SPARQL I am happy to switch to a Python script after downloading the results of the query as a CSV, but if I can do this in SPARQL I would love to be able to. Thanks again. —Hugh (talk) 00:44, 21 September 2021 (UTC) @HughLilly: First, the definition of how REGEX and REPLACE works in SPARQL is in the document https://www.w3.org/TR/xpath-functions/#regex-syntax. The REPLACE function will replace each match with the given replacement string and leave anything else unchanged. Your REPLACE call above did find the value for \"section\" parameter in the template, and then replaced it with itself. To isolate the value, you need to match the whole string, so it is whole string that gets replaced. For example to get isolate the letter B in the string \"ABC\", you can use BIND(REPLACE(\"ABC\", \"^(.*?)(B)(.*)$\", \"$2\") AS ?B). Note that the whole string is matched and then replaced with capture number 2 which is the found B. With that in mind, your query will work with BIND(REPLACE(?content, \"^(.*?section[^=]*?=)(.*?)(\\\\|.*)$\", \"$2\", \"s\") AS ?section). The flag \"s\" is necessary and means that a dot (\".\") will also match newline characters which it wouldn't without the flag. --Dipsacus fullonum (talk) 07:27, 21 September 2021 (UTC) PS. Capture 1 and 3 isn't used for anything and can be omitted giving: BIND(REPLACE(?content, \"^.*?section[^=]*?=(.*?)\\\\|.*$\", \"$1\", \"s\") AS ?section) with the same result. --Dipsacus fullonum (talk) 07:44, 21 September 2021 (UTC) People that have married two Olympians Hi, I'm trying to get back into writing queries and was wondering if this question \"Has anyone in history besides Yuriy Sedykh ever been married to two different Olympic gold medalists?\" could be answered with a WD query, or if not that specific question, then the simpler question \"Which people have been married to two different Olympians?\"All Olympians at the modern olympics should have Wikidata items with property participant in (P1344), and a value of something that itself has property instance of (P31) and value Summer Olympic Games (Q159821) or Winter Olympic Games (Q82414) I think. For example, participant in (P1344) 1988 Summer Olympics (Q8470).So I'd be looking for someone who has multiple spouse (P26) values where at least two of those values matches the definition of \"olympian\" above. I understand the spousal data is incomplete and not all spouses have wikidata items, but I'm looking for the best we have here.Here is a query I came up with to list all spouses of Olympians: SELECT ?person ?personLabel
+WHERE {
+  VALUES ?olympics { wd:Q159821 wd:Q82414 }
+  ?person wdt:P26 ?spouse.
+  ?spouse wdt:P1344 ?event.
+  ?event wdt:P31 ?olympics.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! However it doesn't filter that list to only find people with two or more Olympian spouses. Any help would be appreciated, thank you. --Habst (talk) 02:22, 21 September 2021 (UTC) @Habst: Probably this sort of thing. Find those with an Olympic partner, then find those with another Olympic partner where P1 < P2 (which avoids getting two rows per set of spouses, which would occur with P1 != P2). Someone with three or more olympic spouses would get two or more rows in this report. See Wikidata:SPARQL query service/query optimization for the named subquery used in this example - trying to do it all in a single query timed-out. SELECT DISTINCT ?person ?personLabel ?spouse1 ?spouse1Label ?spouse2 ?spouse2Label WITH {
+  SELECT ?person ?spouse1 WHERE 
+  {
+    VALUES ?olympics { wd:Q159821 wd:Q82414 }
+    ?person wdt:P26 ?spouse1.
+    ?spouse1 wdt:P1344 ?event1.
+    ?event1 wdt:P31 ?olympics.
+    } } as %i
+WHERE
+{
+  INCLUDE %i
+  VALUES ?olympics { wd:Q159821 wd:Q82414 }
+  ?person wdt:P26 ?spouse2.
+  ?spouse2 wdt:P1344 ?event2.
+  ?event2 wdt:P31 ?olympics.
+  filter(str(?spouse1) < str(?spouse2) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! --Tagishsimon (talk) 02:44, 21 September 2021 (UTC) @Tagishsimon: Thanks. It looks like that code doesn't properly check if the 2nd spouse is an Olympian and is only pulling people with two or more spouses, with at least one of them being an Olympian. But it only returns 17 results so I was able to sift through those to find the relevant ones. --Habst (talk) 03:44, 21 September 2021 (UTC) Yes; I spotted that and fixed it. 11 now. --Tagishsimon (talk) 04:27, 21 September 2021 (UTC) @Habst: You can find a few more matches by using Olympedia people ID (P8286) (though there is a slight chance of a false positive, as the Olympedia database does contain some non-athletes). SELECT DISTINCT ?item ?itemLabel ?spouse1 ?spouse1Label ?spouse2 ?spouse2Label
+WHERE
+{
+  ?spouse1 wdt:P8286 [].
+  ?spouse2 wdt:P8286 [].
+  ?spouse1 p:P26/ps:P26 ?item.
+  ?spouse2 p:P26/ps:P26 ?item.
+  FILTER(str(?spouse1) < str(?spouse2))
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+ Try it! To answer your original question: Ekaterina Gordeeva has been married to two different gold medalists and is rumored to have married a third (David Pelletier) last year. --Quesotiotyo (talk) 04:29, 21 September 2021 (UTC) Articles on ScotsWiki with \"Fix Scots\" template, grouped by topic / instance of Hey hey. Am working with some folks on Sco.wiki, and trying to find a way to easily group articles which contain the \"Fix Scots\" template, in order to make it easier for editors to find an article to edit that's of interest to them. I was originally thinking along the lines of Citation Hunt, but for a particular template, but didn't get very far (already asked on en.wiki). I wondered if the way forward would be to group by the P31 values.There are around 2800 articles currently which use the template, so I used PetScan to look for a list of the articles and get their QIDs, with the intention of finding their P31 values, and then seeing if that could give me some sort of visualisation... and at some point I'd add sitelinks. The downside is that it's not a dynamic list.I got as far as finding out that VALUES, when you define wd: numbers, works for up to about 1500 items and doesn't work above that. See here: https://www.wikidata.org/wiki/User:Lirazelf/Learning#Scots_wiki_articles_that_use_fix_scots%2C_group_into_categoryI've been advised that it might be possible to do a syndicated query that combines information from Scotswiki and from Wikidata, but not sure how to take it forward. Any help would be appreciated! Lirazelf (talk) 15:24, 21 September 2021 (UTC) @Lirazelf: This sort of thing, presuming the template puts articles in the specified category. One row per P31 per item. It's a starting point; let us know if you want changes. SELECT ?item ?itemLabel ?article ?P31 ?P31Label where
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sco.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Pages that wis written by a body that's mither tongue isna Scots\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?article wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.        # wikidata QId for the article
+    }
+  filter(bound(?item))
+  optional {?item wdt:P31 ?P31 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! One row per article: SELECT ?item ?itemLabel ?article (group_concat(?P31Label;separator=\"; \") as ?P31) where
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sco.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Pages that wis written by a body that's mither tongue isna Scots\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?article wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.        # wikidata QId for the article
+    }
+  filter(bound(?item))
+  optional {?item wdt:P31 ?P31 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?item rdfs:label ?itemLabel .
+                         ?P31 rdfs:label ?P31Label . }
+} group by ?item ?itemLabel ?article
+ Try it! --Tagishsimon (talk) 17:34, 21 September 2021 (UTC) This is great @Tagishsimon, thank you. The first one there is probably the way to go, as it would allow me to sort by the P31 values (thinking about folks looking for an area of editing that they'd want to attack), is it possible to add sco.wiki sitelinks? Also - I tried to run it through Listeria (was thinking that that would be a neat way to present on a project page), but it's returning \"Killed by OS for overloading memory\" - would this be too complex a query for that tool, do you know? Thanks again. Lirazelf (talk) 08:53, 22 September 2021 (UTC) @Lirazelf: I added ?link to the query by Tagishsimon: SELECT ?item ?itemLabel ?article ?link ?P31 ?P31Label WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sco.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Pages that wis written by a body that's mither tongue isna Scots\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?article wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.        # wikidata QId for the article
+    }
+  FILTER BOUND(?item)
+  OPTIONAL {?item wdt:P31 ?P31 . }
+  BIND (URI(CONCAT(\"https://sco.wikipedia.org/wiki/\", ENCODE_FOR_URI(?article))) AS ?link)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Dipsacus fullonum (talk) 09:03, 22 September 2021 (UTC) @Dipsacus fullonum thank you! Appreciated :) Lirazelf (talk) 09:20, 22 September 2021 (UTC) @Lirazelf: Listeria seems to have issues accessing large items, such as country items. These figure in the Fix Scots report, and so you get the killed by OS error. So it's not the report, just a poorly tool. In other news, I've hacked your User:Lirazelf/Learning page with some report/SPARQL suggestions. Please bring any questions arising back to this board :) --Tagishsimon (talk) 13:10, 22 September 2021 (UTC) @Tagishsimon aha! good to know. and thank you! That's really helpful, and has a number of things which I'll investigate... :) Lirazelf (talk) 15:11, 22 September 2021 (UTC) James bond movies' whereabouts Hello, is there a way to query James Bond's adventures whereabouts, with their coordinates, the movie, and one picture (eg Monastery of the Holy Trinity, Meteora (Q2179863)? Bouzinac 💬●✒️●💛 14:42, 22 September 2021 (UTC) Maybe. It would be easier if you added the item (Q2179863) as filming location or narrative location to one. --- Jura 14:48, 22 September 2021 (UTC) @Bouzinac: This query can both give a table (default) and a world map with locations: SELECT (xsd:integer(?number) AS ?no) ?film ?filmLabel ?narrative_location ?narrative_locationLabel ?image ?coordinates
+WHERE
+{
+  ?film p:P179 ?series .
+  ?series ps:P179 wd:Q2484680 .
+  OPTIONAL { ?series pq:P1545 ?number . }
+  OPTIONAL
+  {
+    ?film wdt:P840 ?narrative_location .
+    OPTIONAL { ?narrative_location wdt:P18 ?image . }
+    OPTIONAL { ?narrative_location wdt:P625 ?coordinates . }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?no
+ Try it! --Dipsacus fullonum (talk) 16:32, 22 September 2021 (UTC) Problems matching Wikipedia URLs to wikidata items Hi Wikidata community,I have a bunch of Wikipedia URLs that I want to find their corresponding Wikidata items for. However, for some of them, the query isn't working and I have hard times figuring out why it is not working and what would be the best way to make it work :)Let's say I have the following query:prefix schema: <http://schema.org/>SELECT * WHERE { OPTIONAL {<https://en.wikipedia.org/wiki/Madonna_on_Late_Show_with_David_Letterman> schema:about ?item_1.}
+ OPTIONAL {<https://en.wikipedia.org/wiki/Murphy's_law> schema:about ?item_2.}
+ OPTIONAL {<https://en.wikipedia.org/wiki/Tulsa_race_riot> schema:about ?item_3.}
+ OPTIONAL {<https://it.wikipedia.org/wiki/Sócrates> schema:about ?item_4.} }For all those four URLs the query fails i.e. no wikidata item can be retrieved. I checked them all manually so they do exist. URL3 redirects to https://en.wikipedia.org/wiki/Tulsa_race_massacre. So one question would be if it is possible to handle such redirects?For URL 2 and 4 I assume it is because of the apostrophe or the ó here. At least for URL 4, I can confirm that replacing the ó with its hex utf8 bytes representation https://it.wikipedia.org/wiki/S%C3%B3crates works and retrieves the correct wikidata item/id. Is there an option to handle special characters at query time ... like ó Ē and so forth?Why URL 1 is not working is still puzzling me. Does anyone have an idea?Any help would be highly appreciated :) Best, Florian Hi Florian. URL 1 is also a redirect. You need to query the Wikipedias to solve the redirects. It can maybe be done in a query using MWAPI but I haven't looked into that. For the other URLs, you can change the encoding like this: SELECT *
+WHERE
+{
+  VALUES ?article
+  {
+    <https://en.wikipedia.org/wiki/Murphy's_law>
+    <https://it.wikipedia.org/wiki/Sócrates>
+  }
+  # Correct the encoding ...
+  BIND (STR(?article) AS ?str)
+  BIND (STRAFTER(?str, \".wikipedia.org/wiki/\") AS ?title)
+  BIND (STRBEFORE(?str, ?title) AS ?site)
+  BIND (URI(CONCAT(?site, ENCODE_FOR_URI(?title))) AS ?encoded_URI)
+  OPTIONAL { ?encoded_URI schema:about ?item . }
+}
+ Try it! --Dipsacus fullonum (talk) 09:05, 23 September 2021 (UTC) Thanks, Dipsacus! Knowing how to solve the encoding issue is a good step forward! Trouble connecting the qualifier to a property Hi, I'm trying to retrieve data for a given University and I want to plot the number of students over the years. I selected a university by its ROR_ID there exists data from 2011 to 2019. Unfortunately, I always get no return values as soon as I try to add the qualifier P585 as the moment in time when the number of students actually was real. SELECT ?itemLabel ?students ?year  WHERE {
+  ?item wdt:P6782 \"024z2rq82\";
+    wdt:P2196 ?students.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  OPTIONAL { ?students pq:P585 ?year. }
+}
+ Try it! Hi. You need to use p:P2196 / pq:P585 to get qualifiers. See the description of the the data model at mw:Wikibase/Indexing/RDF Dump Format. SELECT ?itemLabel ?students ?year
+WHERE
+{
+  ?item wdt:P6782 \"024z2rq82\" .
+  ?item p:P2196 ?stm .
+  ?stm ps:P2196 ?students .
+  OPTIONAL { ?stm pq:P585 ?year . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?year
+ Try it! --Dipsacus fullonum (talk) 14:35, 23 September 2021 (UTC) List of outdoor Italian statues/monuments dedicated to women Hi,I'm trying to make a query to retrieve a list of statues/monuments dedicated to women in Italy. They should also be in public spaces, not in museums or so. I'm not really sure if I'm missing something or if my request is unreasonable. How much of this is it possible to achieve with Wikidata? Thank you Do you mean statues and monuments anywhere dedicated to Italian women, or statues and monuments in Italy dedicated to any women? --Dipsacus fullonum (talk) 15:02, 23 September 2021 (UTC) Dedicated to any woman! I only found 6 such statues and monuments which is probably due to lack of data: SELECT DISTINCT ?item ?itemLabel ?typeLabel ?dedicatee ?dedicateeLabel
+WHERE
+{
+  VALUES ?type { wd:Q179700 wd:Q4989906 }  
+  ?item wdt:P31 ?type .
+  ?item wdt:P825 ?dedicatee .
+  ?item wdt:P276 ? / wdt:P131? / wdt:P17 wd:Q38 . # Location? / administrative unit? / country Italy
+  ?dedicatee wdt:P21 wd:Q6581072 .
+  MINUS { ?item wd:P195 ?collection . } # Not in a collection (museum or other)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! It might give more results to also search for works which depicts or are named after or commemorates women (depicts (P180), named after (P138) and commemorates (P547)). --Dipsacus fullonum (talk) 15:17, 23 September 2021 (UTC) It gives some more results if you include all subclasses of monuments (which includes statues): SELECT DISTINCT ?item ?itemLabel ?typeLabel ?dedicatee ?dedicateeLabel
+WHERE
+{
+  ?item wdt:P31 ?type .
+  ?type wdt:P279* wd:Q4989906 . # Super class is monument. That includes statues
+  ?item wdt:P825 ?dedicatee .
+  ?item wdt:P276 ? / wdt:P131? / wdt:P17 wd:Q38 . # Location? / administrative unit? / country Italy
+  ?dedicatee wdt:P21 wd:Q6581072 .
+  MINUS { ?item wd:P195 ?collection . } # Not in a collection (museum or other)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 15:24, 23 September 2021 (UTC) Thank you that's great! Would it also be possible to get the location of it? Here is the last query with location when given or else the administrative unit: SELECT DISTINCT ?item ?itemLabel ?typeLabel ?location ?locationLabel ?dedicatee ?dedicateeLabel
+WHERE
+{
+  ?item wdt:P31 ?type .
+  ?type wdt:P279* wd:Q4989906 . # Super class is monument. That includes statues
+  ?item wdt:P825 ?dedicatee .
+  ?item wdt:P276 ? / wdt:P131? / wdt:P17 wd:Q38 . # Location? / administrative unit? / country Italy
+  OPTIONAL { ?item wdt:P276 ?loc . } # Location
+  OPTIONAL { ?item wdt:P131 ?adm . } # Administrative area
+  BIND (COALESCE(?loc, ?adm) AS ?location)
+  ?dedicatee wdt:P21 wd:Q6581072 .
+  MINUS { ?item wd:P195 ?collection . } # Not in a collection (museum or other)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 05:41, 24 September 2021 (UTC) Trying to add the percent to the ?title Hello! I'm trying to add the ?percent to the ?title, but can't get it with concat. Can someone help me, please? SELECT 
+?city
+?cityLabel
+(concat('% ', ?percent) as ?ehuneko)
+(?city as ?id) 
+(SAMPLE(?fill) as ?fill) 
+(concat('[[:eu:', ?cityLabel, ']]') as ?title)
+WHERE {
+  ?item wdt:P361 wd:Q30594119.
+  ?item wdt:P1831 ?total_voters .
+  ?item wdt:P1868 ?active_voters.
+  ?item wdt:P1001 ?city.
+  BIND (100*?active_voters/?total_voters AS ?percent) .
+  BIND(
+    if(?percent>= 90, '#610604', 
+    if(?percent>= 80, '#994910', 
+    if(?percent>= 70, '#D0B01F', 
+    if(?percent>= 60, '#CBF13F', 
+    if(?percent>= 50, '#ABF97A', 
+    if(?percent>= 40, '#B1FFB3', '#a6a6a6')))))
+  ) as ?fill).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'eu'. }
+} GROUP BY ?city ?cityLabel ?percent
+ Try it! Thanks! -Theklan (talk) 21:27, 26 September 2021 (UTC) @Theklan: If in doubt, stringify. (concat('% ', str(?percent)) as ?ehuneko). But you might want to deal with the 12 or so decimal places, too, so perhaps (concat('% ', str(floor(?percent*100)/100)) as ?ehuneko). --Tagishsimon (talk) 21:38, 26 September 2021 (UTC) Thanks @Tagishsimon:! It worked! -Theklan (talk) 21:48, 26 September 2021 (UTC) identical label - optimization Items used: family name (Q101352)   , Wikimedia disambiguation page (Q4167410)   Properties used: instance of (P31)   , different from (P1889)   SELECT ?item ?dab ?l WHERE
+{
+    ?item wdt:P31 wd:Q101352 ; rdfs:label ?l . FILTER(  lang(?l) = \"en\")  # \"en\" or another language
+    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
+    FILTER NOT EXISTS { ?item wdt:P1889 ?dab } 
+    FILTER( ?dab != ?item )   
+    # FILTER NOT EXISTS { ?dab wdt:P31 ?inst . FILTER( ?inst != wd:Q4167410 ) }
+    # FILTER NOT EXISTS { ?item wdt:P31 wd:Q4167410 }
+}
+LIMIT 10 Try it!I tried various hints to optimize the above query, but it ends up timing out when I increase the limit. The idea is to find missing P1889 statements (maybe not many are left). There are about 500k family name items and 1.3 million dab items. --- Jura 10:41, 22 September 2021 (UTC) Items used: family name (Q101352)   , Wikimedia disambiguation page (Q4167410)   Properties used: instance of (P31)   , different from (P1889)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9bd5920c499e7cee90f9310c6326e8bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+ #sample from cywiki:Wicipedia:Merched_a_anwyd_yng_Nghymru
+SELECT ?item
+WHERE
+{
+	# gender = female
+  	?item wdt:P21 wd:Q6581072 .
+
+  	# place of birth = Wales (Q25)
+  	{ ?item wdt:P19 wd:Q25 }
+	# OR place of birth within Wales. This relies on places using P131 with Q25 (\"Wales\") as value (or with a value that has Q25 in P131)
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q25 }
+
+	# look for articles (sitelinks) in Welsh (\"cy\")
+  	OPTIONAL { ?sitelink schema:about ?item . ?sitelink schema:inLanguage \"cy\" }
+	# but select items with no such article
+	FILTER (!BOUND(?sitelink))
+
+	# humans only
+  	?item wdt:P31 wd:Q5 .
+}
+#Listeria can only handle up to 5000
+LIMIT 1000""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-9151D6534923AFEC23D312C13B90E638, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-6744AE1A0CCA84AC159C4FDC70C0CAD1,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-112E32C9E4908DC05F9D71BF5541D461, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-5CFB5C0F3AFA93EC2B8C05CFAFE2C1FB,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-A2AD1C04B9F2A64646D305B464A70FDE, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-2911DEB6D5D18ED14B551247EA625EBC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-AC486212E82E6A6C6936B5E26D2B3B9C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-52B57A461E6959A543A3AEFFFE08A0BF,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112505-AB258964B73AD322D2AE55BF78B4FECF;
+  schema:target <https://query.wikidata.org/sparql/> .

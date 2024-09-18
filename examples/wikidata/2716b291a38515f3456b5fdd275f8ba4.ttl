@@ -1,0 +1,321 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2716b291a38515f3456b5fdd275f8ba4> a sh:SPARQLExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Speeding up a query of the heritage properties of castles 2 Optimizing this query 3 Getting television series (Q5398426) without Trakt.tv ID (P8013) 4 Grouping by items 5 Agents linked to an instition (collection) 6 Match string in text property values 7 Pipe symbol in REPLACE 8 Only wikipedia sitelinks 9 Conflation query barely returns any results 10 List of notable people whose last name is a common English noun 11 Lists all items in Equatorial Guinea using the word \"Río\" in ceb label 12 DISTINCT for character strings 13 Label filter with en and mul Speeding up a query of the heritage properties of castles Do you have any suggestions how to speed this up, which given a list of 500 British castles tries to find out their heritage register properties. If I restrict the registers to UK only, it runs in 25s, but I ideally I want the register to be international, like ‎Burgenwelt ID (P12823) SELECT DISTINCT ?item ?itemLabel ?type 
+  (CONCAT(\"+\",STR(COALESCE(?pointintime,?starttime))) AS ?start)
+  ?description ?notes ?link ?title ?keywords WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
+  { 
+    SELECT DISTINCT ?item ?type ?pointintime ?starttime ?description ?notes ?link ?title ?keywords WHERE {
+# places that need tripadvisor entries to be notable
+VALUES ?notable {wd:Q23413 wd:Q16748868} # castle, city walls
+
+?item wdt:P31/wdt:P279* ?notable.
+?item wdt:P3134 ?tripadvisor.
+
+?item wdt:P17 wd:Q145.
+
+VALUES ?registerclass {
+ wd:Q18618628 # cultural heritage
+  wd:Q19829908 # places
+  wd:Q22964288 # military
+  wd:Q23779665 # maritime
+  wd:Q74568206 # archives
+}
+      {
+          ?registerclass ^wdt:P31 ?register.
+
+         ?register wikibase:claim ?claim .
+          ?register wikibase:statementProperty ?value.
+
+          ?item ?claim ?stat .
+          ?stat ?value ?entry .
+          OPTIONAL {
+          ?register wdt:P2378 ?issuer.
+          ?issuer rdfs:label ?issuerlabel. FILTER (LANG(?issuerlabel) = \"en\")
+          ?register wdt:P1630 ?URLprefix.
+                  {?stat pq:P1435 ?caveat.} # heritage designation
+            UNION {?stat pq:P518  ?caveat}  # applies to part
+            UNION {?stat pq:P1810 ?caveat}  # subject named as
+            ?caveat rdfs:label ?caveatlabel1. FILTER (LANG(?caveatlabel1) = \"en\")
+          }
+          BIND (IF(BOUND(?caveatlabel1),?caveatlabel1,\"entry\") AS ?caveatlabel2)
+
+          BIND(CONCAT(\"[[d:Special:EntityPage/\",STR(?ISSUERLABEL),\"|\",STR(?ISSUERLABEL),\"]] [[:Template:Website]]\") AS ?description)
+        }
+    }
+  }
+}
+ Try it! Vicarage (talk) 09:13, 2 July 2024 (UTC)@Vicarage: This, for instance. A runfirst hint on tripadvisor b/c there are only ~28k uses of that property, so constraining the query to those items makes the rest of it smaller. Forward gearing hint on the P31/P279 property path b/c it's probably more sensible to work from subject to object than the other way around (although in fairness I've not checked: may make little difference). SELECT DISTINCT ?item ?itemLabel ?type 
+  (CONCAT(\"+\",STR(COALESCE(?pointintime,?starttime))) AS ?start)
+  ?description ?notes ?link ?title ?keywords WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\". }
+  { 
+    SELECT DISTINCT ?item ?type ?pointintime ?starttime ?description ?notes ?link ?title ?keywords WHERE {
+# places that need tripadvisor entries to be notable
+   VALUES ?notable {wd:Q23413 wd:Q16748868} # castle, city walls
+
+  ?item wdt:P3134 ?tripadvisor. hint:Prior hint:runFirst true.
+  ?item wdt:P17 wd:Q145.
+
+  ?item wdt:P31/wdt:P279* ?notable. hint:Prior hint:gearing \"forward\".
+
+VALUES ?registerclass {
+ wd:Q18618628 # cultural heritage
+  wd:Q19829908 # places
+  wd:Q22964288 # military
+  wd:Q23779665 # maritime
+  wd:Q74568206 # archives
+}
+      {
+          ?registerclass ^wdt:P31 ?register.
+
+         ?register wikibase:claim ?claim .
+          ?register wikibase:statementProperty ?value.
+
+          ?item ?claim ?stat .
+          ?stat ?value ?entry .
+          OPTIONAL {
+          ?register wdt:P2378 ?issuer.
+          ?issuer rdfs:label ?issuerlabel. FILTER (LANG(?issuerlabel) = \"en\")
+          ?register wdt:P1630 ?URLprefix.
+                  {?stat pq:P1435 ?caveat.} # heritage designation
+            UNION {?stat pq:P518  ?caveat}  # applies to part
+            UNION {?stat pq:P1810 ?caveat}  # subject named as
+            ?caveat rdfs:label ?caveatlabel1. FILTER (LANG(?caveatlabel1) = \"en\")
+          }
+          BIND (IF(BOUND(?caveatlabel1),?caveatlabel1,\"entry\") AS ?caveatlabel2)
+
+          BIND(CONCAT(\"[[d:Special:EntityPage/\",STR(?ISSUERLABEL),\"|\",STR(?ISSUERLABEL),\"]] [[:Template:Website]]\") AS ?description)
+        }
+    }
+  }
+}
+ Try it! --Tagishsimon (talk) 11:28, 2 July 2024 (UTC) Optimizing this query Hello! I'm trying to get the population of all the city-municipalities in Baden-Württenberg. The code is fine, but it runs out of time every single time. Can it be optimized somehow? SELECT DISTINCT ?germany ?germanyLabel ?pop WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?germany wdt:P31 wd:Q42744322.
+  ?germany wdt:P1082 ?pop.
+  ?germany wdt:P131* wd:Q985.
+}
+ Try it! Theklan (talk) 20:55, 2 July 2024 (UTC)@Theklan: A hint sorts it out. The hint tells the optimiser to work from the subject (?germany) to the object (wd:Q985), rather than from object to subject. The set of values for ?germany is quite small, so quite quick to work subject to object. The set of items that are P131* wd:Q985 is very large, so slow. SELECT DISTINCT ?germany ?germanyLabel ?pop WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?germany wdt:P31 wd:Q42744322.
+  ?germany wdt:P1082 ?pop.
+  ?germany wdt:P131* wd:Q985. hint:Prior hint:gearing \"forward\".
+}
+ Try it! --Tagishsimon (talk) 22:02, 2 July 2024 (UTC) Thanks! Theklan (talk) 07:02, 3 July 2024 (UTC) Getting television series (Q5398426) without Trakt.tv ID (P8013) Hey folks. I tried to build my own query for my Pywikibot bot but I can't get it to work to what I want, so I need some help.I got a query working to get television series episode (Q21191270) that doesn't have Trakt.tv ID (P8013) but the related television series (Q5398426) has one. SELECT DISTINCT ?episode ?episodeLabel ?episodeTraktId ?series ?seriesLabel ?seriesTraktId
+WHERE {  
+  
+  ?episode p:P31 ?instanceOf.
+  ?instanceOf (ps:P31/(wdt:P279*)) wd:Q21191270.
+  
+  MINUS {
+    {
+        ?episode p:P8013 ?episodeTraktId.
+        ?episodeTraktId (ps:P8013) _:anyValueP8013.
+    }
+  }
+  
+  ?episode wdt:P179 ?series.
+  ?series wdt:P8013 ?seriesTraktId.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\". }
+} LIMIT 10
+ Try it! Now, I want to invert it, so I get television series (Q5398426) that doesn't have Trakt.tv ID (P8013) but the television series episode (Q21191270) within has one. I can't get it to work.I tried to inverse the filter so it filters the television series (Q5398426) that doesn't have Trakt.tv ID (P8013) instead, and I can't get it to work. I tried to get television series episode (Q21191270) from television series (Q5398426) but I can't figure it out.In the end, I want to do the following. Get all television series (Q5398426), television series season (Q3464665), and television series episode (Q21191270) by fetching television series (Q5398426) and its decendants, possibly using has part(s) (P527). television series season (Q3464665) may be skipped on some series. A simple recursion using has part(s) (P527) is possibly acceptable, since only television series (Q5398426) is used. Filter so that whats left is those that has at least one of the three has Trakt.tv ID (P8013) but not all three. Optional: Only show the television series (Q5398426) for feeding to the Pywikibot bot. Optional: Check additional entities at once such as Rotten Tomatoes ID (P1258) (for feeding only, so this would be a separate query, while leaving queries for each property as is so I can preview it) I think that's it for now, and I appreciate the help. Thanks! Hans5958 (talk) 13:42, 7 July 2024 (UTC) @Hans5958: Seems like your inverse is this: SELECT DISTINCT ?episode ?episodeLabel ?episodeTraktId ?series ?seriesLabel ?seriesTraktId
+WHERE {  
+  
+  ?episode p:P31 ?instanceOf.
+  ?instanceOf ps:P31/wdt:P279* wd:Q21191270. 
+  ?episode p:P8013 ?episodestat .
+  ?episodestat ps:P8013 ?episodeTraktId .
+  ?episode wdt:P179 ?series.
+  MINUS { 
+           ?series wdt:P8013 ?seriesTraktId.
+        }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\". }
+} LIMIT 10
+ Try it! And then the one you want - which I understand to be, has one out of the three possible IDs, is in this direction ... you can cut down the elements in the SELECT to those fields you want to feed to pywikibot; you can add other IDs by optional clauses ... OPTIONAL {?edisode wdt:P1258 RT_ID.} .... &c. You can also BIND(COALESCE(ID1,ID2,ID3) as ?ID) if you want to present the singular ID in a singular field to Pywikibot. It looks to me like the data is a bit dodgy; consider the series https://www.wikidata.org/wiki/Q237072#P8013 which seems to have TraktIds for two series_parts. And the query right now would give a row where the episode and series have no ID, but one of the series_parts (television series season) does have an ID. So, possibly some more work to do. Happy to play more, once you have seen this. I've also moved it to look at wdt: rather than p: ps: because I expect all the values we're dealing with will be truthy. Finally, there's more optimisation that could be done by way of selecting rows without labels first, and selecting labels second, so avoid timeouts which sporadically happen. SELECT DISTINCT ?episode ?episodeLabel ?episodeTraktId ?series ?seriesLabel ?seriesTraktId  ?series_partTraktId
+WHERE {  
+  
+  ?episode wdt:P31/wdt:P279* wd:Q21191270. 
+  OPTIONAL {?episode wdt:P8013 ?episodeTraktId . }
+  ?episode wdt:P179 ?series.
+  OPTIONAL {?series wdt:P8013 ?seriesTraktId. 
+
+  OPTIONAL {?series wdt:P527 ?series_part .
+  ?series_part wdt:P8013 ?series_partTrakID . }
+  }
+   FILTER(!BOUND(?episodeTraktId) && !BOUND(?seriesTraktId)|| 
+          !BOUND(?episodeTraktId) && !BOUND(?series_partTraktId) || 
+          !BOUND(?seriesTraktId) && !BOUND(?series_partTraktId) && BOUND(?series_part)
+         )
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\". }
+} LIMIT 10
+ Try it! --Tagishsimon (talk) 15:48, 7 July 2024 (UTC) @Tagishsimon: Thanks for the help. The inverse query seemed to work as I expect, so that's one. For the second one, I have to be honest that I found it quite difficult to explain it at that time. I think it is best for me to clarify my intentions. My bot will fill the missing Trakt.tv ID (P8013) of television series season (Q3464665) (series), television series episode (Q21191270) (season), and television series (Q5398426) (episode) items. Since they are related to each other (most likely scenario: a season is part of a series, a episode is part of a season), the best approach in my opinion is to use the values of Trakt.tv ID (P8013) found in either of these three itmes. The bot will iterate each series using has part(s) (P527) to get the seasons and do the same on each seasons to get the episodes, so the bot only gets the list of series items, and nothing else. I was thinking to do the following. Get all series and its decendants on two levels (season and episode items) with has part(s) (P527). Exclude any series when... ...the series, all of the seasons of the series, and all of the episodes of all of the season has Trakt.tv ID (P8013). ...the series, all of the seasons of the series, and all of the episodes of all of the season doesn't have Trakt.tv ID (P8013). You can say that for all (truthy) values of Trakt.tv ID (P8013)... (no statement = False), XOR all of it, and exclude if it is 0. Some examples: If a series have the Trakt.tv ID (P8013) but (at least) one of the episodes/seasons doesn't have Trakt.tv ID (P8013), include it. If a series doesn't have Trakt.tv ID (P8013) but (at least) one of the episodes/seasons have Trakt.tv ID (P8013), include it. If a single episode has Trakt.tv ID (P8013) but none of the others have Trakt.tv ID (P8013), include it. Only show television series (Q5398426) for feeding to the Pywikibot bot (The way I did it is just SELECT ?series as ?item but I said it here in case there are any better ideas) For the example you gave on Q237072, I checked every seasons of it and I don't see any Trakt.tv ID (P8013) on it. In any case, this should be included by the query since the series has one. I hope this clears any confusion. Please ask away if there is still one. Sorry for the hold up. Hans5958 (talk) 07:12, 8 July 2024 (UTC) Grouping by items Hello,I tried to make a graph of people related to some specific organisations (associations or less formal groups with member of (P463) and political parties with member of political party (P102)), which I will call the “first people” or people from the first criteria, as well as the relatives they have in common (with a few different family properties). The explanations are probably quite confusing to read, there is a shorter FILTERing formula closer to the end of this post which makes the logic more understandable. As there are hundreds of people in these groups, I want to filter on several criteria. I want people connected to at least two groups or parties, excepted if it is only to political parties and no group, as several people are only changing parties and it is not interesting to include them. I also want some of the relatives of these people; the relatives appearing should be either connected to at least two of the “first people” themselves directly connected to groups (even if these “first people” are only connected to one group or party and therefore excluded from the first criteria), or be connected to one person connected to groups + connected to one group or party themselves.I first went with a UNION to get people linked to groups and parties, and got different COUNTs on each, which we will call ?cG and ?cP, respectively for the number of groups and the number of political parties the person is connected with.For the relatives’ part, I went with a subquery reproducing the first UNION, added the relatives, and name the ?relative variable as the ?item variable in order to UNION this section with the first part and counted the connections to the relatives with ?cR. The further FILTER operations with the COUNTs will need to be done outside of the UNIONs, as it will be their different sums which will include or not the people in the final request.However I failed to properly write the UNIONs. I succeeded getting a result by having the two first COUNTs separated from the relatives’ one, but this way it does not group/merge the items in one, and the people appearing in both subqueries get two lines. This is now my main problem, all the rest can be ignored, I should be able to continue after solving this merging problem.The current request is: SELECT DISTINCT ?item ?itemLabel (count (?memberOf) AS ?cG) (count (?memberOfPP) AS ?cP) ?cR WHERE {
+  {
+    VALUES ?memberOf { a bunch of wd:Q… }.
+    ?item wdt:P463 ?memberOf.
+  }
+  UNION
+  {
+    VALUES ?memberOfPP { another bunch of wd:Q… }.
+    ?item wdt:P102 ?memberOfPP.
+  }
+  UNION
+  {
+    SELECT (?relative AS ?item) (count (?relative) AS ?cR) WHERE {
+      SELECT DISTINCT ?item ?relative WHERE {
+        {
+          VALUES ?memberOf { a bunch of wd:Q… again }.
+          ?item wdt:P463 ?memberOf.
+        }
+        UNION
+        {
+          VALUES ?memberOfPP { another bunch of wd:Q… again }.
+          ?item wdt:P102 ?memberOfPP.
+        }
+        ?relative ^(wdt:P22|wdt:P25|wdt:P26|wdt:P40|wdt:P451|wdt:P1038|wdt:P3373|wdt:P3448) ?item.
+      }
+    } GROUP BY ?relative
+  }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en\". }
+} GROUP BY ?item ?itemLabel ?cR
+ Try it! I have not written the FILTERing conditions in order to better visualise the results. It should look like the following conditions, but it will be quite trivial to write so it is of no importance for the moment: (?cG > 1) OR (?cR > 1) OR ((?cG + ?cR) > 1) OR (?cG > 0 AND (?cG + ?cP) > 1) OR (?cR > 0 AND (?cR + ?cP) > 1)Also in the end, it will be a graph between people, the groups and political parties they are belonging to and some other people connecting groups with others. This will also be done once the conditions can be applied, by joining the result with simple OPTIONAL queries or another way. This will not be complicated to write, so I do not need help on this either.If this query can be made, I will then add a last criteria/UNION consisting of adding the people excluded from the first criteria, but connecting to people included in the other main query. For example someone who is member of only one targeted group, but who has a relative themself only included in the main query as being a relative of 2+ people from the first UNION. In other words, someone appearing in one of the two first groups/parties’ UNIONs without fulfilling the whole criteria (so normally not in the relatives’ UNION), but who is the cause of people in the relatives’ UNION to appear.Thanks in advance! --Bischnu (talk) 23:33, 7 July 2024 (UTC) After letting the query aside for a few days, I succeeded in getting what I wanted. The correct query is: SELECT DISTINCT ?item ?itemLabel (count (?memberOf) AS ?cG) (count (?memberOfPP) AS ?cP) (count (?source) AS ?cR) WHERE {
+  {
+    VALUES ?memberOf { a bunch of wd:Q… }.
+    ?item wdt:P463 ?memberOf.
+  }
+  UNION
+  {
+    VALUES ?memberOfPP { another bunch of wd:Q… }.
+    ?item wdt:P102 ?memberOfPP.
+  }
+  UNION
+  {
+    SELECT DISTINCT ?source ?item WHERE {
+      {
+        VALUES ?memberOf { a bunch of wd:Q… again }.
+        ?source wdt:P463 ?memberOf.
+      }
+      UNION
+      {
+        VALUES ?memberOfPP { another bunch of wd:Q… again }.
+        ?source wdt:P102 ?memberOfPP.
+      }
+      ?item ^(wdt:P22|wdt:P25|wdt:P26|wdt:P40|wdt:P451|wdt:P1038|wdt:P3373|wdt:P3448) ?source.
+    }
+  }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"fr,en\". }
+} GROUP BY ?item ?itemLabel ?cR
+ Try it! Agents linked to an instition (collection) Hi, I am trying to query and then visualize the people, i.e. staff members, collection agents and more connected to my institution which houses a large collection (http://www.wikidata.org/entity/Q233098).The people are connected via: P108: employer P1416: affiliation P485: archives at P11146: collection items atI have created this easy query but then the people are not linked... https://w.wiki/AcpG Since the Archive and Herbarium are part of the main institution, all people are connected to Q233098. Some are connected with each other (via the property 'significant person' as co-authors or co-collectors, some in academic relations (doctoral adivisor, doctoral student) but not so many yet. More work needs to be done. Occupations could maybe be useful to group the agents.Any suggestions how best to visualize this in a graph of people connected to the museum? Thank you! S.v.Mering (talk) 13:04, 10 July 2024 (UTC) Hello, From what I know, in order to visualise the museums and links to the museums, you have to add the column with the museum in the SELECT, so each row would be a combination of a person and the museum it is linked to. Here is an example based on your query: https://w.wiki/Aczp, which is not very elegant as I let it in different UNIONs and different variables. I did not know if you wanted to keep the exact result you already had (so the employer and affiliation properties only applies to the first museum, the archives at only to the second…), or wanted to have every properties for all museums. If that is the case, you could replace some properties’ links with an OR symbol (for example: ?item ((wdt:P108|wdt:P1416)/(wdt:P279*)) ?museumLinked. ) and the entities in the VALUES with the three museums. This does exactly the same but I joined some UNION together and called the variables under the same name which makes it more simple to read but you lose the kind of affiliation to the museum: https://w.wiki/Ac$o. I am not very good in SPARQL, I hope it still helped you. --Bischnu (talk) 20:33, 10 July 2024 (UTC) Thank you, Bischnu! This is helping me a lot already. The issue with the archive and herbarium is that they are part of the same (main) museum that was used for affiliation/employer but I did not know how to include the parts of the organization in the original query (e.g. for 'collection items at'). As it is now, I can see three sub-graphs, which is also quite nice. I will need to play around a little and try it out. Thank you for your help, very much appreciated! S.v.Mering (talk) 23:18, 10 July 2024 (UTC) Match string in text property values How can we find sub-strings in values of author name string (P2093), like \"Review By:\" seen in this fix? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 15:56, 11 July 2024 (UTC) There don't seem to be any other example of the Review By problem, so I'll illustrate one approach to the report using the Charles E Griswold string: SELECT DISTINCT ?item ?itemLabel 
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"Charles E Griswold\".
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  ?item wdt:P2093 ?string . 
+  filter(regex(\".*charles e griswold.*\",lcase(?string)))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 18:26, 11 July 2024 (UTC) Hello, I think that it can be done with the function CONTAINS. You would apply it somehow like this: SELECT ?item ?ans WHERE {  
+?item wdt:P31 wd:Q13442814;  
+wdt:P2093 ?ans.  
+FILTER(CONTAINS(?ans,\"Review by:\")).  
+} LIMIT 10
+ Try it! It is probably better to restrict on a smaller subset than all scholarly articles as I did there, this request does not succeed and times out. Also, if you are sure that the string you are looking for is always at the beginning, it is also probably better to replace “CONTAINS” by “STRSTARTS”; the latter normally needs less resources to compare the strings. --Bischnu (talk) 18:37, 11 July 2024 (UTC) author name string (P2093) is used ~139M times, mostly on scholarly article (Q13442814) items. A query predicated on filtering 139M P2093 values is bound to fail given a 60s runtime. The reason that it is appropriate to approach this problem using MWAPI Search is that it can locate the small set of broadly qualifying items, after which a filter can be brought to bear on that small set. --Tagishsimon (talk) 19:32, 11 July 2024 (UTC) OK thanks, great to know! I do not understand how it works. Does the MWAPI only look for the string in all the titles / item labels, after which we search for the author string in these items? Also, I just had a look on what is MWAPI. I saw that you could find a string in all Wikipedia articles for example? How could something that huge not fail? Bischnu (talk) 19:48, 11 July 2024 (UTC) It's a search engine - specifically CirrusSearch [1], based on w:en:Elasticsearch. Search engines are designed to index large text corpii and return useful results based on search strings. MWAPI is just a route to access Cirrus. I'm not sure offhand which parts of a wikidata item are indexed, but it's much more than labels and descriptions; certainly, P2093 is indexed, else we would not have got results in the above query. There's also an extension to Cirrus customised for wikidata - Extension:WikibaseCirrusSearch [2] which allows searches to combine text strings with statement values, so mwapi:srsearch \"numismatic haswbstatement:P31=Q13442814\"., for instance. --Tagishsimon (talk) 20:52, 11 July 2024 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ Thank you, Simon. Your example works, but a version searching for the string \"Andy\" finds zero resuts. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 08:31, 12 July 2024 (UTC) Yes. Odd. --Tagishsimon (talk) 11:47, 12 July 2024 (UTC) Pipe symbol in REPLACE How can I specify the pipe symbol '|' in a REPLACE? REPLACE(?entry,\"\\|\",\"%7C\") returns Query is malformed: Lexical error at line 48, column 23. Encountered: \"|\" (124), after : \"\\\"\\\\\" Vicarage (talk) 09:36, 12 July 2024 (UTC) REPLACE(?entry,\"\\\\|\",\"%7C\") --Tagishsimon (talk) 11:46, 12 July 2024 (UTC) Only wikipedia sitelinks Hi. Would it be possible to change this query to only take into account wikipedia sitelinks and not wikisource, commons, etc. ones? Thanks in advance, Paucabot (talk) 12:53, 12 July 2024 (UTC) In what way? If you simply want to list entities that have at least one wikipedia sitelink you can do that by adding a semi-join: https://w.wiki/Aena . But if you want the count of sitelinks only to wikipedia that will require a lot more work. I might be too lazy to write the latter. Infrastruktur (talk) 12:35, 13 July 2024 (UTC) I think I'm asking for the latter. Paucabot (talk) 20:29, 13 July 2024 (UTC) Conflation query barely returns any results Not sure why this query is returning so few results. It only returns 29 items, but I expected it to return a lot more. Twin Star Exorcists (Q17228961) is one item that has both conflation (Q14946528) and anime television series (Q63952888), so not sure why it isn't part of the results too. Any help would be really appreciated! SELECT ?item ?itemLabel (GROUP_CONCAT(?instanceOfLabel; SEPARATOR=\", \") AS ?instanceOfValues) WHERE {
+    ?item wdt:P31 wd:Q14946528.
+    ?item wdt:P31 ?type.
+    VALUES ?type { wd:Q63952888 wd:Q74262765 }
+    ?item wdt:P31 ?instanceOf.
+    ?instanceOf rdfs:label ?instanceOfLabel.
+    FILTER(LANG(?instanceOfLabel) = \"en\")
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+  GROUP BY ?item ?itemLabel
+ Try it! Finnius00 (talk) 22:36, 12 July 2024 (UTC) List of notable people whose last name is a common English noun I’m working on a word game and was looking for a list of “notable people” whose names are also nouns. I tried doing the query for it but it seems to be way over my limited Wikidata/SPARQL knowledge.Here’s what I have so far: # list of nouns
+SELECT
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+WITH {
+  SELECT ?lexeme ?lexemeLabel ?lexical_category WHERE {
+    ?lexeme a ontolex:LexicalEntry ;
+            dct:language wd:Q1860 ; 
+            wikibase:lemma ?lexemeLabel .
+    OPTIONAL {
+      ?lexeme wikibase:lexicalCategory ?lexical_category .
+    }
+  }
+  LIMIT 10000
+} AS %results
+WHERE {
+  INCLUDE %results
+  OPTIONAL {        
+    ?lexical_category rdfs:label ?lexical_categoryLabel .
+    FILTER (LANG(?lexical_categoryLabel) = \"en\")
+  }
+}
+ Try it! and # “celebrities”
+SELECT DISTINCT ?lastNameLabel
+WHERE {
+  # Identify celebrities by their occupation
+  ?celebrity wdt:P106 ?occupation;
+             wdt:P734 ?lastName.
+  
+  # Filter for notable occupations
+  VALUES ?occupation {
+    wd:Q33999    # actor
+    wd:Q639669   # musician
+    wd:Q483501   # artist
+    wd:Q36180    # writer
+    wd:Q82955    # politician
+    wd:Q2066131  # athlete
+    wd:Q211236   # celebrity
+  }
+
+  # Get labels for readability
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 1000
+ Try it! FiP (talk) 13:01, 19 July 2024 (UTC) Lists all items in Equatorial Guinea using the word \"Río\" in ceb label Hi:I want to fix the watercourses in Equatorial Guinea related with the ceb import. I'm trying this query: SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P17 wd:Q983.
+
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+        wikibase:api \"EntitySearch\";
+        mwapi:search \"Río\"; 
+        mwapi:language \"ceb\".
+      ?item wikibase:apiOutputItem mwapi:item.
+  }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\".}
+}
+LIMIT 10
+ Try it! but the results are 0 items, which is obviously wrong and I have no idea how to fix the query :-)Thanks! —Ismael Olea (talk) 13:12, 27 July 2024 (UTC) DISTINCT for character strings For SELECT DISTINCT ?item
+  (GROUP_CONCAT(DISTINCT ?namelist;        SEPARATOR = \", \") AS ?names)
+  (COUNT (DISTINCT ?namelist) AS ?count) WHERE {
+  
+  VALUES ?item {wd:Q2420611}
+
+  OPTIONAL 
+    {
+          {?item wdt:P2561 ?namelist} # name
+    UNION {?item wdt:P1448 ?namelist} # official name
+    UNION {?item wdt:P1449 ?namelist} # nickname
+    UNION {?item wdt:P879  ?namelist} # pennant
+    UNION {?item skos:altLabel ?namelist. FILTER(LANG(?namelist) = \"en\")} # aliases
+  }
+
+}
+GROUP BY ?item
+ Try it! I don't want HMS Colossus to be repeated in the output. Vicarage (talk) 12:37, 25 July 2024 (UTC) Change lines 2 and 3 to: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

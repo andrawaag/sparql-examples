@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7c762317bfd07353dd403659d00a50ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?p ?pLabel ?pDescription WHERE {
+?p wdt:P31 wd:Q5;
+   wdt:P21 wd:Q6581072;
+{?p wdt:P19 wd:Q145} # place of birth: UK
+  UNION {?p wdt:P19 ?place.
+         { ?place wdt:P131?/wdt:P17 wd:Q145 } # places whose country is the UK
+         UNION
+         { ?place wdt:P131*/wdt:P17?/wdt:P31 wd:Q3336843 } # places whose country is a constituent of the UK
+ }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?pLabel""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

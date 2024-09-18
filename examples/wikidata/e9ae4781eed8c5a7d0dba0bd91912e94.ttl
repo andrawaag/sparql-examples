@@ -1,0 +1,101 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e9ae4781eed8c5a7d0dba0bd91912e94> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?corners {
+  ?item wdt:P279 wd:Q37555 .
+  ?item p:P2670 [ ps:P2670 wd:Q26401; pq:P1114 ?corners ] .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?corners""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Result of a sports match 2 Get all WP articles that have a reference to a website 3 Ordered tree of military grades 4 Filtered descriptions 5 Filter according to Wikipedia category 6 Removing double entities/tags from dutch municipalities 7 Reduce duplicates of Flanders Institute Arts Organization ID 8 multiple optional conditions 9 Mayors of Dutch municipalities 10 List of entries with given letter 11 Query for list of polygons and how many sides they have 12 Pulling ADS bibcode and DOI for works cited 13 Number of women who won any Nobel prizes 14 Listeria issue 15 x-axis 16 Siege durations 17 Generating a query with a DOI and ADS bibcode 18 Multi-graph and colors 19 Chess players without specific Elo rating 20 Flourished dates 21 Random lexemes (let's say, 30) and senses 22 Finding duplicate sets of normal ranked coordinates? 23 Pulling multiple QR codes for one property 24 Jeugdliteratuur 25 Get list of people who by property P69 (educated at) appearing on Wikipedia 26 Please explain what's going on here - CONSTRUCT versus SELECT get different results 27 w:pt:Lista de termas localizadas em Portugal 28 count Q5 by P21 by P569 in single Wikipedia 29 Chess players with DOB precision 30 Converting mongodb query to sparql 31 Duplicate values for P39 32 specific colors 33 Icelander(s) marked as an Israelian 34 Map of wikimedians in residence 35 Request time out for grouping qualifiers 36 Get organisational identifiers for museums in EUROPE 37 Query to have a map of all hospitals mentioned in some archival fonds 38 Obtenir le lien vers la base Joconde (musées) sur une liste d'oeuvres Result of a sports match How can I get out the result for the match from for example Hamburger SV versus SC Freiburg 2009–10 Fußball-Bundesliga (Q29877824) which is in participating team (P1923). --Balû (talk) 04:19, 1 October 2019 (UTC) @Balû: Here is a query that gives you a table with the results for all 16 265 matches in the Bundesliga (Q82595) that have been entered in Wikidata. Results for the most recent seasons seem to be missing in Wikidata. If you only want to have the results for one match, uncomment the VALUES line in the query. SELECT ?match ?seriesLabel ?time ?home_teamLabel ?home_goals ?away_teamLabel ?away_goals {
+# uncomment next line if you only want the match or matches specified within the { }  
+# VALUES ?match { wd:Q29877824 }
+  ?match wdt:P179 ?series . 
+  ?series wdt:P3450 wd:Q82595 .
+  ?match wdt:P585 ?time .  
+  ?match p:P1923 ?p1923stm_home.
+  ?p1923stm_home ps:P1923 ?home_team .
+  ?p1923stm_home pq:P2868 wd:Q24633211 .
+  ?p1923stm_home pq:P1351 ?home_goals . 
+  ?match p:P1923 ?p1923stm_away.
+  ?p1923stm_away ps:P1923 ?away_team .
+  ?p1923stm_away pq:P2868 wd:Q24633216 .
+  ?p1923stm_away pq:P1351 ?away_goals . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?time ?home_teamLabel
+ Try it! --Larske (talk) 07:52, 1 October 2019 (UTC) @Larske: Wow! Thank you very much for the quick answer. --Balû (talk) 09:27, 1 October 2019 (UTC) Get all WP articles that have a reference to a website This article in WP https://en.wikipedia.org/wiki/Mastectomy uses as reference a reliable source - called MedlinePlus (it is the first reference in that article). It goes to this URL https://medlineplus.gov/mastectomy.html query A: Is it possible to write a query that produces a list WP articles that contain a reference where inURL there is string medlineplus.gov? (realted question, does WD import (like it does for all articles) also every reference ever used in WP? If that is hard, I need just a query B: list of all webcites in WP. references like these: <ref>{{cite web |url=I found this article that generated it but the dataset on figshare is no longer there and is also now outdated. https://medium.com/freely-sharing-the-sum-of-all-knowledge/what-are-the-ten-most-cited-sources-on-wikipedia-lets-ask-the-data-34071478785a EncycloABC (talk) 14:12, 27 September 2019 (UTC) I am also interested in this query, hopefully someone provides a solution. HandsomeBoy (talk) 16:24, 27 September 2019 (UTC) @EncycloABC, HandsomeBoy: This is not something that Wikidata Query Service can do. I doubt there is a corpus of all references present in English Wikipedia, so your best chance is to search all links to https://medlineplus.gov via en:Special:LinkSearch and somehow manually sort out those which are inside references. Maybe you could write a search RegEx but I don't have the skills for that.Vojtěch Dostál (talk) 06:37, 2 October 2019 (UTC) Thank you @Vojtěch Dostál:. HandsomeBoy (talk) 08:00, 2 October 2019 (UTC) Ordered tree of military grades Hello, for instance with colonel (Q104680), how to show the tree of grades general>colonel>lieutenant, etc? Perhaps with next lower rank (P3729) and next higher rank (P3730) but how ?Bouzinac (talk) 10:49, 2 October 2019 (UTC) Bouzinac: Could you elaborate more? Are you interested in the full tree for a given initial item, such as colonel (Q104680)? Do you want all levels, or only the immediate higher and lower tank? --MarioGom (talk) 12:26, 2 October 2019 (UTC) That's good point. Well, let's say I would tick colonel (Q104680) and get all the uppers and the lowers ranked grades, with colonel (Q104680) being somewhere in the middle of the tree ? something like that ? author TomT0m / talk page 14:49, 2 October 2019 (UTC) Oui, quelque chose dans ce goût-là mais Q11993019 semble aberrant et il semble aussi que la hiérarchie des grades est bien plus complexe : Je m'attendais à voir par exemple Q48755225 mais en fait la fiche wikidata est vide :'| Bouzinac (talk) 15:27, 2 October 2019 (UTC) Les données sont pas au niveau, encore, probablement. Je m’attends à un gros bazar et à des confusions, perso, vu qu’il doit y avoir des changements historiques et des grades de même noms qui sont dans des hiérarchies différentes … Faudrait que je ressorte les tentatives de visualisation des rangs tax(i·o)nomiques pour avoir une tentative de visualisation. author TomT0m / talk page 15:42, 2 October 2019 (UTC) Filtered descriptions To get the items which have description in English ( for eg \"human settlement in Malappuram district\" )but don't have descriptions in \"ml\" language.--Akbarali (talk) 14:01, 2 October 2019 (UTC) Petscan has filters to do that. But that query should do the trick for a sample of 1000. author TomT0m / talk page 15:54, 2 October 2019 (UTC) But in this qurey it shows different descriptions.--Akbarali (talk) 13:35, 3 October 2019 (UTC) @Akbarali: It’s the same query as far as I can see. Only a sample of 1000 is shown, there is too many to find all of them. It may occur that from one query call to another different samples are shown. author TomT0m / talk page 16:50, 3 October 2019 (UTC) Filter according to Wikipedia category Hi all! I have this query SELECT DISTINCT ?author ?article WHERE {
+ ?author wdt:P648 ?ol .
+ ?author wdt:P3365 ?tr .
+ ?article schema:about ?author .
+ ?article schema:isPartOf <https://it.wikipedia.org/> .
+}
+ Try it! and I would like to obtain only the Wikipedia articles not contained in it:Category:P3365 letta da Wikidata. Is it possible? Thank you very much, --Epìdosis 12:01, 6 October 2019 (UTC) @Epìdosis: Try this this PetScan query if you prefer links to the articles in itwp. Or this PetScan query if you prefer links to the corresponding Wikidata objects. --Larske (talk) 09:01, 7 October 2019 (UTC) Removing double entities/tags from dutch municipalities Is it possible to make a query that deletes the dutch municipality tag (Q2039348) from entitites that don't have a start (P580) or/and end time date set (P582)? And if yes, how would such a query look? if not, what's the best way to tackle this problem (clicking 2000 times is not really an option)? Antoni1626 (talk) 08:39, 7 October 2019 (UTC)This is the query for the municipalities with a start date set: SELECT ?municipalityLabel ?municipality ?begindatum ?einddatum ?CBS_gemeentecode WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?municipality p:P31 ?statement.
+  ?statement ps:P31 wd:Q2039348;
+    pq:P580 ?begindatum;
+ optional {  ?statement pq:P582 ?einddatum }
+  
+ optional { ?municipality wdt:P382 ?CBS_gemeentecode. } 
+
+}
+ Try it! Query for municipalities without start and end date: SELECT ?municipalityLabel ?municipality ?begindatum ?einddatum ?CBS_gemeentecode WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?municipality p:P31 ?statement.
+  ?statement ps:P31 wd:Q2039348;
+ minus {?statement pq:P580 ?begindatum;}
+ minus {  ?statement pq:P582 ?einddatum }
+  
+ optional { ?municipality wdt:P382 ?CBS_gemeentecode. } }
+ Try it! Here is an example: https://www.wikidata.org/wiki/Q2096012 (place), no start or end date, but the other entity https://www.wikidata.org/wiki/Q40671450 (municipality) has the correct dates. Antoni1626 (talk) 08:55, 7 October 2019 (UTC) @Antoni1626: You can take the QIds from your second query, and use them in Quickstatements (help). In short you'll need to feed it a set of rows in the form -Q9769 [tab] P31 [tab] Q2039348. (Obvs, you need to be responsible for the goodness of your analysis...) --Tagishsimon (talk) 09:08, 7 October 2019 (UTC) @Antoni1626, Tagishsimon: QS seems to remove the first statement that fulfils the criteria that instance of (P31) equals municipality of the Netherlands (Q2039348) without taking any qualifiers into consideration. See my experiments in Wikidata Sandbox (Q4115189), both using exactly the same QS syntax from above: experiment 1 where QS removes only one of two statements without start time (P580) qualifier experiment 2 where QS removes the statement with start time (P580) qualifier while leaving the statement without start time (P580) The above \"QS syntax\" will thus only work as long as the statement without qualifier(s), the one you want to remove, is the first of the instance of (P31) statements and that there are just one statement without qualifier(s). In this particular case this may be fulfilled if all the faulty statements are \"older\" and the correct statements are \"newer\" and there is not more, or less, than one faulty statement per object, but in general you will have to check that these conditions before using QS to do such removal of statements. --Larske (talk) 09:38, 8 October 2019 (UTC) Good point; hadn't occurred to me. --Tagishsimon (talk) 10:21, 8 October 2019 (UTC) Reduce duplicates of Flanders Institute Arts Organization ID Hi guysCurrently, I am contributing for the following WikiProject Wikidata:WikiProject_Performing_arts/Data_structure/Data_modelling_issues. I identified some duplicates. There are multiple records with a Flanders Art Institute organization ID who refer to the same organization.I created a query to identify the number duplicates, but unfortunately, I am not able to make a list with the duplicates. The goal is to have a query, which could help to identify and tackle the duplicates.Former query: try itList should have at least the following attributes (with example records, see example): Flanders Art Institute organization ID ItemIdentifier_1 ItemLabel_1 ItemIdentifier_2 ItemLabel_2 361416 Q54804772 Q54804772 Q55829416 De Ontmoeting Thank you for your help. @Boxomi: Something similar; does this work for you? SELECT ?org ?item ?itemLabel ?item2 ?item2Label WHERE {
+  ?item wdt:P5164 ?org.
+  ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\") 
+  ?item2 wdt:P5164 ?org.
+  ?item2 rdfs:label ?item2Label . filter(lang(?item2Label)=\"en\") 
+  filter(str(?item) < str(?item2) )
+}
+ Try it! --Tagishsimon (talk) 19:20, 7 October 2019 (UTC) multiple optional conditions Hi! we currently try to request a query for a list of q-numbers. The q-number is replaced from time to time. Depending on the requested q-number the given values of orcid, employer(s) and gender are given (or not) in the data set of the item. Therefore, those values should somehow be indicated as \"optional\". SELECT  ?orcid ?employerLabel ?genderLabel ?parents ?parentsLabel
+                        WHERE { 
+                         OPTIONAL {?item wdt:P496 ?orcid }.  
+                         OPTIONAL {?item wdt:P108 ?employer }. 
+                         OPTIONAL {?item wdt:P21 ?gender }.
+                               
+                         Values ?item { wd:Q28360163 }. 
+                         SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+                        }
+ Try it! Can someone please correct my syntax? Thank you! Eva @EvaSeidlmayer: It seem you have to include at least one non optional triple pattern to make the query work. As far as I can tell you’re interested into human items, so I added something related to the item being a human. SELECT ?orcid ?employerLabel ?genderLabel ?parents ?parentsLabel
+WHERE { 
+  ?item wdt:P31 wd:Q5 .
+  OPTIONAL {?item wdt:P496 ?orcid }.  
+  OPTIONAL {?item wdt:P108 ?employer }. 
+  OPTIONAL {?item wdt:P21 ?gender }.
+
+  Values ?item { wd:Q28360163 }. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+ }
+ Try it! author TomT0m / talk page 11:40, 8 October 2019 (UTC) Oh, reading the sparql doc on optional it seems that « optional » must just have something on the left. After testing, the « values » clause can serve as this something and just inversing stuffs in your original query works : SELECT ?orcid ?employerLabel ?genderLabel ?parents ?parentsLabel WHERE {
+  VALUES ?item {
+    wd:Q28360163
+  }
+  OPTIONAL { ?item wdt:P496 ?orcid. }
+  OPTIONAL { ?item wdt:P108 ?employer. }
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! author TomT0m / talk page 11:46, 8 October 2019 (UTC) Mayors of Dutch municipalities Hello everyone. I am trying to construct a query for {{Wikidata list}} to request the mayors of Dutch municipalities. My current attempt is here User:Robin van der Vliet/Dutch mayors. It already shows a list of municipalities, their mayors and the start time and end time of a random mayor of the list.I would like the query result to be sectioned by municipality, and below each section a table of all mayors of that municipalities with their start times, end times and birthdates.Thank you for your help. Feel free to edit my subpage. Robin van der Vliet (talk) (contribs) 15:22, 8 October 2019 (UTC) @Robin van der Vliet: I made a proposal on your subpage. --Larske (talk) 07:29, 9 October 2019 (UTC) Thank you, that is exactly what I want. Robin van der Vliet (talk) (contribs) 08:46, 9 October 2019 (UTC) List of entries with given letter How to list all entries of a given letter of a given language? For example, all letter \"h\" entries from pt.wikipedia.org? – The preceding unsigned comment was added by Rodvillar (talk • contribs).SELECT ?item ?itemLabel WHERE { ?item wdt:P31 wd:Q146.
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } } @Rodvillar: if I understand correctly, this. ?item rdfs:label ?itemLabel is used to get the label of the item within the query, rather than relying on the wikibase:label service; this facilitates filtering on the label value within the query. In the example below, the English label is fetched; change the lang filter to your preferred label language. SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q146.
+  ?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"en\") 
+  filter strstarts(?itemLabel,\"H\")
+}
+ Try it! --Tagishsimon (talk) 15:27, 10 October 2019 (UTC) Query for list of polygons and how many sides they have Been trying to make a query that lists all polygons (Q37555) and lists their side count. Not sure how to approach it.. Comments in the query would be welcome :)--MoonyTheDwarf (talk) 18:07, 11 October 2019 (UTC) @MoonyTheDwarf: Here is a query proposal. Items used: polygon (Q37555)   , vertex (Q26401)   Properties used: subclass of (P279)   , has part(s) of the class (P2670)   , quantity (P1114)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

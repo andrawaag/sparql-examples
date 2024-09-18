@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b6d069d52355320ad1de521ad973621c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+SELECT ?item ?dob
+WHERE
+{
+  	# place of birth = Scotland (Q22)
+  	{ ?item wdt:P19 wd:Q22 }
+	# OR place of birth within Scotland.
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q22 }
+
+	# humans only
+  	?item wdt:P31 wd:Q5 .
+
+	# get DOB for ordering.
+	OPTIONAL { ?item wdt:P569 ?dob  }
+}
+#Order by date of birth, avoid overriding this in the template with sort=
+ORDER BY ?dob
+#Listeria can only handle up to 5000
+LIMIT 4000
+#start at the first item
+OFFSET 0 #change to OFFSET 4000 to start at the 4001th item""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-6BB46F12170A36B93CCE3A6ABCBC8B7A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-F52A02AF54C8CDEFB513D79100FFC056,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-6A3CEB49D4B0B84C83CE70A8DCA0BB26, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-319E2D41FDB3B5ED48961B2752100E03,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-2214BEDF71A44D02C9C3FB125AED6ED6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-B5C921C2AC8DF1A81570EC25EF11F678,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-E0EAF1D95F2C72EF1FFCFFB965EB7173, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-66A1C092A5E41280950F991F7A2E52EC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112511-610266DC89155C4D534470D22FE39FCB;
+  schema:target <https://query.wikidata.org/sparql/> .

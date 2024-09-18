@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9e146e13dc4b49a8585c9fd111c028aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?id (STRAFTER(STR(?item), STR(wd:)) AS ?wikidata_id)
+WHERE {
+  ?item p:P39 ?mem .
+  ?mem ps:P39 wd:Q13217683 .
+  OPTIONAL { ?item wdt:P1157 ?id }
+  OPTIONAL { ?mem pq:P580 ?startDate }
+  OPTIONAL { ?mem pq:P582 ?endDate }
+  FILTER (
+    (BOUND(?startDate) && (?startDate >= \"2017-01-03T00:00:00Z\"^^xsd:dateTime)) ||
+    (BOUND(?endDate) && (?endDate > \"2017-01-03T00:00:00Z\"^^xsd:dateTime)) ||
+    (BOUND(?startDate) && !BOUND(?endDate))
+  ).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ?id""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Chris_Mytton/sandbox/prompts/demo>,
+    <https://www.wikidata.org//wiki/User:Chris_Mytton/sandbox/daff_us_senate>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121451-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121451-C9FFB7B28A2A736C35B9BEDEE24D78C1, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121451-99EB537245DC0182039888067BEBEC55;
+  schema:target <https://query.wikidata.org/sparql/> .

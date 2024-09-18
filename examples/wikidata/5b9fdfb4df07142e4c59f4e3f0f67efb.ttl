@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5b9fdfb4df07142e4c59f4e3f0f67efb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Les production issues de l'activité spécifique de production menée par une société de production XY avec les metteurs en scène.
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
+PREFIX spav: <http://vocab.performing-arts.ch/>
+PREFIX frbroo: <http://iflastandards.info/ns/fr/frbr/frbroo/>
+
+SELECT ?prod ?titlelabel ?season ?PersonLabel ?PersonWikidata ?GenrePerfo
+WHERE {
+{
+ SELECT DISTINCT ?Act_production ?expressioncreation ?prod ?titlelabel ?season ?PersonLabel ?PersonWikidata ?GenrePerfo
+ WHERE 
+ {
+  ?Act_production crm:P14_carried_out_by <XY>;#on cherche une activité spécifique conduite par XY (ajouter URI de la société de production)
+    crm:P2_has_type spav:muwgo.#une activité de type \"production\"
+  ?expressioncreation crm:P9_consists_of ?Act_production; #cette production est issue d'une activité créatrice
+    frbroo:R17_created ?prod.#cette activité créatrice crée une production générique
+  ?prod rdfs:label ?titlelabel.#titre de la production générique
+   ?expressioncreation crm:P10_falls_within ?season.#l'activité créatrice trouve sa place dans une saison.
+          FILTER(CONTAINS(STR(?season), \"/s/\")).
+          OPTIONAL {?expressioncreation crm:P9_consists_of ?Activity.
+          ?Activity crm:P2_has_type spav:mutnt; crm:P14_carried_out_by ?Person.
+          ?Person rdfs:label ?PersonLabel ; <http://www.w3.org/2002/07/owl#sameAs> ?PersonWikidata . 
+          FILTER ( REGEX ( STR(?PersonWikidata) , \"wikidata.org\" ) ) }.
+ OPTIONAL {?perfoGen frbroo:R25_performed ?prod; crm:P9_consists_of ?perfoSpec. ?perfoSpec crm:P2_has_type ?GenrePerfo. ?GenrePerfo skos:inScheme <http://vocab.performing-arts.ch/hl>}.
+      }
+ }
+ }""";
+  rdfs:comment "Cette page regroupe les requêtes SPARQL pour l'import du lot 2023-1 Contents 1 Introduction 2 Sociétés de production 3 performing-arts.ch 3.1 Export productions 4 Wikidata 4.1 Requêtes SPARQL 5 Notes Introduction [edit] On trouvera ici les requêtes SPARQL dans deux SPARQL EndPoint qui devraient permettre d'effectuer l'import du lot 2023-1 dans Wikidata. Sociétés de production [edit] Schauspielhaus de Zurich (1921->) : Schauspielhaus Zürich (Q40313234) http://data.performing-arts.ch/a/eac77af1-a6ba-4e73-82c0-0cfdede1f2c0 : environ 3'568 Stadttheater Basel (1834-1968) [1] [2] : Theater Basel (Q391991) http://data.performing-arts.ch/a/be675da1-ac4d-4d80-8269-50000d6dc832 : environ 9'105 Theatre de Vidy (1989->) Théâtre Vidy-Lausanne (Q689365) http://data.performing-arts.ch/a/aff83267-0e55-4d34-a28c-46147683551c : environ 1'037 Théâtre de Carouge Atelier de Genève (1958->) Théâtre de Carouge (Q21518840) http://data.performing-arts.ch/a/71777345-5fc4-4320-b7d2-dd1769b3961b : environ 664 Teatro sociale (1997->) Teatro Sociale (Q555639) http://data.performing-arts.ch/a/7520b91c-cc0c-446c-b507-63d89806efb1 : environ 50 performing-arts.ch [edit] Les requêtes sont à copier dans SPARQL endpoint URL (P5305) of performing-arts.ch (Q104173640). Export productions [edit] "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:SAPA_bdc/PADM/Panorama/Lot_2023-1/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

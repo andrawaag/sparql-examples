@@ -1,0 +1,72 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2f8ab8d488ae3124bd9e2b86457467d5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item
+       (group_concat(distinct ?superClassLabel_en;separator=\"; \") as ?superClassLabels_en)    #Concatenate the values in order not to get several rows per item.
+       (replace(group_concat(distinct ?superClass;separator=\"; \"), \"http://www.wikidata.org/entity/\", \"\") as ?superClasses)   #Strip the path in order to get only the Q-number.        
+	   ?Label_en
+       (group_concat(distinct ?Alias_en;separator=\"; \") as ?Aliases_en)    #Concatenate the values in order not to get several rows per item.
+       ?Label_de
+       (group_concat(distinct ?Alias_de;separator=\"; \") as ?Aliases_de)
+       ?Label_fr
+       (group_concat(distinct ?Alias_fr;separator=\"; \") as ?Aliases_fr)
+       ?Label_it
+       (group_concat(distinct ?Alias_it;separator=\"; \") as ?Aliases_it)
+       ?Label_es
+       (group_concat(distinct ?Alias_es;separator=\"; \") as ?Aliases_es)
+       ?Label_ru
+       (group_concat(distinct ?Alias_ru;separator=\"; \") as ?Aliases_ru)
+       ?Description_en       
+       ?Description_de
+       ?Description_fr
+       ?Description_it
+       ?Description_es
+       ?Description_ru
+WHERE {
+  {?item wdt:P279+ wd:Q33506} UNION {?item wdt:P279+ wd:Q166118} UNION {?item wdt:P279+ wd:Q7075}.
+  OPTIONAL { ?item rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+  OPTIONAL { ?item rdfs:label ?Label_de . FILTER (lang(?Label_de) = \"de\") } 
+  OPTIONAL { ?item rdfs:label ?Label_fr . FILTER (lang(?Label_fr) = \"fr\") }
+  OPTIONAL { ?item rdfs:label ?Label_it . FILTER (lang(?Label_it) = \"it\") }
+  OPTIONAL { ?item rdfs:label ?Label_es . FILTER (lang(?Label_es) = \"es\") }
+  OPTIONAL { ?item rdfs:label ?Label_ru . FILTER (lang(?Label_ru) = \"ru\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_en . FILTER (lang(?Alias_en) = \"en\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_de . FILTER (lang(?Alias_de) = \"de\") } 
+  OPTIONAL { ?item skos:altLabel ?Alias_fr . FILTER (lang(?Alias_fr) = \"fr\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_it . FILTER (lang(?Alias_it) = \"it\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_es . FILTER (lang(?Alias_es) = \"es\") }
+  OPTIONAL { ?item skos:altLabel ?Alias_ru . FILTER (lang(?Alias_ru) = \"ru\") }
+  OPTIONAL { ?item schema:description ?Description_en . FILTER (lang(?Description_en) = \"en\") }
+  OPTIONAL { ?item schema:description ?Description_de . FILTER (lang(?Description_de) = \"de\") } 
+  OPTIONAL { ?item schema:description ?Description_fr . FILTER (lang(?Description_fr) = \"fr\") }
+  OPTIONAL { ?item schema:description ?Description_it . FILTER (lang(?Description_it) = \"it\") }
+  OPTIONAL { ?item schema:description ?Description_es . FILTER (lang(?Description_es) = \"es\") }
+  OPTIONAL { ?item schema:description ?Description_ru . FILTER (lang(?Description_ru) = \"ru\") }
+  OPTIONAL { ?item wdt:P279 ?superClass }
+  OPTIONAL { ?item wdt:P279/rdfs:label ?superClassLabel_en . FILTER (lang(?superClassLabel_en) = \"en\") }
+}
+group by ?item  						#List all the variables for which the values are not concatenated!
+         ?Label_en ?Description_en 
+         ?Label_de ?Description_de 
+         ?Label_fr ?Description_fr 
+         ?Label_it ?Description_it
+         ?Label_es ?Description_es
+         ?Label_ru ?Description_ru""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2020-08-25>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-09-26>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-08-21>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Hackdays_2019/Session_1>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-05-13>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Atelier_2018>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-A07F936DB626B6B1193A8CE3FFBDA753, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-BDF12891E75B52C33CF94419FAF08C15,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-D58D69902B937B193E2F810678B9F9E2, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-78AB689A41CF7DF2E4DA945B5B5B5AC0,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-0481D7D84160C7D39A706F9CA281C057, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-AD85BFC5D87EB91FF22D7CFF50853066,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-31021E6105612967162C352D2DCFF858, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-DB14CB739BDF5534DC23DB658005CFFC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-1AAB760F1434ADB20B8D58CBF148183B, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-EE93ECED4B97958169DF57F844AC793D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-588344D3F1AA14352AEC75E982661BE4, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec123383-6E70876E7215EB5E9BF4FE876ACDD602;
+  schema:target <https://query.wikidata.org/sparql/> .

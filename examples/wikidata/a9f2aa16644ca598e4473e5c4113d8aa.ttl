@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9f2aa16644ca598e4473e5c4113d8aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Use the MediaWiki API to get the articles from a specific category in a specific Wikipedia language version.
+# Then use this results as usual in a query, in this example a simple query for the gender.
+# By User:Ainali with the help of User:Dipsacus fullonum  2021-02
+SELECT ?item ?itemLabel ?genderLabel WHERE {
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sv.wikipedia.org\";     # Set the project here
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";        # Selects the content from a category
+                     mwapi:gcmtitle \"Category:Födda 2001\";.    # Specifies the category (Born in 2001)
+     ?item wikibase:apiOutputItem mwapi:item.
+  } 
+  FILTER BOUND (?item)                                         # Safeguard to not get a timeout from unbound items when using ?item below
+  ?item wdt:P21 ?gender .                                      # Example retrieval of a value
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,sv\". }    
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-9422DA852F839B3C4059FCFFE122E80A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-3BA02207C64DDADD1E14C90C73AEFB4C,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-AD76E784C0ECA159F6D1F438AC36F303, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-75A6C3DB7AE5A1E22B6C1E71FDC2BB9C,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-E1EBEA2E77ABECBB8832207AB351113F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-0209615398A0071E5A360AF80E99AE48,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-D7FB5E00EFD63FC28E3ADC28E1CC48FF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-C02D95D5AE086ED3122CDA82A1B3AEB0,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112523-44C69C4A754A24CD77E18A0CABD9BD5E;
+  schema:target <https://query.wikidata.org/sparql/> .

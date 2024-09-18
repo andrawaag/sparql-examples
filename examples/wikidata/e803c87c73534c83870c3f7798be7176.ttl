@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e803c87c73534c83870c3f7798be7176> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Fach of humans in the order of frequency of use.
+SELECT ?value ?valueLabel ?count WITH {
+  SELECT ?value (COUNT(DISTINCT ?singer) AS ?count) WHERE {
+    ?singer wdt:P31/wdt:P279* wd:Q5.
+    ?singer wdt:P1731 ?value.
+    }
+  GROUP BY ?value
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113657-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113657-26332F09882FE75AD49FB23C78107CD2, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113657-FB74B9E6524DB6D62F75753078F5C943;
+  schema:target <https://query.wikidata.org/sparql/> .

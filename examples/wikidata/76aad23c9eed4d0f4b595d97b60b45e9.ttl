@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-76aad23c9eed4d0f4b595d97b60b45e9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+
+#defaultView:TreeMap
+SELECT ?show ?showLabel  ?season ?cleanSeasonLabel ?episode ?episodeLabel
+WHERE
+{
+	{
+		BIND(wd:Q886 as ?show) .
+		?season wdt:P361 ?show .
+		?season rdfs:label ?_seasonLabel.
+		FILTER((LANG(?_seasonLabel)) = \"en\")
+		BIND(SUBSTR(?_seasonLabel, 0, STRLEN(?_seasonLabel)-23) AS ?cleanSeasonLabel)
+		?episode wdt:P361 ?season .
+	} 
+	UNION
+	{
+		BIND(wd:Q16538 as ?show) .
+		?season wdt:P361 ?show .
+		?season rdfs:label ?_seasonLabel.
+		FILTER((LANG(?_seasonLabel)) = \"en\")
+		BIND(SUBSTR(?_seasonLabel, 0, STRLEN(?_seasonLabel)-20) AS ?cleanSeasonLabel)
+		?episode wdt:P361 ?season .
+	}  
+	UNION
+	{
+		BIND(wd:Q147235 as ?show) .
+		?season wdt:P361 ?show .
+		?season rdfs:label ?_seasonLabel.
+		FILTER((LANG(?_seasonLabel)) = \"en\")
+		BIND(CONCAT(\"S\", SUBSTR(?_seasonLabel, 25)) AS ?cleanSeasonLabel)
+		?episode wdt:P361 ?season .
+	}
+
+	SERVICE wikibase:label {  bd:serviceParam wikibase:language \"en\" }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-2A3D4EF956A0C06072CCA0183A319CC5, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-F76AE5FD2FE9D3F8CC11FF34681607E6,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-D38BB08EB1EDB209F19B6F3641D84F91, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-C0A2B9FE56B2615766A5DEBD3F981C21,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-576A20F6A5F016BCDBBADB94F379E85F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-7677B26F2411ECBF398BD28B77E7ED81,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-42D768B8983D6DED7D496E82452D0E28, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-800A872BA23118156E1A0FCF9BF2F631,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112409-A9462A196C846E1145192B03164A77AC;
+  schema:target <https://query.wikidata.org/sparql/> .

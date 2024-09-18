@@ -1,0 +1,345 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dd97be528c7ead0746e40b626fb50966> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:ImageGrid{\"hide\" :[\"?image\"]}
+#title: Objects in the Khalili Collections whose main text is in Naskh script
+SELECT (?link AS ?q) ?qLabel ?image WHERE {
+  ?item wdt:P195/wdt:P361 wd:Q63160499; wdt:P9302 wd:Q1510712; wdt:P18 ?image ; wdt:P973 ?link.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?item rdfs:label ?qLabel }
+}""";
+  rdfs:comment """Contents 1 Overview queries 1.1 Graph visualisation of the entire Khalili data set 1.2 All items in Khalili Collections, including images, ordered by collection and inventory number 1.3 100 most interesting Khalili Collections objects from Hajj and Islamic Art collections 2 Maps 2.1 Colour-coded global map of Khalili objects with images on Commons 2.2 Map of Enamels of the World collection 2.3 Map of the Islamic Art collection 3 Timelines 3.1 Timeline of Enamels of the World with images on Commons 3.2 Timeline of KC Japanese Art with images on Commons 3.3 Timeline of some coins in the Khalili Collections 3.4 Timeline of some Qurans in the Khalili Collection of Islamic Art 3.5 Timeline of Islamic metalwork 3.6 Islamic art from 650 to 1250 3.7 Timeline of Fatamid, Umayyad and Abbasid Caliphs 4 Historical connections 4.1 People (including mythical/legendary) connected to multiple objects in the Collections 4.2 Objects related in some way to Shah Jahan 4.2.1 Image gallery version of above 4.2.2 Graphical version of above, for a different person 4.3 Objects in Khalili Collections related to Abdulmecid I (graphical version) 4.4 Objects in Khalili Collections related to Abbas II (graphical version) 4.5 Individuals connected (somehow) to objects in multiple Khalili Collections 4.6 Literary works of which Khalili has an exemplar 4.7 Patrons (for whom the object was commissioned or dedicated) 4.8 Parts of the Nurse's Quran and their collections 4.9 Items from the Abbasid Caliphate in collections 4.10 Objects in the Khalili Collections whose main text is in Naskh script 5 Depictions 5.1 Things depicted in art works of the Khalili Collections (sample images for each item) 5.2 Same but with links to the Khalili Collections web site 5.3 Paintings 5.4 Things depicted in art works of the Khalili Collections (all depictions of things that have an image) 5.5 Things depicted in multiple Khalili Collections 5.6 Entity index for the Khalili Collections web site 5.7 Depictions of the Kaaba in the Khalili Collection of Hajj and the Arts of Pilgrimage 5.8 Depictions of lions in the Khalili Collections 5.9 Depictions of elephants in the Khalili Collections 5.10 Depictions of eagles in the Khalili Collections 5.11 Depictions of irises (the flower) in the Khalili Collections 5.12 Art works in the Khalili Collections that do not yet have a depiction statement 5.13 Things depicted in the Jami' al-Tawarikh of Rashid al-Din 5.14 Graph version of above query 5.15 Depictions in the Khalili Falnamah 5.16 Paintings in the Shahnamah of Shah Alam II 5.17 Paintings in the Shahnamah of Prince Murad Bakhsh 6 Translations 6.1 Translations of Wikipedia articles related to the Khalili Collections partnership (most recent first) 6.2 Recently edited articles relevant to the Khalili Collections partnership and their sizes 6.3 Non-English labels for Khalili Collections items 6.4 Terms relating to the two Islamic Art collections that lack Arabic labels 6.5 Translated labels that have not been added to objects with the same English name 7 Data quality 7.1 Count of items and statements about KC objects 7.2 Percentage completeness for some properties 7.3 Objects without an inception date 7.4 KC items with no images in Commons, but more than a century old 7.5 Unreferenced statements about Khalili Collections objects 7.6 ArtUK IDs (reconciled to existing records) 7.7 ArtUK IDs (not reconciled to existing records) 8 Cultural diversity 8.1 Ratifications of the Convention on the Protection and Promotion of the Diversity of Cultural Expressions Overview queries [edit] Graph visualisation of the entire Khalili data set [edit] SELECT ?item1 ?image ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel
+WITH { SELECT ?item1 WHERE {
+?item1 wdt:P195?/wdt:P361? wd:Q63160499
+} } AS %item1
+WITH {SELECT (?item1 AS ?item2) WHERE {INCLUDE %item1} } AS %item2
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.
+?item1 ?prop ?item2.
+?edge wikibase:directClaim ?prop ; a wikibase:Property
+OPTIONAL {?item1 wdt:P18 ?image}
+OPTIONAL {?item2 wdt:P18 ?image2}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! All items in Khalili Collections, including images, ordered by collection and inventory number [edit] The following query uses these:Items: Khalili Collections (Q63160499)   Properties: collection (P195)   , part of (P361)   , inventory number (P217)   , image (P18)   SELECT ?i ?iLabel ?collLabel ?inv ?image WHERE {
+?i wdt:P195 ?coll.
+  ?coll wdt:P361? wd:Q63160499.
+  OPTIONAL {?i wdt:P217 ?inv}
+  OPTIONAL {?i wdt:P18 ?image}
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?collLabel ?inv Try it! 100 most interesting Khalili Collections objects from Hajj and Islamic Art collections [edit] #title:100 most interesting Khalili Collections Islamic objects
+SELECT ?item ?itemLabel (SAMPLE(?typeLabel) AS ?what) ?itemDescription ?image ?s WHERE {
+  VALUES ?coll {wd:Q66455355 wd:Q66458773} # Islamic Art and Hajj collection
+  ?item wdt:P195 ?coll
+  FILTER (?item NOT IN (wd:Q3114572, wd:Q109341408, wd:Q2997010, wd:Q108543136, wd:Q107663626) ).# Exclude objects in multiple collections
+  ?item wdt:P18 ?image.
+  ?item wdt:P31 ?type.
+  ?item wikibase:statements ?s
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ar,[AUTO_LANGUAGE],en\".
+  ?type rdfs:label ?typeLabel. ?item rdfs:label ?itemLabel. ?item schema:description ?itemDescription }
+} GROUP BY ?item ?itemLabel ?itemDescription ?image ?s
+ORDER BY DESC(?s)
+LIMIT 100
+ 100 most interesting Khalili Collections Islamic objects Maps [edit] Colour-coded global map of Khalili objects with images on Commons [edit] The following query uses these:Items: Khalili Collections (Q63160499)   Properties: part of (P361)   , collection (P195)   , image (P18)   , location of creation (P1071)   , described at URL (P973)   , coordinate location (P625)    Features: map (Q24515275)  #title:Selected objects from the Khalili Collections
+#defaultView:Map{\"hide\": [\"?coords\", \"?layer\"]}
+SELECT ?item ?itemLabel ?image ?coords ?layer ?where WHERE {
+?coll wdt:P361 wd:Q63160499. # all Khalili Collections
+?i wdt:P195 ?coll; wdt:P18 ?image ; wdt:P1071 ?place; wdt:P973 ?item . ?place wdt:P625 ?coords.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?i rdfs:label ?itemLabel. ?coll rdfs:label ?layer .?place rdfs:label ?where }
+} Selected objects from the Khalili Collections Map of Enamels of the World collection [edit] #title:Selected objects from the Khalili Collection of Enamels of the World
+#defaultView:Map{\"hide\": [\"?coords\", \"?layer\"]}
+SELECT ?item ?itemLabel ?image ?coords ?where WHERE {
+VALUES ?coll {wd:Q66457023}
+?i wdt:P195 ?coll; wdt:P18 ?image; wdt:P1071 ?place; wdt:P973 ?item . ?place wdt:P625 ?coords.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?i rdfs:label ?itemLabel . ?place rdfs:label ?where }
+}
+ Selected objects from the Khalili Collection of Enamels of the World Map of the Islamic Art collection [edit] #title:Selected objects from the Khalili Collection of Islamic Art
+#defaultView:Map{\"hide\": [\"?coords\", \"?layer\"]}
+SELECT ?item ?itemLabel ?image ?coords WHERE {
+VALUES ?coll {wd:Q66455355}. #  wd:Q66457023
+?i wdt:P195 ?coll; wdt:P18 ?image ; wdt:P1071 ?place; wdt:P973 ?item . ?place wdt:P625 ?coords.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?i rdfs:label ?itemLabel }
+}
+ Selected objects from the Khalili Collection of Islamic Art Timelines [edit] Timeline of Enamels of the World with images on Commons [edit] The following query uses these:Items: Khalili Collection: Enamels of the World (Q66457023)   Properties: collection (P195)   , image (P18)   , described at URL (P973)   , location of creation (P1071)   , inception (P571)   SELECT ?obj ?objLabel ?pubdate ?pubdatePrecision ?image ?url ?locationLabel
+WHERE {
+?obj wdt:P195 wd:Q66457023;
+   p:P571/psv:P571 ?pubdateStatementNode.
+?pubdateStatementNode wikibase:timeValue ?pubdate ;
+   wikibase:timePrecision ?pubdatePrecision # get precision of the publication date
+OPTIONAL {?obj wdt:P18 ?image}
+OPTIONAL {?obj wdt:P973 ?kc_url}
+OPTIONAL {?obj wdt:P1071 ?location}
+BIND(if(BOUND(?kc_url), ?kc_url, ?obj) AS ?url)
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"} 
+} Try it! This timeline in Histropedia Timeline of KC Japanese Art with images on Commons [edit] The following query uses these:Items: Nasser D. Khalili Collection of Japanese Art (Q66455644)   , item of collection or exhibition (Q18593264)   Properties: collection (P195)   , instance of (P31)   , image (P18)   , described at URL (P973)   , inception (P571)   SELECT ?obj ?objLabel ?pubdate ?pubdatePrecision ?typeLabel ?image ?url
+WHERE {
+?obj wdt:P195 wd:Q66455644;
+   p:P571/psv:P571 ?pubdateStatementNode.
+?pubdateStatementNode wikibase:timeValue ?pubdate ;
+   wikibase:timePrecision ?pubdatePrecision # get precision of the publication date
+OPTIONAL {?obj wdt:P31 ?type FILTER(?type != wd:Q18593264)}
+OPTIONAL {?obj wdt:P18 ?image}
+OPTIONAL {?obj wdt:P973 ?kc_url}
+BIND(if(BOUND(?kc_url), ?kc_url, ?obj) AS ?url)
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"} 
+} Try it! This timeline in Histropedia Timeline of some coins in the Khalili Collections [edit] The following query uses these:Items: Khalili Collections (Q63160499)   , currency (Q8142)   , coin type (Q113813711)   Properties: collection (P195)   , part of (P361)   , instance of (P31)   , subclass of (P279)   , image (P18)   , described at URL (P973)   , inception (P571)   #title: Some coins in the Khalili Collections
+SELECT DISTINCT ?obj ?objLabel ?typeLabel ?image ?pubdate ?pubdatePrecision ?url WHERE {
+  ?obj wdt:P195/wdt:P361 wd:Q63160499; wdt:P31 ?type.
+  # Subclass of currency or instance of coin_type
+  {?type wdt:P279?/wdt:P279 wd:Q8142} UNION {?type wdt:P279?/wdt:P31 wd:Q113813711 }
+  ?obj wdt:P18 ?image; wdt:P973 ?url.
+  ?obj p:P571/psv:P571 ?pubdateStatementNode.
+?pubdateStatementNode wikibase:timeValue ?pubdate;
+   wikibase:timePrecision ?pubdatePrecision # get precision of the creation date
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Some coins in the Khalili Collections This query as a Histropedia timeline Timeline of some Qurans in the Khalili Collection of Islamic Art [edit] #title: Qurans and Quran-fragments in the Khalili Collections
+SELECT DISTINCT ?item ?itemLabel ?placeLabel ?pubdate ?pubdatePrecision ?url ?img WHERE {
+  ?item wdt:P195 wd:Q66455355 # collection: Khalili Collection of Islamic Art
+   {?item wdt:P1574 wd:Q428 } UNION {?item wdt:P1574/wdt:P31 wd:Q234262 }. # Quran or a sura
+    ?item p:P571/psv:P571 ?pubdateStatementNode.
+?pubdateStatementNode wikibase:timeValue ?pubdate ;
+   wikibase:timePrecision ?pubdatePrecision # get precision of the creation date
+#  OPTIONAL {?item wdt:P217 ?inventory}
+  OPTIONAL {?item wdt:P1071 ?place}
+  OPTIONAL {?item wdt:P973 ?url}
+  OPTIONAL {?item wdt:P18 ?img}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Qurans and Quran-fragments in the Khalili Collections This query as a Histropedia timeline Timeline of Islamic metalwork [edit] #title:Islamic metalwork in the Khalili Collections
+SELECT ?link ?itemLabel ?image ?date ?datePrecision ?placeLabel ?collectionLabel WHERE {
+  VALUES ?collection {wd:Q66455355 wd:Q66458773}
+  ?item p:P195 [ps:P195 ?collection; pq:P217 ?inv ] FILTER(STRSTARTS(?inv, \"MTW\"))
+  ?item wdt:P18 ?image; wdt:P973 ?link; p:P571/psv:P571 ?node.
+  OPTIONAL {?item wdt:P1071 ?place}
+?node wikibase:timeValue ?date;
+   wikibase:timePrecision ?datePrecision
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+}
+ Islamic metalwork in the Khalili Collections This query as a Histropedia timeline Islamic art from 650 to 1250 [edit] #defaultView:ImageGrid
+#title: Khalili Collection of Islamic Art from 650 to 1250
+SELECT DISTINCT ?objLabel ?placeLabel ?image (YEAR(?pubdate) AS ?year) WHERE {
+  ?obj wdt:P195 wd:Q66455355.
+  ?obj wdt:P18 ?image; wdt:P973 ?url; wdt:P1071 ?place .
+  MINUS {?obj wdt:P31 wd:Q49848 }
+  ?obj p:P571/psv:P571 ?node. ?node wikibase:timeValue ?pubdate ;
+  wikibase:timePrecision ?pubdatePrecision # get precision of the creation date
+  FILTER (YEAR(?pubdate) < 1251) FILTER (YEAR(?pubdate) >649)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?pubdate
+ Khalili Collection of Islamic Art from 650 to 1250 Timeline of Fatamid, Umayyad and Abbasid Caliphs [edit] SELECT ?item ?itemLabel ?caliphLabel ?image ?start ?end ?wp WHERE {
+  VALUES ?caliph {wd:Q14979753 wd:Q28541943 wd:Q67497236}
+   ?item p:P39 ?s.?s ps:P39 ?caliph 
+#  OPTIONAL {?item wdt:P53 ?family}
+  OPTIONAL {?s pq:P580 ?start}
+  OPTIONAL {?s pq:P582 ?end}
+  OPTIONAL {?item wdt:P18 ?img}
+  OPTIONAL {?item wdt:P158 ?sealimg}
+  OPTIONAL {?item wdt:P6802 ?relatedimg}
+  BIND(COALESCE(?img, ?sealimg, ?relatedimg) AS ?image)
+  OPTIONAL {?wp schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?start
+ Try it! This query as a Histropedia timeline Historical connections [edit] People (including mythical/legendary) connected to multiple objects in the Collections [edit] SELECT (COUNT(?i1) AS ?count_of_objects) ?topic ?topicLabel WHERE {
+?i1 wdt:P195/wdt:P361 wd:Q63160499. # Object from Khalili Collections
+VALUES ?type {wd:Q5 wd:Q95074 wd:Q64520857 wd:Q4271324 wd:Q13002315 wd:Q178885}
+  # human, fictional character, fictional char thought historical mythical character, legendary figure, deity
+  ?i1 ?rel1 ?topic . ?topic wdt:P31 ?type . # Object has some sort of connection to the topic
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} GROUP BY ?topic ?topicLabel
+ORDER BY DESC(?count_of_objects)
+ Try it! Objects related in some way to Shah Jahan [edit] #title:Objects related in some way to Shah Jahan
+SELECT DISTINCT ?property ?i ?object_name (SAMPLE(?obj_type) AS ?object_type) ?collection ?url WHERE {
+?i wdt:P195 ?coll.
+  ?i ?rel wd:Q83672 . ?i wdt:P31 ?type
+OPTIONAL {?i wdt:P973 ?url}.
+  ?prop wikibase:directClaim ?rel ; a wikibase:Property
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+         ?i rdfs:label ?object_name. ?coll rdfs:label ?collection.
+         ?prop rdfs:label ?property. ?type rdfs:label ?obj_type}
+} GROUP BY ?i ?object_name ?collection ?property ?url
+ORDER BY ?property ?collection
+ Objects related in some way to Shah Jahan Image gallery version of above [edit] #title:Objects related to Shah Jahan
+#defaultView:ImageGrid{\"hide\":[\"?thumbnail\",\"?noimg\"]}
+SELECT DISTINCT ?collection (CONCAT(?property,\" \",?targetlabel) AS ?proplabel) (SAMPLE(?obj_type) AS ?object_type) (SAMPLE(?image) AS ?thumbnail) ?q ?qLabel ?noimg WHERE {
+VALUES ?target {wd:Q83672}
+?i ?rel ?target; wdt:P195 ?coll; wdt:P31 ?type
+OPTIONAL {?i wdt:P18 ?img}
+BIND(IF(BOUND(?img), ?img, <http://commons.wikimedia.org/wiki/Special:FilePath/No%20image%20available.svg>) AS ?image)
+BIND(IF(BOUND(?img), 0, 1) AS ?noimg)
+OPTIONAL {?i wdt:P973 ?url}
+BIND(COALESCE(?url, ?i) as ?q)
+MINUS {?coll wdt:P31 wd:Q61781831}
+?prop wikibase:directClaim ?rel; a wikibase:Property
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+?i rdfs:label ?qLabel. ?coll rdfs:label ?collection.
+?prop rdfs:label ?property. ?type rdfs:label ?obj_type. ?target rdfs:label ?targetlabel}
+} GROUP BY ?q ?qLabel ?collection ?property ?targetlabel ?noimg
+ORDER BY ?noimg ?proplabel ?collection
+ Objects related to Shah Jahan Graphical version of above, for a different person [edit] #defaultView:Graph
+#title:Objects in collections related to Abdülmecid I
+SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel 
+WITH {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q174772}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll.
+    MINUS {?coll wdt:P31 wd:Q61781831} # Exclude curatorial departments
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  } as %core
+WHERE {
+  {
+ SELECT ?from  ?image1 (?start AS ?to) (?startimage AS ?image2) (?prop AS ?edge) WHERE {
+  INCLUDE %core.
+ } ORDER BY ?coll # put objects from the same collection close together
+ }
+UNION {
+  SELECT ?from  ?image1 (?coll AS ?to) ?image2 (wd:P195 AS ?edge) WHERE {
+   INCLUDE %core.
+   OPTIONAL {?coll wdt:P18 ?image2}.
+  }
+} UNION {
+    SELECT ?from ?image1 (?type AS ?to) (\"\" AS ?image2) (wd:P31 AS ?edge) WHERE {
+   INCLUDE %core.
+      ?from wdt:P31 ?type.
+  }
+}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+     ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
+}
+ Objects in collections related to Abdülmecid I See more: Wiki Playtime Blog: \"Historical people and modern collections: a Wikidata exploration\" February 2022 Objects in Khalili Collections related to Abdulmecid I (graphical version) [edit] #defaultView:Graph
+#title:Khalili Collections objects related to Abdülmecid I
+SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel 
+WITH {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q174772}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499.
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  } as %core
+WHERE {
+  {
+ SELECT ?from  ?image1 (?start AS ?to) (?startimage AS ?image2) (?prop AS ?edge) WHERE {
+  INCLUDE %core.
+ } ORDER BY ?coll # put objects from the same collection close together
+ }
+UNION {
+  SELECT ?from  ?image1 (?coll AS ?to) ?image2 (wd:P195 AS ?edge) WHERE {
+   INCLUDE %core.
+   OPTIONAL {?coll wdt:P18 ?image2}.
+  }
+} UNION {
+    SELECT ?from ?image1 (?type AS ?to) (\"\" AS ?image2) (wd:P31 AS ?edge) WHERE {
+   INCLUDE %core.
+      ?from wdt:P31 ?type.
+  }
+}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+     ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
+}
+ Khalili Collections objects related to Abdülmecid I Objects in Khalili Collections related to Abbas II (graphical version) [edit] #defaultView:Graph
+#title:Khalili Collections objects related to Abbas II
+SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel 
+WITH {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q157159}. # Choose person to start with
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll. ?coll wdt:P361 wd:Q63160499.
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  } as %core
+WHERE {
+  {
+ SELECT ?from  ?image1 (?start AS ?to) (?startimage AS ?image2) (?prop AS ?edge) WHERE {
+  INCLUDE %core.
+ } ORDER BY ?coll # put objects from the same collection close together
+ }
+UNION {
+  SELECT ?from  ?image1 (?coll AS ?to) ?image2 (wd:P195 AS ?edge) WHERE {
+   INCLUDE %core.
+   OPTIONAL {?coll wdt:P18 ?image2}.
+  }
+} UNION {
+    SELECT ?from ?image1 (?type AS ?to) (\"\" AS ?image2) (wd:P31 AS ?edge) WHERE {
+   INCLUDE %core.
+      ?from wdt:P31 ?type.
+  }
+}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+     ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
+}
+ Khalili Collections objects related to Abbas II Individuals connected (somehow) to objects in multiple Khalili Collections [edit] SELECT DISTINCT ?i1 ?i1Label ?i2 ?i2Label ?topic ?topicLabel WHERE {
+?i1 wdt:P195 ?coll1. ?coll1 wdt:P361 wd:Q63160499. # Object from Khalili Collections
+?i2 wdt:P195 ?coll2. ?coll2 wdt:P361 wd:Q63160499. # Object from Khalili Collections
+  FILTER (STR(?coll1) > STR(?coll2)) # Different collections
+  ?i1 ?rel1 ?topic . ?topic wdt:P31 wd:Q5 . # Both connected to the same topic
+  ?i2 ?rel2 ?topic .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?topicLabel
+ Try it! Literary works of which Khalili has an exemplar [edit] #title:Works of which the Khalili Collections have an exemplar
+SELECT ?item ?itemLabel ?workLabel ?authorLabel ?inventory ?pages ?url WHERE { 
+  ?item p:P195 ?s. ?s ps:P195/wdt:P361 wd:Q63160499. # In Khalili Collections
+    ?s pq:P217 ?inventory. # inventory number attached to the collection property
+  ?item wdt:P1574 ?work. # exemplar of a work
+  OPTIONAL {?item wdt:P973 ?url}
+  OPTIONAL {?work wdt:P50 ?author}
+  OPTIONAL {?item wdt:P1104 ?pages}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?workLabel
+ Works of which the Khalili Collections have an exemplar Patrons (for whom the object was commissioned or dedicated) [edit] #title:Patrons of objects in the Khalili Collections
+SELECT DISTINCT ?i ?iLabel ?collLabel ?propLabel ?patronLabel ?url WHERE {
+?i wdt:P195 ?coll.
+  ?coll wdt:P361? wd:Q63160499.
+  VALUES ?rel {wdt:P88 wdt:P825}
+  ?i ?rel ?patron .
+?i wdt:P973 ?url.
+  ?prop wikibase:directClaim ?rel ; a wikibase:Property
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?patronLabel ?collLabel
+ Patrons of objects in the Khalili Collections Parts of the Nurse's Quran and their collections [edit] #defaultView:Graph
+SELECT ?from ?fromLabel ?image1 ?to ?toLabel ?image2 ?edgeLabel 
+WITH {
+  SELECT ?start ?startimage ?image1 ?from ?prop ?coll  WHERE {
+  VALUES ?start {wd:Q107998577}. # Nurse's Quran
+    ?start wdt:P18 ?startimage.
+    ?from ?rel ?start; wdt:P195 ?coll.
+    MINUS {?coll wdt:P31 wd:Q61781831} # Exclude curatorial departments
+    ?prop wikibase:directClaim ?rel ; a wikibase:Property.
+    OPTIONAL {?from wdt:P18 ?image1}.
+   }  } as %core
+WHERE {
+  {
+ SELECT ?from  ?image1 (?start AS ?to) (?startimage AS ?image2) (?prop AS ?edge) WHERE {
+  INCLUDE %core.
+ } ORDER BY ?coll # put objects from the same collection close together
+ }
+  UNION {
+  SELECT ?from  ?image1 (?coll AS ?to) ?image2 (wd:P195 AS ?edge) WHERE {
+   INCLUDE %core.
+   OPTIONAL {?coll wdt:P18 ?image2}.
+  }
+}
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+     ?from rdfs:label ?fromLabel. ?edge rdfs:label ?edgeLabel.  ?to rdfs:label ?toLabel}
+}
+ Try it! Items from the Abbasid Caliphate in collections [edit] #defaultView:ImageGrid
+#title:Items from the Abbasid Caliphate in collections
+SELECT DISTINCT ?item ?itemLabel ?collectionLabel (SAMPLE(?img) AS ?image) WHERE {
+  ?item wdt:P195 ?collection FILTER (?collection != wd:Q67429139). # exclude a subcollection
+  ?item wdt:P495|wdt:P2348 wd:Q12536. # country of origin or time period
+  OPTIONAL {?item wdt:P18 ?img}
+  OPTIONAL {?item wdt:P973 ?url}
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} GROUP BY ?item ?itemLabel ?collectionLabel
+ORDER BY ?collectionLabel
+ Items from the Abbasid Caliphate in collections Objects in the Khalili Collections whose main text is in Naskh script [edit] The following query uses these:Items: Khalili Collections (Q63160499)   , Naskh (Q1510712)   Properties: collection (P195)   , part of (P361)   , script style (P9302)   , image (P18)   , described at URL (P973)    Features: ImageGrid (Q24515278)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

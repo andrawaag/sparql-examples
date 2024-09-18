@@ -1,0 +1,387 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1d35049738d84a3ddd4ea9a00680df4d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Libros escritos por año y genero desde 2000
+#defaultView:AreaChart
+SELECT ?cid (STR(SAMPLE(?year)) AS ?year) (COUNT(*) AS ?count) ?genero WHERE {
+   ?pid wdt:P31 wd:Q571;  # libro   
+        wdt:P50 ?autor; # autor 
+       wdt:P136 ?cid;  # genero
+       wdt:P577 ?_date_of_pub. # fecha de publicación
+  ?cid wdt:P279* wd:Q1318295.  # tipo de genero narrativo
+  ?autor wdt:P27 wd:Q29 # nacionalidad autor España
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                         ?cid rdfs:label ?genero. }
+  BIND ( YEAR(?_date_of_pub) AS ?year )
+  FILTER( ?year >= 2000 )
+}
+GROUP BY ?cid ?genero ?year""";
+  rdfs:comment """Referencias y materiales para taller en el Curso Wikidata PAyED, Universidad de Salamanca, diciembre 2020 Contacto Tomás Saorín, Universidad de Murcia, tsp@um.es Contents 1 Recursos útiles 1.1 Videos 1.2 Materiales guía 1.3 Bibliografía útil 2 Ejemplo de creación de declaraciones 2.1 Premios de una película y miembros del reparto 2.2 Otro ejemplo sencillo para crear nuevos registros 3 Ejemplos SPARQL 3.1 Material de referencia y tutoriales 3.2 Delimitar y tipificar 3.3 Buscando cosas sobre ... PUENTES 3.3.1 Listado inicial de puentes 3.3.2 Puentes en España 3.3.3 Puentes de todos los tipos en España 3.3.4 Arquitectos de los puentes en España 3.3.5 Puentes en el mundo de Arquitectos que hayan estudiado en el Politécnico de Zurich 3.3.6 Premios que han recibido los arquitectos que han hecho puentes en España 3.3.7 Ocupación de personas que han recibido premios que tambimén han recibido arquitectos de puentes en España 3.3.8 Fotos de puentes del mundo 3.3.9 Mapa de puentes de todo tipo en España 3.3.10 Mapa de puentes de todo tipo que atraviesan el Tajo 3.3.11 Mapa de embalses CON CAPA DE FILTRO por vertiente del río 3.3.12 Mapa de puentes que cruzan el Tejo, el Nilo y el Missisipí 3.3.13 ¿En qué paises hay más puentes? 3.3.14 ¿De qué color es el puente Golden Gate? 3.3.15 Listado de colores de puentes 3.3.16 Material de construcción 3.3.17 ¿De qué material están hechos los puentes que cruzan el Tajo? 3.4 Consultando la ontología (Propiedades, clases) 3.4.1 Jerarquía de clases sobre BOSQUE (broad context) 3.4.2 Jerarquía de clases hasta BOSQUE (narrow context) 3.4.3 Versión con Graph Service 3.4.3.1 Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) 3.4.3.2 Árbol de clases para BOSQUE (Traversal direction = Forward) 3.4.4 Grafo de vecindad de conceptos de la Pandamia COVID-19 3.4.5 Encontrar el camino desde una subclase a su superclase (target) con GAS Service 3.5 Otras búsquedas SPARQL 3.5.1 Personas nacidas en el País Vasco 3.5.2 Primeras líneas de obras en español 3.5.3 Capitales de todos los países de la UE 3.5.4 Cuadrícula con foto de los premios nobel de física 3.5.5 Mapa de países que usan el teléfono 112 de emergencias 3.5.6 Campos de actividad de Alan Turing 3.5.7 Personas muertas 3.5.8 Personas fallecidas en 1937 3.5.9 Autores españoles que entran en el dominio público este año 3.5.10 Creadores españoles que entran en el dominio público 3.5.11 Directores de películas inspiradas en Hamlet 3.5.12 Personajes de obras literarias asesinados y su asesino 3.5.13 Año de creación de La libertad guiando al pueblo 3.5.14 Cuadros pintados el mismo año que La Libertad guiando al pueblo 3.5.15 Cuadros que representan caballos en el barroco 3.5.16 Personas relevantes nacidas en Londres 3.5.17 Obras de Vermeer por año de creación 3.5.18 Gráfico de área de libros por año de publicación y genero en narrativa, desde el año 2000 3.5.19 Premios recibidos por Muñoz Molina cada año 3.5.20 Partes de catedrales registradas en Wikidata 3.5.21 Premios ganados por vascos 3.5.22 ¿En qué paises hay más puentes? 3.5.23 Grafo de organizaciones y periodistas Recursos útiles [edit] Videos [edit] Introducción a Wikidata (1:24) Gustavo Candela, María Dolores Sáez / Wikimedia España, abril 2020 Introducción a Wikidata (1:38 min) Wikimedia Argentina, abril 2020 Video del taller Wikidata para archivos (Canal Youtube de la AAA, 3 horas. Primera parte de introducción a Wikidata y autoridades; Segunda parte práctica sobre SPARQL) Bibliografía, presentaciones, tutoriales, proyectos, etc. Materiales guía [edit] 01. Introducción a Wikidata: Grafo de conocimiento de contexto colaborativo 02-1. Consumo y consulta de datos 03. Consultas SPARQL Esquemas en-una-página WDQS in brief Wikidata in brief Nave extra * 02-2. Ontología colaborariva Bibliografía útil [edit] Wikidata, a target for Europeana’s semantic strategy Vladimir Alexiev (Glam-Wiki 2015) Wikipedia, Wikidata y Mix’n’match, Agenjo-Bullón, Xavier; Hernández-Carrascal, Francisca (2020) Anuario ThinkEPI, v. 14 Registros de autoridades, enriquecimiento semántico y Wikidata Agenjo-Bullón, Xavier; Hernández-Carrascal, Francisca (2018) Anuario ThinkEPI, v. 12, pp. 361-372. Association of Research Libraries White Paper on Wikidata: Opportunities and Recommendations ARL, Abril, 2019 Wikidata Glam Workshop: Cómo saber todo sobre todo con Wikidata, la máquina de conocimiento de Wikipedia. Archivo General / Biblioteca Regional /de Murcia, 2018 Wikidata y DBpedia: viaje al centro de la web de datos / Anuario ThinkEpi, 2018 Introduction to Wikidata for Librarians Structuring Wikipedia and Beyond. OCLC, 2018 How Wikidata Is Solving Its Chicken-or-Egg-Problem in the Field of Cultural Heritage Beat Estermann, Oct. 2018 A Brief Introduction to Wikidata: Learn how to query data from Wikipedia Björn Hartmann, Towards Data Science (Medium), April 2018 Report on the results of the Wikimedia Taskforce, Europeana, nov 2015. Grafos de conocimiento y bases de datos en grafo: conceptos fundamentales a partir de una “obra maestra” del Museo del Prado Anuario ThinkEpi, 2019 Del mobile-first al data-first: schema.org, búsquedas zero-click y la incertidumbre sobre los asistentes de voz Anuario ThinkEpi, vol. 14, 2020 Uso de Wikidata y Wikipedia para la generación asistida de un vocabulario estructurado multilingüe sobre la pandemia de Covid-19, El Profesional de la información, Vol. 29 Núm. 5 (2020) Introducción a Wikicite, Wikimedia España, junio 2020 Ejemplo de creación de declaraciones [edit] Premios de una película y miembros del reparto [edit] Adelfa Calvo, gana el Goya en 2018 por la película El autor de 2017 Existe el item de la actriz https://www.wikidata.org/wiki/Q15864378 Existe el item del premio https://www.wikidata.org/wiki/Q429700 Existe propiedad Premio recibido: https://www.wikidata.org/wiki/Property:P166 Existe el item de la película https://www.wikidata.org/wiki/Q39172483 Meter declaración en elemento actriz Creamos el P166 para el premio Goya actriz reparto Luego lo podemos cualificar con: Premiado por la obra P1686 y con Fecha P585 Podemos meter referencia de soporte: No podemos usar afirmado en (P248) si no es vinculando a otra entidad-obra, pero podemos indicar la url de la página con la propiedad \"Dirección web de la referencia\" (P854) (Ver Ayuda sobre Sources) Meter declaración en película Creamos P166 para el premio Goya genérico Luego lo podemos cualificar con: Ganador P1346 ... enlace a Q de la actriz, y Fecha .... CONSULTA SPARQL DE ESTE PREMIO Atención! Aparecen películas y personas SELECT ?cosa ?cosaLabel
+WHERE
+{
+  ?cosa wdt:P166 wd:Q429700
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Otro ejemplo sencillo para crear nuevos registros [edit] Canciones de un disco que no esté registrado. Atención, tiene que haber un item para el disco (Fácil) y otro para la canción (seguramente habrá que crearlo). En el disco, propiedad P658 https://www.wikidata.org/wiki/Property:P658 En la canción, propiedad P361 https://www.wikidata.org/wiki/Property:P361 Pensar en entidades WEMI del modelo conceptual LRM-FRBR ... Tipo (P31) del item para el disco: álbum de estudio, https://www.wikidata.org/wiki/Q208569 y para la canción: composición musical, https://www.wikidata.org/wiki/Q207628 Ejemplos SPARQL [edit] Consultar, consumir, explotar el grafo de conocimiento de Wikidata. Recuerda que para obtener las etiquetas de los items, debemos añadir en la consulta SPARQL la correspondiente llamada al servicio label de Wikibase. Así siempre que añadamos \"Label\" a una variable (?itemLabel) nos la presentará bien rotulada:
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" } Material de referencia y tutoriales [edit] Tutorial iniciación paso a paso Edimburg University Guía de SPARQL y Wikidata Jose Emilio Labra Gayo, WESO, Universidad de Oviedo, 2019 Tutorial oficial de SPARQL en Wikidata Videotutorial WDQS Wikimedia Argentina Tutorial Wikidata Linked Data Future (Canada) Delimitar y tipificar [edit] Consulta por \"?cosa\" especificando que sea una persona. SELECT ?cosa?cosaLabel
+WHERE
+{
+	?cosa wdt:P31 wd:Q5 # Ser humano
+  	?cosa wdt:P166 wd:Q429700 # Goya mejor actriz reparto
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel
+WHERE
+{
+	?cosa wdt:P31 ?tipo . # Tipo de item
+  	?cosa wdt:P166 wd:Q429700 # Goya mejor actriz reparto
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Buscando cosas sobre ... PUENTES [edit] Vamos a realizar búsquedas sobre PUENTES. Wikidata Query Service El punto de acceso interrogable SPARQL está en https://query.wikidata.org/ (SPARQL EndPoint) Listado inicial de puentes [edit] Consulta por Q12280 que es puente ... pero también hay tipos SELECT ?cosa ?cosaLabel 
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes en España [edit] Añadimos el patrón país (P17) España Q29 Consulta por tipo (P31) Q12280 que es puente ... pero también hay tipos SELECT ?cosa ?cosaLabel 
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes de todos los tipos en España [edit] Búsqueda recursos por subclases SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P31 ?tipo
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Arquitectos de los puentes en España [edit] Añadimos P84 (arquitecto) SELECT ?cosa ?cosaLabel ?arquitecto ?arquitectoLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes en el mundo de Arquitectos que hayan estudiado en el Politécnico de Zurich [edit] Añadimos P84 (arquitecto) Añadimos P69 (educado en) SELECT ?cosa ?cosaLabel ?arquitecto ?arquitectoLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P69 wd:Q11942
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Premios que han recibido los arquitectos que han hecho puentes en España [edit] Añadimos premio recibido P166 SELECT ?arquitecto ?arquitectoLabel ?premio ?premioLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P166 ?premio
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Ocupación de personas que han recibido premios que tambimén han recibido arquitectos de puentes en España [edit] Descubrimiento de cosas extrañas SELECT ?persona ?personaLabel ?ocupacion ?ocupacionLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P166 ?premio .
+  ?persona wdt:P166 ?premio .
+  ?persona wdt:P106 ?ocupacion .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Fotos de puentes del mundo [edit] Usamos plantilla #defaultView:ImageGrid
+SELECT ?cosa ?cosaLabel ?image
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P18 ?image .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de puentes de todo tipo en España [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de puentes de todo tipo que atraviesan el Tajo [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P177 wd:Q14294 .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de embalses CON CAPA DE FILTRO por vertiente del río [edit] #defaultView:Map{\"hide\": [\"?tipo\",\"?layer\"],\"Layer\": \"?layerLabel\"}
+SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel ?geo ?layerLabel
+WHERE 
+{
+  ?rio wdt:P205 wd:Q29 . #Cuenca de España
+  ?rio wdt:P469 ?cosa . #Embalses en el curso de un rio
+  ?rio wdt:P403 ?vertiente . # Vertiente del rio
+  ?cosa wdt:P625 ?geo . # Coordenadas
+  BIND(?vertiente AS ?layer)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY ?layerLabel
+ Try it! Mapa de puentes que cruzan el Tejo, el Nilo y el Missisipí [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  VALUES ?rio {wd:Q14294 wd:Q3392 wd:Q1497} #Rios: Tajo Nilo Missisipi
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P177 ?rio .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! ¿En qué paises hay más puentes? [edit] Gráfico de barras para los 20 países con más puentes. Recursiva por P279 subclase. #defaultView:BarChart
+SELECT ?paisLabel (COUNT(?item) as ?num)
+WHERE {
+  ?item wdt:P17 ?pais .
+  ?item wdt:P31 ?tipo . # Tipo del item
+  ?tipo wdt:P279* wd:Q12280 . # tipo subclase recursiva de PUENTE
+  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en,eu\". }
+}
+GROUP BY ?paisLabel
+ORDER BY DESC(?num)
+LIMIT 20
+ Try it! ¿De qué color es el puente Golden Gate? [edit] Como existe la propiedad P462 color y sé que el identificador del Golden Gate Q44440 SELECT ?color ?colorLabel
+WHERE {
+  wd:Q44440 wdt:P462 ?color
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Listado de colores de puentes [edit] Ahora podemos probar con P462 qué sabemos sobre los colores de los puentes ... SELECT ?item ?itemLabel ?color ?colorLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P462 ?color
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Material de construcción [edit] Aunque el color no es lo más relevante. Mejor probamos con \"material empleado\", que es una propiedad más constructiva (P186). SELECT ?item ?itemLabel ?material ?materialLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P186 ?material
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! ¿De qué material están hechos los puentes que cruzan el Tajo? [edit] Podemos llegar a saber cosas que a Google le cuesta responder (de momento) y además veremos que solo \"sabemos\" el material de la mitad de los puentes (los que son de piedra)... SELECT ?item ?itemLabel ?material ?materialLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P177 wd:Q14294 .
+  OPTIONAL {  ?item wdt:P186 ?material . }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Consultando la ontología (Propiedades, clases) [edit] Búsquedas para conocer cómo está organizado el conocimiento en Wikidata como ontología, taxonomía, red de conceptos o vocabulario-esquema. Jerarquía de clases sobre BOSQUE (broad context) [edit] Recorrido de las subclases (P279) a las que pertenece el concepto Bosque (Q4421): SELECT ?entity ?entityLabel (count(?mid) as ?depth) WHERE {
+  wd:Q4421 wdt:P279* ?mid.
+  ?mid wdt:P279* ?entity
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} group by ?entity ?entityLabel
+order by ?depth Jerarquía de clases hasta BOSQUE (narrow context) [edit] Recorrido de las subclases (P279) que pertenecen al concepto No ficción (Q213051): SELECT ?entity ?entityLabel (count(?mid) as ?depth) WHERE {
+  ?entity wdt:P279+ ?mid.
+  ?mid wdt:P279* wd:Q213051.
+  
+       SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+   }
+} group by ?entity ?entityLabel
+order by ?depth Versión con Graph Service [edit] Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) [edit] Recorrido de las subclases (P279) que pertenecen al concepto No ficción (Q213051): #defaultView:Graph
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?item ?itemLabel ?linkTo {
+  { SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q213051 ; # Non-Fiction
+                gas:traversalDirection \"Reverse\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 5 ;
+                gas:maxVisited 5 ;
+                gas:linkType wdt:P279 .
+  } } 
+  OPTIONAL { ?item wdt:P279 ?linkTo }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,en\" }
+} Árbol de clases para BOSQUE (Traversal direction = Forward) [edit] Recorrido de las subclases (P279) en las que se enmarca el concepto No ficción (Q213051): #defaultView:Graph
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?item ?itemLabel ?linkTo {
+  { SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q213051 ; # Non-Fiction
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 5 ;
+                gas:maxVisited 5 ;
+                gas:linkType wdt:P279 .
+  } } 
+  OPTIONAL { ?item wdt:P279 ?linkTo }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,en\" }
+} Grafo de vecindad de conceptos de la Pandamia COVID-19 [edit] Plantilla de visualización en grafo. # Neighbourhood graph of the covid core items
+#PREFIX target: <http://www.wikidata.org/entity/Q84263196> # COVID-19 disease
+#PREFIX target: <http://www.wikidata.org/entity/Q82069695> # SARS-CoV-2
+PREFIX target: <http://www.wikidata.org/entity/Q81068910> # COVID-19 Pandemia 2019-2020
+#defaultView:Graph
+SELECT ?node ?nodeLabel ?childNode ?childNodeLabel ?rgb WHERE {
+  {
+    BIND(target: AS ?node)
+    ?node ?p ?i.
+    ?childNode ?x ?p.
+    ?childNode rdf:type wikibase:Property.
+    FILTER(STRSTARTS(STR(?i), \"http://www.wikidata.org/entity/Q\"))
+    FILTER(STRSTARTS(STR(?childNode), \"http://www.wikidata.org/entity/P\"))
+   
+  }
+  UNION
+  {
+    BIND(\"EFFBD8\" AS ?rgb)
+    target: ?p ?childNode.
+    ?node ?x ?p.
+    ?node rdf:type wikibase:Property.
+    FILTER(STRSTARTS(STR(?childNode), \"http://www.wikidata.org/entity/Q\"))
+  }
+
+ MINUS { ?node wdt:P31/wdt:P279* wd:Q51118821} #Exclusión items internos de proyectos Wikimedia
+  MINUS { ?childNode wdt:P31/wdt:P279* wd:Q51118821} #Exclusión relaciones internas de proyectos Wikimedia
+  MINUS { ?childNode wdt:P31/wdt:P279* wd:Q15138389} #Exclusión relaciones internas de artículos Wikimedia
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Encontrar el camino desde una subclase a su superclase (target) con GAS Service [edit] # Encontrar la distancia más corta entre dos nodos, a través de la propiedad P279 (También puede usarse con ?linkType para cualquier relación
+# Elemento destino \"Obra literaria\" Q7725634
+# Uso del servicio GAS
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?depth ?predecessor ?predecessorLabel ?out ?outLabel {
+  SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q2831984 . # one or more times, specifies the initial frontier.
+     gas:program gas:target wd:Q7725634 . # only retain vertices along paths to these target vertices.
+     gas:program gas:out ?out . # exactly once - will be bound to the visited vertices.
+     gas:program gas:out1 ?depth . # exactly once - will be bound to the depth of the visited vertices.
+     gas:program gas:out2 ?predecessor . # exactly once - will be bound to the predecessor.
+     gas:program gas:maxIterations 16 . # optional limit on breadth first expansion.
+     gas:program gas:maxVisited 2000 . # optional limit on the #of visited vertices.
+  }
+  ?predecessor wdt:P279 ?out . # figure out what link type(s) connect a vertex with a predecessor
+  FILTER(STRSTARTS(STR(?predecessor), \"http://www.wikidata.org/entity/Q\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+order by desc(?depth)
+limit 100
+ Try it! Otras búsquedas SPARQL [edit] Personas nacidas en el País Vasco [edit] Búsqueda recursiva por pertenencia a entidad territorial administrativa P131. SELECT ?persona ?personaLabel ?lugar
+WHERE {
+?persona wdt:P19 ?lugar . # lugar de nacimiento
+?lugar wdt:P131* wd:Q3995 # situado en la entidad territorial administrativa (recursiva) País Vasco
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Primeras líneas de obras en español [edit] SELECT ?item ?itemLabel ?inicio ?autorLabel
+WHERE 
+{
+  ?item wdt:P407 wd:Q1321 . #idioma español
+  ?item wdt:P50 ?autor . # autor
+  ?item wdt:P1922 ?inicio .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Capitales de todos los países de la UE [edit] SELECT ?country ?countryLabel ?capitalLabel ?population 
+WHERE 
+{
+  ?country wdt:P463 wd:Q458.
+  ?country wdt:P36 ?capital.
+  ?capital wdt:P1082 ?population.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"   [AUTO_LANGUAGE],en\". }
+} Cuadrícula con foto de los premios nobel de física [edit] #defaultView:ImageGrid
+SELECT ?person ?personLabel ?image
+WHERE 
+{
+  ?person wdt:P18 ?image;
+          wdt:P166 wd:Q38104.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Mapa de países que usan el teléfono 112 de emergencias [edit] #defaultView:Map
+SELECT ?country ?countryLabel ?location
+WHERE {
+ ?country wdt:P2852 wd:Q1061257;
+           wdt:P625 ?location.
+  
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}  Campos de actividad de Alan Turing [edit] SELECT ?campo ?campoLabel {
+wd:Q7251 wdt:P101 ?campo
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Personas muertas [edit] SELECT ?entity (year(?date) as ?year) WHERE {
+?entity wdt:P570 ?date .
+FILTER (datatype(?date) = xsd:dateTime)
+FILTER (year(?date) = year(now()))
+}
+ LIMIT 100 Personas fallecidas en 1937 [edit] SELECT ?autor ?autorLabel (year(?date) as ?year) WHERE {
+  ?autor wdt:P570 ?date .
+  ?autor wdt:P27 wd:Q29 .
+  FILTER (datatype(?date) = xsd:dateTime)
+  FILTER (year(?date) = 1937)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Autores españoles que entran en el dominio público este año [edit] SELECT ?autor ?autorLabel (year(?date) as ?year) WHERE {
+  ?autor wdt:P570 ?date .
+  ?autor wdt:P27 wd:Q29 .
+  ?autor wdt:P106 ?ocupacion .
+  ?ocupacion wdt:P279* wd:Q36180 .
+         FILTER (datatype(?date) = xsd:dateTime)
+         FILTER (year(?date) = 1937)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Creadores españoles que entran en el dominio público [edit] SELECT ?autor ?autorLabel ?ocupacionLabel (year(?date) as ?year) WHERE {
+  ?autor wdt:P570 ?date .
+  ?autor wdt:P27 wd:Q29 .
+  ?autor wdt:P106 ?ocupacion .
+  ?ocupacion wdt:P279* wd:Q482980 .
+         FILTER (datatype(?date) = xsd:dateTime)
+         FILTER (year(?date) = 1937)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Directores de películas inspiradas en Hamlet [edit] SELECT ?obra ?obraLabel ?directorLabel ?generoLabel ?year 
+WHERE {
+?obra wdt:P144 wd:Q41567 .
+  ?obra wdt:P577 ?year .
+  ?obra wdt:P57 ?director .
+  OPTIONAL {?obra wdt:P136 ?genero }
+         SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Personajes de obras literarias asesinados y su asesino [edit] select ?personaje ?personajeLabel ?asesinoLabel Where {
+?personaje wdt:P31 wd:Q3658341 .
+  ?personaje wdt:P1441 wd:Q8337 .
+  ?personaje wdt:P157 ?asesino
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Año de creación de La libertad guiando al pueblo [edit] SELECT (year(?DateCrea) as ?AnneeCrea) WHERE {
+wd:Q29530 wdt:P571 ?DateCrea 
+} Cuadros pintados el mismo año que La Libertad guiando al pueblo [edit] SELECT ?cuadroLabel ?autorLabel (year(?DateCrea) as ?AnneeCrea)
+WHERE {
+  wd:Q29530 wdt:P571 ?DateCrea .
+  ?cuadro wdt:P571 ?DateCrea .
+  ?cuadro wdt:P31 wd:Q3305213 .
+  ?cuadro wdt:P170 ?autor .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Cuadros que representan caballos en el barroco [edit] SELECT ?cuadro ?cuadroLabel ?autorLabel (year(?DateCrea) as ?AnneeCrea)
+WHERE {
+  ?cuadro wdt:P31 wd:Q3305213 .
+       ?cuadro wdt:P571 ?DateCrea .
+       ?cuadro wdt:P180 wd:Q726 .
+?cuadro wdt:P135 wd:Q37853 .
+       ?cuadro wdt:P170 ?autor 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} Personas relevantes nacidas en Londres [edit] SELECT (COUNT(DISTINCT ?item) AS ?total)
+WHERE {
+  ?item wdt:P19 wd:Q84
+      } Obras de Vermeer por año de creación [edit] SELECT ?obra ?obraLabel (year(?DateCrea) as ?AnneeCrea)
+WHERE {
+  ?obra wdt:P170 wd:Q41264 ;
+                  wdt:P571 ?DateCrea.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"  }
+} ORDER BY ?AnneeCrea Gráfico de área de libros por año de publicación y genero en narrativa, desde el año 2000 [edit] Incluye datos de cualificadores """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tsaorin/TallerUSAL2020>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

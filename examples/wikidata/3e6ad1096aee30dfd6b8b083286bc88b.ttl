@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3e6ad1096aee30dfd6b8b083286bc88b> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 Interface WDQS Bulles d'aide sur les éléments SPARQL Sélection de l'affichage des résultats WDQS Lien pour afficher le script WDQS à partir de la page des résultats suite à Essayez ! Cette page décrit l'interface WDQS et vous aidera à comprendre les différentes possibilités pour afficher les résultats du Service de requête SPARQL. La page d'exemples de requêtes contient de nombreux exemples que vous pouvez essayer.Ouvrir l'interface WDQS puis : sélectionner votre langue dans sur la barre d'outils supérieure. écrire du code SPARQL valide dans le champ textuel. vérifiez votre code en survolant les éléments avec la souris; les bulles d'aide apparaitront pour vous aider à confirmer vos sélections. La langue sera celle que vous aurez sélectionnée pour l'interface (repli sur l'anglais). puis cliquer sur le bouton bleu Exécuter la requête de la barre latérale pour lancer la requête. Le bouton carré rouge est allumé dans la barre latérale pendant l'exécution de la commande qui peut ainsi être stoppée. après avoir exécuté une requête, vous pouvez choisir parmi les différents formats d'affichage du résultat. En fonction de votre requête et du type de données, plusieurs vues différentes peuvent ne pas être possibles. Exemple de source # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note : vous pouvez aussi utiliser les liens Essayer de cette page qui exécutent directement des requêtes codées en dur. Quand le panneau d'affichage des résultats est élaboré ou après que les résultats soient générés, vous pouvez toujours revenir au script du source en cliquant sur le lien en bas de l'interface. Contents 1 Tableau (par défaut) 2 Grille d'images 2.1 Options 3 Carte 3.1 Options 4 Graphiques en lignes, barres, points et aires 5 Graphique à bulles 6 Graphe d'arborescence 7 Arbre 8 Frise chronologique 8.1 Options 9 Dimensions 10 Graphe 11 Informations complémentaires 11.1 Affichage du type de données RDF 11.2 Formatage 11.3 Affichage sur mobile ou réactif 11.4 Mode intégration (embed) 11.5 Téléchargement des résultats 11.6 Affichage par défaut 11.7 Options d'affichage des résultats 11.8 Titre 11.9 Liste des balises WDQS 11.10 Langue automatique 11.11 Coordonnées automatiques Tableau (par défaut) Affiche le résultat sous forme de tableau. Il s'agit de la vue par défaut des résultats et fonctionne avec tous les types de données.Affichera toutes les variables du SPARQL SELECT dans une colonne de tableau formaté. Résultats sous forme de tableau Résultats sous forme de tableau pour les petits écrans avec les colonnes inversées  Grille d'images Grille d'images EssayerAffiche le résultat sous forme d'une grille d'images.Chaque élément de la grille a une grande image et ouvre la galerie lorsque l'on clique dessus.Contient un élément avec les données formatées en ligne. Variable Type de données Affichage Description * Fichier média de Commons Élément de la grille Les colonnes de l'image vont créer un élément de la grille Les lignes ne contenant pas d'image sont ignorées.Il est néanmoins possible d'inclure aucune ligne d'image dans le résultat en modifiant le script SPARQL pour inclure une image par défaut au cas où la variable d'image ne serait pas liée : """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/fr>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

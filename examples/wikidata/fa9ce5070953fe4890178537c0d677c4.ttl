@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fa9ce5070953fe4890178537c0d677c4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel 
+WHERE { VALUES ?label1 { rdfs:label skos:altLabel } ?val wdt:P31|wdt:P106 [ ?label1 'journalist'@en ]. 
+VALUES ?label2 { rdfs:label skos:altLabel } ?ent ?label2 \"Chicago\"@en. 
+VALUES ?labelB2 { rdfs:label skos:altLabel } ?wdProperty2 ?labelB2 \"place of birth\"@en; 
+wikibase:directClaim ?wdtProperty2. 
+?val ?wdtProperty2 ?ent . 
+OPTIONAL { ?val rdfs:label ?valLabel FILTER(lang(?valLabel) = \"en\") } 
+} LIMIT 10""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly 2 wbgetentities unstable as of yesterday (03 Nov) 3 Faster way to query sparql with labels 4 Query buildup 5 Lag of some server(s) (Nov 29) 6 SPARQL query for citizenships does not always return all citizenships Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly Tracked in Phabricator Task T267175 Hello, the following query should return all german streets, which have a Commons-sitelink, but no Commonscat-Property (P373): SELECT ?item ?commonscat ?sitelink  WHERE {
+  ?item wdt:P31 wd:Q79007. # Innerortsstraße
+  ?item wdt:P17 wd:Q183.   # Deutschland
+  ?sitelink schema:about ?item .
+  ?sitelink schema:isPartOf <https://commons.wikimedia.org/> .
+  OPTIONAL {?item wdt:P373 ?commonscat }  
+  FILTER (!bound(?commonscat))   # nur jene OHNE commonscat-Property (P373)
+}
+ Try it! The query currently returns sometimes 22/23, sometimes 30 entries, depening when and how often the query is executed, allthough the objects have not been changed inbetween. Although the objects actually have a commonscat-Property, so they should not be listed at all in the result set, i.e. the result set actually should be empty.For just one city (e.g. ?item wdt:P131 wd:Q61724. ) the query returns 2, 3 or 4 entries if the query is repeatedly executed.Could this be a caching problem? Why are entries with commonscat-properties listed, while they should be filtered out? A purge to some objects did not change anything Using Cache Busting ( SELECT ?item ?commonscat ?sitelink (MD5(CONCAT(STR(?item), STR(RAND()))) as ?random) WHERE { ) does not change anything. Replag currently shows no problems. Also see d:Wikidata:Project_chat#Query_shows_entries,_which_should_be_filter_out;_number_of_entries_in_result_set_changes_when_executed_repeatedlyThanks a lot! --M2k~dewiki (talk) 15:47, 2 November 2020 (UTC) wbgetentities unstable as of yesterday (03 Nov) I've been running batch jobs to build local datasets using the wbgetentities API for a while, after great advice to move away from SPARQL where possible.As of yesterday these API calls have become unstable. I'm adding retries into my code for now but sometimes it still fails after 3 retries with random wait between the retries, causing the whole job to crash.Is there any known reason for this instability? --Kdutia (talk) 10:46, 3 November 2020 (UTC) Do you have more details on the nature of the errors and when they happened? Thanks! (note that this question might be better answered in Wikidata:Contact_the_development_team as it does not relate directly to the query service nor search). DCausse (WMF) (talk) 10:50, 4 November 2020 (UTC) Hello @Kdutia:, thanks for reporting this issue. Is it still happening these days? Lea Lacroix (WMDE) (talk) 13:57, 9 November 2020 (UTC) Hi @DCausse (WMF): @Lea Lacroix (WMDE): I haven't run the batch process in a while but will be running it today or tomorrow, so will let you know. I was getting an HTTP 500 error before. Thanks! --Kdutia (talk) 11:05, 10 November 2020 (UTC) Faster way to query sparql with labels Hi, I need to run SPARQL at wikidata endpoint using query that has a few labels in it, label query is very slow and inefficient, such as this, to find journalist that are born in Chicago it takes about 29 seconds, I have many other query that also time out. Properties used: instance of (P31)   , occupation (P106)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

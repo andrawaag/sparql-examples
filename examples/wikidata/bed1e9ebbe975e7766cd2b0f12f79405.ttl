@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bed1e9ebbe975e7766cd2b0f12f79405> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?anak
+WHERE
+{
+  #  Bach \"punya anak\" anak
+  Bach anak ?anak.
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, Wikidata Query Service, adalah perkakas hebat yang dapat memberikan wawasan konten yang ada di Wikidata. Panduan ini akan mengajarkanmu cara menggunakannya. Lihat pula tutorial interaktif oleh Wikimedia Israel.Sebelum menulis kueri SPARQL Anda sendiri, periksa {{Item documentation}} atau templat kueri SPARQL generik lainnya dan lihat apakah kueri Anda sudah ada. Contents 1 Sebelum kita mulai 2 Dasar-dasar SPARQL 3 Kueri pertama kita 3.1 Pelengkap otomatis 4 Pola tripel lanjut 5 Instans and kelas 5.1 Jejak atribut 6 Penjelas 7 ORDER dan LIMIT 7.1 Latihan 7.1.1 Buku-buku Arthur Conan Doyle 7.1.2 Unsur-unsur Kimia 7.1.3 Sungai-sungai yang mengalir ke Mississippi 7.1.4 Sungai yang mengalir ke Mississippi II 8 OPTIONAL 9 Ekspresi, FILTER dan BIND 9.1 Tipe-tipe data 9.2 Operator-operator 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Pengelompokkan 10.1 Populasi kota 10.2 Material lukisan 10.3 Senjata berdasarkan pembuat 10.4 Penerbit berdasarkan banyaknya halaman 10.4.1 HAVING 10.5 Rangkuman fungsi agregat 10.6 Kutu wikibase:Label dan agregasi 11 VALUES 12 Label in multiple languages 13 Dan seterusnya... 14 Lihat pula Sebelum kita mulai Meskipun panduan ini tampak panjang dan menakutkan, tolong jangan terusir! Pelajari saja dasar-dasar SPARQL sembari jalan – bahkan jika kamu berhenti membaca setelah kueri pertama kita, kamu akan sudah cukup paham bagaimana merakit kueri-kueri yang menarik. Setiap bab dari tutorial ini akan memberdayakanmu untuk menulis kueri yang lebih canggih.Kalau kamu belum pernah mendengar Wikidata, SPARQL atau WDQS sebelumnya, berikut ini penjelasan singkat istilah-istilah tersebut: Wikidata adalah basisdata pengetahuan. Ia mengandung jutaan pernyataan, seperti “Ibukota Kanada adalah Ottawa”, atau “Mona Lisa dilukis dengan cat minyak pada kayu poplar”, atau “emas memiliki titik lebur 1,064.18 derajat Celsius”. SPARQL adalah bahasa untuk memformulasi pertanyaan (kueri) pada basisdata pengetahuan. Pada basisdata yang tepat, kueri SPARQL dapat menjawab pertanyaan-pertanyaan seperti “apakah tonalitas di musik yang paling populer?” atau “karakter apa yang paling banyak diperankan oleh para aktor?” atau “bagaimana distribusi golongan darah?” atau “karya penulis apa saja yang jadi domain publik tahun ini?”. WDQS, Wikidata Query Service, menyambung kedua hal tersebut: Kamu memasukkan kueri SPARQL, WDQS menjalankannya terhadap dataset Wikidata dan memberikan hasilnya kepadamu.  Dasar-dasar SPARQL Kueri SPARQL sederhana tampak seperti ini: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} Klausa SELECT mendaftarkan variabel yang kamu mau dapatkan (variabel diawali tanda tanya), dan klausa WHERE mengandung batasan-batasannya, umumnya dalam bentuk kumpulan tripel. Semua informasi di Wikidata (dan basisdata pengetahuan sejenisnya) disimpan dalam bentuk kumpulan tripel; tiap kali kamu menjalankan kueri, layanan kueri mencoba mengisikan variabel-variabel dengan nilai yang sesuai dengan tripel-tripel yang ada di basisdata pengetahuan, dan mengembalikan satu hasil untuk setiap kombinasi variabel-variabel yang ditemukan. Sebuah tripel dapat dibaca seperti layaknya kalimat (itulah sebabnya diakhiri tanda titik) yang terdiri dari \"subjek\", \"predikat\", dan \"objek\". SELECT ?buah
+WHERE
+{
+  ?buah berwarna kuning.
+  ?buah berasa asam.
+} Hasil dari kueri ini dapat mencakup, misalnya \"jeruk nipis\". Di Wikidata, kebanyakan atribut adalah atribut \"ber-\" sehingga kueri juga dapat dibaca: SELECT ?buah
+WHERE
+{
+  ?buah warna kuning.
+  ?buah warna asam.
+} yang dibaca sebagai “?buah ber warna ‘kuning’” (bukan “?buah adalah warna ‘kuning’” – ingatlah bahwa pasangan atribut seperti “orangtua”/“anak”!).Bagaimanapun, itu bukan contoh yang baik untuk WDQS. Rasa adalah hal yang subjektif sehingga Wikidata tidak memiliki atribut seperti itu. Lebih baik kita bayangkan tentang relasi orangtua/anak yang umumnya tidak rancu. Kueri pertama kita Andaikan kita ingin mendaftarkan semua anak dari komponis baroque Johann Sebastian Bach. Dengan menggunakan pseudo-elemen seperti kueri-kueri di atas, bagaimana kamu akan menuliskan kueri?Semoga kamu mendapatkan yang seperti berikut: SELECT ?anak
+WHERE
+{
+  #  anak \"punya orang tua\" Bach
+  ?anak orangtua Bach.
+  # (cat: semua yang muncul setelah tanda '#' adalah komentar yang diabaikan oleh WDQS.)
+} atau ini, SELECT ?anak
+WHERE
+{
+  # anak \"punya bapak\" Bach 
+  ?anak bapak Bach. 
+} atau ini, """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/id>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

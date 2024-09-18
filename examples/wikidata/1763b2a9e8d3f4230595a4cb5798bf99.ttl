@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1763b2a9e8d3f4230595a4cb5798bf99> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+SELECT ?country ?countryLabel (count(*) AS ?count)
+WHERE
+{
+	?city wdt:P31/wdt:P279* wd:Q515 . # find instances of subclasses of city
+	?city p:P6 ?statement .           # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .         # ... that has the value ?mayor
+	?mayor wdt:P21 wd:Q6581072 .      # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+	?city wdt:P17 ?country .          # Also find the country of the city
+ 	
+	# If available, get the \"ru\" label of the country, use \"en\" as fallback:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"ru,en\" .
+	}
+}
+GROUP BY ?country ?countryLabel
+ORDER BY DESC(?count)
+LIMIT 100""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-9507B9ADCF371964D395C7E2B3C2E804, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-0E661BD65C1E45026F8108661DCEE959,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-F7591182F098FFBF324D6F2625B8DEC9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-7EC5DD07E61FDAC30F3329526784B5F4,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-9CC918307D86EF42AFDE14F0C712FEB6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-F362AEB857DBEFD0CD1763CFD7AA73CA,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-13FC93DA676786DCC641C96A99137C03, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-E21BF1C3FBF4FB69A3AA18584A95DDB4,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-32D9B8EFCEB5673C72F426EB0E2F95AB, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112295-3415ADD9207B3F4D88BA2B56CDF3F729;
+  schema:target <https://query.wikidata.org/sparql/> .

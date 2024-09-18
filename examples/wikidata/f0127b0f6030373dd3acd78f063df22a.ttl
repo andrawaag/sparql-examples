@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f0127b0f6030373dd3acd78f063df22a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?monthLabel (?day_int as ?d) ?personLabel ?personDesc
+   (URI(CONCAT(\"https://tools.wmflabs.org/reasonator/?q=\", SUBSTR(STR(?rperson),32) )) as ?link) WHERE {
+{ SELECT ?month_int ?month ?day_int (SAMPLE(?person) AS ?rperson) WHERE {
+?month wdt:P31 wd:Q47018901; wdt:P1545 ?month_ordinal. # These lines generate a calendar from January 1 to December 31
+?day p:P361 [ps:P361 ?month; pq:P1545 ?day_ordinal ].
+ BIND(xsd:integer(?month_ordinal) AS ?month_int)
+ BIND(xsd:integer(?day_ordinal) AS ?day_int)
+OPTIONAL {
+# Define the people we're interested in
+{?person wdt:P69 wd:Q34433 } UNION {?person wdt:P69/wdt:P31 wd:Q2581649 } # educated at Oxford or an Oxford college
+?person wdt:P21 wd:Q6581072 ; # female
+   p:P569/psv:P569 ?date_node. # birth date
+?date_node wikibase:timePrecision \"11\"^^xsd:integer ; # birth date has specific day
+   wikibase:timeValue ?birthdate .        
+filter(DAY(?birthdate)=?day_int) filter (MONTH(?birthdate)=?month_int )
+}
+} GROUP BY ?month_int ?month ?day_int }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+?rperson rdfs:label ?personLabel. ?rperson schema:description ?personDesc. ?month rdfs:label ?monthLabel }
+} ORDER BY ?month_int ?day_int""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-2131ACD9312852EE3ACC466964AD78E2, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-B81D130BAFAF48451F057B22152A353E,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-5FD49F9FFBC11B64D9F1E5A7EF9507E3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-BBA4EB1403F3F2244F8CFF9FFD4CE3FC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-1E6F8C8AA495E3FD8D2B893D695B480D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-7CF091A50514FCB4A2A8EC52B148E39C,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-A3169209911248BB5B72542061F1680F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-330642F59A24155074C13DF5365AE69D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112418-FE0189E317C0F2430E62EBD70003185A;
+  schema:target <https://query.wikidata.org/sparql/> .

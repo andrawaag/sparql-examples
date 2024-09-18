@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0cadc14bfdbd63a0a004d49221387df8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?plato
+  ?platoLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?plato {
+    ?plato wdt:P361 wd:Q749847;
+  }
+} AS %plato
+WITH {
+  SELECT
+    ?plato
+    (COUNT(*) AS ?conteo)
+  {
+    INCLUDE %plato.
+    ?plato wdt:P18 ?imagen.
+  }
+  GROUP BY ?plato
+} AS %conteo
+{
+  INCLUDE %plato.
+  OPTIONAL{INCLUDE %conteo}.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?conteo)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113006-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113006-D040573F2EA0CC5F683EAE7107501EC8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec113006-5CC9B43F202DA419BCF4C29A93650CDD;
+  schema:target <https://query.wikidata.org/sparql/> .

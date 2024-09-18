@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9ab973659a58c5f3d7611e36534bc5e6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+?item
+?NAME
+(GROUP_CONCAT( DISTINCT ?ALTERNATIVNAMEN_; separator=\";\")    as ?ALTERNATIVNAMEN)
+(SAMPLE ( ?KURZBESCHREIBUNG_)                                as ?KURZBESCHREIBUNG)
+(GROUP_CONCAT( DISTINCT ?GEBURTSDATUM_; separator=\";\")       as ?GEBURTSDATUM)
+(GROUP_CONCAT( DISTINCT ?GEBURTSORT_; separator=\";\")         as ?GEBURTSORT)
+(GROUP_CONCAT( DISTINCT ?STERBEDATUM_; separator=\";\")        as ?STERBEDATUM)
+(GROUP_CONCAT( DISTINCT ?STERBEORT_; separator=\";\")          as ?STERBEORT)
+?article
+WITH { SELECT ?item ?article { ?article schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . ?item wdt:P31 wd:Q5 . } LIMIT 200 } AS %SUBQUERY
+{
+  INCLUDE %SUBQUERY .
+  OPTIONAL { ?item skos:altLabel ?ALTERNATIVNAMEN_ . FILTER(lang(?ALTERNATIVNAMEN_)=\"de\")  }.
+  OPTIONAL { ?item schema:description ?KURZBESCHREIBUNG_ . FILTER(lang(?KURZBESCHREIBUNG_)=\"de\") } . 
+  OPTIONAL { ?item wdt:P569 ?GEBURTSDATUM_ }	.
+  OPTIONAL { ?item wdt:P19 ?pob } .
+  OPTIONAL { ?item wdt:P570 ?STERBEDATUM_ } .
+  OPTIONAL { ?item wdt:P20 ?pod } .
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"de\" .
+                          ?item rdfs:label ?NAME .
+                          ?pob rdfs:label ?GEBURTSORT_ .
+                          ?pod rdfs:label ?STERBEORT_  }
+}
+GROUP BY ?item ?NAME ?article""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-3A4B9513A9FE6CD670E2884E79972241, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-7D9BCA0F422099509456756115EF7E84,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-96B76E7A4F404F8D57AC053516A3F22D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-75CE50015C409620C96B7AF46936110A,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-C2CBA618D5741E7C2A98F280ABA231F2, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-935AA57B6FDA95A3D00C25666D398A51,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-7931E1BFC4741A0EC60E19128A33E818, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112685-BCEFEF8285DD612FCF4EEBD02140CF7D;
+  schema:target <https://query.wikidata.org/sparql/> .

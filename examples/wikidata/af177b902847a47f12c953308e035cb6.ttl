@@ -1,0 +1,248 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-af177b902847a47f12c953308e035cb6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?born ?died
+{
+  ?item wdt:P570 ?died .
+  { ?item wdt:P19/wdt:P17 wd:Q213 } UNION { ?item wdt:P20/wdt:P17 wd:Q213 }
+  FILTER(  YEAR(?died) < 1500 ) .
+  OPTIONAL { ?item wdt:P569 ?born }
+  ?item (p:P569|p:P570)/pq:P31 wd:Q26961029
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Comparison between coverage of Global North content and African content 2 Constraint:Contemporary 3 Top 50 'recent' female visual artists with many sitelinks but no sitelink on nlwiki yet 4 Museums on Instagram 5 Website account on... 6 Coordinates in a range 7 Total number of featured articles 8 Count that groups subclasses of certain items 9 Non-Japanese people who have name in kana (P1814) 10 Properties mapped to the vCard ontology 11 People from specific territory and time 12 Repeated items 13 Metrical feet 14 Pantheon 2.0 Comparison between coverage of Global North content and African content Hello ... I'd like to run a query showing the comparison of coverage of villages and towns between a \"global north\" country and \"global south\" country. This would help us to show the information gaps that currently exist - specifically to Africa - and specifically English and French Wikipedia. I am open to suggestions, but which countries to choose? Nigeria is about half the population of the US. That might be a good comparison? Egypt, Ethiopia and Germany are all pretty similar population size. Is it possible to do this? Islahaddow (talk) 07:35, 19 August 2016 (UTC) There are 438 human settlements in Nigeria and 3180 in France (though that does include the overseas departements). These count all \"human settlement\" and subclasses thereof (city, town, village, etc). Of course, it may be that we have not yet imported all the places WP knows about in Nigeria - but that would be a problem in and of itself... Andrew Gray (talk) 22:25, 24 August 2016 (UTC) You could try the sample \"Airports 100km around Berlin\" and replace Q64 (25 results) with Q34647 . --- Jura 03:24, 25 August 2016 (UTC) @Islahaddow:: are these suitable, or would you like something else? (Just realised I forgot to ping you when first replying...) Andrew Gray (talk) 20:21, 25 August 2016 (UTC) The query is \"timed out\" for Russia. --Infovarius (talk) 13:00, 1 September 2016 (UTC) Constraint:Contemporary I'm trying to write a SPARQL query to find {{Constraint:Contemporary}} violations. How could I fix the following (half of a) query? query (example, student (P802)) assertion (false = constraint violation) SELECT ?item
+   WHERE {
+     {
+       ?item wdt:P802 ?item2;
+             p:P580/psv:P580 ?start1_node .
+       ?start1_node wikibase:timeValue ?start1;
+                    wikibase:timePrecision \"11\"^^xsd:integer .
+       {
+         ?item2 p:P582/psv:P582 ?end2_node .
+         ?end2_node wikibase:timeValue ?end2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?start1 > ?end2)
+       } UNION {
+         ?item2 p:P570/psv:P570 ?death2_node .
+         ?death2_node wikibase:timeValue ?death2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?start1 > ?death2)
+       } UNION {
+         ?item2 p:P576/psv:P576 ?dissolution2_node .
+         ?dissolution2_node wikibase:timeValue ?dissolution2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?start1 > ?dissolution2)
+       }
+     } UNION {
+       ?item wdt:P802 ?item2;
+             p:P569/psv:P569 ?birth1_node .
+       ?birth1_node wikibase:timeValue ?birth1;
+                    wikibase:timePrecision \"11\"^^xsd:integer .
+       {
+         ?item2 p:P582/psv:P582 ?end2_node .
+         ?end2_node wikibase:timeValue ?end2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?birth1 > ?end2)
+       } UNION {
+         ?item2 p:P570/psv:P570 ?death2_node .
+         ?death2_node wikibase:timeValue ?death2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?birth1 > ?death2)
+       } UNION {
+         ?item2 p:P576/psv:P576 ?dissolution2_node .
+         ?dissolution2_node wikibase:timeValue ?dissolution2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?birth1 > ?dissolution2)
+       }
+     } UNION {
+       ?item wdt:P802 ?item2;
+             p:P571/psv:P571 ?inception1_node .
+       ?inception1_node wikibase:timeValue ?inception1;
+                    wikibase:timePrecision \"11\"^^xsd:integer .
+       {
+         ?item2 p:P582/psv:P582 ?end2_node .
+         ?end2_node wikibase:timeValue ?end2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?inception1 > ?end2)
+       } UNION {
+         ?item2 p:P570/psv:P570 ?death2_node .
+         ?death2_node wikibase:timeValue ?death2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?inception1 > ?death2)
+       } UNION {
+         ?item2 p:P576/psv:P576 ?dissolution2_node .
+         ?dissolution2_node wikibase:timeValue ?dissolution2;
+                      wikibase:timePrecision \"11\"^^xsd:integer .
+         FILTER (?inception1 > ?dissolution2)
+       }
+     }
+   }
+ Try it! ( ( A.start time (P580) ≤ B.end time (P582) OR A.start time (P580) ≤ B.date of death (P570) OR A.start time (P580) ≤ B.dissolved, abolished or demolished date (P576) OR A.date of birth (P569) ≤ B.end time (P582) OR A.date of birth (P569) ≤ B.date of death (P570) OR A.date of birth (P569) ≤ B.dissolved, abolished or demolished date (P576) OR A.inception (P571) ≤ B.end time (P582) OR A.inception (P571) ≤ B.date of death (P570) OR A.inception (P571) ≤ B.dissolved, abolished or demolished date (P576) ) OR ( NOT DEFINED A.start time (P580) AND NOT DEFINED A.date of birth (P569) AND NOT DEFINED A.inception (P571) ) OR ( NOT DEFINED B.end time (P582) AND NOT DEFINED B.date of death (P570) AND NOT DEFINED B.dissolved, abolished or demolished date (P576) ) ) AND ( ( B.start time (P580) ≤ A.end time (P582) OR B.start time (P580) ≤ A.date of death (P570) OR B.start time (P580) ≤ A.dissolved, abolished or demolished date (P576) OR B.date of birth (P569) ≤ A.end time (P582) OR B.date of birth (P569) ≤ A.date of death (P570) OR B.date of birth (P569) ≤ A.dissolved, abolished or demolished date (P576) OR B.inception (P571) ≤ A.end time (P582) OR B.inception (P571) ≤ A.date of death (P570) OR B.inception (P571) ≤ A.dissolved, abolished or demolished date (P576) ) OR ( NOT DEFINED B.start time (P580) AND NOT DEFINED B.date of birth (P569) AND NOT DEFINED B.inception (P571) ) OR ( NOT DEFINED A.end time (P582) AND NOT DEFINED A.date of death (P570) AND NOT DEFINED A.dissolved, abolished or demolished date (P576) ) ) Thanks in advance for your comments, --abián 10:00, 8 August 2016 (UTC) I took the complex constraint from the sample property student (P802) and tried to optimize it. The result was that it took slightly longer (I think it was 802 ms instead 760ms). ;) Using the same optimization on P26 makes it run slightly faster. For properties linking two persons, I don't think anything from the above list beyond P569/P570 is that useful. There might be a few other not listed properties, but I don't think they are sufficiently frequent. The following query uses these:Properties: spouse (P26)   , date of birth (P569)   , date of death (P570)   SELECT DISTINCT ?item 
+{ 
+	{
+		SELECT ?item WHERE { 
+    	?item wdt:P26 ?item2
+        	  ; p:P569/psv:P569 [ wikibase:timeValue ?birth1 ; wikibase:timePrecision \"11\"^^xsd:integer ] . 
+    	?item2 p:P570/psv:P570 [ wikibase:timeValue ?death2 ; wikibase:timePrecision \"11\"^^xsd:integer ] . 
+    	FILTER (?birth1 > ?death2) } 
+	} 
+	UNION 
+	{ 
+  		SELECT ?item WHERE { 
+    	?item wdt:P26 ?item2
+          ; p:P570/psv:P570 [ wikibase:timeValue ?death1 ; wikibase:timePrecision \"11\"^^xsd:integer ] .
+    	?item2 p:P569/psv:P569 [ wikibase:timeValue ?birth2 ; wikibase:timePrecision \"11\"^^xsd:integer ] .
+		FILTER (?birth2 > ?death1) } 
+	}
+} Try it! Maybe it helps you get started. --- Jura 11:06, 8 August 2016 (UTC)What could help is to compare the dates before checking precision. SELECT ?item WHERE
+{ 
+    	?item wdt:P26 ?item2 .
+		?item wdt:P569 ?d1 .          
+		?item2 wdt:P570 ?d2 .          
+    	FILTER (?d1 > ?d2)
+        ?item p:P569/psv:P569 [ wikibase:timeValue ?birth1 ; wikibase:timePrecision \"11\"^^xsd:integer ] . 
+    	?item2 p:P570/psv:P570 [ wikibase:timeValue ?death2 ; wikibase:timePrecision \"11\"^^xsd:integer ] . 
+    	FILTER (?birth1 > ?death2)
+}
+ Try it! For this one, it didn't seem quicker. --- Jura 11:20, 8 August 2016 (UTC) I'm sorry, Jura, for not having written before. I was still finding a way of checking out the 6 properties so that we can use a general query for all kinds of statements. But it's time to give up. :-) I'll only add queries for person-person declarations as you suggested. I'm sure that things will keep improving over time until all checks are possible together. Thanks for your time! --abián 20:57, 30 August 2016 (UTC) Done, I finally got it! :D --abián 22:09, 2 September 2016 (UTC) Top 50 'recent' female visual artists with many sitelinks but no sitelink on nlwiki yet I have managed to create a query that lists female visual artists born after 1900, that have no sitelink to nlwiki. However, I'd like to have a 'top 50' selection from this list - only the 50 artists with most sitelinks to other Wikipedias (and therefore with the most urgency to get an article on nlwiki), preferably sorted by number of sitelinks. How to do that? Thanks in advance! Spinster 💬 12:48, 3 September 2016 (UTC) ORDER BY DESC(xsd:integer(STRAFTER(str(?item), \"Q\")))
+LIMIT 50
+ Try it! If you add the above, you will get the most recent ones. If you wait a couple of days till phab:T129046 goes live, you can select by number of sitelinks more easily. Phab:T144476 would allow to do the same by identifier. --- Jura 12:57, 3 September 2016 (UTC) You can see the query in this ListeriaBot list, more or less do what you want. --ValterVB (talk) 12:58, 3 September 2016 (UTC) Your query modified to have n° of sitelink, filtered for n° of sitelink > 4 and sort for n° of sitelink in desc. order . But we have a time out. I don't know if is possible some optimization. PREFIX schema: <http://schema.org/>
+SELECT ?item ?itemLabel ?professionLabel ?born (COUNT(distinct ?sitelink) as ?count)
+WHERE {
+  ?item wdt:P21 wd:Q6581072.
+  ?item wdt:P106 ?profession.
+  ?profession wdt:P279* wd:Q3391743.
+  ?item wdt:P569 ?born .
+  ?sitelink schema:about ?item .
+
+  FILTER (?born > \"1900-01-01T00:00:00Z\"^^xsd:dateTime) .
+  FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"nl\" }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,en,fr,de\". }
+  OPTIONAL {
+    ?wiki0 schema:about ?item.
+    ?wiki0 schema:isPartOf <https://nl.wikipedia.org/>.
+  }
+FILTER(!BOUND(?wiki0))
+}
+GROUP BY ?item ?itemLabel ?professionLabel ?born
+HAVING (?count > 4)
+ORDER BY DESC(?count)
+ Try it! --ValterVB (talk) 13:19, 3 September 2016 (UTC) Museums on Instagram Short & simple: Museums with an account on Instagram, please. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 14:31, 6 September 2016 (UTC) SELECT ?item WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q33506 .
+  ?item wdt:P2003 ?dummy0 .
+}
+ Try it! created by https://tools.wmflabs.org/wdq2sparql/ --Pasleim (talk) 14:48, 6 September 2016 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ @Pasleim: That was quick, thank you. I have modified it to show the name of the museum: SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q33506 .
+  ?item wdt:P2003 ?dummy0 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! What should I now add, to also show the name of the Instagram account? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 15:51, 6 September 2016 (UTC) Add ?dummy0 to select part. --Edgars2007 (talk) 16:00, 6 September 2016 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ @Edgars2007: Thank you. I renamed that, for clarity: SELECT ?item ?itemLabel ?instagram WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q33506 .
+  ?item wdt:P2003 ?instagram .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! I hope this stage-by-stage example is useful to others; I'd like to see more like it. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:15, 6 September 2016 (UTC)And now with coordinates: SELECT ?item ?itemLabel ?instagram ?coordinates WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q33506 .
+  ?item wdt:P2003 ?instagram .
+  ?item wdt:P625 ?coordinates .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! so we can see them on a map. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:23, 6 September 2016 (UTC) And now with #defaultView:Map, so we can really see them on a map. #defaultView:Map
+SELECT ?item ?itemLabel ?instagram ?coordinates WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q33506 .
+  ?item wdt:P2003 ?instagram .
+  ?item wdt:P625 ?coordinates .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! Come to think of it, here is the actual map. Enjoy ! Alphos (talk) 13:27, 7 September 2016 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘Thank you, everyone. I have written this up as a step-by-step tutorial, at Help:SPARQL/Building a query/Museums on Instagram. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:08, 7 September 2016 (UTC) Website account on... Could we please have a query that counts the number of users of each website listed in website account on (P553)? I would expect the results to look something like: YouTube (Q866) = 321 Foursquare Labs, Inc. (Q51709) = 231 Vimeo (Q156376) = 123 and so on. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 15:21, 13 September 2016 (UTC) Try this SELECT ?q ?qLabel (count(distinct ?a) as ?count) 
+WHERE { ?a wdt:P553 ?q.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+group by ?q ?qLabel
+order by desc(?count)
+ Try it! Xmlizer (talk) @Xmlizer: Very useful; thank you. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 22:21, 13 September 2016 (UTC) Coordinates in a range I'm trying to figure out how to write a query for \"all items with coordinates in a specific range\" in order to run some constraint reports. For example, I'd like to be able to find any items which are south of 60S and betwen 136-142 E, the boundaries of Adélie Land (Q184319); or all items within a specific grid square.At the moment, the examples for searching geographic points all work by distance (eg this or this), which is fine for \"things near X\" but not so much use for \"things in a defined bounding box\" - it requires you to calculate the exact distance in km rather than degrees, and only works in a circle around a given point. Any ideas? Andrew Gray (talk) 22:02, 13 September 2016 (UTC) SELECT ?place ?placeLabel ?lat ?lon WHERE {
+  ?place wdt:P30 wd:Q51;
+         p:P625/psv:P625 ?node.
+  ?node wikibase:geoLatitude ?lat .
+  ?node wikibase:geoLongitude ?lon .
+  FILTER(?lat < -60 && ?lon > 136 && ?lon < 142)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! --Pasleim (talk) 22:15, 13 September 2016 (UTC) This is awesome - thanks! Andrew Gray (talk) 22:21, 14 September 2016 (UTC) You may also be interested by this faster and more broader query SELECT ?place ?placeLabel ?location ?continent WHERE {
+  SERVICE wikibase:box {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:cornerSouthWest \"Point(136 -90)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:cornerNorthEast \"Point(142 -60)\"^^geo:wktLiteral .
+  }
+  OPTIONAL { ?place wdt:P30 ?continent }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Xmlizer (talk) 14:07, 15 September 2016 (UTC) Total number of featured articles No idea if this is possible, but I would really love a query for counting the total number of featured articles (as determined by the interwiki link badges) across all Wikipedias. Kaldari (talk) 23:50, 14 September 2016 (UTC) There are in total 25,982 featured articles SELECT * WHERE {
+	?article schema:about ?item .
+	?article  wikibase:badge wd:Q17437796 .
+}
+ Try it! --Pasleim (talk) 09:52, 15 September 2016 (UTC) And if you're interested only in Wikipedias SELECT * WHERE {
+	?article schema:about ?item .
+	?article  wikibase:badge wd:Q17437796 .
+	FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") .
+}
+ Try it! which surprisingly doesn't time out :) --Edgars2007 (talk) 10:14, 15 September 2016 (UTC) Thank you! For the curious, the number when limited to just Wikipedias is 24,660. Kaldari (talk) 21:45, 15 September 2016 (UTC) Count that groups subclasses of certain items I am trying to count all the items using the GTK toolkit. But the query lists e.g. PyGTK separately. How can I use the property binding of software library (P1372) to also count them as GTK? SELECT ?toolkit ?toolkitLabel ?count WHERE
+{
+  {
+    SELECT ?toolkit (count(?item) as ?count) WHERE {
+      ?item wdt:P1414 ?toolkit .
+    }
+    GROUP BY ?toolkit
+    }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?count)
+ Try it! --Tobias1984 (talk) 19:08, 4 September 2016 (UTC) use ?item wdt:P1414/wdt:P1372* ?toolkit . --Pasleim (talk) 19:16, 4 September 2016 (UTC) Thanks. Is it possible to not show the items that are counted in the top-most items? --Tobias1984 (talk) 19:29, 7 September 2016 (UTC) I seem to not understand your question, Tobias1984. Maybe if you explained a little more, I could find an answer for you. Matěj Suchánek (talk) 15:24, 18 September 2016 (UTC) @Matěj Suchánek: The query currently counts all the items in the branches, but shows all of the counts starting from the top-most tree item, if I understand correctly. Is it also possible to omit the items in the tree that are already counted farther up in the tree? So that the result only shows the most item of each tree with the count? Maybe if it is still not clear I can draw a sketch of what I am thinking about. --Tobias1984 (talk) 19:48, 19 September 2016 (UTC) If I understand you correctly, this could be improved by adding MINUS { ?toolkit wdt:P1372 [] } . (ie. the toolkit will always be independent of another one because it doesn't have binding of software library (P1372)) just after the chained expression. (If not, then sorry for wasting your time.) Matěj Suchánek (talk) 20:11, 19 September 2016 (UTC) Non-Japanese people who have name in kana (P1814) Hi,Could someone make a SPARQL request that list items that have name in kana (P1814) but have country of citizenship (P27) to a different value than Japan (Q17)?Thank you very much. --Thibaut120094 (talk) 14:48, 18 September 2016 (UTC) If you were used to using tools with WDQ, you can use this tool to quickly generate some simple queries like these: SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P1814 [];
+        wdt:P27 [] .
+  MINUS { ?item wdt:P27 wd:Q17 } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P27 wd:Q17 .
+  MINUS { ?item wdt:P1814 [] } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! Matěj Suchánek (talk) 14:58, 18 September 2016 (UTC) Thank you! --Thibaut120094 (talk) 15:02, 18 September 2016 (UTC) @Thibaut120094: You might want to look into Wikidata:井戸端#country_of_citizenship_.28P27.29_.3D_Japan_.28Q17.29_.3F as well. --- Jura 15:48, 18 September 2016 (UTC) Properties mapped to the vCard ontology Please can we have a query for properties with a equivalent property (P1628) or external superproperty (P2235) value beginning http://www.w3.org/2006/vcard/ns (e.g. http://www.w3.org/2006/vcard/ns#sound), showing the type (P1628 or P2235), full URL and the property label and number? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 21:25, 19 September 2016 (UTC) SELECT ?item ?itemLabel ?pred ?value {
+  VALUES ?pred { wdt:P1628 wdt:P2235 } .
+  ?item ?pred ?value .
+  FILTER( STRSTARTS( STR(?value), \"http://www.w3.org/2006/vcard/ns\" ) ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! Matěj Suchánek (talk) 11:42, 20 September 2016 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘ @Matěj Suchánek: That works, thank you. I tried adding ?predLabel: SELECT ?item ?itemLabel ?pred ?predLabel ?value {
+  VALUES ?pred { wdt:P1628 wdt:P2235 } .
+  ?item ?pred ?value .
+  FILTER( STRSTARTS( STR(?value), \"http://www.w3.org/2006/vcard/ns\" ) ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} but that doesn't display the labels of P1628 or P2235 as I expected. How may I do that? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:48, 20 September 2016 (UTC) That's because you're looking up labels of wdt:P1628/wdt:P2235 and not wd:P1628/wd:P2235. You need to acquire those nodes first like this: SELECT ?item ?itemLabel ?prop ?propLabel ?value {
+  VALUES ?pred { wdt:P1628 wdt:P2235 } .
+  ?item ?pred ?value .
+  ?prop wikibase:directClaim ?pred .
+  FILTER( STRSTARTS( STR(?value), \"http://www.w3.org/2006/vcard/ns\" ) ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! Matěj Suchánek (talk) 18:38, 20 September 2016 (UTC) People from specific territory and time I need a bit complicated query for people (P31:Q5), born (P569) after 600 AD and dead (P570) before 1500 AD, being born (P19) and died (P20) at places that are currently in Czech Republic or preceding countries (P17:Q213,Q42585,Q2162698) or directly in those countries (P19:Q42585,Q2162698 and P20:Q42585,Q2162698) or in combination (P19 place in P17:Q213,Q42585,Q2162698 and P20:Q42585,Q2162698 or P19:Q42585,Q2162698 and P20 place in P17:Q213,Q42585,Q2162698), and with born (P569) or dead (P570) date marked with P31:Q26961029.--Jklamo (talk) 10:25, 23 September 2016 (UTC) Not that much results but still: SELECT DISTINCT ?item ?itemLabel ?born ?died {
+  ?item (p:P569|p:P570)/pq:P31 wd:Q26961029; wdt:P569 ?born; wdt:P570 ?died .
+  FILTER( YEAR(?born) > 600 && YEAR(?died) < 1500 ) .
+  VALUES ?Czechia { wd:Q213 wd:Q2162698 wd:Q42585 } .
+  ?item wdt:P19/wdt:P131* ?Czechia;
+        wdt:P20/wdt:P131* ?Czechia .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
+}
+ Try it! Matěj Suchánek (talk) 12:23, 23 September 2016 (UTC) This should get added to Status next updates. --Edgars2007 (talk) 08:22, 24 September 2016 (UTC) Thanks for query. I was also expecting much more results.--Jklamo (talk) 10:34, 24 September 2016 (UTC) Items used: Czech Republic (Q213)   , statement with Gregorian date earlier than 1584 (Q26961029)   Properties used: date of death (P570)   , place of birth (P19)   , country (P17)   , place of death (P20)   , date of birth (P569)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126998-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

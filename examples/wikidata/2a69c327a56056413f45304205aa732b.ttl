@@ -1,0 +1,326 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2a69c327a56056413f45304205aa732b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?y ?exit ?new
+WITH
+{
+  SELECT DISTINCT ?y WHERE
+  {
+    ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
+    BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+  }
+} as %a
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
+  {                     
+    ?item2 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item2 wdt:P576 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
+  }
+  GROUP BY ?y
+} as %b
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
+  {                     
+    ?item0 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item0 wdt:P571 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
+  }
+  GROUP BY ?y
+} as %c
+WHERE
+{
+  INCLUDE %a
+  OPTIONAL { INCLUDE %b }
+  OPTIONAL { INCLUDE %c }
+}
+ORDER BY ?y""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Indigenous (Canadian) humans in a given Wikipedia 2 References containing only P813 3 A list of all items with Label Kobbholmen 4 A map showing all locations of Kobbholmen 5 Scribe help: query noun genders (P5185), but not for given names (Q202444) 6 Get qualifiers of statement with preferred rank 7 Two family name 8 English descriptions starting with \"a\" 9 Usage of an item in qualifiers 10 Items/properties with emoji 11 Limiting results based on number of items 12 cites of the world. 13 Countries of Europe (1900 to present) 14 Accelerate query 15 Items with either of two property statements 16 Interplanetary space missions and their destinations 17 Political party of office holders while they held office 18 Query of political candidates 19 Images on Commons that are referenced in the \"image\" property, but not depicted in structured data 20 find items in a Wikipedia (sub-)category 21 Katakana lexemes that are derived from a word that also exists in my language 22 Biographies by century 23 Retrieve article links from wikidata query service 24 Average lifespan by birth year 25 How to obtain infoxbox from articles 26 All chemists and physicists that are linked to Marie Curie. 27 Other prices of Heinz Maier-Leibnitz-Price winner 28 Oldest Schools in Germany that aren't universitys 29 Example query is lacking subclass traversal 30 Query for Items with a Wikipedia Article in a Certain Language 31 Get actual article name for list of most popular Italian works 32 Need help for query optimization 33 Species described in 2021 with article in the German Wikipedia 34 Scholars with academic discipline specified using of (P642) 35 I need to collect items with first capital letter in description in X language 36 Family tree of the ancestors of Michael Jackson (Q2831) Indigenous (Canadian) humans in a given Wikipedia Hi again - how to count how many biographies (articles about humans) there are in a given Wikipedia (ex. English) about indigenous (aboriginal \"Indians\") who are also Canadian citizens? I am not sure if there is a general \"Indigenous\" element that we could use? Additionaly, I'd like to count the total number of articles about humans in a given Wikipedia. Thanks in advance! Seeris (talk) @Seeris: I have no idea how to know who is indigenous (or even how that is defined). You can count the number of articles about humans in a Wikipedia with this query: SELECT (COUNT(?article) AS ?biographies)
+WHERE
+{
+  ?item wdt:P31 wd:Q5 .
+  ?article schema:about ?item .
+  ?article schema:isPartOf <https://hi.wikipedia.org/> .
+}
+ Try it! It may timeout for the biggest Wikipedias. --Dipsacus fullonum (talk) 18:34, 1 January 2022 (UTC) @Dipsacus fullonum: Thanks! Is there a way to work around timing out in en.wikipedia? No way to know how many bios there are in this Wikipedia? Seeris (talk) @Seeris: There are 8984351 items with a sitelink to enwiki and 9550314 items for humans. I know no query that can count the intersection without timeout, but you can make several queries each counting some of the articles about humans and later sum the results. SELECT (COUNT(?article) AS ?biographies)
+WHERE
+{
+  SERVICE bd:slice
+  {
+    ?article schema:isPartOf <https://en.wikipedia.org/> .
+    bd:serviceParam bd:slice.offset 0 .
+    bd:serviceParam bd:slice.limit 1000000 .
+  }
+  ?article schema:about ?item .
+  ?item wdt:P31 wd:Q5 .
+}
+ Try it! This query will get the first million sitelinks to enwiki (for some unspecified ordering) and count the number of articles about humans among them. If you run the query 9 times and each time increase the bd:slice.offset value by 1000000, you will have counted all. I got 207622 + 207988 + 210311 + 208791 + 221755 + 211080 + 203967 + 202760 + 191207 = 1865481 articles when I did this. --Dipsacus fullonum (talk) 22:45, 2 January 2022 (UTC) @Dipsacus fullonum: wow thank you so much!! :) References containing only P813 Hi! Given a group of items (let's say, e.g., items containing the identifier Angelicum ID (P5731)), which is the best way to obtain of all the items in this group which have at least one statement having a reference containing only retrieved (P813) and no other properties? Thanks, --Epìdosis 16:49, 1 January 2022 (UTC) @Epìdosis: could you clarify your specification, pls. If \"one statement having a reference containing only retrieved (P813) and no other properties\" (which I take to be, no other statements) then we're looking for an item that has 1 or 2 statements total (i.e. a Angelicum ID (P5731) with a retrieved (P813) ref, or a P5731 and one other statements with a P813 ref) ... but for P5731 items, the smallest statement count is 4 and so we'd get zero results. Sorry to be pedantic and/or sorry that I've not understood. --Tagishsimon (talk) 17:27, 1 January 2022 (UTC) @Epìdosis: This query if I understood request correctly: SELECT ?item ?Angelicum_ID ?prop ?statement ?reference ?retrieved
+WHERE
+{
+  ?item wdt:P5731 ?Angelicum_ID .
+  ?item ?prop ?statement .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference pr:P813 ?retrieved .
+  ?reference ?refprop ?refvalue .
+}
+GROUP BY ?item ?Angelicum_ID ?prop ?statement ?reference ?retrieved
+HAVING (COUNT(?refprop) = 2) # Having count = 2 because there will minimum also be a prv:P813 value
+ Try it! --Dipsacus fullonum (talk) 17:36, 1 January 2022 (UTC) @Dipsacus fullonum: Yes, you understood correctly! Thanks also to @Tagishsimon:, of course; I meant items where there are references which contain in themselves only P813, so wrong in most cases and to be corrected. --Epìdosis 17:54, 1 January 2022 (UTC) (ec) maybe this: Items used: Donald W. Dayton (Q107331778)   Properties used: Angelicum ID (P5731)   , retrieved (P813)   SELECT ?item ?id ?property ?statement ?retrieved
+WHERE
+{
+  # VALUES ?item { wd:Q107331778 }
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P5731 ?id .
+  ?item ?property ?statement . 
+  ?property  ^ wikibase:claim [] .
+  ?statement prov:wasDerivedFrom ?b .
+  ?b pr:P813 ?retrieved . 
+  FILTER NOT EXISTS { ?b ?other [] . FILTER( ?other != pr:P813 && ?other != prv:P813 ) }
+}
+LIMIT 100 Try it!It should find P735 on Donald W. Dayton (Q107331778). Happy New Year! --- Jura 17:38, 1 January 2022 (UTC) @Jura1: Yes, it works perfectly! Happy 2022, --Epìdosis 17:54, 1 January 2022 (UTC) A list of all items with Label Kobbholmen May I have a list of all abt. 30 items having the Label Kobbholmen and all properties contained? Pmt (talk) 21:09, 2 January 2022 (UTC) @Pmt: No items have the label Kobbholmen. All labels have a string and a language. So this query will list entities that have the English label Kobbholmen and their properties. SELECT DISTINCT ?entity ?entityLabel ?entityDescription ?prop ?propLabel
+WHERE
+{
+  ?entity rdfs:label \"Kobbholmen\"@en .
+  ?entity ?claim ?statement .
+  ?prop wikibase:claim ?claim .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 21:49, 2 January 2022 (UTC) Thank you!, my wrong use of names and descriptions. But exactly what I needed. Pmt (talk) 22:01, 2 January 2022 (UTC) A map showing all locations of Kobbholmen Is it possible to have a map showing all locations of all labels having the string Kobbholmen. As per the query above? Pmt (talk) 23:25, 2 January 2022 (UTC) @Pmt: As per the query above, I again elected to use the label Kobbholmen in English as you again did not specify a language for the label. #defaultView:Map
+SELECT DISTINCT ?entity ?entityLabel ?entityDescription ?coord
+WHERE
+{
+  ?entity rdfs:label \"Buholmen\"@en .
+  ?entity wdt:P625 ?coord .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 00:24, 3 January 2022 (UTC) Scribe help: query noun genders (P5185), but not for given names (Q202444) Hi everyone :)I'm currently working on an issue I found for Scribe yesterday. I'm realizing that there is the potential that the keyboard would inadvertently misgender someone given many lexemes that are given names (Q202444) also have a grammatical gender (P5185). The goal for the issue is to change the noun queries so that given names do not have their gender. The current query for all German nouns and pronouns that gets plurals and genders is: SELECT DISTINCT ?singular ?plural ?gender WHERE {
+
+  # Nouns and pronouns.
+  VALUES ?nounTypes { wd:Q1084 wd:Q147276 }
+  ?lexeme a ontolex:LexicalEntry ;
+            dct:language wd:Q188 ;
+            wikibase:lexicalCategory ?noun .
+  FILTER(?noun = ?nounTypes)
+
+  # Optional selection of nominative singular forms.
+  OPTIONAL {
+    ?lexeme ontolex:lexicalForm ?singularForm .
+    ?singularForm ontolex:representation ?singular ;
+                  wikibase:grammaticalFeature wd:Q110786 ;
+                  wikibase:grammaticalFeature wd:Q131105 ;
+  } .
+
+  # Optional selection of nominative plural forms.
+  OPTIONAL {
+    ?lexeme ontolex:lexicalForm ?pluralForm .
+    ?pluralForm ontolex:representation ?plural ;
+                wikibase:grammaticalFeature wd:Q146786 ;
+                wikibase:grammaticalFeature wd:Q131105 ;
+  } .
+
+  # Optional selection of genders.
+  OPTIONAL {
+    ?lexeme wdt:P5185 ?nounGender .
+  } .
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\".
+    ?nounGender rdfs:label ?gender .
+  }
+}
+ Try it! Would someone be able to help me figure out how to not select genders if the lexeme also has Q202444 attached to it via P31? This would be the optimal fix, but if no solution can be found before the next release I can also add an output of if it has Q202444, then fix this issue on the Python formatting end.All the best! If I understand the question correctly, you can add a filter to the optional selection of gender:   # Optional selection of genders.
+  OPTIONAL {
+    ?lexeme wdt:P5185 ?nounGender .
+    FILTER NOT EXISTS { ?lexeme wdt:P31 wd:Q202444 . }
+  }
+ --Dipsacus fullonum (talk) 11:13, 5 January 2022 (UTC) That did the trick! I'll update all the noun scripts now. Thanks so much! AndrewTavis (talk) 11:23, 5 January 2022 (UTC) @Dipsacus fullonum, I gave you a credit in the issue as well :) AndrewTavis (talk) 11:27, 5 January 2022 (UTC) Get qualifiers of statement with preferred rank I'm trying to do some quality assurance on the population (P1082) statistics for a set of jurisdictions. I'd like to find cases where the statement with the preferred rank (whatever would be returned with a normal query) is either outdated or missing a reference... or where the population (P1082) is missing entirely.My understanding is that to get statement qualifiers, I need to refer directly to the statement node, but doing so seems to bypass the mechanism for returning only the preferred statement, instead returning all of them. I can access the rank itself, but how do I filter down to just the statement with the highest rank? I don't care about 19th century population figures; I just want the latest/preferred ones.My working draft query is below. SELECT ?jurisdiction ?jurisdictionLabel ?population ( year(?PiT) as ?year ) ?rank ?refURL
+WHERE {
+	VALUES ?jurisdiction { wd:Q1904 wd:Q8686 wd:Q42651 wd:Q172 wd:Q5826 wd:Q514796 }
+	OPTIONAL { 
+      ?jurisdiction p:P1082 ?statementNode .
+      ?statementNode ps:P1082 ?population .
+      ?statementNode wikibase:rank ?rank .
+      OPTIONAL {
+        ?statementNode pq:P585 ?PiT .
+      }
+      OPTIONAL {
+        ?statementNode prov:wasDerivedFrom ?referenceNode .
+        ?referenceNode pr:P854 ?refURL .
+      }
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?jurisdiction ?rank ?year
+ Try it! The list in the VALUES statement here is just an example for testing. Any help would be greatly appreciated! Nate Wessel (talk) 21:00, 6 January 2022 (UTC) See Help:Ranking#How_to_query_and_filter_among_ranks --- Jura 21:11, 6 January 2022 (UTC) That's exactly what I needed. ?statementNode a wikibase:BestRank did the trick. Thanks for the quick reply! Nate Wessel (talk) 21:32, 6 January 2022 (UTC) Thanks for beta testing the recently added documentation (Wikidata:Request_a_query/Archive/2021/12#How_to_query_and_filter_among_ranks). --- Jura 22:37, 6 January 2022 (UTC) Two family name Happy new year everyone !For this new year, I want to find if my wife's feeling about double family name is wright or wrong (she said that the mother family name always come first). For that, I need to find the humans with two family name and associate these with the father and the mother in the order given in the label. As an example, Rosalie Taillefer-Simard (Q109447298) -> Taillefer -> mother (P25) and -> Simard -> father (P22). For this, I think I need to use a REGEX in the label like rdfs:label ?label . filter (regex(str(?label), \".*? (.*?)\\-(.*?)\")), but I don't know who to reuse/link the first (.*?) to mother (P25) and the second to father (P22). Simon Villeneuve (talk) 14:01, 1 January 2022 (UTC) I wouldn't try to analyze labels. You cannot really know what they contain, and text processing and regexs are slow in SPARQL. So I would instead look for family name (P734) and the qualifier series ordinal (P1545). --Dipsacus fullonum (talk) 18:14, 1 January 2022 (UTC) This query narrowly avoids timing out and currently returns 132 people with a label containing [mother's family name][hyphen][father's family name]. Inverting the order and re-running the query gives 113 people with the father's name first. SELECT ?person ?personLabel ?mother_family_nameLabel ?father_family_nameLabel
+
+WITH {
+  SELECT ?person ?mother_family_name ?father_family_name WHERE {
+  ?person wdt:P25 [wdt:P734 ?mother_family_name] ;
+          wdt:P22 [wdt:P734 ?father_family_name] .
+  FILTER(?mother_family_name != ?father_family_name)
+}
+} AS %results1 
+
+WITH {
+  SELECT ?person ?personLabel ?mother_family_nameLabel ?father_family_name WHERE {
+  INCLUDE %results1.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
+    ?person rdfs:label ?personLabel .
+    ?mother_family_name rdfs:label ?mother_family_nameLabel .
+  }
+  FILTER(CONTAINS(?personLabel, CONCAT(?mother_family_nameLabel, \"-\")))
+}
+} AS %results2 
+
+WHERE {
+  INCLUDE %results2.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . 
+    ?father_family_name rdfs:label ?father_family_nameLabel .
+  }
+  FILTER(CONTAINS(?personLabel, CONCAT(\"-\", ?father_family_nameLabel)))
+} ORDER BY ASC(?mother_family_nameLabel) ASC(?father_family_nameLabel) ASC(?personLabel)
+ Try it! Some double family names are written without a hyphen, but these are difficult to differentiate from the common practice (in English names at least) of a mother's maiden name being given as a middle name. It was easiest to focus only on hyphenated names to avoid false positives. Several may still appear though, on the rare occasion where a woman marries a man with the same family name as her mother's maiden name, making it impossible to discern from the label alone whether she had a hyphenated name from birth or as a result of marriage. I hope that this helps answer your question. --Quesotiotyo (talk) 00:57, 2 January 2022 (UTC) You bet it help ! Thank you so much. I'll digest that and probably publish something about this in our French Signpost. Simon Villeneuve (talk) 12:26, 2 January 2022 (UTC) @Quesotiotyo: : Here's the publication. Thank you again ! Simon Villeneuve (talk) 23:14, 7 January 2022 (UTC) Interesting question, but I doubt Wikidata can answer this. --- Jura 23:50, 3 January 2022 (UTC) English descriptions starting with \"a\" Hi there,Could someone please convert this SQL query to SPARQL? The original database table used (wb_terms) is no longer existing. Thanks! EpicPupper (talk) 22:53, 6 January 2022 (UTC) It cannot be converted to a SPARQL query that can run in WDQS without timeout as that type of text searches are ineffective in SPARQL. I suggest you instead rewrite the SQL to use the current database or use some other tool or even a database dump. --Dipsacus fullonum (talk) 00:22, 7 January 2022 (UTC) Correct, no way SPARQL can do this. Here is documentation how to query the new database schema with SQL. —MisterSynergy (talk) 00:34, 7 January 2022 (UTC) Thanks for the docs link! EpicPupper (talk) 23:01, 7 January 2022 (UTC) Something more limited can work in sparql: SELECT DISTINCT ?item ?itemLabel ?d 
+{
+  ?item wdt:P17 wd:Q16 ; schema:description ?d .
+  FILTER( lang(?d) = \"en\" && strstarts(?d, \"a \") )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 100
+ Try it!--- Jura 00:33, 7 January 2022 (UTC)Thanks! EpicPupper (talk) 23:01, 7 January 2022 (UTC) Here's an updated SQL query: use wikidatawiki_p;
+SELECT 
+  wbt_item_terms.wbit_item_id AS item, 
+  CAST(wbt_text_in_lang.wbxl_language AS CHAR(1000) CHARACTER SET utf8) AS tr,
+  CAST(wbt_text.wbx_text AS CHAR(1000) CHARACTER SET utf8) AS current_desc,
+  LENGTH(wbt_text.wbx_text) AS strl
+FROM wbt_item_terms 
+JOIN wbt_term_in_lang ON wbt_item_terms.wbit_term_in_lang_id = wbt_term_in_lang.wbtl_id
+JOIN wbt_text_in_lang ON wbt_term_in_lang.wbtl_text_in_lang_id = wbt_text_in_lang.wbxl_id
+JOIN wbt_type         ON wbt_term_in_lang.wbtl_type_id = wbt_type.wby_id
+JOIN wbt_text         ON wbt_text_in_lang.wbxl_text_id = wbt_text.wbx_id
+WHERE wbt_text_in_lang.wbxl_language = 'en' 
+  AND wbt_type.wby_name = 'description'
+  AND (wbt_text.wbx_text LIKE 'a %'
+   OR wbt_text.wbx_text LIKE 'an %'
+   OR wbt_text.wbx_text LIKE 'A %'
+   OR wbt_text.wbx_text LIKE 'An %')
+GROUP BY wbt_text.wbx_text, wbt_item_terms.wbit_item_id
+ORDER BY wbt_item_terms.wbit_item_id DESC
+LIMIT 1000 This will get you 1000 matching results. HTH. --Infrastruktur (talk) 01:24, 7 January 2022 (UTC) Thanks! EpicPupper (talk) 23:01, 7 January 2022 (UTC) Usage of an item in qualifiers Hello, I believe I have a rather straight forward query request, but I have not found either a sample nor a tool provided for the information. I want to know for a given item (here: 2010 United States Census (Q523716)) with what properties it is used in qualifiers and how often for each property (i.e. list of properties and number of uses for each listed property). Can anyone help? Thanks, Yellowcard (talk) 07:58, 7 January 2022 (UTC) @Yellowcard: SELECT ?qualifierproperty ?qualifierpropertyLabel (COUNT(?qualifierproperty) AS ?count)
+{
+  VALUES ?item { wd:Q523716 }
+  ?item ?claim ?statement .
+  ?property wikibase:claim ?claim  .
+  ?statement ?qualifier [] .
+  ?qualifierproperty wikibase:qualifier ?qualifier
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+GROUP BY ?qualifierproperty ?qualifierpropertyLabel
+ Try it! --Dipsacus fullonum (talk) 09:16, 7 January 2022 (UTC) Hello Dipsacus fullonum, thanks a lot! However, this is not 100 % what I was looking for. Your query shows the qualifier properties used within the item 2010 United States Census (Q523716). Instead, I am looking for the qualifier properties in all items that have 2010 United States Census (Q523716) as the value item in the qualifier statement. So, I would like to understand the use of the item 2010 United States Census (Q523716) as a qualifier with different properties over all our items. Thanks a lot in advance! Yellowcard (talk) 10:57, 7 January 2022 (UTC) @Yellowcard: Do you mean like this then? Or do maybe also want to know what kind of statements that have Q523716 as a qualifier value? SELECT ?qualifierproperty ?qualifierpropertyLabel (COUNT(?qualifierproperty) AS ?count)
+{
+  VALUES ?item { wd:Q523716 }
+  [] ?qualifier ?item .
+  ?qualifierproperty wikibase:qualifier ?qualifier
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+GROUP BY ?qualifierproperty ?qualifierpropertyLabel
+ Try it! --Dipsacus fullonum (talk) 11:35, 7 January 2022 (UTC) @Dipsacus fullonum: That's exactly what I was looking for, thank you so much! Is there also an easy way as a second step to find out the statements themselves, instead of counting - so I can have a deeper look? Thnaks again! Yellowcard (talk) 13:34, 7 January 2022 (UTC) @Yellowcard: It is no problem to list the statements. You can also have the statement value, the used unit, other qualifiers or references in a list or counted someway if you want. SELECT ?item ?itemLabel ?property ?propertyLabel ?statement ?qualifierproperty ?qualifierpropertyLabel
+{
+  VALUES ?qvitem { wd:Q523716 }
+  ?statement ?qualifier ?qvitem .
+  ?qualifierproperty wikibase:qualifier ?qualifier .
+  ?item ?claim ?statement .
+  ?property wikibase:claim ?claim 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! --Dipsacus fullonum (talk) 13:48, 7 January 2022 (UTC) Great, thats exactly what I was looking for. Thank you so much! Best regards, Yellowcard (talk) 00:17, 8 January 2022 (UTC) Items/properties with emoji I'm not sure if this is possible with SPARQL, but if it's not, an SQL query might work. EpicPupper (talk) 23:20, 7 January 2022 (UTC) Do you have a sample of what you are looking for? --- Jura 13:53, 8 January 2022 (UTC) Searching for a label containing a smiley is fairly straightforward in SQL. I have no idea if you can search for a unicode character range, but that is something I would be interested in knowing myself. Infrastruktur (talk) 08:44, 9 January 2022 (UTC) It is straightforward to search for unicode character ranges in SPARQL. The problem is that you cannot search all 675 million labels fast enough to avoid timeout. If you can handle the amount of data, a search thru a database dump wouldn't be too hard either. --Dipsacus fullonum (talk) 09:54, 9 January 2022 (UTC) Limiting results based on number of items I have my query to select properties and values SELECT ?art ?wdLabel ?ps_Label  {
+  VALUES (?art) {(wd:Q3947822)}
+  
+  ?art ?p ?statement .
+  ?statement ?ps ?ps_ .
+  
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! and I have my query to select a list of items of interest SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+    ?item wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+          wdt:P170 wd:Q5598 ; # By creator Rembrandt
+          wdt:P195/wdt:P361* ?collection . # That are in some collection
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} limit 10
+ Try it! and so I can call the first one with each of the QIDs returned from the second to get the properties and values for them. However I assume WDQS would prefer that fewer requests are made so I would like to combine them. I've tried SELECT ?art ?wdLabel ?ps_Label WHERE {
+  {
+    select ?art where {
+      ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+           wdt:P170 wd:Q5598 ; # By creator Rembrandt
+           wdt:P195/wdt:P361* ?collection . # That are in some collection
+    } limit 10
+  }
+  ?art ?p ?statement .
+  ?statement ?ps ?ps_ .
+  
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! but this times out :( Many thanks Carlinmack (talk) 11:50, 8 January 2022 (UTC) @Carlinmack: In cases like this, it usually helps to turn the subquery into a named query. So try this: SELECT ?art ?wdLabel ?ps_Label
+WITH
+{
+  SELECT ?art
+  WHERE {
+    ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+         wdt:P170 wd:Q5598 ; # By creator Rembrandt
+         wdt:P195/wdt:P361* ?collection . # That are in some collection
+  }
+  LIMIT 10
+} AS %select_art
+WHERE {
+  include %select_art
+  ?art ?p ?statement .
+  ?statement ?ps ?ps_ .
+  
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! --Dipsacus fullonum (talk) 12:32, 8 January 2022 (UTC) Thanks! Carlinmack (talk) 13:14, 8 January 2022 (UTC) Sometimes the opposite seems to be true, isn't it? --- Jura 13:53, 8 January 2022 (UTC) cites of the world. Hi, I am trying to query all the cities of the world along with their population and area, but the results I get have cities with Sqkm and Sqm all mixed up into one(which is messing up with my calculations since I cannot differentiate the area values) and since the cities have multiple population numbers listed, I am getting duplicate values of the cities. I need only 1 instance of the city along with only the current population and the area(sqkm).Any idea on how I can achieve this?SELECT DISTINCT ?cityLabel ?countryLabel ?Area ?PopulationLabel ?Coordinates ?Elevation WHERE { ?city wdt:P31/wdt:P279* wd:Q515 .
+ ?city wdt:P17 ?country.
+ ?city wdt:P2046 ?Area .
+ ?city wdt:P1082 ?Population.
+ ?city wdt:P625 ?Coordinates .
+ ?city wdt:P2044 ?Elevation.
+ SERVICE wikibase:label {
+   bd:serviceParam wikibase:language \"en\" .
+ } } Hi. You get more than one result for one city when it has more than one best rank statement for one or more of the queried properties. You can add \"GROUP BY ?cityLabel\" to always only get one result. But if you do, you must also use an aggregation function like MIN, MAX, AVG (for average) or SAMPLE for all other values in the SELECT clause. To avoid problems with different units for area, you can query for a normalized value by using \"p:P2046 / psn:P2046 / wikibase:quantityAmount\" instead of wdt:P2046. The normalized value for areas is always in square meters. You can divide the value by a constant in the select clause to convert it to another unit of your choice. Remember that by using the p: prefix instead wdt: you will get all results independent of ranking. To still only get best rank values, you have to explicitly include a test for that in the query. It can look like this if you use the abbreviated blank note syntax: ?city p:P2046 [a wikibase:BestRank; psn:P2046 / wikibase:quantityAmount ?Area ] .
+ --Dipsacus fullonum (talk) 08:06, 11 January 2022 (UTC) PS. You state you want \"all the cities of the world\". Be aware that not all cities have best rank statements for all the queried properties. You can use OPTIONAL clauses to include cities with missing data in the results anyway. --Dipsacus fullonum (talk) 08:21, 11 January 2022 (UTC) Countries of Europe (1900 to present) I wonder what would be a good way to query them.Based on the query, we can try to fix items that don't quite match it.I used 1900 as starting point as it obviously gets harder further one goes back. --- Jura 08:58, 11 January 2022 (UTC) I won't bore you with anything obvious, but if this is meant for maintenance, you might be interested in following the replaces/replaced-by chains as they appear to be broken in several places such as Czechoslovakia (Q33946). Any former country without these two properties should be treated like an error. Likewise any current country without a replaces claim is an error. --Infrastruktur (talk) 10:18, 11 January 2022 (UTC) Maybe this as a start? SELECT DISTINCT ?item ?itemLabel WHERE {
+  ?item p:P31/wdt:P279* ?st ;
+        wdt:P30 wd:Q46 .
+
+  ?st ps:P31/wdt:P279* wd:Q6256 .
+
+  OPTIONAL { ?item wdt:P576 ?dissolvedDate }
+  FILTER ( !BOUND(?dissolvedDate)|| ?dissolvedDate > \"1900-01-01\"^^xsd:dateTime )
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?itemLabel
+ Try it! Popperipopp (talk) 14:46, 11 January 2022 (UTC) Yes, thanks. I wonder if one should try to look at it by year and list those that end or start. --- Jura 16:52, 11 January 2022 (UTC) And note that country (Q6256)!=state (Q7275) (and they have different subclasses and instances)... --Infovarius (talk) 20:04, 11 January 2022 (UTC) Items used: calendar year (Q3186692)   , Europe (Q46)   , country (Q6256)   Properties used: instance of (P31)   , subclass of (P279)   , point in time (P585)   , continent (P30)   , dissolved, abolished or demolished date (P576)   , inception (P571)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

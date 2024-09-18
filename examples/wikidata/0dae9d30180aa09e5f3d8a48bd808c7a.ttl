@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0dae9d30180aa09e5f3d8a48bd808c7a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# by Jura1, 2021-05-21
+#title:Glaciers map
+# defaultView:Map{\"hide\":[\"?coor\",\"?area_scale_km\"], \"layer\": \"?area_scale_km\"}
+SELECT ?item ?itemLabel ?itemDescription ?coor ?area_sqkm ?area_scale_km
+{
+  ?item wdt:P31/wdt:P279* wd:Q35666 .
+  OPTIONAL { ?item wdt:P625 ?coor }
+  OPTIONAL { ?item p:P2046 [ a wikibase:BestRank; psn:P2046/wikibase:quantityAmount ?area_sqm ] .
+    BIND( ROUND(?area_sqm/10000)/100 as ?area_sqkm)
+    BIND( strlen(str(ROUND(?area_sqm/1000000))) as ?area_scale_km)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Wladek92/test/page1/fr>, <https://www.wikidata.org//wiki/User:Wladek92/test/page1/mk>,
+    <https://www.wikidata.org//wiki/User:Wladek92/test/page1/en>, <https://www.wikidata.org//wiki/User:Wladek92/test/page1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-C92E90B0FF0D3568E8001AC2C54584BD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-4DD52B7A310E43B41DA50AE5871E0F09,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-9C6D5FAC5638B64D4DBE27968B58C53F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-872F32E26D2D4BC39D277F8DA7A99EF3,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec29477-02E5C13640D2C54DDF9AE26B964B78CE;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,76 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0187e0053c01d99a899e4970201e9843> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?string ?item ?itemLabel WHERE {
+  VALUES ?string {
+    \"Paris\"@fr
+    \"Meudon\"@fr
+    \"Bellevue (quartier de Meudon)\"@fr
+  }
+  ?sitelink schema:about ?item;
+    schema:isPartOf <https://fr.wikipedia.org/>;
+    schema:name ?string.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+}
+ORDER BY ?itemLabel""";
+  rdfs:comment """Home SPARQL Gender diversity Gendered labels Documented queries Media cartography Cette page est un aide-mémoire personnel pour mes requêtes SPARQL.J'utilise évidemment query.wikidata.org pour faire mes requêtes. Si je veux aller plus loin, j'utilise aussi l'outil Wikidata:PAWS qui permet d'avoir des notebooks SPARQL (voir par exemple requêtes sur la diversité de genre). J'utilise Observablehq pour explorer les données de Wikidata directement en Javascript.Pour me documenter, j'utilise wikibook SPARQL, le tutorial SPARQL de Wikidata et le manuel SPARQL de MediaWiki. La page MediaWiki sur l'optimisation des requêtes est aussi très utile. Contents 1 Récupérer les labels, les descriptions et les alias 1.1 Récupérer les labels 1.2 Exemples 1.2.1 Liste des éléments avec le même label 1.3 Récupérer les alias et les descriptions 2 Récupérer les éléments appartenant à une sous-classe 3 Classer les éléments par nombre de liens de site 4 Obtenir la liste des éléments sans une propriété 5 Récupérer la liste des éléments à partir d'identifiants externes 6 Récupérer la liste des éléments à partir d'une liste de noms de pages Wikipédia 7 Obtenir la liste des déclarations sur un élément 8 Obtenir la liste des déclarations concernant un élément 8.1 Compte des déclarations sur un élément par propriété 9 Explorer une hiérarchie 9.1 Obtenir la liste des sous-classe d'un élément 9.2 Visualiser une hiérarchie 9.3 Compter des éléments avec une hiérarchie 10 Combiner des requêtes 11 Travailler avec les unités 12 Utiliser les sous-requêtes 13 Utiliser l'API MediaWiki 13.1 Récupérer le genre des membres d'une catégorie sur Wikipédia 13.2 Récupérer les liens genrés d'une page 13.3 Compteur de liens de genres par article 13.4 Compteur de liens pour plusieurs articles 13.5 Récupérer la liste des éléments non cités dans un article 13.6 Liste des éléments créés 14 Créer l'url de requête dans un service 15 Requêter les propriétés 15.1 Liste des propriétés qui ont pour valeur des instances ou des sous classés d'organisation 15.2 Liste des classes utilisées comme contraintes de valeur sur les propriétés 16 Requêtes sur les références 17 Tester des hypothèses 18 Voir aussi Récupérer les labels, les descriptions et les alias [edit] Récupérer les labels [edit] Pour obtenir, les libellés, on peut utilise le service wikibase:label ou l'espace rdfs:label.Avec la méthode rdfs:label : The following query uses these:Items: Paris (Q90)   Properties: narrative location (P840)   , located in the administrative territorial entity (P131)   SELECT DISTINCT ?item ?itemLabel
+WHERE {
+  ?item wdt:P840 ?narrative_location.
+  ?narrative_location wdt:P131* wd:Q90.
+  OPTIONAL {
+    ?item rdfs:label ?itemLabel filter (lang(?itemLabel) = \"[AUTO_LANGUAGE]\") .
+  }
+}
+LIMIT 10 Try it! Avec la méthode wikibase:label The following query uses these:Items: Paris (Q90)   Properties: narrative location (P840)   , located in the administrative territorial entity (P131)   SELECT DISTINCT ?item ?itemLabel
+WHERE {
+  ?item wdt:P840 ?narrative_location.
+  ?narrative_location wdt:P131* wd:Q90.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+LIMIT 10 Try it! Exemples [edit] Liste des éléments avec le même label [edit] The following query uses these:Items: Paris (Q90)   Properties: instance of (P31)   #title:Entities with same label
+SELECT ?item ?itemLabel ?itemDescription ?nature ?natureLabel
+WHERE {
+wd:Q90 rdfs:label ?itemLabel filter (lang(?itemLabel) = \"[AUTO_LANGUAGE]\").
+?item rdfs:label ?itemLabel.
+OPTIONAL{
+?item schema:description ?itemDescription filter (lang(?itemDescription) = \"[AUTO_LANGUAGE]\").
+}
+?item wdt:P31 ?nature.
+?nature rdfs:label ?natureLabel filter (lang(?natureLabel) = \"[AUTO_LANGUAGE]\").
+}
+ORDER BY ?nature ?natureLabel Entities with same label Récupérer les alias et les descriptions [edit] On peut récupérer les descriptions et les alias avec la méthode wikibase:label. The following query uses these:Items: Ada (Q346047)   Properties: given name (P735)   SELECT ?item ?itemLabel ?itemDescription ?itemAltLabel  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  ?item wdt:P735 wd:Q346047.
+} Try it! Récupérer les éléments appartenant à une sous-classe [edit] The following query uses these:Items: data set (Q1172284)   Properties: subclass of (P279)   , instance of (P31)   SELECT ?item ?itemLabel WHERE  {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  wd:Q1172284 ^wdt:P279*/^wdt:P31 ?item.
+}
+LIMIT 100 Try it! Classer les éléments par nombre de liens de site [edit] The following query uses these:Items: Ada (Q346047)   Properties: given name (P735)   SELECT ?item ?itemLabel ?itemDescription ?sitelinks WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  ?item wikibase:sitelinks ?sitelinks.
+  ?item wdt:P735 wd:Q346047.
+}
+ORDER BY DESC(?sitelinks) Try it! Obtenir la liste des éléments sans une propriété [edit] L'instruction MINUS permet d'obtenir la liste des éléments qui n'ont pas une propriété.La requête ci-dessous permet de récupérer la liste des éléments ayant un data.gouv.fr organisation ID (P3206) sans avoir de déclaration instance of (P31). The following query uses these:Properties: data.gouv.fr organisation ID (P3206)   , instance of (P31)   SELECT DISTINCT ?datagouvid ?item ?itemLabel ?nature_of
+WHERE {
+  ?item wdt:P3206 ?datagouvid .
+  MINUS{ ?item wdt:P31 ?nature_of. }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+  }
+ORDER BY ?itemLabel Try it! Récupérer la liste des éléments à partir d'identifiants externes [edit] La requête ci dessous permet de récupérer la liste des éléments Wikidata à partir de l'X username (P2002). The following query uses these:Properties: X username (P2002)   SELECT ?string ?item ?itemLabel WHERE {
+  VALUES ?string {
+    \"EmmanuelMacron\"
+    \"realDonaldTrump\"
+  }
+  ?item wdt:P2002 ?string.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+}
+ORDER BY ?itemLabel Try it! Récupérer la liste des éléments à partir d'une liste de noms de pages Wikipédia [edit] The following query uses these:"""@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:PAC2/SPARQL_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

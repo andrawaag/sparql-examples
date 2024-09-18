@@ -1,0 +1,588 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-863e81b7a5e265f289be1df65972d5ed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?entity ?entityLabel (count(?mid) as ?depth) WHERE {
+  wd:Q4421 wdt:P279* ?mid.
+  ?mid wdt:P279* ?entity
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} group by ?entity ?entityLabel
+order by ?depth""";
+  rdfs:comment """Para recorrer las clases y subclases de la taxonomía/ontología de Wikidata Contents 1 Recorrer taxonomía de clases 1.1 Consultando la ontología (Propiedades, clases) 1.1.1 Jerarquía de clases sobre BOSQUE (broad context) 1.1.2 Jerarquía de clases hasta BOSQUE (narrow context) 1.1.3 Versión con Graph Service 1.1.3.1 Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) 1.1.3.2 Árbol de clases para BOSQUE (Traversal direction = Forward) 1.1.4 Grafo de vecindad de conceptos de la Pandamia COVID-19 1.1.5 Encontrar el camino desde una subclase a su superclase (target) con GAS Service 2 Consultas sobre clases y esquemas 2.1 Propiedades para describir cosas de un \"dominio\" 2.2 Clases de un dominio 2.3 Propiedades más usadas en un dominio 3 Vamos a extraer todas las subclases de Obra literaria Recorrer taxonomía de clases [edit] Vamos a localizas por qué \"temporada deportiva\" resulta ser una \"obra literaria\" usando el servicio GAS de Wikidata para encontrar el camino más corto, y atravaser el grafo. Veremos que como \"Temporada\" está subclaseado como \"Artículo cronológico de Wikipedia\" que a su vez está subclaseado como \"Crónica\" y la crónica es, finalmente, una obra literaria ... pues tenemos el lío. # Encontrar la distancia más corta entre dos nodos, a través de la propiedad P279 (También puede usarse con ?linkType para cualquier relación
+# Elemento destino \"Obra literaria\" Q7725634
+# Uso del servicio GAS
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?depth ?predecessor ?predecessorLabel ?out ?outLabel {
+  SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q1539532 . # one or more times, specifies the initial frontier.
+     gas:program gas:target wd:Q7725634 . # only retain vertices along paths to these target vertices.
+     gas:program gas:out ?out . # exactly once - will be bound to the visited vertices.
+     gas:program gas:out1 ?depth . # exactly once - will be bound to the depth of the visited vertices.
+     gas:program gas:out2 ?predecessor . # exactly once - will be bound to the predecessor.
+     gas:program gas:maxIterations 6 . # optional limit on breadth first expansion.
+     gas:program gas:maxVisited 2000 . # optional limit on the #of visited vertices.
+  }
+  ?predecessor wdt:P279 ?out . # figure out what link type(s) connect a vertex with a predecessor
+  FILTER(STRSTARTS(STR(?predecessor), \"http://www.wikidata.org/entity/Q\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+order by desc(?depth)
+limit 100
+ Try it! Consultando la ontología (Propiedades, clases) [edit] Búsquedas para conocer cómo está organizado el conocimiento en Wikidata como ontología, taxonomía, red de conceptos o vocabulario-esquema. Jerarquía de clases sobre BOSQUE (broad context) [edit] Recorrido de las subclases (P279) a las que pertenece el concepto Bosque (Q4421): """@en,
+    """Para descubrir, de una vez por todas, todos los libros que hay en Wikipedia No es fácil precisar qué es un libro o qué es una obra literaria, teniendo en cuenta la diferencia entre obra-expresión-manifestación, las obras en series, los diferentes tipos de libros que se consideran obras literarias o meros libros funcionales o la diferencia entre ficción y no ficción... Contents 1 Ediciones sin obra 2 Propiedades ID 3 Propiedades para obras en el Cluster 2 4 Obras agregadas y obras con partes 5 Conexiones y referencias entre obras 6 Fecha de las obras 6.1 Todas las propiedades posibles de fecha 7 Vamos a extraer todas las subclases de Obra literaria 7.1 ¿Qué propiedades se usan para hacer declaraciones que apuntan a una clase como \"Obra literaria\"? 8 Consultas sobre clases y esquemas 8.1 Propiedades para describir cosas de un \"dominio\" 8.2 Clases de un dominio 8.3 Propiedades más usadas en un dominio 9 Profundizando en las obras literarias \"subclaseadas\" con artículos en Wikipedia 10 Evaluación de items subclasificados en obra literaria 11 Algoritmo de selección de items obra literaria en subclases 12 Recorrer taxonomía de clases 12.1 Consultando la ontología (Propiedades, clases) 12.1.1 Jerarquía de clases sobre BOSQUE (broad context) 12.1.2 Jerarquía de clases hasta BOSQUE (narrow context) 12.1.3 Versión con Graph Service 12.1.3.1 Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) 12.1.3.2 Árbol de clases para BOSQUE (Traversal direction = Forward) 12.1.4 Grafo de vecindad de conceptos de la Pandamia COVID-19 12.1.5 Encontrar el camino desde una subclase a su superclase (target) con GAS Service Ediciones sin obra [edit] Wikidata usa grosso modo el modelo BibFrame que se centra en la Obra y la diferencia de su Expresión/Manifestación/Edición/Versión. Con esto hay que tener cuidado, porque en nuestro trabajo 2022 seguimos la pista de las obras, aunqu estén recogidas de forma diversa como libro, obra escrita u obra literaria, o cualquiera de sus clases, pero convendría comprobar las ediciones/traducciones, en el caso de que no tengan obra asociada. Esto es la propiedad P747. Por ejemplo, Don Quijote (Q480) tiene declaradas un puñado de ediciones a través de la propiedad P747, donde se refleja su historia editorial, a través de las ediciones históricas más destacadas. Se usa sobre todo en ese sentido de ediciones destacables, y no para obras actuales; En \"Las uvas de la ira\" (Q215983) no aparece, y para \"El nombre de la rosa\" (Q172850) se recogen tres traducciones.Por lo tanto encontramos un considerable número de elementos que son ediciones (P31 = Q3331189), en total 183.329 ediciones. Sin embargo solo 76.756 proceden de una obra, por lo que hay 109.059 ediciones descritas sin los dos niveles Obra/Expresión necesarios. SELECT ?edicion?edicionLabel WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } } Aunque hay que tener en cuenta que algunas de estas ediciones también están declaradas al mismo tiempo para varias clases, por ejemplo, como \"Obra literaria\". Hay, por tanto, 100.295 ediciones \"puras\", y 8.764 elementos que mezclan clases y queu seguramente puedan salir al recuperar por otras clases adecuadas para obras. SELECT ?edicion (COUNT(?tipo) as ?num) WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  ?edicion wdt:P31 ?tipo
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+Group by ?edicion
+HAVING (?num = 1) Pero de estas cien mil \"ediciones sin obra\", solo 396 tienen artículo en alguna Wikipedia, por lo que son candidatas a estudiarse junto a las obras, puesto que tienen señales de relevancia enciclopédica. SELECT ?edicion (COUNT(?tipo) as ?num) (COUNT(?article) as ?sitelinks) WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  ?edicion wdt:P31 ?tipo
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  ?article schema:about ?edicion .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+Group by ?edicion
+HAVING (?num = 1) Pero los podemos considerar irrelevantes, porque ninguno aparece en más de una Wikipedia. Algunos de estos elementos son versiones de software o juevos. Propiedades ID [edit] Para obtener las propiedades identificador, no hace falta consultar la taxonomía de clases para propiedades, a través de su P31. Es un tipo específico de propiedad en la ontología wikibase (PREFIX wikibase: <http://wikiba.se/ontology#>). Salen 6814. SELECT * WHERE { 
+   ?prop_id wikibase:propertyType ?pt .
+   FILTER (CONTAINS(str(?pt),'ExternalId'))  
+ }
+ Try it! De paso, si queremos todas las propiedades con sus labels, alias y descripciones .. PREFIX bd: <http://www.bigdata.com/rdf#> 
+PREFIX schema: <http://schema.org/> 
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+PREFIX wikibase: <http://wikiba.se/ontology#> 
+
+SELECT ?p ?pt ?pLabel ?d ?aliases WHERE {
+  {
+    SELECT ?p ?pt ?d 
+              (GROUP_CONCAT(DISTINCT ?alias; separator=\"
+ Try it! Pero, atención, los ID pueden ser tanto identificadores externos como meramente strings. Y las propiedades string no siempre son identificadores (fecha, ...) Propiedades para obras en el Cluster 2 [edit] Las propiedades usadas para describir obras se clasifican en la clase Q18618644 \"propiedad de Wikidata para elementos sobre obras\", que se subdivide en bastantes subclases y además también hay otras usadas. La exploración de las 25 propiedades más usadas en el Cluster 2, que recoge unas 2300 obras con cierta notoriedad, nos indica que las propiedades son 16 casos son \"Propiedades sobre obras\" y en 9 \"Propiedaes sobre fuentes\" (Teniendo en cuenta que una propiedad puede pertenecer a varias clases). El resto de clases no son específicas del dominio biliográfico, excepto dos propiedades clasificadas como \"propiedad de Wikidata relativa a obras de ficción\" y \"propiedad de Wikidata relativa a datos narrativos\" que podrían ser interesante en el caso específico de la narrativa. Clases de las propiedades de obras del C2 SELECT ?clase ?claseLabel (COUNT(?clase) AS ?num) WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+GROUP BY ?clase ?claseLabel
+ORDER BY DESC(?num) Propiedades y sus clases de las obras del C2 SELECT ?propC2 ?propC2Label ?clase ?claseLabel WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+ORDER BY ?claseLabel Por lo tanto, podrían ser propiedades candidatas a usarse como factor de corrección (alza, como en PageRank) las 18 propiedades del Top 25 del Cluster 2, que sean de las clases Obras y Fuentes. SELECT DISTINCT ?propC2 ?propC2Label WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+  VALUES ?clase { wd:Q18618644 wd:Q18608359} # Propiedades sobre obras, sobre fuentes. No se incluye las de narrativa/ficción wd:Q29963999	wd:Q22984512
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+ORDER BY ?propC2Label Listado de propiedades C2 para obras y fuentes wd:P50 autor wd:P747 edición o traducción wd:P123 editorial wd:P6216 estatus de los derechos de autor wd:P577 fecha de publicación wd:P7937 forma artística wd:P136 género wd:P407 idioma de la obra o del nombre wd:P18 imagen wd:P291 lugar de publicación wd:P4969 obra derivada wd:P495 país de origen wd:P1433 publicado en wd:P179 serie wd:P921 tema principal de la obra wd:P1476 título wd:P3132 éxcipit wd:P1922 íncipit Obras agregadas y obras con partes [edit] Este es siempre un asunto peliaguado que marca la distancia entre la realidad (de las publicaciones) y el deseo (del catalogador). Los casos son miles, pero de cara al canon hay ejemplos muy claros de obras que funcionan tanto a nivel individual, como reunidas en una obra más amplia. La Biblia y el Génesis (Q9184). El libro \"Diario de Greg, mala suerte\" (Q14622962) es de la serie (P179) \"Los diarios de Greg\" (Q1339580). El libro \"La comunidad del anillo\" es de la serie (P179) El señor de los anillos. El cuento de Borges \"El Aleph\" (Q952043) está publicado en (Property:P1433) el libro homónimo \"El Aleph\" (Q743304). El soneto de Baudelaire A una dama criolla (Q3576923) está publicado (P1433) en Las Flores del mal. En estos casos se establece conexión entre dos elementos que suelen ser de distinto tipo. El agregador es una saga, una serie de libros, etc.Además, puede ir en cadena: el libro del Génesis forma parte del Pentateuco (Q162062) que forma parte del Antiguo Testamento (Q19786), que forma parte de La Biblia (Q1845)Las relaciones más habituales son forma parte de (Property:P361) y su inversa, compuesto por (Property:P527). También de la serie (P179) y publicado en(P1433).De los 163 libros del C3, el canon universal de todos los tiempos, 50 forman parte de algo mayor o de una serie; Harry Potter, Los Juegos del Hambre, \"Canción de hielo y fuego\" ... SELECT distinct ?canon ?canonLabel
+WHERE {
+VALUES ?canon {wd:Q9184 wd:Q8275 wd:Q41567 wd:Q83186 wd:Q480 wd:Q8279 wd:Q6511 wd:Q43361 wd:Q92640 wd:Q127149 wd:Q130283 wd:Q170583 wd:Q19786 wd:Q74287 wd:Q8258 wd:Q41542 wd:Q9190 wd:Q161531 wd:Q208460 wd:Q165318 wd:Q60220 wd:Q140527 wd:Q150827 wd:Q326909 wd:Q46758 wd:Q42040 wd:Q16438 wd:Q37293 wd:Q147787 wd:Q8269 wd:Q180736 wd:Q164974 wd:Q191838 wd:Q483034 wd:Q183157 wd:Q184742 wd:Q104871 wd:Q899334 wd:Q47209 wd:Q1396889 wd:Q178869 wd:Q4577 wd:Q188538 wd:Q123397 wd:Q25338 wd:Q181488 wd:Q86440 wd:Q8272 wd:Q46751 wd:Q190192 wd:Q463108 wd:Q181598 wd:Q523076 wd:Q185118 wd:Q70784 wd:Q6911 wd:Q46887 wd:Q174596 wd:Q202975 wd:Q48244 wd:Q219552 wd:Q47598 wd:Q41490 wd:Q206400 wd:Q131554 wd:Q26833 wd:Q191380 wd:Q2222 wd:Q80817 wd:Q183565 wd:Q214371 wd:Q79762 wd:Q1219561 wd:Q217352 wd:Q81689 wd:Q8065468 wd:Q134425 wd:Q82464 wd:Q191663 wd:Q212340 wd:Q172850 wd:Q215894 wd:Q2870 wd:Q81240 wd:Q28754 wd:Q131719 wd:Q48203 wd:Q326914 wd:Q45192 wd:Q182961 wd:Q464928 wd:Q221211 wd:Q148643 wd:Q130295 wd:Q274744 wd:Q241077 wd:Q80038 wd:Q128608 wd:Q215410 wd:Q308918 wd:Q193417 wd:Q210784 wd:Q208002 wd:Q213019 wd:Q48922 wd:Q214132 wd:Q80355 wd:Q19871 wd:Q11678 wd:Q469690 wd:Q1751870 wd:Q212898 wd:Q41675 wd:Q151883 wd:Q11829 wd:Q29478 wd:Q219457 wd:Q208971 wd:Q191949 wd:Q6113985 wd:Q185427 wd:Q205875 wd:Q332387 wd:Q223880 wd:Q233562 wd:Q11834 wd:Q183883 wd:Q28306 wd:Q240617 wd:Q50948 wd:Q471005 wd:Q36097 wd:Q726254 wd:Q329989 wd:Q128620 wd:Q192649 wd:Q181937 wd:Q202009 wd:Q62407 wd:Q333179 wd:Q271764 wd:Q26505 wd:Q155980 wd:Q237572 wd:Q6507 wd:Q11859 wd:Q123808 wd:Q131115 wd:Q212746 wd:Q408673 wd:Q207332 wd:Q179021 wd:Q215983 wd:Q131180 wd:Q233780 wd:Q206870 wd:Q47228 wd:Q51613 wd:Q565638 wd:Q655717 wd:Q131107 wd:Q131104 wd:Q808428 }
+?canon wdt:P179|wdt:P361 ?parte  # De la serie y Forma parte de
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Veamos la búsqueda recursiva de relatos que forman parte (P361) de La Biblia, con 20 hits entre los libros del canon C3. SELECT distinct ?canon ?canonLabel
+WHERE {
+VALUES ?canon {wd:Q9184 wd:Q8275 wd:Q41567 wd:Q83186 wd:Q480 wd:Q8279 wd:Q6511 wd:Q43361 wd:Q92640 wd:Q127149 wd:Q130283 wd:Q170583 wd:Q19786 wd:Q74287 wd:Q8258 wd:Q41542 wd:Q9190 wd:Q161531 wd:Q208460 wd:Q165318 wd:Q60220 wd:Q140527 wd:Q150827 wd:Q326909 wd:Q46758 wd:Q42040 wd:Q16438 wd:Q37293 wd:Q147787 wd:Q8269 wd:Q180736 wd:Q164974 wd:Q191838 wd:Q483034 wd:Q183157 wd:Q184742 wd:Q104871 wd:Q899334 wd:Q47209 wd:Q1396889 wd:Q178869 wd:Q4577 wd:Q188538 wd:Q123397 wd:Q25338 wd:Q181488 wd:Q86440 wd:Q8272 wd:Q46751 wd:Q190192 wd:Q463108 wd:Q181598 wd:Q523076 wd:Q185118 wd:Q70784 wd:Q6911 wd:Q46887 wd:Q174596 wd:Q202975 wd:Q48244 wd:Q219552 wd:Q47598 wd:Q41490 wd:Q206400 wd:Q131554 wd:Q26833 wd:Q191380 wd:Q2222 wd:Q80817 wd:Q183565 wd:Q214371 wd:Q79762 wd:Q1219561 wd:Q217352 wd:Q81689 wd:Q8065468 wd:Q134425 wd:Q82464 wd:Q191663 wd:Q212340 wd:Q172850 wd:Q215894 wd:Q2870 wd:Q81240 wd:Q28754 wd:Q131719 wd:Q48203 wd:Q326914 wd:Q45192 wd:Q182961 wd:Q464928 wd:Q221211 wd:Q148643 wd:Q130295 wd:Q274744 wd:Q241077 wd:Q80038 wd:Q128608 wd:Q215410 wd:Q308918 wd:Q193417 wd:Q210784 wd:Q208002 wd:Q213019 wd:Q48922 wd:Q214132 wd:Q80355 wd:Q19871 wd:Q11678 wd:Q469690 wd:Q1751870 wd:Q212898 wd:Q41675 wd:Q151883 wd:Q11829 wd:Q29478 wd:Q219457 wd:Q208971 wd:Q191949 wd:Q6113985 wd:Q185427 wd:Q205875 wd:Q332387 wd:Q223880 wd:Q233562 wd:Q11834 wd:Q183883 wd:Q28306 wd:Q240617 wd:Q50948 wd:Q471005 wd:Q36097 wd:Q726254 wd:Q329989 wd:Q128620 wd:Q192649 wd:Q181937 wd:Q202009 wd:Q62407 wd:Q333179 wd:Q271764 wd:Q26505 wd:Q155980 wd:Q237572 wd:Q6507 wd:Q11859 wd:Q123808 wd:Q131115 wd:Q212746 wd:Q408673 wd:Q207332 wd:Q179021 wd:Q215983 wd:Q131180 wd:Q233780 wd:Q206870 wd:Q47228 wd:Q51613 wd:Q565638 wd:Q655717 wd:Q131107 wd:Q131104 wd:Q808428 }
+?canon wdt:P361* wd:Q1845
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Pero también muchos de los clásicos están compuestos por partes que también están descritas en Wikidata. Puden ser, en lugar de obras con vida propia como El Génesis, sus capítulos o partes. Veamos la consulta, con 54 resutlados excluyendo los que simplemente tienen capítulos. SELECT distinct ?canon ?canonLabel
+WHERE {
+VALUES ?canon {wd:Q9184 wd:Q8275 wd:Q41567 wd:Q83186 wd:Q480 wd:Q8279 wd:Q6511 wd:Q43361 wd:Q92640 wd:Q127149 wd:Q130283 wd:Q170583 wd:Q19786 wd:Q74287 wd:Q8258 wd:Q41542 wd:Q9190 wd:Q161531 wd:Q208460 wd:Q165318 wd:Q60220 wd:Q140527 wd:Q150827 wd:Q326909 wd:Q46758 wd:Q42040 wd:Q16438 wd:Q37293 wd:Q147787 wd:Q8269 wd:Q180736 wd:Q164974 wd:Q191838 wd:Q483034 wd:Q183157 wd:Q184742 wd:Q104871 wd:Q899334 wd:Q47209 wd:Q1396889 wd:Q178869 wd:Q4577 wd:Q188538 wd:Q123397 wd:Q25338 wd:Q181488 wd:Q86440 wd:Q8272 wd:Q46751 wd:Q190192 wd:Q463108 wd:Q181598 wd:Q523076 wd:Q185118 wd:Q70784 wd:Q6911 wd:Q46887 wd:Q174596 wd:Q202975 wd:Q48244 wd:Q219552 wd:Q47598 wd:Q41490 wd:Q206400 wd:Q131554 wd:Q26833 wd:Q191380 wd:Q2222 wd:Q80817 wd:Q183565 wd:Q214371 wd:Q79762 wd:Q1219561 wd:Q217352 wd:Q81689 wd:Q8065468 wd:Q134425 wd:Q82464 wd:Q191663 wd:Q212340 wd:Q172850 wd:Q215894 wd:Q2870 wd:Q81240 wd:Q28754 wd:Q131719 wd:Q48203 wd:Q326914 wd:Q45192 wd:Q182961 wd:Q464928 wd:Q221211 wd:Q148643 wd:Q130295 wd:Q274744 wd:Q241077 wd:Q80038 wd:Q128608 wd:Q215410 wd:Q308918 wd:Q193417 wd:Q210784 wd:Q208002 wd:Q213019 wd:Q48922 wd:Q214132 wd:Q80355 wd:Q19871 wd:Q11678 wd:Q469690 wd:Q1751870 wd:Q212898 wd:Q41675 wd:Q151883 wd:Q11829 wd:Q29478 wd:Q219457 wd:Q208971 wd:Q191949 wd:Q6113985 wd:Q185427 wd:Q205875 wd:Q332387 wd:Q223880 wd:Q233562 wd:Q11834 wd:Q183883 wd:Q28306 wd:Q240617 wd:Q50948 wd:Q471005 wd:Q36097 wd:Q726254 wd:Q329989 wd:Q128620 wd:Q192649 wd:Q181937 wd:Q202009 wd:Q62407 wd:Q333179 wd:Q271764 wd:Q26505 wd:Q155980 wd:Q237572 wd:Q6507 wd:Q11859 wd:Q123808 wd:Q131115 wd:Q212746 wd:Q408673 wd:Q207332 wd:Q179021 wd:Q215983 wd:Q131180 wd:Q233780 wd:Q206870 wd:Q47228 wd:Q51613 wd:Q565638 wd:Q655717 wd:Q131107 wd:Q131104 wd:Q808428 }
+?cosa wdt:179|wdt:P361+ ?canon .
+  MINUS {?cosa wdt:P31 wd:Q1980247}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+} Conexiones y referencias entre obras [edit] Una forma de estudiar las obras es según su influencia y conexión con otras. Si tomamos las propiedades tipo \"cita\" y \"obra derviada\", en ambas direcciones, podemos detectar aquellas obras mejor conectadas. Por ejemplo, Las metamorfosis es la que recibe o genera más relaciones con otras obras, de las 163 obras del cluster principal (C3). Dada las restricciones de rango y dominio de las propiedades, se presupone que las relaciones son obras creativas (no solo literarias). SELECT ?obraCanon ?obraCanonLabel (COUNT(?obra) as ?num) WHERE { 
+VALUES ?obraCanon { wd:Q9184 wd:Q8275 wd:Q41567 wd:Q83186 wd:Q480 wd:Q8279 wd:Q6511 wd:Q43361 wd:Q92640 wd:Q127149 wd:Q130283 wd:Q170583 wd:Q19786 wd:Q74287 wd:Q8258 wd:Q41542 wd:Q9190 wd:Q161531 wd:Q208460 wd:Q165318 wd:Q60220 wd:Q140527 wd:Q150827 wd:Q326909 wd:Q46758 wd:Q42040 wd:Q16438 wd:Q37293 wd:Q147787 wd:Q8269 wd:Q180736 wd:Q164974 wd:Q191838 wd:Q483034 wd:Q183157 wd:Q184742 wd:Q104871 wd:Q899334 wd:Q47209 wd:Q1396889 wd:Q178869 wd:Q4577 wd:Q188538 wd:Q123397 wd:Q25338 wd:Q181488 wd:Q86440 wd:Q8272 wd:Q46751 wd:Q190192 wd:Q463108 wd:Q181598 wd:Q523076 wd:Q185118 wd:Q70784 wd:Q6911 wd:Q46887 wd:Q174596 wd:Q202975 wd:Q48244 wd:Q219552 wd:Q47598 wd:Q41490 wd:Q206400 wd:Q131554 wd:Q26833 wd:Q191380 wd:Q2222 wd:Q80817 wd:Q183565 wd:Q214371 wd:Q79762 wd:Q1219561 wd:Q217352 wd:Q81689 wd:Q8065468 wd:Q134425 wd:Q82464 wd:Q191663 wd:Q212340 wd:Q172850 wd:Q215894 wd:Q2870 wd:Q81240 wd:Q28754 wd:Q131719 wd:Q48203 wd:Q326914 wd:Q45192 wd:Q182961 wd:Q464928 wd:Q221211 wd:Q148643 wd:Q130295 wd:Q274744 wd:Q241077 wd:Q80038 wd:Q128608 wd:Q215410 wd:Q308918 wd:Q193417 wd:Q210784 wd:Q208002 wd:Q213019 wd:Q48922 wd:Q214132 wd:Q80355 wd:Q19871 wd:Q11678 wd:Q469690 wd:Q1751870 wd:Q212898 wd:Q41675 wd:Q151883 wd:Q11829 wd:Q29478 wd:Q219457 wd:Q208971 wd:Q191949 wd:Q6113985 wd:Q185427 wd:Q205875 wd:Q332387 wd:Q223880 wd:Q233562 wd:Q11834 wd:Q183883 wd:Q28306 wd:Q240617 wd:Q50948 wd:Q471005 wd:Q36097 wd:Q726254 wd:Q329989 wd:Q128620 wd:Q192649 wd:Q181937 wd:Q202009 wd:Q62407 wd:Q333179 wd:Q271764 wd:Q26505 wd:Q155980 wd:Q237572 wd:Q6507 wd:Q11859 wd:Q123808 wd:Q131115 wd:Q212746 wd:Q408673 wd:Q207332 wd:Q179021 wd:Q215983 wd:Q131180 wd:Q233780 wd:Q206870 wd:Q47228 wd:Q51613 wd:Q565638 wd:Q655717 wd:Q131107 wd:Q131104 wd:Q808428 }
+  {
+  ?obra wdt:P921|wdt:P941|wdt:P144|wdt:P2860|wdt:P6977|wdt:P6166|wdt:P8371|wdt:P5059 ?obraCanon.   # Tema principal|Inspirado por|Basado en|Referencia|Reseña sobre|Cita la obra|Versión modificada de
+} 
+UNION 
+{
+?obraCanon wdt:P4969|wdt:5940|wdt:P2512 ?obra.   # Obra derivada; Trama continuada en; Serie derivada
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?obraCanon ?obraCanonLabel
+ORDER BY DESC(?num)
+ Try it! Segunda versión con universos de ficción y forma parte de, que mejora los resultados a partir del análisis de Cien años de Soledad, Ulises, La riqueza de las naciones, El príncipe y Harry Potter que tenían pocos resultados. SELECT ?obraCanon ?obraCanonLabel (COUNT(?obra) as ?num) WHERE { 
+VALUES ?obraCanon {wd:Q178869 wd:Q6511 wd:Q43361 wd:Q28306}
+  {
+  ?obra wdt:P921|wdt:P941|wdt:P144|wdt:P2860|wdt:P6977|wdt:P6166|wdt:P8371|wdt:P5059|wdt:P138|wdt:P1441|wdt:P4969|wdt:P737|wdt:P629|wdt:P361|wdt:P1433|wd:P1080|wdt:P1434|wdt:P179 ?obraCanon.   
+   # Tema principal|Inspirado por|Basado en|Referencia|Reseña sobre|Cita la obra|Versión modificada de|Nombrado por|Personaje presente en la obra|Obra derivada|influenciado por|edición o traducción de|Forma parte de|Publicado en
+   #Del universo de ficción|Describe el universo de ficción | De la serie
+} 
+UNION 
+{
+?obraCanon wdt:P4969|wdt:5940|wdt:P2512|wdt:P1434 ?obra.   # Obra derivada; Trama continuada en; Serie derivada; Describe el universo de ficción
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?obraCanon ?obraCanonLabel
+ORDER BY DESC(?num)
+ Try it! Tercera versión solo con relaciones recibidas seleccionando unas cuantas propiedades relevantes, y con ratio entre total de relaciones recibidas. SELECT ?obraCanon ?obraCanonLabel (COUNT(?obra) as ?num) (COUNT(?propiedad) as ?num_total) (COUNT(?obra)/COUNT(?propiedad)*100 as ?ratio ) WHERE { 
+VALUES ?obraCanon {wd:Q178869 wd:Q6511 wd:Q43361 wd:Q28306 wd:Q48244}
+  {
+  ?obra wdt:P921|wdt:P941|wdt:P144|wdt:P2860|wdt:P6977|wdt:P6166|wdt:P8371|wdt:P5059|wdt:P138|wdt:P1441|wdt:P4969|wdt:P737|wdt:P629|wdt:P361|wdt:P1433|wd:P1080|wdt:P1434|wdt:P179 ?obraCanon.   
+   # 18 propiedades de interés de \"mención\" de obraCanon
+   # Tema principal|Inspirado por|Basado en|Referencia|Reseña sobre|Cita la obra|Versión modificada de|Nombrado por|Personaje presente en la obra|Obra derivada|influenciado por|edición o traducción de|Forma parte de|Publicado en
+   # Del universo de ficción|Describe el universo de ficción | De la serie
+} 
+UNION 
+{
+  ?obra2 ?p ?obraCanon.
+?propiedad wikibase:directClaim ?p.
+}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?obraCanon ?obraCanonLabel
+ORDER BY DESC(?num)
+ Try it! Fecha de las obras [edit] Los libros modernos se publican en una fecha clara, próxima a la fecha de escritura. Pero hay muchos casos, libros que son rechazados durante décadas por editoriales, libros inéditos que se editan muchos años después de la muerte del autor, obras de teatro que tras su éxito se editan como libro legal o clandestinamente, obras de la tradición oral que en cierto momento se \"librizan\", obras de las tradiciones espirituales cuya fecha se pierde en la noche de los tiempos ... ¿Cuál sería una fecha adecuada para poder aplicar un factor de corrección a las obras del canon universal teniendo en cuenta el que \"hayan aguantado mucho tiempo\"? Pero muchas obras literarias existen antes como texto que como obra ... En Wikidata está la fecha de publicación, la fecha de creación y la fecha primera representación (para el teatro). Las fechas, además, pueden ser intervalos. SELECT ?canon ?canonLabel ?fechaestreno ?fechacrea ?fechapub 
+WHERE {
+VALUES ?canon {wd:Q9184 wd:Q8275 wd:Q41567 wd:Q83186 wd:Q480 wd:Q8279 wd:Q6511 wd:Q43361 wd:Q92640 wd:Q127149 wd:Q130283 wd:Q170583 wd:Q19786 wd:Q74287 wd:Q8258 wd:Q41542 wd:Q9190 wd:Q161531 wd:Q208460 wd:Q165318 wd:Q60220 wd:Q140527 wd:Q150827 wd:Q326909 wd:Q46758 wd:Q42040 wd:Q16438 wd:Q37293 wd:Q147787 wd:Q8269 wd:Q180736 wd:Q164974 wd:Q191838 wd:Q483034 wd:Q183157 wd:Q184742 wd:Q104871 wd:Q899334 wd:Q47209 wd:Q1396889 wd:Q178869 wd:Q4577 wd:Q188538 wd:Q123397 wd:Q25338 wd:Q181488 wd:Q86440 wd:Q8272 wd:Q46751 wd:Q190192 wd:Q463108 wd:Q181598 wd:Q523076 wd:Q185118 wd:Q70784 wd:Q6911 wd:Q46887 wd:Q174596 wd:Q202975 wd:Q48244 wd:Q219552 wd:Q47598 wd:Q41490 wd:Q206400 wd:Q131554 wd:Q26833 wd:Q191380 wd:Q2222 wd:Q80817 wd:Q183565 wd:Q214371 wd:Q79762 wd:Q1219561 wd:Q217352 wd:Q81689 wd:Q8065468 wd:Q134425 wd:Q82464 wd:Q191663 wd:Q212340 wd:Q172850 wd:Q215894 wd:Q2870 wd:Q81240 wd:Q28754 wd:Q131719 wd:Q48203 wd:Q326914 wd:Q45192 wd:Q182961 wd:Q464928 wd:Q221211 wd:Q148643 wd:Q130295 wd:Q274744 wd:Q241077 wd:Q80038 wd:Q128608 wd:Q215410 wd:Q308918 wd:Q193417 wd:Q210784 wd:Q208002 wd:Q213019 wd:Q48922 wd:Q214132 wd:Q80355 wd:Q19871 wd:Q11678 wd:Q469690 wd:Q1751870 wd:Q212898 wd:Q41675 wd:Q151883 wd:Q11829 wd:Q29478 wd:Q219457 wd:Q208971 wd:Q191949 wd:Q6113985 wd:Q185427 wd:Q205875 wd:Q332387 wd:Q223880 wd:Q233562 wd:Q11834 wd:Q183883 wd:Q28306 wd:Q240617 wd:Q50948 wd:Q471005 wd:Q36097 wd:Q726254 wd:Q329989 wd:Q128620 wd:Q192649 wd:Q181937 wd:Q202009 wd:Q62407 wd:Q333179 wd:Q271764 wd:Q26505 wd:Q155980 wd:Q237572 wd:Q6507 wd:Q11859 wd:Q123808 wd:Q131115 wd:Q212746 wd:Q408673 wd:Q207332 wd:Q179021 wd:Q215983 wd:Q131180 wd:Q233780 wd:Q206870 wd:Q47228 wd:Q51613 wd:Q565638 wd:Q655717 wd:Q131107 wd:Q131104 wd:Q808428 }
+OPTIONAL {?canon wdt:P577 ?fechapub}
+OPTIONAL {?canon wdt:P571 ?fechacrea}
+  OPTIONAL {?canon wdt:P1191 ?fechaestreno}
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY DESC(?fechaestreno) DESC(?fechacrea) ?fechapub
+ Try it! Todas las propiedades posibles de fecha [edit] Para indicar alguna fecha en un libro habría que usar una propiedad tipo fecha de entre las posibles. #Properties grouped by their type with number of properties
+SELECT ?property ?propertyLabel WHERE {
+  ?property rdf:type               wikibase:Property.
+  ?property wikibase:propertyType  wikibase:Time .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Vamos a extraer todas las subclases de Obra literaria [edit] Tenemos 2741 subclases de Obra literaria en 17 niveles. La lista de subclases completa: SELECT ?clase ?claseLabel (count(?mid) as ?depth) WHERE {
+  ?clase wdt:P279+ ?mid.
+  ?mid wdt:P279* wd:Q7725634. # Clase Obra literaria
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+  } group by ?clase ?claseLabel
+  order by ?depth
+ Try it! Pero no todas las subclases suponen lo mismo. Veams por ejemplo la subclase Obra literaria perdida, que está usada para un puñado de 38 elementos, que se corresponden con 174 artículos en Wikipedia. SELECT (count(?item) as ?n_items) (sum(?n_arts) as ?total) 
+WHERE 
+{
+SELECT ?item (count(?article) as ?n_arts) WHERE { 
+  ?item wdt:P31 wd:Q1585442 .
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  }
+  GROUP BY ?item
+  ORDER BY DESC(?n_arts)
+}
+ Try it! Sin embargo la clase Serie de libros se usa en 3476 items, para 7080 artículos en diferentes Wikipedias. SELECT (count(?item) as ?n_items) (sum(?n_arts) as ?total) 
+WHERE 
+{
+SELECT ?item (count(?article) as ?n_arts) WHERE { 
+  ?item wdt:P31 wd:Q277759 .
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  }
+  GROUP BY ?item
+  ORDER BY DESC(?n_arts)
+}
+ Try it! En resumen, podemos ponderar la importancia de cada clase según su uso, no en items, sino en artículos (es decir, correspondientes a items con un buen número de artículos en Wikipedias) SELECT ?clase ?claseLabel (sum(?n_arts) as ?total) 
+WHERE {
+VALUES ?clase {wd:Q277759 wd:Q1585442}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+{
+SELECT ?clase (count(?article) as ?n_arts) (count(?item) as ?n_items)  WHERE { 
+VALUES ?clase {wd:Q277759 wd:Q1585442}
+  ?item wdt:P31 ?clase.
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  }
+  GROUP BY ?clase
+  ORDER BY DESC(?n_arts)
+}
+  }
+GROUP BY ?clase ?claseLabel
+ Try it! Podemos testear errores de la taxonomía que no corresponden a items del universo bibliográfico, comprobando que los items asignados a una subclase tengan alguna de las propiedades habituales de obras literarias. Veamos por ejemplo para Q1539532 \"Temporada de un club deportivo\" que.... ¿Qué propiedades se usan para hacer declaraciones que apuntan a una clase como \"Obra literaria\"? [edit] En nuestro estudio casi siempre pensamos en las subclases usadas desde un P31, que establece una tipificación básica. Pero la clase obra literaria, y sus subclases se usan para construir relaciones desde más de 20 propiedades. Con una clara distribución asimétrica, concentrándose casi todo en P31. SELECT Distinct ?propiedad ?propiedadLabel (count(?item) as ?frec) WHERE { 
+?item ?p wd:Q7725634.
+?propiedad wikibase:directClaim ?p.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+ }
+group by ?propiedad ?propiedadLabel
+order by DESC(?frec)
+ Try it! Esto mismo podría hacerse para todas las subclases, observando aquellas en las que las declaraciones no sean P31, lo que significaría cierto \"cambio de criterio\" e indicaría inconsistencias en las construcción de la taxonomía o en la indización. Veamos para la clase-item \"Protesta\" que tiene 291 subclases en 6 niveles aparecen usos diferentes a P31. De entre todas las subclases destacada \"ceremonia de inauguración\" que se relaciona a través de P793 \"evento significativo\" 17900 veces. SELECT ?clase ?claseLabel ?propiedad ?propiedadLabel (count(?item) as ?frec) WHERE {
+  ?clase wdt:P279+ ?mid.
+  ?mid wdt:P279* wd:Q273120. # Protesta
+?item ?p ?clase.
+?propiedad wikibase:directClaim ?p.  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+  } group by ?clase ?claseLabel ?propiedad ?propiedadLabel
+#having (?depth < 3)
+order by ?claseLabel DESC(?frec)
+ Try it! Podemos ver los usos desde propiedades diferentes a P31 SELECT ?clase ?claseLabel (count(?item) as ?frec) WHERE {
+  ?clase wdt:P279+ ?mid.
+  ?mid wdt:P279* wd:Q273120. # Protesta
+  MINUS {?item wdt:P31 ?clase.}
+   ?item ?p ?clase.
+?propiedad wikibase:directClaim ?p. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+  } group by ?clase ?claseLabel
+  order by ?frec
+ Try it! Consultas sobre clases y esquemas [edit] Wikidata como ontología o vocabulario de clases Propiedades para describir cosas de un \"dominio\" [edit] Podemos obtener el esquema de descripción (Propiedades) que se usan al describir cosas en el universo de ficción de Star Trek (Q18043309) SELECT DISTINCT ?propiedadLabel ?p ?dominioLabel (COUNT(?sujeto) AS ?num) WHERE
+{
+VALUES ?dominio {wd:Q18043309}
+?sujeto ?propiedad_dominio ?dominio;
+?p ?objeto.
+?propiedad wikibase:directClaim ?p.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+GROUP BY ?propiedadLabel ?p ?dominioLabel Clases de un dominio [edit] Consulta para sabre los elementos que son usados como clases para organizar el dominio \"Star Trek\" SELECT DISTINCT ?clase ?claseLabel ?propiedad_clase_subclase ?superclase ?superclaseLabel (COUNT(?sujeto) AS ?num) WHERE
+{
+VALUES ?dominio {wd:Q18043309}
+VALUES ?propiedad_clase_subclase {
+wdt:P279 wdt:P31 wdt:P361 wdt:P1269
+}
+?sujeto ?propiedad_dominio ?dominio;
+wdt:P31 ?clase.
+?clase ?propiedad_clase_subclase ?superclase.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en,eu\". }
+}
+GROUP BY ?clase ?claseLabel ?propiedad_clase_subclase
+?superclase ?superclaseLabel Propiedades más usadas en un dominio [edit] Conteo del uso de clases en elementos del universo de Star Trek. SELECT DISTINCT ?propiedadLabel ?p ?dominioLabel (COUNT(?sujeto) AS ?num) WHERE
+{
+VALUES ?dominio {wd:Q18043309}
+?sujeto ?propiedad_dominio ?dominio;
+?p ?objeto.
+?propiedad wikibase:directClaim ?p.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\"}
+}
+GROUP BY ?propiedadLabel ?p ?dominioLabel
+ORDER BY DESC(?num) Profundizando en las obras literarias \"subclaseadas\" con artículos en Wikipedia [edit] Muchas obras literarias están tipificadas (P31) con alguna de las más de 2700 subclases de \"Obra literaria\". En total, incluyendo la clase principal y sus subclases, 327.004 obras, aunque, como la taxonomía de clases de Wikidata es tan loca, pueden aparecer aquí canciones y otras cosas que necesitan limpieza para que los resultados se ajusten al propósito \"literario\" o \"librario\". SELECT (COUNT(*) AS ?count) WHERE {  
+?item wdt:P31/wdt:P279* wd:Q7725634 . #Obra literaria recursivo
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+}
+ Try it! En realidad son candidatas a obras literarias. Más o menos, hemos visto que bajo las subclases de obra literaria hay aproximadamente 2 veces más elementos a evaluar, de los que teníamos solo con \"Obra literaria\" asignado directamente. Unos 221.238 items que han sido clasificados más especificamente con subclsases. SELECT DISTINCT ?item WHERE {  
+?item wdt:P31/wdt:P279+ wd:Q7725634 . #Obra literaria recursivo
+  #FILTER (!CONTAINS(str(?clase),'Q77725634'))
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+ Try it! Haciendo una consulta anidada, podemos recuperar obras y saber cómo de relevantes son calculando el número de wikis en las que tienen artículo (n_wikis). Por ejemplo en esta consulta, limitada, podemos ver obras relevantes que perdemos si no usamos las subclases para consultar Wikidata. Es una consulta optimizada, donde obtenemos la obra y el n_wikis. SELECT ?item ?itemLabel (COUNT(*) AS ?n_wikis)
+WITH {
+  SELECT ?item
+WHERE {
+  ?clase wdt:P279* wd:Q7725634. # Clase Obra literaria
+  ?item wdt:P31 ?clase .
+  #FILTER (!CONTAINS(str(?clase),'Q77725634'))
+  MINUS { ?item wdt:P31 wd:Q7725634 }
+#SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+LIMIT 50
+      }
+AS %results
+WHERE {
+INCLUDE %results.
+  ?article schema:about ?item .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?n_wikis)
+ Try it! Podemos extender la consulta a todos los items descritos con cualquier subclase de Obra literaria, y saber cuántos tienen suficiente número de artículos en las Wikipedias para considerarse relevantes. Por ejemplo, los 239 que aparecenen más de 40 Wikipedias. Podríamos explorar sus clases, para seleccionar las adecuadas para profundizar en la taxonomía de obras literarias. SELECT ?item ?itemLabel (COUNT(*) AS ?n_wikis)
+WITH {
+  SELECT DISTINCT ?item
+WHERE {
+  ?clase wdt:P279* wd:Q7725634. # Clase Obra literaria
+  ?item wdt:P31 ?clase .
+  #FILTER (!CONTAINS(str(?clase),'Q77725634'))
+  MINUS { ?item wdt:P31 wd:Q7725634 }
+#SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+LIMIT 5000
+      }
+AS %results
+WHERE {
+INCLUDE %results.
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+GROUP BY ?item ?itemLabel
+HAVING (?n_wikis > 40)
+ORDER BY DESC(?n_wikis)
+ Try it! Podemos ver, por ejemplo, que la subclase Artículo cronológico de Wikipedia resulta ser una obra literaria, y no debería serlo, y además supone 103.191 items; igual pasa con temporada de un equipo de fútbol (Q26887310); canción (Q7366), temporada de un club de fútbol americano (Q26895936), temporada de un club deportivo (Q1539532) ... estas clases estrafalarias deben descartarse de entre los 767 resultados obtenidos. SELECT ?clase (count(?item) as ?n_items) WHERE {  
+?item wdt:P31 ?clase .
+?clase wdt:P279+ wd:Q7725634 . #Obra literaria recursivo
+  FILTER (!CONTAINS(str(?clase),'Q77725634'))
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+}
+GROUP BY ?clase
+ORDER BY DESC(?n_items)
+ Try it! Vamos a localizas por qué \"temporada deportiva\" resulta ser una \"obra literaria\" usando el servicio GAS de Wikidata para encontrar el camino más corto, y atravaser el grafo. Veremos que como \"Temporada\" está subclaseado como \"Artículo cronológico de Wikipedia\" que a su vez está subclaseado como \"Crónica\" y la crónica es, finalmente, una obra literaria ... pues tenemos el lío. # Encontrar la distancia más corta entre dos nodos, a través de la propiedad P279 (También puede usarse con ?linkType para cualquier relación
+# Elemento destino \"Obra literaria\" Q7725634
+# Uso del servicio GAS
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?depth ?predecessor ?predecessorLabel ?out ?outLabel {
+  SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q1539532 . # one or more times, specifies the initial frontier.
+     gas:program gas:target wd:Q7725634 . # only retain vertices along paths to these target vertices.
+     gas:program gas:out ?out . # exactly once - will be bound to the visited vertices.
+     gas:program gas:out1 ?depth . # exactly once - will be bound to the depth of the visited vertices.
+     gas:program gas:out2 ?predecessor . # exactly once - will be bound to the predecessor.
+     gas:program gas:maxIterations 6 . # optional limit on breadth first expansion.
+     gas:program gas:maxVisited 2000 . # optional limit on the #of visited vertices.
+  }
+  ?predecessor wdt:P279 ?out . # figure out what link type(s) connect a vertex with a predecessor
+  FILTER(STRSTARTS(STR(?predecessor), \"http://www.wikidata.org/entity/Q\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+order by desc(?depth)
+limit 100
+ Try it! Evaluación de items subclasificados en obra literaria [edit] Uno de los problemas al recorrer la taxonomía es que algunos de sus elementos extraños pueden resultar en obtener items fuera de rango, que no son, ni por asomo, obra literaria. Para prevenirlo, el algoritmo que recorra y extraiga elementos puede evaluar la \"probabilidad de ser obra literaria\" teniendo en cuenta la presencia de propiedades frecuentes en obras significativas: las que hemos encontrado en C2, C3.Ejemplo con dos elementos: Obra literaria perdida y Artículo cronológico. El primero debería dar resultados afirmativos y el segundo negativos. Nota: La consulta no está considerando que los items tengan artículo en Wikipedia Aquellos items que superen un cierto umbral, pueden ser mejores candidatos a obra literaria. Ninguno de los casos recuperados en esta cosulta supera el 40%. Sin embargo el registro de la obra literaria perdida \"Protréptico de Aristóteles\" (Q3408187) podría ser considerado una obra literaria aunque su resultado es 27,7% igual que otros irrelevantes. # Obra literaria perdida, wd:Q1585442 
+# Artículo cronológico de Wikimedia, wd:Q18340514)
+SELECT ?item ?clases (count(?cosa) as ?n_propsC2)  WHERE
+{
+  VALUES ?clases { wd:Q1585442 wd:Q18340514 }  
+  # ?propC2, 16 propiedades más relevantes del cluster secundario
+  VALUES ?propC2_direct { <http://www.wikidata.org/prop/direct/P50> <http://www.wikidata.org/prop/direct/P1476> <http://www.wikidata.org/prop/direct/P136> <http://www.wikidata.org/prop/direct/P577> 
+                           <http://www.wikidata.org/prop/direct/P7937> <http://www.wikidata.org/prop/direct/P6216> <http://www.wikidata.org/prop/direct/P747> <http://www.wikidata.org/prop/direct/P123> 
+                           <http://www.wikidata.org/prop/direct/P4969> <http://www.wikidata.org/prop/direct/P840> <http://www.wikidata.org/prop/direct/P674> <http://www.wikidata.org/prop/direct/P921>
+                           <http://www.wikidata.org/prop/direct/P179> <http://www.wikidata.org/prop/direct/P1922> <http://www.wikidata.org/prop/direct/P1433> <http://www.wikidata.org/prop/direct/P3132> }
+  ?item wdt:P31 ?clases .
+  ?item ?propC2_direct ?cosa .
+}
+group by ?item ?clases
+order by DESC(?n_propsC2)
+LIMIT 1000
+ Try it! Esta consulta tiene un error: no coge solo las propiedades usadas (únicas) sino las declaraciones realizadas (Varias). Incluyendo solo items con artículo Wikipedia Realizada ahora como named subquery obtenemos resultados de solo 16 propiedades clave (Algunas premian a las obras narrativas), pero todavía sale el conteo de propiedades usadas influido por el número de declaraciones (Si tiene dos géneros, dos títulos....) # Obra literaria perdida, wd:Q1585442 
+# Artículo cronológico de Wikimedia, wd:Q18340514)
+SELECT ?item ?clases (count(?propC2_direct) as ?n_propsC2)
+WITH {
+# Primero seleccionamos los items de las clases con articulo Wikipedia
+  SELECT distinct ?item ?clases WHERE
+{
+  VALUES ?clases { wd:Q1585442 wd:Q18340514 }  
+  # ?propC2, 18 propiedades más relevantes del cluster secundario
+  
+  ?item wdt:P31 ?clases .
+  ?article schema:about ?item .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  
+}
+
+               } as %results
+WHERE {
+# Ahora seleccionamos las propiedades relevantes para obra literaria
+# P50 Autor; P1476 título; P136 género; P577 fecha de publicación; P7937 forma artística; P6216 estatus de los derechos de autor; P747 edición o traducción; P123 editorial; P4969 obra derivada; P921 tema principal de la obra
+# P179 serie ; P1922 íncipit; P3132 éxcipit; P1433 publicado en
+# Propiedades narrativa-ficción: lugar de la narración (P840); personajes (P674); 
+  
+  Include %results.
+  VALUES ?propC2_direct { <http://www.wikidata.org/prop/direct/P50> <http://www.wikidata.org/prop/direct/P1476> <http://www.wikidata.org/prop/direct/P136> <http://www.wikidata.org/prop/direct/P577> 
+                           <http://www.wikidata.org/prop/direct/P7937> <http://www.wikidata.org/prop/direct/P6216> <http://www.wikidata.org/prop/direct/P747> <http://www.wikidata.org/prop/direct/P123> 
+                           <http://www.wikidata.org/prop/direct/P4969> <http://www.wikidata.org/prop/direct/P840> <http://www.wikidata.org/prop/direct/P674> <http://www.wikidata.org/prop/direct/P921>
+                           <http://www.wikidata.org/prop/direct/P179> <http://www.wikidata.org/prop/direct/P1922> <http://www.wikidata.org/prop/direct/P1433> <http://www.wikidata.org/prop/direct/P3132> }
+  ?item ?propC2_direct ?cosa .
+}
+group by ?item ?clases
+order by DESC(?n_propsC2)
+ Try it! Algoritmo de selección de items obra literaria en subclases [edit] Digamos que estoy podría servir para un trabajo titulado How many books contains Wikipedia? exploring messy taxonomies as Wikidata subclasses Seleccionar todas las subclases de obra literaria, por niveles. Seleccionar clase a clase todos los items con artículo en Wikipedia Establecer el valor de cada artículo, según N-Wikis Evaluar el uso de propiedades relevantes para obra literaria (set de 15-16 propiedades de C2). Uso único, no declaraciones. Establecer valor entre 0 -1 Fórmula para evaluar item: N-Wikis + N-Props-C2*100 Por ejemplo, si aparece en 6 Wikipedias y tiene 0,4 propiedades C2 = 6 + 40 = 46 Por ejemplo, aparece en 20 Wikipedias y tiene 0,2 propiedades C2 = 20 + 20 = 40 Establecer umbral de selección: 45 puntos También se podría seleccionar primero solo aquellas obras candidatas relevantes por N-Wikis, y luego filtrar por uso de propiedades C2. Pero de esta forma preseleccionaríamos obras candidatas a canon, y no cualquier obra local. Para recorrer las clases y subclases de la taxonomía/ontología de Wikidata Recorrer taxonomía de clases [edit] Vamos a localizas por qué \"temporada deportiva\" resulta ser una \"obra literaria\" usando el servicio GAS de Wikidata para encontrar el camino más corto, y atravaser el grafo. Veremos que como \"Temporada\" está subclaseado como \"Artículo cronológico de Wikipedia\" que a su vez está subclaseado como \"Crónica\" y la crónica es, finalmente, una obra literaria ... pues tenemos el lío. # Encontrar la distancia más corta entre dos nodos, a través de la propiedad P279 (También puede usarse con ?linkType para cualquier relación
+# Elemento destino \"Obra literaria\" Q7725634
+# Uso del servicio GAS
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+SELECT ?depth ?predecessor ?predecessorLabel ?out ?outLabel {
+  SERVICE gas:service {
+     gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" .
+     gas:program gas:in wd:Q1539532 . # one or more times, specifies the initial frontier.
+     gas:program gas:target wd:Q7725634 . # only retain vertices along paths to these target vertices.
+     gas:program gas:out ?out . # exactly once - will be bound to the visited vertices.
+     gas:program gas:out1 ?depth . # exactly once - will be bound to the depth of the visited vertices.
+     gas:program gas:out2 ?predecessor . # exactly once - will be bound to the predecessor.
+     gas:program gas:maxIterations 6 . # optional limit on breadth first expansion.
+     gas:program gas:maxVisited 2000 . # optional limit on the #of visited vertices.
+  }
+  ?predecessor wdt:P279 ?out . # figure out what link type(s) connect a vertex with a predecessor
+  FILTER(STRSTARTS(STR(?predecessor), \"http://www.wikidata.org/entity/Q\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+order by desc(?depth)
+limit 100
+ Try it! Consultando la ontología (Propiedades, clases) [edit] Búsquedas para conocer cómo está organizado el conocimiento en Wikidata como ontología, taxonomía, red de conceptos o vocabulario-esquema. Jerarquía de clases sobre BOSQUE (broad context) [edit] Recorrido de las subclases (P279) a las que pertenece el concepto Bosque (Q4421): """@en,
+    """Referencias y materiales para taller en el Curso Wikidata PAyED, Universidad de Salamanca, diciembre 2020 Contacto Tomás Saorín, Universidad de Murcia, tsp@um.es Contents 1 Recursos útiles 1.1 Videos 1.2 Materiales guía 1.3 Bibliografía útil 2 Ejemplo de creación de declaraciones 2.1 Premios de una película y miembros del reparto 2.2 Otro ejemplo sencillo para crear nuevos registros 3 Ejemplos SPARQL 3.1 Material de referencia y tutoriales 3.2 Delimitar y tipificar 3.3 Buscando cosas sobre ... PUENTES 3.3.1 Listado inicial de puentes 3.3.2 Puentes en España 3.3.3 Puentes de todos los tipos en España 3.3.4 Arquitectos de los puentes en España 3.3.5 Puentes en el mundo de Arquitectos que hayan estudiado en el Politécnico de Zurich 3.3.6 Premios que han recibido los arquitectos que han hecho puentes en España 3.3.7 Ocupación de personas que han recibido premios que tambimén han recibido arquitectos de puentes en España 3.3.8 Fotos de puentes del mundo 3.3.9 Mapa de puentes de todo tipo en España 3.3.10 Mapa de puentes de todo tipo que atraviesan el Tajo 3.3.11 Mapa de embalses CON CAPA DE FILTRO por vertiente del río 3.3.12 Mapa de puentes que cruzan el Tejo, el Nilo y el Missisipí 3.3.13 ¿En qué paises hay más puentes? 3.3.14 ¿De qué color es el puente Golden Gate? 3.3.15 Listado de colores de puentes 3.3.16 Material de construcción 3.3.17 ¿De qué material están hechos los puentes que cruzan el Tajo? 3.4 Consultando la ontología (Propiedades, clases) 3.4.1 Jerarquía de clases sobre BOSQUE (broad context) 3.4.2 Jerarquía de clases hasta BOSQUE (narrow context) 3.4.3 Versión con Graph Service 3.4.3.1 Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) 3.4.3.2 Árbol de clases para BOSQUE (Traversal direction = Forward) 3.4.4 Grafo de vecindad de conceptos de la Pandamia COVID-19 3.4.5 Encontrar el camino desde una subclase a su superclase (target) con GAS Service 3.5 Otras búsquedas SPARQL 3.5.1 Personas nacidas en el País Vasco 3.5.2 Primeras líneas de obras en español 3.5.3 Capitales de todos los países de la UE 3.5.4 Cuadrícula con foto de los premios nobel de física 3.5.5 Mapa de países que usan el teléfono 112 de emergencias 3.5.6 Campos de actividad de Alan Turing 3.5.7 Personas muertas 3.5.8 Personas fallecidas en 1937 3.5.9 Autores españoles que entran en el dominio público este año 3.5.10 Creadores españoles que entran en el dominio público 3.5.11 Directores de películas inspiradas en Hamlet 3.5.12 Personajes de obras literarias asesinados y su asesino 3.5.13 Año de creación de La libertad guiando al pueblo 3.5.14 Cuadros pintados el mismo año que La Libertad guiando al pueblo 3.5.15 Cuadros que representan caballos en el barroco 3.5.16 Personas relevantes nacidas en Londres 3.5.17 Obras de Vermeer por año de creación 3.5.18 Gráfico de área de libros por año de publicación y genero en narrativa, desde el año 2000 3.5.19 Premios recibidos por Muñoz Molina cada año 3.5.20 Partes de catedrales registradas en Wikidata 3.5.21 Premios ganados por vascos 3.5.22 ¿En qué paises hay más puentes? 3.5.23 Grafo de organizaciones y periodistas Recursos útiles [edit] Videos [edit] Introducción a Wikidata (1:24) Gustavo Candela, María Dolores Sáez / Wikimedia España, abril 2020 Introducción a Wikidata (1:38 min) Wikimedia Argentina, abril 2020 Video del taller Wikidata para archivos (Canal Youtube de la AAA, 3 horas. Primera parte de introducción a Wikidata y autoridades; Segunda parte práctica sobre SPARQL) Bibliografía, presentaciones, tutoriales, proyectos, etc. Materiales guía [edit] 01. Introducción a Wikidata: Grafo de conocimiento de contexto colaborativo 02-1. Consumo y consulta de datos 03. Consultas SPARQL Esquemas en-una-página WDQS in brief Wikidata in brief Nave extra * 02-2. Ontología colaborariva Bibliografía útil [edit] Wikidata, a target for Europeana’s semantic strategy Vladimir Alexiev (Glam-Wiki 2015) Wikipedia, Wikidata y Mix’n’match, Agenjo-Bullón, Xavier; Hernández-Carrascal, Francisca (2020) Anuario ThinkEPI, v. 14 Registros de autoridades, enriquecimiento semántico y Wikidata Agenjo-Bullón, Xavier; Hernández-Carrascal, Francisca (2018) Anuario ThinkEPI, v. 12, pp. 361-372. Association of Research Libraries White Paper on Wikidata: Opportunities and Recommendations ARL, Abril, 2019 Wikidata Glam Workshop: Cómo saber todo sobre todo con Wikidata, la máquina de conocimiento de Wikipedia. Archivo General / Biblioteca Regional /de Murcia, 2018 Wikidata y DBpedia: viaje al centro de la web de datos / Anuario ThinkEpi, 2018 Introduction to Wikidata for Librarians Structuring Wikipedia and Beyond. OCLC, 2018 How Wikidata Is Solving Its Chicken-or-Egg-Problem in the Field of Cultural Heritage Beat Estermann, Oct. 2018 A Brief Introduction to Wikidata: Learn how to query data from Wikipedia Björn Hartmann, Towards Data Science (Medium), April 2018 Report on the results of the Wikimedia Taskforce, Europeana, nov 2015. Grafos de conocimiento y bases de datos en grafo: conceptos fundamentales a partir de una “obra maestra” del Museo del Prado Anuario ThinkEpi, 2019 Del mobile-first al data-first: schema.org, búsquedas zero-click y la incertidumbre sobre los asistentes de voz Anuario ThinkEpi, vol. 14, 2020 Uso de Wikidata y Wikipedia para la generación asistida de un vocabulario estructurado multilingüe sobre la pandemia de Covid-19, El Profesional de la información, Vol. 29 Núm. 5 (2020) Introducción a Wikicite, Wikimedia España, junio 2020 Ejemplo de creación de declaraciones [edit] Premios de una película y miembros del reparto [edit] Adelfa Calvo, gana el Goya en 2018 por la película El autor de 2017 Existe el item de la actriz https://www.wikidata.org/wiki/Q15864378 Existe el item del premio https://www.wikidata.org/wiki/Q429700 Existe propiedad Premio recibido: https://www.wikidata.org/wiki/Property:P166 Existe el item de la película https://www.wikidata.org/wiki/Q39172483 Meter declaración en elemento actriz Creamos el P166 para el premio Goya actriz reparto Luego lo podemos cualificar con: Premiado por la obra P1686 y con Fecha P585 Podemos meter referencia de soporte: No podemos usar afirmado en (P248) si no es vinculando a otra entidad-obra, pero podemos indicar la url de la página con la propiedad \"Dirección web de la referencia\" (P854) (Ver Ayuda sobre Sources) Meter declaración en película Creamos P166 para el premio Goya genérico Luego lo podemos cualificar con: Ganador P1346 ... enlace a Q de la actriz, y Fecha .... CONSULTA SPARQL DE ESTE PREMIO Atención! Aparecen películas y personas SELECT ?cosa ?cosaLabel
+WHERE
+{
+  ?cosa wdt:P166 wd:Q429700
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Otro ejemplo sencillo para crear nuevos registros [edit] Canciones de un disco que no esté registrado. Atención, tiene que haber un item para el disco (Fácil) y otro para la canción (seguramente habrá que crearlo). En el disco, propiedad P658 https://www.wikidata.org/wiki/Property:P658 En la canción, propiedad P361 https://www.wikidata.org/wiki/Property:P361 Pensar en entidades WEMI del modelo conceptual LRM-FRBR ... Tipo (P31) del item para el disco: álbum de estudio, https://www.wikidata.org/wiki/Q208569 y para la canción: composición musical, https://www.wikidata.org/wiki/Q207628 Ejemplos SPARQL [edit] Consultar, consumir, explotar el grafo de conocimiento de Wikidata. Recuerda que para obtener las etiquetas de los items, debemos añadir en la consulta SPARQL la correspondiente llamada al servicio label de Wikibase. Así siempre que añadamos \"Label\" a una variable (?itemLabel) nos la presentará bien rotulada:
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" } Material de referencia y tutoriales [edit] Tutorial iniciación paso a paso Edimburg University Guía de SPARQL y Wikidata Jose Emilio Labra Gayo, WESO, Universidad de Oviedo, 2019 Tutorial oficial de SPARQL en Wikidata Videotutorial WDQS Wikimedia Argentina Tutorial Wikidata Linked Data Future (Canada) Delimitar y tipificar [edit] Consulta por \"?cosa\" especificando que sea una persona. SELECT ?cosa?cosaLabel
+WHERE
+{
+	?cosa wdt:P31 wd:Q5 # Ser humano
+  	?cosa wdt:P166 wd:Q429700 # Goya mejor actriz reparto
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel
+WHERE
+{
+	?cosa wdt:P31 ?tipo . # Tipo de item
+  	?cosa wdt:P166 wd:Q429700 # Goya mejor actriz reparto
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Buscando cosas sobre ... PUENTES [edit] Vamos a realizar búsquedas sobre PUENTES. Wikidata Query Service El punto de acceso interrogable SPARQL está en https://query.wikidata.org/ (SPARQL EndPoint) Listado inicial de puentes [edit] Consulta por Q12280 que es puente ... pero también hay tipos SELECT ?cosa ?cosaLabel 
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes en España [edit] Añadimos el patrón país (P17) España Q29 Consulta por tipo (P31) Q12280 que es puente ... pero también hay tipos SELECT ?cosa ?cosaLabel 
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes de todos los tipos en España [edit] Búsqueda recursos por subclases SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P31 ?tipo
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Arquitectos de los puentes en España [edit] Añadimos P84 (arquitecto) SELECT ?cosa ?cosaLabel ?arquitecto ?arquitectoLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Puentes en el mundo de Arquitectos que hayan estudiado en el Politécnico de Zurich [edit] Añadimos P84 (arquitecto) Añadimos P69 (educado en) SELECT ?cosa ?cosaLabel ?arquitecto ?arquitectoLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P69 wd:Q11942
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Premios que han recibido los arquitectos que han hecho puentes en España [edit] Añadimos premio recibido P166 SELECT ?arquitecto ?arquitectoLabel ?premio ?premioLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P166 ?premio
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Ocupación de personas que han recibido premios que tambimén han recibido arquitectos de puentes en España [edit] Descubrimiento de cosas extrañas SELECT ?persona ?personaLabel ?ocupacion ?ocupacionLabel
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P84 ?arquitecto .
+  ?arquitecto wdt:P166 ?premio .
+  ?persona wdt:P166 ?premio .
+  ?persona wdt:P106 ?ocupacion .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Fotos de puentes del mundo [edit] Usamos plantilla #defaultView:ImageGrid
+SELECT ?cosa ?cosaLabel ?image
+WHERE 
+{
+  ?cosa wdt:P31 wd:Q12280 .
+  ?cosa wdt:P18 ?image .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de puentes de todo tipo en España [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P17 wd:Q29 .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de puentes de todo tipo que atraviesan el Tajo [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P177 wd:Q14294 .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Mapa de embalses CON CAPA DE FILTRO por vertiente del río [edit] #defaultView:Map{\"hide\": [\"?tipo\",\"?layer\"],\"Layer\": \"?layerLabel\"}
+SELECT ?cosa ?cosaLabel ?tipo ?tipoLabel ?geo ?layerLabel
+WHERE 
+{
+  ?rio wdt:P205 wd:Q29 . #Cuenca de España
+  ?rio wdt:P469 ?cosa . #Embalses en el curso de un rio
+  ?rio wdt:P403 ?vertiente . # Vertiente del rio
+  ?cosa wdt:P625 ?geo . # Coordenadas
+  BIND(?vertiente AS ?layer)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY ?layerLabel
+ Try it! Mapa de puentes que cruzan el Tejo, el Nilo y el Missisipí [edit] Usamos plantilla Map #defaultView:Map
+SELECT ?cosa ?cosaLabel ?geo
+WHERE 
+{
+  VALUES ?rio {wd:Q14294 wd:Q3392 wd:Q1497} #Rios: Tajo Nilo Missisipi
+  ?cosa  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?cosa wdt:P177 ?rio .
+  ?cosa wdt:P625 ?geo .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! ¿En qué paises hay más puentes? [edit] Gráfico de barras para los 20 países con más puentes. Recursiva por P279 subclase. #defaultView:BarChart
+SELECT ?paisLabel (COUNT(?item) as ?num)
+WHERE {
+  ?item wdt:P17 ?pais .
+  ?item wdt:P31 ?tipo . # Tipo del item
+  ?tipo wdt:P279* wd:Q12280 . # tipo subclase recursiva de PUENTE
+  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en,eu\". }
+}
+GROUP BY ?paisLabel
+ORDER BY DESC(?num)
+LIMIT 20
+ Try it! ¿De qué color es el puente Golden Gate? [edit] Como existe la propiedad P462 color y sé que el identificador del Golden Gate Q44440 SELECT ?color ?colorLabel
+WHERE {
+  wd:Q44440 wdt:P462 ?color
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Listado de colores de puentes [edit] Ahora podemos probar con P462 qué sabemos sobre los colores de los puentes ... SELECT ?item ?itemLabel ?color ?colorLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P462 ?color
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Material de construcción [edit] Aunque el color no es lo más relevante. Mejor probamos con \"material empleado\", que es una propiedad más constructiva (P186). SELECT ?item ?itemLabel ?material ?materialLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P186 ?material
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! ¿De qué material están hechos los puentes que cruzan el Tajo? [edit] Podemos llegar a saber cosas que a Google le cuesta responder (de momento) y además veremos que solo \"sabemos\" el material de la mitad de los puentes (los que son de piedra)... SELECT ?item ?itemLabel ?material ?materialLabel
+WHERE {
+  ?item  wdt:P31*/wdt:P279* wd:Q12280 .
+  ?item wdt:P177 wd:Q14294 .
+  OPTIONAL {  ?item wdt:P186 ?material . }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ Try it! Consultando la ontología (Propiedades, clases) [edit] Búsquedas para conocer cómo está organizado el conocimiento en Wikidata como ontología, taxonomía, red de conceptos o vocabulario-esquema. Jerarquía de clases sobre BOSQUE (broad context) [edit] Recorrido de las subclases (P279) a las que pertenece el concepto Bosque (Q4421): """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tsaorin/Subclases>, <https://www.wikidata.org//wiki/User:Tsaorin/Obrasliterarias>,
+    <https://www.wikidata.org//wiki/User:Tsaorin/TallerUSAL2020>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec24917-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec24917-5E56369AA58ADE1DD4EFA2718250B7D1;
+  schema:target <https://query.wikidata.org/sparql/> .

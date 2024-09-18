@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-386ae637053e3619ce74a90d99ab45bb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item (COUNT(DISTINCT ?sitelink) as ?articlecount) WHERE {
+  ?item wdt:P570 ?deathdate;
+        wdt:P31 wd:Q5 .
+  FILTER (YEAR(?deathdate)=1945) .
+  ?sitelink schema:about ?item .
+  
+  VALUES ?allowedRank { wikibase:NormalRank wikibase:PreferredRank } .
+  ?item p:P106 ?occupationStatement .
+  ?occupationStatement ps:P106/wdt:P279* wd:Q2500638;
+                       wikibase:rank ?allowedRank .
+} GROUP BY ?item ORDER BY DESC (?articlecount)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127538-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

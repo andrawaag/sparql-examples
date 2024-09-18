@@ -1,0 +1,171 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-48319375dff65c5ef2cc64023fe5234e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT distinct ?item ?itemLabel ?itemDescription WHERE{  
+  ?item ?label \"Oak\"@en.  
+  ?article schema:about ?item .
+  ?article schema:inLanguage \"en\" .
+  ?article schema:isPartOf <https://en.wikipedia.org/>.	
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }    
+}""";
+  rdfs:comment """Contents 1 Basic 2 SMG Collections 3 People, professions with images, articles 4 Kurdish queries 5 Things, with images 6 Other, more complex queries 7 Random queries 8 Martin's Queries 9 Others 9.1 Properties and values from single item 9.2 Properties and values from single item with qualifiers 9.3 Properties in English not in Danish (or select another language) 9.4 The Zodiac Signs of Japanese Prime Ministers 9.5 Search by words in label 9.6 Moomin valley location Basic [edit] List of/show me all of a thing with one statemente.g Show me all the things that are an instance of a conspiracy theory. SELECT ?item ?itemLabel #the labels for the things in the query
+
+WHERE { ?item wdt:P31 wd:Q159535 #instance of a thing with this thing about it
+     
+      
+      
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! SMG Collections [edit] SELECT ?item ?itemLabel ?groupLabel ?imageLabel ?collection ?collectionLabel WHERE {
+  ?item wdt:P8694 ?group .
+  ?item wdt:P18 ?image .
+  ?item wdt:P195 ?collection .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it!  People, professions with images, articles [edit] Classics Scholars who are women who have Wikipedia articles then the men Women footballers with articles Women footballers with articles and images Male footballers, from the UK, with en:wp articles Count profession by gender (footballers in this case) Female writers from or born in the Caribbean same as above Kurdish queries [edit] Map of cities in Iraq with coordinates and images Map of settlements in Iraq with coordinates and images Settlements in Iraq without an article in Sorani Settlements in Iraq without an article in Kurmanji Locations of small settlements in Iraq, with images Count of Iraqi settlements, not cities, without an image [1] Things, with images [edit] Castles, with images attempted to add coordinates Items in Thirty-six Views of Mount Fuji by Hokusai with locations Munch paintings Other, more complex queries [edit] Current parliament and roles Map of accused Witches with locations and clustering Map of accused Witches with spiderfying British politicians queries Random queries [edit] Sausages Martin's Queries [edit] Martin's queries Others [edit] Properties and values from single item [edit] SELECT ?prop_id ?prop_label ?prop_val_label WHERE {
+  VALUES (?company) {
+    (wd:Q208048)
+  }
+  ?company ?prop_id ?company_item.
+  ?wd wikibase:directClaim ?prop_id.
+  ?wd rdfs:label ?prop_label.
+  OPTIONAL {
+    ?company_item rdfs:label ?prop_val.
+    FILTER((LANG(?prop_val)) = \"en\")
+  }
+  BIND(COALESCE(?prop_val, ?companyItem) AS ?prop_val_label)
+  FILTER((LANG(?prop_label)) = \"en\")
+}
+ Try it! Properties and values from single item with qualifiers [edit] SELECT ?wdLabel ?ps_Label ?wdpqLabel ?pq_Label {
+  VALUES (?company) {(wd:Q95)}
+
+  ?company ?p ?statement .
+  ?statement ?ps ?ps_ .
+
+  ?wd wikibase:claim ?p.
+  ?wd wikibase:statementProperty ?ps.
+
+  OPTIONAL {
+  ?statement ?pq ?pq_ .
+  ?wdpq wikibase:qualifier ?pq .
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} ORDER BY ?wd ?statement ?ps_
+ Try it! Properties in English not in Danish (or select another language) [edit] SELECT * WHERE {
+  ?property rdf:type wikibase:Property;
+    rdfs:label ?english.
+  FILTER(NOT EXISTS {
+    ?property rdfs:label ?dansk.
+    FILTER((LANG(?dansk)) = \"da\")
+  })
+  FILTER((LANG(?english)) = \"en\")
+}
+ Try it! SELECT
+  ?item
+  (SAMPLE (?titleL) AS ?title)
+  (group_concat(distinct ?creatorL ; separator = \", \") as ?creator)
+  (group_concat(distinct ?genreL ; separator = \", \") as ?genre)
+  (group_concat(distinct ?placeL ; separator = \", \") as ?place)
+  (group_concat(distinct ?arr ; separator = \", \") as ?arrondissement)
+  (SAMPLE (?img) AS ?image)
+  (SAMPLE (?coord) AS ?coordinates) {
+
+    {
+      SELECT DISTINCT ?item { {
+        ?item wdt:P136 wd:Q557141 ;     # genre: public art
+              wdt:P131 wd:Q90           # located in: Paris
+      } UNION { # or
+        ?item wdt:P136 wd:Q557141 ;     # genre: public art
+              wdt:P131/wdt:P131* wd:Q90 # located in an arrondissement of Paris
+      } }
+    }
+   
+    # title
+    OPTIONAL { ?item rdfs:label ?titleL filter (lang(?titleL) = \"fr\") }
+   
+    # creators
+    OPTIONAL { ?item wdt:P170 [rdfs:label ?creatorL] filter (lang(?creatorL) = \"fr\") }
+   
+    #genre
+    OPTIONAL {
+      {
+        ?item wdt:P136 ?g filter (STR(?g) != 'http://www.wikidata.org/entity/Q557141')
+      } UNION {
+        ?item wdt:P31 ?g .
+      }
+      ?g rdfs:label ?genreL filter (lang(?genreL) = \"fr\") .
+    }
+   
+    # place
+    OPTIONAL {
+      ?item wdt:P276 [rdfs:label ?placeL] filter (lang(?placeL) = \"fr\") .
+    }
+   
+    # arrondissement
+    OPTIONAL {
+      ?item wdt:P131 [wdt:P131 wd:Q90 ; rdfs:label ?arrL] filter (lang(?arrL) = \"fr\").
+      BIND(REPLACE(?arrL, '^([0-9]+).*$', \"$1\", \"si\") AS ?arr)
+    }
+   
+    # image
+    OPTIONAL { ?item wdt:P18 ?img }
+   
+    # coordinates
+    OPTIONAL { ?item wdt:P625 ?coord }
+
+} GROUP BY ?item
+ Try it! The Zodiac Signs of Japanese Prime Ministers [edit] The following query uses these:Items: human (Q5)   , Prime Minister of Japan (Q274948)   Properties: instance of (P31)   , position held (P39)   , date of birth (P569)   SELECT DISTINCT ?item ?itemLabel ?dob ?sign 
+{
+ ?item wdt:P31 wd:Q5 ; p:P39 ?ps . ?ps ps:P39 ?term .
+ ?term wdt:P39* wd:Q274948 .     # all Japanese Prime Ministers
+ ?positionStatement ps:P39 wd:Q274948 .
+       
+       
+ ?item p:P569/psv:P569 [         # with a known birthday
+   wikibase:timeValue ?dob;
+   wikibase:timePrecision 11     # of “day” precision
+ ].
+  
+BIND( IF(MONTH(?dob) = 3&& DAY(?dob) >=21, \"Aries\" ,
+IF(MONTH(?dob) = 4&& DAY(?dob) < 20, \"Aries\" ,
+IF(MONTH(?dob) = 4&& DAY(?dob) >=20, \"Taurus\" ,
+IF(MONTH(?dob) = 5&& DAY(?dob) < 21, \"Taurus\" ,
+IF(MONTH(?dob) = 5&& DAY(?dob) >=21, \"Gemini\" ,
+IF(MONTH(?dob) = 6&& DAY(?dob) < 21, \"Gemini\" ,
+IF(MONTH(?dob) = 6&& DAY(?dob) >=21, \"Cancer\" ,
+IF(MONTH(?dob) = 7&& DAY(?dob) < 23, \"Cancer\" ,
+IF(MONTH(?dob) = 7&& DAY(?dob) >=23, \"Leo\" ,
+IF(MONTH(?dob) = 8&& DAY(?dob) < 23, \"Leo\" ,
+IF(MONTH(?dob) = 8&& DAY(?dob) >=23, \"Virgo\" ,
+IF(MONTH(?dob) = 9&& DAY(?dob) < 23, \"Virgo\" ,
+IF(MONTH(?dob) = 9&& DAY(?dob) >=23, \"Libra\" ,
+IF(MONTH(?dob) = 10&& DAY(?dob) < 23, \"Libra\" ,
+IF(MONTH(?dob) = 10&& DAY(?dob) >=23, \"Scorpio\" ,
+IF(MONTH(?dob) = 11&& DAY(?dob) < 22, \"Scorpio\" ,
+IF(MONTH(?dob) = 11&& DAY(?dob) >=23, \"Sagittarius\" ,
+IF(MONTH(?dob) = 12&& DAY(?dob) < 22, \"Sagittarius\" ,
+IF(MONTH(?dob) = 12&& DAY(?dob) >=22, \"Capricorn\" ,
+IF(MONTH(?dob) = 1&& DAY(?dob) < 20, \"Capricorn\" ,
+IF(MONTH(?dob) = 1&& DAY(?dob) >=20, \"Aquarius\" ,
+IF(MONTH(?dob) = 2&& DAY(?dob) < 19, \"Aquarius\" ,
+IF(MONTH(?dob) = 2&& DAY(?dob) >=19, \"Pisces\" ,
+IF(MONTH(?dob) = 3&& DAY(?dob) < 21, \"Pisces\" ,
+\"unknown (this should never happen)\"
+))))))))))))))))))))))))
+   
+                  
+       AS ?sign)
+
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} Try it! Search by words in label [edit] The following query uses these:"""@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Battleofalma/Queries_I_use>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

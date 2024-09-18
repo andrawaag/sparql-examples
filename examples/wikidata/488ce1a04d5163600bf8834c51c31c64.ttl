@@ -1,0 +1,22 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-488ce1a04d5163600bf8834c51c31c64> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?commons
+WHERE
+{
+  ?commons   schema:about ?item . FILTER(CONTAINS(str(?commons),'commons.wikimedia.org'))
+  ?wikipedia schema:about ?item . FILTER(CONTAINS(str(?wikipedia),'wikipedia.org'))
+  OPTIONAL { 
+    ?enwp    schema:about ?item . FILTER(CONTAINS(str(?enwp),'en.wikipedia.org'))
+  } FILTER(!BOUND(?enwp))
+}
+LIMIT 1000""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2017/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec130169-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

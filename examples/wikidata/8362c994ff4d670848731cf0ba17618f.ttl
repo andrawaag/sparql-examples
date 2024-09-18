@@ -1,0 +1,747 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8362c994ff4d670848731cf0ba17618f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription ?TTDB ?TTDB_URL ?enWP_article ?Website
+WHERE
+{
+    ?item wdt:P4079 ?TTDB .
+    BIND ( CONCAT(\"https://database.theatrestrust.org.uk/resources/theatres/show/\", ?TTDB) AS ?TTDB_URL)
+    OPTIONAL {
+      ?enWP_article schema:about ?item .
+      ?enWP_article schema:inLanguage \"en\" .
+      ?enWP_article schema:isPartOf <https://en.wikipedia.org/> .
+     }
+   OPTIONAL {
+   ?item wdt:P856 ?Website .
+   } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\"  }    
+}
+LIMIT 50""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Elo ratings in certain month 2 A couple of problems 3 Sort ordering within a group 4 Detect \"unknown value\" and \"no value\" 4.1 Arbitrary break 5 Inconsistencies in disambiguations 6 Ministers of Education in the European Union 7 Problem with Timeout 8 Sitelinks that end with a questionmark 9 Genres 10 Items close to each other where only one has an image 11 List all video games with blank English label 12 No name in a language, but components of name in that language 13 Filter multiple languages in a specific order 14 Taxons with the same name 15 New UK MPs 16 Find all uses of a certain property 17 Alias = Label 18 Query by century 19 Concatenate more values 20 Status of items in a subclass 21 What is Lipovica's current country? 22 Done Lang by number of label 23 Person Name + Birth Month and Day, but no Year 24 Search by items after a specific item 25 P36:Q3551 26 Blacklist 27 query to look up redirects 28 raw Q-code values 29 targetunit=km2 30 Sitelinks on wiktionary 31 Looking up a set of external identifiers 32 Cities listed by population density 33 How to format string output as clickable link? 34 No sitelink, no statements and no backlink 35 Search for cheese (enwiki) 36 Strange timeout error 37 Items that have no label in French but a category with a label in French 38 Example of date using Millennium precision 39 How to find village in India 40 Getting info for category Daily Newspaper (Q1110794) Elo ratings in certain month I need a list of items with Elo ratings (Property:P1087) at point in time (Property:P585) \"April 2007\" (something like \"+2007-04-01T00:00:00Z\" in input form). It's because many of the elo ratings in this particular month were imported wrongly (see Wikidata:WikiProject_Chess#Tasks). It would be nice if somebody could tell me also a possibility to easy remove these statements. Steak (talk) 11:21, 26 May 2017 (UTC) SELECT ?item ?elorating WHERE {
+  ?item p:P1087 ?statement .
+  ?statement ps:P1087 ?elorating;
+             pq:P585 ?time
+  FILTER(year(?time) = 2007)
+  FILTER(month(?time) = 4)             
+}
+ Try it! --Pasleim (talk) 11:39, 26 May 2017 (UTC) I could finally fix them. --Edgars2007 (talk) 12:32, 26 May 2017 (UTC) They are not fixed yet, e.g. Predrag Nikolić (Q634635) is still wrong. Steak (talk) 13:10, 26 May 2017 (UTC) @Edgars2007: What do you mean with \"could finally fix them\"? Steak (talk) 19:58, 29 May 2017 (UTC) Exactly what it means :) I have an intention to fix them. I have already fixed some part of them as part of Elo rank clean-up. --Edgars2007 (talk) 07:17, 30 May 2017 (UTC) Can somebody modify the above query in a way that it finds in the given month only those Elo ratings which are identical to the year of birth of the respective player? Steak (talk) 19:25, 1 June 2017 (UTC) SELECT ?item ?eloRating ?dateOfBirth {
+  ?item p:P1087 [ ps:P1087 ?eloRating; pq:P585 ?eloTime ]; wdt:P569 ?dateOfBirth .
+  FILTER(YEAR(?eloTime) = 2007 && MONTH(?eloTime) = 4 && ?eloRating = YEAR(?dateOfBirth)) .
+}
+ Try it!—MisterSynergy (talk) 19:41, 1 June 2017 (UTC)Tnx! Steak (talk) 06:57, 2 June 2017 (UTC) A couple of problems I have the following query. SELECT ?game ?gameLabel ?enwiki ?devLabel ?publisherLabel ?date WHERE {
+	?game wdt:P31 wd:Q7889;
+	wdt:P136 wd:Q744038.
+    OPTIONAL {
+      ?enwiki schema:about ?game;
+      schema:isPartOf <https://en.wikipedia.org/>
+    }
+#    OPTIONAL {
+      ?game wdt:P178 ?dev.
+      ?game wdt:P123 ?publisher.
+      ?game wdt:P577 ?date.
+#    }
+ 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER BY ASC (?date)
+ Try it! Two questions: I have commented out the second \"OPTIONAL\" clause because it was messing up the output of the query service. Without doing so, instead of several columns the output is all in a single cell, and the \"devLabel\", \"publisherLabel\" and \"date\" values are missing. But I do *not* want to skip rows with no date, developer or publisher. Can this be fixed? I exported as CSV and imported into Excel and converted the URL strings to hyperlinks. When I click on the hyperlinks in Excel, I am being sent to the wrong page. For instance, I am being sent to \"https://www.wikidata.org/wiki/Special:EntityData/Q1255124.json\" instead of \"http://www.wikidata.org/entity/Q1255124\". Can this be fixed? Thanks very much. SharkD (talk) 23:29, 26 May 2017 (UTC) With your first problem, the fix is to break up that OPTIONAL clause into three separate OPTIONAL clauses. As it is, the clause will only return results if the game has a developer, a publisher, and a publication date. If it lacks any one of these, the clause as a whole will fail and none of the properties will appear. Why the results appear all in one column is simply to do with the formatting of the table output: when there are too many columns to fit on the screen, it presents results with the field names listed on the left rather than each field with its own column. This shouldn't affect how the results appear in CSV or TSV downloads. As for your second problem, I'm baffled. MartinPoulter (talk) 13:56, 30 May 2017 (UTC) Thanks! The second problem was resolved by searching and replacing text in the URL like this: BIND(CONCAT(\"=hyperlink(\\\"\",replace(replace(STR(?game), \"entity\", \"wiki\"), \"http\", \"https\"),\"\\\")\") AS ?dataLink). SharkD (talk) 03:35, 3 June 2017 (UTC) Sort ordering within a group I have this script: SELECT
+      (group_concat(distinct     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (group_concat(distinct  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (group_concat(distinct     ?typeOfStatementNode ; separator = \", \") AS     ?typeOfStatementNodes)
+      WHERE {
+        VALUES ?game {
+          wd:Q4850488
+          wd:Q4931588
+          wd:Q5315330
+        }
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").
+        OPTIONAL {
+          ?game wdt:P577 ?date.
+          BIND(YEAR(?date) AS ?dateYear).
+        }
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+       }
+      }
+    GROUP BY $game
+order by desc(?dateYears)
+ Try it! Currently I sort the entire result set by `?dateYears`. But, can I also sort the `?dateYear` (no \"s\") values within each group? Will this require subqueries? I learned that you can use `ORDER BY` within `group_concat` in Microsoft TSQL, but I don't know if you can do this in SPARQL as well. Thanks. SharkD (talk) 03:47, 3 June 2017 (UTC) I think this is still an open question: Wikidata_talk:SPARQL_query_service/queries/Archive/2016#GROUP_CONCAT_and_ORDER_BY. --- Jura 04:14, 3 June 2017 (UTC) Ah, yes. I was wondering why it only happened some times. Is there a workaround? SharkD (talk) 04:41, 3 June 2017 (UTC) Detect \"unknown value\" and \"no value\" I have some optional fields in my script to retrieve the year a video game was published. OPTIONAL {
+          ?game wdt:P577 ?date;
+          BIND(YEAR(?date) AS ?dateYear).
+        }
+ Try it! However, this does not work when the value of the item is \"unknown\" or \"no value\". How do I catch these two cases? Thanks. SharkD (talk) 01:05, 2 June 2017 (UTC) ?item wdt:P577 ?value . FILTER (isBlank(?value)) ?item p:P577/a wdno:P577 @SharkD: both were used in Items with novalue claims and Items with unknown value claims at Property talk:P577. d1g (talk) 02:01, 2 June 2017 (UTC) @D1gggg:: I should have been more clear. I don't want to filter these items out. I just want different text to show up if the items are: 1) blank, 2) unknown or 3) no value. Sorry. SharkD (talk) 02:20, 2 June 2017 (UTC) @SharkD: you could use BIND/variables and IF to achieve any custom logic. d1g (talk) 02:32, 2 June 2017 (UTC) SELECT ?prefix ?type ?value ?customText
+WHERE
+{
+	wd:Q4233718 ?prefix ?value.
+#   FILTER(isBlank(?value)).
+    ?prefix     rdf:type ?type .
+    BIND(IF(isBlank(?value), \"BLANK-BLANK-BLANK\", ?value) as ?customText)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! @SharkD: 1 and 2 are the same. I expanded guide with section about that. Is that what you want to do? d1g (talk) 05:51, 2 June 2017 (UTC) @D1gggg: Here is my attempt. And the relevant bits: deleted I am not getting anything other than empty strings however. SharkD (talk) 15:32, 2 June 2017 (UTC) Here is a more minimal case. It is not showing `rdf:type` and `publication date` of the item. SharkD (talk) 17:57, 2 June 2017 (UTC) Okay, I got it to work: SELECT
+      (group_concat(distinct     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (group_concat(distinct  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (group_concat(distinct     ?typeOfStatementNode ; separator = \", \") AS     ?typeOfStatementNodes)
+      WHERE {
+        VALUES ?game {
+          wd:Q4850488
+          wd:Q4931588
+          wd:Q5315330
+        }
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").
+        OPTIONAL {
+          ?game wdt:P577 ?date.
+#          BIND(YEAR(?date) AS ?dateYear).
+        }
+        ?game ?boogie ?whaat.
+        optional {
+          ?whaat rdf:type ?typeOfStatementNode.
+        }
+        BIND(IF(isBlank(?whaat), \"unknown value\", IF(?typeOfStatementNode = IRI(\"http://www.wikidata.org/prop/novalue/P577\"), \"no value\", YEAR(?date))) as ?dateYear).
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+       }
+      }
+    GROUP BY $game
+order by desc(?dateYears)
+ Try it! However, when I adapt it to my larger main script, the query times out. Is there any way I can run the query past the timeout time? Thanks! SharkD (talk) 19:16, 2 June 2017 (UTC) @SharkD: it may change output if you place required sections after latest optional tinyurl.com/y9wdzwda - 100 results in 32 s. d1g (talk) 02:24, 3 June 2017 (UTC) I actually posted the wrong link in my last message. But I instead decided to ignore \"unknown value\" since it cannot be distinguished from a blank value, and the script is not timing out any longer. SharkD (talk) 03:41, 3 June 2017 (UTC) @SharkD: I don't understand why your last-1 query isn't functional. When you add a wd:Q913503, it will output \"unknown value\" Which information do you need beyond that? d1g (talk) 06:11, 3 June 2017 (UTC) @D1gggg: I am not sure what you mean. But here is my current query, which times out due to the three lines marked \"too slow\". SharkD (talk) 02:10, 4 June 2017 (UTC) @SharkD:, almost the same comments, your query is fine except: line 62: replace ?boogie with specific prefix, not arbitrary (?item p:P577/a wdno:P577 or ?item p:P577/rdf:type wdno:P577). I used arbitrary prefix only to demonstrate how it works. line 62-65: should be before every OPTIONAL block tinyurl.com/y7n3aajn 1865 Results in 23806 ms d1g (talk) 03:23, 4 June 2017 (UTC) @D1gggg: The `?dateYears` column is now missing from all of the results. Can this be fixed? SharkD (talk) 04:21, 4 June 2017 (UTC) @SharkD: it was using YEAR(?date), I missed that during move (order is actually matters) If we place code back it will return them except first one (Q4034255). ?dateYear is empty because ?date is optional. any other questions left unanswered? d1g (talk) 05:17, 4 June 2017 (UTC) Place what code back, to where? I can't understand just from your words. SharkD (talk) 06:03, 4 June 2017 (UTC) tinyurl.com/ybgxyzls right after OPTIONAL {?game wdt:P577 ?date} d1g (talk) 06:17, 4 June 2017 (UTC) @D1gggg: Ah, okay. Thanks! However, now the items with a blank date are missing. I think there should be ~2000 results per my previous tests, with ~150 of them having blank dates. SharkD (talk) 07:28, 4 June 2017 (UTC) Arbitrary break @SharkD: I not able to relate why we cannot use isBlank or how to use them all at once. narrowed questions down to tinyurl.com/y95fe5fw d1g (talk) 09:40, 4 June 2017 (UTC) @SharkD: I forgot to use COALESCE. Please test your logic with \"MIN\" aggregate using query below. d1g (talk) 09:52, 4 June 2017 (UTC) The following query uses these:Items: Bob's Game (Q4931588)   , 64 Hanafuda: Tenshi no Yakusoku (Q1107793)   , Battlefleet Gothic: Armada (Q18857304)   , Civilization V (Q2385)   Properties: publication date (P577)   SELECT ?game ?date ?statementNodeType ?check1 ?check2 ?check3
+WHERE
+{
+    VALUES ?game {
+      wd:Q4931588  # no value
+      wd:Q1107793  # one value
+      wd:Q18857304 # unknown value
+      wd:Q2385     # multiple values
+    }
+    ?game           p:P577  ?statementNode.
+    OPTIONAL
+    {
+    ?statementNode ps:P577  ?date.
+    }
+    OPTIONAL
+    {
+    ?statementNode rdf:type ?statementNodeType FILTER (?statementNodeType IN (wdno:P577)).
+    }
+    
+    BIND(COALESCE(DATATYPE(?date) = xsd:dateTime  , false) as ?check1) # real date?
+    BIND(COALESCE((wdno:P577 = ?statementNodeType), false) as ?check2) # no value?
+    BIND(COALESCE(isBlank(?date)                     , false) as ?check3) # unkown?
+} Try it! @D1gggg: Unfortunately, games with blank dates are still missing from the result set. Here is a minimal scene to demonstrate the problem. SharkD (talk) 11:55, 4 June 2017 (UTC) The following query uses these:Items: Baldur's Gate III: The Black Hound (Q4850488)   , Bob's Game (Q4931588)   , Dunjonquest (Q5315330)   , Deep Labyrinth (Q5250229)   , Starflight (Q1462499)   , God Wars: Future Past (Q23647080)   , role-playing video game (Q744038)   , tactical role-playing game (Q1529437)   , action role-playing game (Q1422746)   , roguelike (Q1143132)   , video game (Q7889)   Properties: genre (P136)   , instance of (P31)   , publication date (P577)   SELECT
+      #(MIN(?dateYear) AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      WHERE {
+        hint:Query hint:optimizer \"None\".
+        # test values
+        VALUES ?game {
+          wd:Q4850488    # Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+          wd:Q4931588    # Bob's Game (should have \"no value\" due to not being released yet)
+          wd:Q5315330    # Dunjonquest (1979)
+          wd:Q5250229    # Deep Labyrinth (should have multiple dates)
+          wd:Q1462499    # Starflight (1986, has multiple genres)
+          wd:Q23647080   # God Wars: Beyond Time (should have blank date since the property does not exist)
+        }
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").  # we mainly want English labels
+
+
+        ?game p:P577 ?statementNode.
+        OPTIONAL {?statementNode ps:P577 ?date}
+        OPTIONAL {?statementNode rdf:type ?statementNodeType FILTER (?statementNodeType IN (wdno:P577))}
+        BIND(COALESCE(DATATYPE(?date) = xsd:dateTime  , false) as ?check1). # real date?
+        BIND(COALESCE((wdno:P577 = ?statementNodeType), false) as ?check2). # no value?
+        BIND(COALESCE(isBlank(?date)                  , false) as ?check3). # unknown?
+        BIND(IF(?check1, YEAR(?date), IF(?check2, \"no value\", IF(?check3, \"unknown\", \"error\"))) as ?dateYear).
+
+
+#        OPTIONAL {?game wdt:P577       ?date}
+#        ?game <http://www.wikidata.org/prop/P577> ?whaat.
+#        OPTIONAL {?whaat rdf:type ?typeOfStatementNode}
+#        BIND(IF(isBlank(?whaat), \"unknown value\", IF(?typeOfStatementNode = IRI(\"http://www.wikidata.org/prop/novalue/P577\"), \"no value\", YEAR(?date))) as ?dateYear).
+#        BIND(YEAR(?date) AS ?dateYear).    # faster substitute
+
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100 Try it! One difference is that in your example, all four games have a \"publication date\" property, even if the value is blank or undefined. Whereas, in my example there is a game that is missing the \"publication date\" property entirely. If you add \"wd:Q23647080\" to your example you will see the same problem. SharkD (talk) 12:10, 4 June 2017 (UTC) well my query is functional but when data is missing it is missing If you really want to solve it with SPARQL: data is visible from inner queries to outer build a second query (much simpler one, without ifs) see 8.1.1 FILTER NOT EXISTS { } then combine results together using 7. UNION, then order them again? ... I don't think it is worth it. d1g (talk) 13:21, 4 June 2017 (UTC) Some of your earlier code worked well. It just unfortunately caused the query to time out with large numbers of items. Anyway, thanks for your help! It's possible a solution will present itself in the future. SharkD (talk) 15:25, 4 June 2017 (UTC) Inconsistencies in disambiguations Could someone build a query which findes pages that have instance of (P31) : Wikimedia disambiguation page (Q4167410), but dont have the (english) description \"Wikipedia disambiguation page\". The inverse would also be a useful query I think. Steak (talk) 08:39, 3 June 2017 (UTC) situation with disambiguation page items is messy there is Wikidata:WikiProject Disambiguation pages; dealing with disambiguation page items isn’t easy, thus the aforementioned point is not surprising string comparisons in the query service are inefficient, thus timeouts show up even when you query for small sets “Wikimedia disambiguation page” is also often used as en-desc; it is more appropriate than the version with p nevertheless, try SELECT ?item ?itemDescription {
+  ?item wdt:P31 wd:Q4167410; schema:description ?itemDescription .
+  FILTER(LANG(?itemDescription) = 'en') .
+  FILTER(REGEX(STR(?itemDescription), '^Wiki[pm]edia disambiguation page$') = false) .
+} LIMIT 100
+ Try it! —MisterSynergy (talk) 08:52, 3 June 2017 (UTC) There's only two strings being filtered out here. I love regexes but I don't think this is the right place for them. :) This query finds all the English descriptions which don't match those two strings (currently 1821 results), while this one includes all the ones with no English description at all (currently 12,130 results). - Nikki (talk) 13:57, 4 June 2017 (UTC) Ministers of Education in the European Union I'm having trouble creating a query for all education ministers in the European Union.I don't want to find education ministers of regions, like scotland/german states, but just the sovereign states. There should be 28. Where data doesn't exist for a country, or the wikidata item hasn't been created for it, I would like it to list it. I would also like it to list if that wikidata item has an office holder listed, and how far back the record of office holders goes.Many thanks - EU explained (talk) 13:24, 3 June 2017 (UTC) hardest question is to find item of respective position. @EU explained:, is it European Commissioner for Education, Culture, Multilingualism and Youth (Q5190728)   ? my query and thought process is below. d1g (talk) 06:55, 4 June 2017 (UTC) The following query uses these:Items: human (Q5)   , European Union (Q458)   , Member of the European Parliament (Q27169)   , President of the European Commission (Q8882)   , European Commissioner for Competition (Q1780232)   , European Commissioner for International Cooperation, Humanitarian Aid and Crisis Response (Q2298177)   , European Commissioner for Health and Consumer Policy (Q165055)   , Vice President of the European Parliament (Q7925068)   , European Commissioner for Education, Culture, Multilingualism and Youth (Q5190728)   Properties: instance of (P31)   , position held (P39)   # Ministers of Education in the European Union
+SELECT ?who ?how2 # ?else ?how
+WHERE
+{
+#at least he/she is a human
+    ?who         wdt:P31    wd:Q5      .
+#    who             how    wd:Q458 showed a few results, so relations are more indirect/deep
+#   ?who            ?how      ?else    .
+#   ?else           ?how2     ?wd:Q458 .
+#   based on results, likely to be wdt:P39
+#   ?who         wdt:P39      ?else    . 
+#   manually removing frequent positions using next line of code untill we find something similar
+#   FILTER(?else NOT IN (wd:Q27169, wd:Q8882, wd:Q1780232, wd:Q2298177, wd:Q165055, wd:Q7925068))
+#   based on results, presumably wd:Q5190728
+    ?who         wdt:P39    wd:Q5190728.
+    wd:Q5190728     ?how2   wd:Q458    . 
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+# LIMIT 1000 # used to speed up queries Try it! An alternative approach is to finds all subclasses of \"Education Minister\" across the member states. This should let you work out which items need to be either created, or have the subclass of (P279) set correctly on them: The following query uses these:Items: member state of the European Union (Q185441)   , education minister (Q4018482)   Properties: instance of (P31)   , subclass of (P279)   , applies to jurisdiction (P1001)   SELECT DISTINCT ?country ?countryLabel ?office ?officeLabel 
+WHERE {    
+  ?country wdt:P31 wd:Q185441 .            # for all EU member states
+  OPTIONAL {
+    ?office wdt:P279* wd:Q4018482 ;        #   find any subclass of \"education minister\"
+            wdt:P1001 ?country .           #   with that jurisdiction
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ?countryLabel ?officeLabel Try it! Then you can add the additional query to find the current holders of each office:{The following query uses these:Items: member state of the European Union (Q185441)   , education minister (Q4018482)   , human (Q5)   Properties: instance of (P31)   , subclass of (P279)   , applies to jurisdiction (P1001)   , position held (P39)   , start time (P580)   , end time (P582)   SELECT DISTINCT ?country ?countryLabel ?office ?officeLabel ?person ?personLabel
+WHERE {    
+  ?country wdt:P31 wd:Q185441 .            # for all EU member states
+  OPTIONAL {
+    ?office wdt:P279* wd:Q4018482 ;        #   find any subclass of \"finance minister\"
+            wdt:P1001 ?country .           #   with that jurisdiction
+    OPTIONAL {
+      ?person p:P39 ?posn ; wdt:P31 wd:Q5 .  # find all humans with a position
+      ?posn ps:P39 ?office ;                 # of that office
+            pq:P580 ?start_date .            # where the position statement has a start date
+      OPTIONAL { ?posn pq:P582 ?end_date }  # but with no end date
+      FILTER ( !bound(?end_date) || isBLANK(?end_date) ) . 
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ?countryLabel ?officeLabel Try it! (NB: You'll need to replace the OR with || in the query to make it work — including them here breaks the template, and I couldn't work out how to quote them)~~ --Oravrattas (talk) 10:55, 5 June 2017 (UTC) Use {{!}} → |. Matěj Suchánek (talk) 18:40, 5 June 2017 (UTC) Ah, excellent, thanks! --Oravrattas (talk) 07:19, 6 June 2017 (UTC) Problem with Timeout Hello,i wrote a Query, when i took Limit 10, it works. With more Limit, it doesn't work. If i want to us the Statement \"minus { ?item1 p:P397 [] }\" it also gets a Timeout. How can it get optimized?: SELECT DISTINCT ?item1 ?item1Label ?labelnew1 ?item2 ?item2Label
+where {
+	      {	SELECT DISTINCT ?item1 ?item2 ?labelnew1 
+	        where {
+	         ?item1 wdt:P31 wd:Q44559 .
+                  ##minus { ?item1 p:P397 [] }.
+			      ?item2 wdt:P31 wd:Q523 .   
+                  ?item1 rdfs:label ?label1.
+                  ?item2 rdfs:label ?label2.
+                  FILTER(LANG(?label1) = \"en\").
+                  FILTER(LANG(?label2) = \"en\").
+                  bind(substr(?label1, 1, strlen(?label1)-1) as ?labelnew1).
+                  FILTER(?labelnew1 = ?label2).
+                 }
+		LIMIT 10
+	}
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Thanks for your help and sorry for my bad english--McSearch (talk) 17:18, 5 June 2017 (UTC) SELECT ?item1 ?item1Label ?labelnew1 ?item2 ?item2Label WITH {
+  SELECT DISTINCT ?item1 ( STR( SUBSTR( ?label1, 1, STRLEN( ?label1 ) - 1 ) ) AS ?labelnew1 ) {
+    ?item1 wdt:P31 wd:Q44559; rdfs:label ?label1 .
+    MINUS { ?item1 p:P397 [] }.
+    FILTER( LANG( ?label1 ) = \"en\" ) .
+  }
+} AS %subquery1 WITH {
+  SELECT DISTINCT ?item2 ( STR( ?label ) AS ?label2 ) {
+    ?item2 wdt:P31 wd:Q523; rdfs:label ?label .
+    FILTER( LANG( ?label ) = \"en\" ) .
+  }
+} AS %subquery2 WHERE {
+  INCLUDE %subquery1 .
+  INCLUDE %subquery2 .
+  FILTER( ?label2 = ?labelnew1 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! Matěj Suchánek (talk) 18:37, 5 June 2017 (UTC) Thanks very much --McSearch (talk) 19:02, 5 June 2017 (UTC) Sitelinks that end with a questionmark I would like a query to find sitelinks that end with a question mark (like several in Where Is the Love? (Q1460758). If it is hard to do for all languages I am happy with just English, but a general would be preferred. Ainali (talk) 09:27, 5 June 2017 (UTC) Hello, here is Query with all Sitelinks, only for Singles: SELECT distinct ?item ?sitelink_label ?wiki_sitelink  {
+  ?wiki_sitelink schema:about ?item; schema:name ?sitelink_label .
+  ?item wdt:P31 wd:Q134556.
+  filter(STRENDS(?sitelink_label, \"?\"))
+} LIMIT 1000
+ Try it! --McSearch (talk) 17:56, 5 June 2017 (UTC) That is pretty close to what I am looking for. This is filtering on the label, I would like to filter on the actual sitelink, wiki_sitelink in this case (but cannot get it to work). Ainali (talk) 20:45, 5 June 2017 (UTC) It does filter on sitelink, name of ?sitelink_label is confusing but it's what you are looking for. ?wiki_sitelink is URI. Matěj Suchánek (talk) 06:13, 6 June 2017 (UTC) I am actually really looking for the URI's that ends with a question mark, not the labels of items. I am sorry I was not clear enough in my original request. Ainali (talk) 14:47, 6 June 2017 (UTC) You said you wanted sitelinks that end with a question mark which the query does show. If you searched for URIs ending with a ?, you would get no results. Just don't get confused by label mentioned in the query. Matěj Suchánek (talk) 15:11, 6 June 2017 (UTC) Yes, obviously I was confused since I am looking for URIs. But if there are no URIs ending with a question mark, then my problem is solved, thanks! Ainali (talk) 09:04, 7 June 2017 (UTC) Genres I have the following query which among other things gets the genres of a list of video games. SELECT
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT   ?genreLabel ; separator = \", \") AS   ?genreLabels)
+      WHERE {
+        # test values
+        #VALUES ?game {
+        #  wd:Q4850488    # Baldur's Gate III: The Black Hound (should have \"no value\" due to being cancelled)
+        #  wd:Q4931588    # Bob's Game (should have \"no value\" due to not being released yet)
+        #  wd:Q5315330    # Dunjonquest (1979)
+        #  wd:Q5250229    # Deep Labyrinth (should have multiple dates)
+        #  wd:Q1462499    # Starflight (1986, has multiple genres)
+        #  wd:Q23647080   # God Wars: Beyond Time (should have blank date since the property does not exist)
+        #}
+              {?game wdt:P136 wd:Q744038}   # regular RPGs
+        UNION {?game wdt:P136 wd:Q1529437}  # tactical RPGs
+        UNION {?game wdt:P136 wd:Q1422746}  # action RPGs
+        UNION {?game wdt:P136 wd:Q1143132}  # roguelikes
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\").  # we mainly want English labels
+
+        OPTIONAL {?game wdt:P577       ?date}
+        BIND(YEAR(?date) AS ?dateYear).    # faster substitute
+
+        OPTIONAL {
+          ?game wdt:P136 ?genre.
+          ?genre rdfs:label ?genreString.
+          FILTER(?genre != wd:Q744038).
+          FILTER(LANG(?genreString) = \"en\").
+          BIND(STR(?genreString) AS ?genreLabel).    # faster substitute
+        }
+
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+        }
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100
+ Try it! However, video game genre (Q659563) is not the same as other types of genre. How do I filter 1) video game genres and 2) all other types of genre into two separate fields? Thanks! SharkD (talk) 15:45, 5 June 2017 (UTC) Like this: SELECT
+      (GROUP_CONCAT(DISTINCT ?dateYear ; separator = \", \") AS ?dateYears)
+      (GROUP_CONCAT(DISTINCT ?gameENLabel ; separator = \", \") AS ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT ?gameGenreLabel ; separator = \", \") AS ?gameGenreLabels)
+      (GROUP_CONCAT(DISTINCT ?genreLabel ; separator = \", \") AS ?genreLabels)
+WHERE {
+  VALUES ?genres { wd:Q744038 wd:Q1529437 wd:Q1422746 wd:Q1143132 } .
+  ?game wdt:P136 ?genres .
+  ?game wdt:P31 wd:Q7889 .
+  ?game rdfs:label ?gameENLabel .
+  FILTER( LANG( ?gameENLabel ) = \"en\" ) .
+
+  OPTIONAL {
+    ?game wdt:P577 ?date .
+    BIND( YEAR( ?date ) AS ?dateYear ) .
+  } .
+
+  OPTIONAL {
+    ?game wdt:P136 ?gameGenre .
+    ?gameGenre wdt:P31 wd:Q659563 .
+    FILTER( ?gameGenre != wd:Q744038 ) .
+    ?gameGenre rdfs:label ?gameGenreString .
+    FILTER( LANG( ?gameGenreString ) = \"en\" ) .
+    BIND( STR( ?gameGenreString ) AS ?gameGenreLabel ) .
+  } .
+
+  OPTIONAL {
+    ?game wdt:P136 ?genre .
+    MINUS { ?genre wdt:P31 wd:Q659563 } .
+    ?genre rdfs:label ?genreString .
+    FILTER( LANG( ?genreString ) = \"en\" ) .
+    BIND( STR( ?genreString ) AS ?genreLabel ) .
+  } .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+GROUP BY ?game
+ORDER BY ?dateYears ?gameENLabels
+ Try it! Matěj Suchánek (talk) 06:31, 6 June 2017 (UTC) Perfect! Thank you! SharkD Talk 21:02, 6 June 2017 (UTC) Items close to each other where only one has an image I would like to find items close to each other (<50 meters), where one has an image and the other don't. Especially I am interested in items with Swedish Open Cultural Heritage URI (P1260) because it is quite common that they are close to each other. I will use this list as start to see if images actually contains several cultural heritages and not just one. Ainali (talk) 09:09, 7 June 2017 (UTC) SELECT DISTINCT ?item ?itemLabel ?id1 ?image ?metres ?item2 ?item2Label ?id2 WITH {
+  SELECT ?formatter {
+    wd:P1260 wdt:P1630 ?formatter .
+  } LIMIT 1
+} AS %formatter WHERE {
+  INCLUDE %formatter .
+  ?item wdt:P1260 ?_id1; wdt:P625 ?coord1; wdt:P18 ?image .
+  SERVICE wikibase:around {
+    ?item2 wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?coord1 .
+    bd:serviceParam wikibase:radius \"0.05\" .
+    bd:serviceParam wikibase:distance ?distance .
+  } .
+  ?item2 wdt:P1260 ?_id2 .
+  MINUS { ?item2 wdt:P18 [] } .
+  BIND( ?distance * 1000 AS ?metres ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id1 ) ) AS ?id1 ) .
+  BIND( URI( REPLACE( ?formatter, '\\\\$1', ?_id2 ) ) AS ?id2 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\" } .
+}
+ Try it! Matěj Suchánek (talk) 10:13, 7 June 2017 (UTC) WikiData Free Image Search Tool (Q21283216) has an option \"Search by coordinates (100m)\" to find nearby images by coordinates. --- Jura 10:31, 7 June 2017 (UTC) Thanks both, very useful! Ainali (talk) 10:52, 7 June 2017 (UTC) List all video games with blank English label I'm trying to find out if any video games are missing an English label. Here is the query I've made so far: SELECT
+  ?game ?gameLabel
+  WHERE {
+	    ?game wdt:P31 wd:Q7889.
+        ?game rdfs:label ?gameLabel.
+        FILTER(LANG(?gameLabel) = \"en\").
+        FILTER(isblank(?gameLabel)).
+}
+ Try it! Is this formed properly? It returns zero results, so I am not sure, since that could be for other reasons. Thanks. SharkD Talk 11:49, 7 June 2017 (UTC) Also, I'm not sure if \"blank\" is the same as \"undefined\". In an earlier query I ran into an issue where the query behaved differently in the two cases. SharkD Talk 11:51, 7 June 2017 (UTC) SELECT ?game {
+  ?game wdt:P31 wd:Q7889 .
+  OPTIONAL {
+    ?game rdfs:label ?gameLabel.
+    FILTER(LANG(?gameLabel) = \"en\") .
+  }
+  FILTER(!BOUND(?gameLabel)) .
+}
+ Try it!—MisterSynergy (talk) 11:54, 7 June 2017 (UTC)Thank you!! SharkD Talk 12:00, 7 June 2017 (UTC) No name in a language, but components of name in that language I'm looking to obtain a list of all people who do not have a label in Bengali, but who have both given name (P735) and family name (P734) statements, each of whose linked items has a label in Bengali (e.g. John Smith (Q228024) with no Bengali label would be in the list if its family name (P734) and given name (P735) both had Bengali labels). Mahir256 (talk) 23:27, 7 June 2017 (UTC) SELECT DISTINCT ?item ?firstname_bn_label ?surname_bn_label {
+  ?item wdt:P735 ?first_name; wdt:P734 ?surname .
+  ?first_name rdfs:label ?firstname_bn_label FILTER( LANG( ?firstname_bn_label ) = 'bn' ) .
+  ?surname rdfs:label ?surname_bn_label FILTER( LANG( ?surname_bn_label ) = 'bn' ) .
+  MINUS { ?item rdfs:label ?label FILTER( LANG( ?label ) = 'bn' ) } .
+  MINUS { ?item wdt:P735 ?first_name1 FILTER( ?first_name != ?first_name1 ) } .
+  MINUS { ?item wdt:P734 ?surname1 FILTER( ?surname != ?surname1 ) } .
+} LIMIT 2500
+ Try it! Matěj Suchánek (talk) 07:07, 8 June 2017 (UTC) Filter multiple languages in a specific order I have this query which filters results based on whether there is a Japanese or Chinese label. # Need to get the series too.
+SELECT
+      #MIN(?dateYear) AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT     ?dateYear ; separator = \", \") AS     ?dateYears)
+      (GROUP_CONCAT(DISTINCT  ?gameENLabel ; separator = \", \") AS  ?gameENLabels)
+      (GROUP_CONCAT(DISTINCT  ?gameJALabel ; separator = \", \") AS  ?gameJALabels)
+      (GROUP_CONCAT(DISTINCT  ?hepbJALabel ; separator = \", \") AS  ?hepbJALabels)
+      WHERE {
+        hint:Query hint:optimizer \"None\".
+
+        ?game wdt:P136/wdt:P279* wd:Q744038.	# any subclass of role-playing video game
+        ?game wdt:P31 wd:Q7889.             # instance of video game
+
+        # English label
+        ?game rdfs:label ?gameENLabel.
+        FILTER(LANG(?gameENLabel) = \"en\"). # we mainly want English labels
+
+        # Japanese or Chinese label
+        OPTIONAL {
+          ?game rdfs:label ?gameJALabel.
+          FILTER((LANG(?gameJALabel) = \"ja\") || (LANG(?gameJALabel) = \"zh\")).  # we optionally want Japanese or Chinese labels (for Japanese or Chinese games, only, preferably)
+        }
+
+        # we also want hepburn or pinyin transliterations
+        OPTIONAL {?game wdt:P2125   ?hepburn}
+        OPTIONAL {?game wdt:P1721    ?pinyin}
+
+        # labels
+        SERVICE wikibase:label {
+          bd:serviceParam wikibase:language \"en\".
+            ?hepburn rdfs:label  ?hepbJALabel.
+             ?pinyin rdfs:label  ?pinyinLabel.
+        }
+      }
+    GROUP BY $game
+    ORDER BY asc (?dateYears) ASC (?gameENLabels)
+    #limit 100
+ Try it! This query, however, returns *both* languages. But I only want the Chinese label if a Japanese label does not already exist. The same is true for the hepburn and pinyin transliterations toward the bottom. How can I get this to work? Thanks! SharkD Talk 13:02, 8 June 2017 (UTC) I think you need the coalesce() function, which returns the first defined variable in a list. Select the Japanese labels and Chinese labels separately (with something like OPTIONAL { ?game rdfs:label ?gameJALabel FILTER(LANG(?gameJALabel) = \"ja\") } and OPTIONAL { ?game rdfs:label ?gameZHLabel FILTER(LANG(?gameZHLabel) = \"zh\") }) and then use (GROUP_CONCAT(DISTINCT coalesce(?gameJALabel, ?gameZHLabel) ; separator = \", \") AS ?gameJALabels) (query link) - Nikki (talk) 20:16, 8 June 2017 (UTC) Thank you, I will try that. SharkD Talk 20:29, 8 June 2017 (UTC) Taxons with the same name Based on the list at User:Pasleim/uniquemerge/P225 I would like to make a bit more complicated query. To start, I tried to reproduce the results that are also on Pasleims page. I used this query: SELECT ?item1 ?name1 ?item2 ?name2 WHERE {
+  ?item1 wdt:P225 ?name1.
+  ?item2 wdt:P225 ?name2.
+  FILTER(?name1 = ?name2)
+  FILTER(?item1 != ?item2)
+}
+LIMIT 10
+ Try it!But this returns both Qxxx = Qyyy and Qyyy = Qxxx. When I replaced the FILTER(?item1 != ?item2) with FILTER(?item1 < ?item2) the query timed out for some reason I couldn't understand. What am I doing wrong? But beside this I also want to look for the items that have also the same parent taxon (P171). How to implement this in the query? Thanks in advance! Q.Zanden questions? 22:48, 8 June 2017 (UTC)SELECT ?item1 ?name ?item2 ?above WHERE {
+  ?item1 wdt:P225 ?name; wdt:P171 ?above .
+  ?item2 wdt:P225 ?name; wdt:P171 ?above .
+  FILTER( STR( ?item1 ) < STR( ?item2 ) ) .
+}
+ Try it! Matěj Suchánek (talk) 06:39, 9 June 2017 (UTC) Thanks! Q.Zanden questions? 15:30, 9 June 2017 (UTC) New UK MPs Please can we have a query for United Kingdom MPs, elected for the first time yesterday, showing (if known) their constituency, and (if any) their website, Twitter user name and (link to) their photo. That will help in filling the gaps Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 09:00, 9 June 2017 (UTC) You can start by adding member of (P463) 57th Parliament of the United Kingdom (Q29974940) to the new MPs. Right now only two items have this claim: SELECT ?item ?itemLabel ?itemDescription {
+  ?item wdt:P463 wd:Q29974940 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! I’ll look into your full request meanwhile. —MisterSynergy (talk) 09:29, 9 June 2017 (UTC)This is what I could provide:SELECT ?item ?itemLabel ?itemDescription ?electoralDistrict ?website ?twitter ?image {
+  ?item wdt:P463 wd:Q29974940 .
+  MINUS {
+    ?item wdt:P463 [ ^(wdt:P155+) wd:Q29974940 ] .
+  }
+  OPTIONAL {
+    ?item wdt:P18 ?image .
+  }
+  OPTIONAL {
+    ?item wdt:P856 ?website .
+  }
+  OPTIONAL {
+    ?item wdt:P2002 ?twitter .
+  }
+  OPTIONAL {
+    ?item p:P39 [ ps:P39 wd:Q16707842; pq:P768 ?electoralDistrict ] .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it!This assumes that the MPs have member of (P463) 57th Parliament of the United Kingdom (Q29974940) set and uses follows (P155)/followed by (P156) relations between the terms to exclude experienced MPs; however, their electoral district (P768) comes from a qualifier of position held (P39): Member of Parliament (Q16707842). If the data should be modeled differently, please let me know and I update this query. Have fun with your updates :-) —MisterSynergy (talk) 09:44, 9 June 2017 (UTC)@MisterSynergy: Thank you. AIUI, others are working on adding Q29974940, at an editathon. Meanwhile, I wonder if we'd have more luck using position held (P39) = Member of Parliament (Q16707842) qualified with start time (P580) = 8 June 2017? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 12:12, 9 June 2017 (UTC)This does not make that much of a difference:SELECT ?item ?itemLabel ?itemDescription ?electoralDistrict ?website ?twitter ?image {
+  ?item p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q16707842; pq:P580 ?startTime .
+  FILTER(YEAR(?startTime) = 2017) .
+  OPTIONAL {
+    ?positionStatement pq:P768 ?electoralDistrict .
+  }
+  OPTIONAL {
+    ?item wdt:P18 ?image .
+  }
+  OPTIONAL {
+    ?item wdt:P856 ?website .
+  }
+  OPTIONAL {
+    ?item wdt:P2002 ?twitter .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it!Is en:List of MPs elected in the United Kingdom general election, 2017 in good shape? It seems doable to import from there, but if others already work to import this table to Wikidata, I don’t want to interfere… —MisterSynergy (talk) 12:17, 9 June 2017 (UTC)NB \"Start time: 2017\" will pick up anyone elected in a byelection earlier in 2017 (were there any who were't re-elected? Can't recall.) Also worth noting that member of (P463):[parliament] as a primary property is now deprecated; we're slowly working on moving this across to be a parliamentary term (P2937) qualifier on position held (P39) - see Wikidata:WikiProject British Politicians. So if you do an import, that would be the best approach. I'm going to work through all of these at the weekend to double-check & make sure it's accurate, but if you want to do a first run, feel free and I'll tidy up later :-) Andrew Gray (talk) 12:22, 9 June 2017 (UTC) Thanks for your comment. Do you happen to know whether someone plans to import this data? Andy mentioned that there could be an editathon. I am aware that the first query is more precise to deliver what was originally requested. However, the other one was requested as an alternative as well, but it is not that simple to exclude former MPs in that way. —MisterSynergy (talk) 12:41, 9 June 2017 (UTC) I was adding results most of last night, but as I was using it as a chance to migrate all the old records from member of (P463) to position held (P39)s with relevant parliamentary term (P2937)s, it was fairly slow going, so I only got the first 100 or so results declared. Unfortunately most of the tools for bulk import don't handle adding a new P39 without interfering with existing ones, so short of writing a custom bot, I don't know of a way to automate this. (FWIW I've also been adding elected in (P2715) = 2017 United Kingdom general election (Q25052149) to them all, along with electoral district (P768), member of political party (P102), and votes received (P1111) (the last one strictly doesn't belong here, but unless/until we have individual election items for each constituency, it seemed more useful to capture it whilst it was to hand, and migrate it later if needed) --Oravrattas (talk) 18:06, 9 June 2017 (UTC) An import/migration will happen, but at the moment doing it by hand is safest. The \"member of\" properties can't automatically be added to P39, as Oravrattas says, because a lot of people have multiple different P39s due to representing different seats. It's going to be a long grind! Andrew Gray (talk) 20:18, 9 June 2017 (UTC)@Pigsonthewing, Andrew Gray: I adapted the query to the model proposed by Andrew. Not all new MPs are already updated, but this lists of new MPs already populates:SELECT ?item ?itemLabel ?itemDescription ?website ?twitter ?image ?startTime ?endTime ?party ?election ?electoralDistrict ?replaces ?replacedBy {
+  ?item p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q16707842; pq:P2937 wd:Q29974940 .
+  MINUS { ?item p:P39 [ ps:P39 wd:Q16707842; pq:P2937 [ ^(wdt:P155+) wd:Q29974940 ] ] . }
+  MINUS { ?item wdt:P463 [ ^(wdt:P155+) wd:Q29974940 ] . }
+  OPTIONAL { ?positionStatement pq:P580 ?startTime . }
+  OPTIONAL { ?positionStatement pq:P582 ?endTime . }
+  OPTIONAL { ?positionStatement pq:P768 ?electoralDistrict . }
+  OPTIONAL { ?positionStatement pq:P102 ?party . }
+  OPTIONAL { ?positionStatement pq:P2715 ?election . }
+  OPTIONAL { ?positionStatement pq:1365 ?replaces . }
+  OPTIONAL { ?positionStatement pq:1365 ?replacedBy . }
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL { ?item wdt:P856 ?website . }
+  OPTIONAL { ?item wdt:P2002 ?twitter . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it!So someone is importing obviously. If you’d like to see all MPs of the new parliament, comment the two MINUS sections by adding a # to the beginning of the line (the query also tries to exclude MPs from former parliaments which still only have claims from the deprecated model using P463). —MisterSynergy (talk) 13:52, 9 June 2017 (UTC)@Pigsonthewing, MisterSynergy, Oravrattas:. Okay. It looks like all of yesterday's new MPs have the new parliamentary term set, but very few existing ones do. I've fixed all the ones that still use P463. This query gets a report of everyone who has the P2937 qualifier on P39 set (155 at time of writing) SELECT ?item ?itemLabel ?itemDescription {
+  ?item p:P39 ?positionStatement .
+  ?positionStatement ps:P39 wd:Q16707842; pq:P2937 wd:Q29974940 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! and this petscan report shows all the ones still to do. I'll get to work updating them... Andrew Gray (talk) 20:39, 9 June 2017 (UTC) Find all uses of a certain property How would I do this? PokestarFan • Drink some tea and talk with me • Stalk my edits • I'm not shouting, I just like this font! 02:06, 10 June 2017 (UTC) Should be something like this (for X username (P2002) in this case, you can change this): SELECT ?item ?value ?snak {
+  wd:P2002 wikibase:claim ?claim; wikibase:statementProperty ?statementProperty; wikibase:qualifier ?qualifier; wikibase:reference ?reference .
+  {
+    ?item ?claim [ ?statementProperty ?value ] .
+    BIND('mainsnak' AS ?snak) .
+  } UNION {
+    ?item ?anyprop [ ?qualifier ?value ] .
+    BIND('qualifier' AS ?snak) .
+  } UNION {
+    ?item ?anyprop [ prov:wasDerivedFrom [ ?reference ?value ] ] .
+    BIND('reference' AS ?snak) .
+  }
+} ORDER BY ASC(?snak) ASC(?value)
+ Try it! —MisterSynergy (talk) 06:27, 10 June 2017 (UTC) Alias = Label I would like to have a query which gives me all items that have, for a certain language, an alias which is the same like the label. Or is there already somewhere such a list? I assume this is not new observation that label = alias does frequently occur and should be corrected by removing the redundant alias. Steak (talk) 09:19, 10 June 2017 (UTC) The problem is that if alias=label, is necessary check if the label is correct, a lot of time sitelink are added in item where already exist label in the same lang, but the label isn't update. The query must return also the sitelink of the wikiprojects in the same language. --ValterVB (talk) 11:27, 10 June 2017 (UTC) I am not saying that this can be done by bot. But yes, the sitelink if existing should also be returned (which is not a problem I assume?). Steak (talk) 12:38, 10 June 2017 (UTC) Query by century Hi,I wanted to put layers on a map by century of inception (P571). I've got this : #defaultView:Map
+SELECT ?item ?itemLabel ?coord (round(YEAR(?date)/100) as ?layer)
+WHERE
+{
+	?item wdt:P131+ wd:Q12549 ; wdt:P625 ?coord ; wdt:P571 ?date .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" }
+}
+ Try it! Is there a better way to get the century of a date? In bonus: for visual understandability, is it possible to get a gradient of colours?Cdlt, VIGNERON (talk) 10:56, 11 June 2017 (UTC) Your way of getting century looks good, except that you should use CEIL() instead (ROUND(1650 / 100) = 16 but it's in the 17th century). Matěj Suchánek (talk) 11:27, 11 June 2017 (UTC) Concatenate more values I'm playing with discography and Wikidatalist. I have generated a page for the list of the album with link to the a user page page for the album. Now I have this query to have the tracklist (example for Per un amico (Q530546)); SELECT ?song ?songLabel ?composerLabel ?lyrics_byLabel WHERE {
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .}
+  }
+ Try it! It's possible sort by qualifier series ordinal (P1545) that there is in tracklist (P658) It's possible concatenate all the value in composer (P86) and lyricist (P676) so we have only one row for song (ex. \"Flavio Premoli, Franco Mussida\")? We need one row because Wikidatalist show only one row if exist multiple row for the same item. --ValterVB (talk) 12:52, 11 June 2017 (UTC)  Items used: Per un amico (Q530546)   Properties used: tracklist (P658)   , composer (P86)   , lyricist (P676)   SELECT ?song ?songLabel
+  (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\", \") as ?comp)
+  (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\", \") as ?lyri)
+  (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
+WHERE
+{
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
+}
+GROUP BY ?song ?songLabel Try it! Above a way to concatenate some of it. You could add this in one line to the album (see below), but I don't think you can sort the songs when grouping it that way. See #Sort_ordering_within_a_group above for essentially the same question. Maybe there is some workaround. SELECT (GROUP_CONCAT(DISTINCT ?songdesc; separator=\"; \") as ?s)
+{
+  SELECT ?song ?songLabel
+    (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\" and \") as ?comp)
+    (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\" and \") as ?lyri)
+    (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
+  WHERE
+  {
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+     SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
+  }
+  GROUP BY ?song ?songLabel
+}
+ Try it! BTW, I took the liberty to edit list of the album which gives you an less complete, but simple solution. --- Jura 13:36, 11 June 2017 (UTC) We have solved with Lua. The Result is in it:Utente:ValterVB/PFM (Column \"Tracce\") It is on it.wikipedia because template Wikidata is different then here. It's just a draft but it's a good result. --ValterVB (talk) 16:07, 11 June 2017 (UTC) Looks good. It draws quite a lot of items: https://it.wikipedia.org/w/index.php?title=Utente:ValterVB/PFM&action=info . You might want to use a row template instead of invoking a module in the list directly. --- Jura 16:23, 11 June 2017 (UTC) Now I have imported here all the module so we can play here :) example --ValterVB (talk) 20:12, 11 June 2017 (UTC) Status of items in a subclass For items in a class or its subclasses (for example headgear (Q14952)) , I'd like a query that returns image en label count of labels count of statements count of statements with references count of described by source (P1343) count of described at URL (P973) This would help determine which items need to be researched and referenced. Is this possible? - PKM (talk) 19:29, 13 June 2017 (UTC) Like this? SELECT ?item ?en_label (SAMPLE(?img) AS ?image) (COUNT(DISTINCT ?label) AS ?labels) (COUNT(DISTINCT ?st) AS ?statements) (COUNT(DISTINCT ?sourced) AS ?with_ref)
+(COUNT(DISTINCT ?P1343) AS ?source_described) (COUNT(DISTINCT ?P973) AS ?url_described)
+{
+  ?item wdt:P31/wdt:P279* wd:Q14952 .
+  OPTIONAL { ?item wdt:P18 ?img } .
+  OPTIONAL { ?item rdfs:label ?en_label FILTER( LANG( ?en_label ) = 'en' ) } .
+  ?item rdfs:label ?label;
+        ?p ?st .
+  ?st wikibase:rank [] .
+  OPTIONAL {
+    ?st prov:wasDerivedFrom [] .
+    BIND( ?st AS ?sourced ) .
+  } .
+  OPTIONAL {
+    ?st ps:P1343 [] .
+    BIND( ?st AS ?P1343 ) .
+  } .
+  OPTIONAL {
+    ?st ps:P973 [] .
+    BIND( ?st AS ?P973 ) .
+  } .
+} GROUP BY ?item ?en_label
+ Try it! Matěj Suchánek (talk) 16:34, 14 June 2017 (UTC) that's it, thank you! (and I never would have figured that out on my own...) - PKM (talk) 18:38, 15 June 2017 (UTC) What is Lipovica's current country? Lipovicë (Q6556803) has belonged to several countries during its history.My query: What is Lipovica's current country?An idea is to do a normal wdt:P131*/wdt:P17 but filter out all levels that have a endtime.The query below unfortunately times out, can you help me fix it? SELECT ?country WHERE {
+ wd:Q6556803 wdt:P131* ?area.
+ ?area wdt:P17 ?country.
+ FILTER NOT EXISTS {
+  wd:Q6556803 p:P131/(ps:P131/p:P131)* ?statement.
+  ?statement ps:P131 ?area.
+  wd:Q6556803 p:P131/(ps:P131/p:P131)* ?intermediateStatement.
+  ?intermediateStatement (ps:P131/p:P131)* ?statement.
+  ?intermediateStatement pq:P582 ?endTime.
+ }
+}
+ Try it! Thanks a lot! :-) Syced (talk) 06:56, 15 June 2017 (UTC) Lipovicë (Q6556803) doesn't have located in the administrative territorial entity (P131) + typo ?country × ?countryId. Matěj Suchánek (talk) 07:40, 15 June 2017 (UTC) I fixed both problems, thanks! Still getting a timeout, though. Any other idea? :-) Syced (talk) 08:35, 15 June 2017 (UTC) I've made it to: SELECT DISTINCT ?country WHERE {
+  wd:Q6556803 wdt:P131* ?area .
+  ?area wdt:P17 ?country .
+  OPTIONAL {
+    wd:Q6556803 wdt:P131*/p:P131 [
+      pq:P582 ?endTime; ps:P131/wdt:P131* ?area
+    ] .
+  } .
+  FILTER( !BOUND( ?endTime ) ) .
+}
+ Try it! I'm not a SPARQL expert, though, so I can't guarantee it works for any places. Another problem I can see is with places that had the current value in the past as well. I don't have an example but I'm concerned it wouldn't work. I believe this is the case statements with ranks come in. Matěj Suchánek (talk) 10:19, 15 June 2017 (UTC) Done Lang by number of label Hi,I wanted to get the lang by the number of items of Wikidata with a label in this lang. I think the query must be something like: SELECT ?lang (COUNT(?item) AS ?count) WHERE {
+	?item rdfs:label ?itemLabel.
+	BIND ( lang(?itemLabel) as ?lang )
+}
+GROUP BY ?lang
+ Try it! But it goes TimeOut :( Is there a solution? (in WDQS or maybe with another tool).Cdlt, VIGNERON (talk) 09:10, 15 June 2017 (UTC) Yes, that's a huge lot of items... what I did in a similar scenario (for geographical items) was to query longitude-by-longitude to get the whole little by little, then I added up after doing a request for each longitude. Maybe you could similarly add a particular condition to limit the number of items a single request has to handle? Syced (talk) 09:40, 15 June 2017 (UTC) @Syced: Yes, I know. I tried on smaller subset (like country (P17) = France (Q142)) but I'm interested in the global result. Here I can't cut by coordinates as most items don't have coordinates, we can probably cut by languages but I'm not sure how. It's possible to filter in other ways but again not sure how, for instance : only take the top 10 languages? (I tried but failed to do this filter). Cdlt, VIGNERON (talk) 09:48, 15 June 2017 (UTC) A wild idea could be to cut by the 3 last digits of the QID (so, splitting to 1000 requests), but I am not sure whether it is doable or not in SPARQL. Syced (talk) 09:57, 15 June 2017 (UTC) You need to use SQL instead: USE wikidatawiki_p;
+SELECT term_language, COUNT(*) FROM wb_terms
+WHERE term_type = 'label'
+GROUP BY term_language;
+ Matěj Suchánek (talk) 10:21, 15 June 2017 (UTC) Also, see User:Pasleim/Language statistics for items. Sjoerd de Bruin (talk) 10:36, 15 June 2017 (UTC) Thank you Matěj Suchánek, for some reason I always forgot about Quarry! Thank you Sjoerddebruin, could be very useful. Cdlt, VIGNERON (talk) 10:50, 15 June 2017 (UTC) Person Name + Birth Month and Day, but no Year Hello. I have a name and a month and a day for the birthday, is there a way to get a match on only that information? Thank you in advance. – The preceding unsigned comment was added by 96.250.12.53 (talk • contribs) at 22:07, 15 June 2017‎ (UTC). Might be possible. Do you have a full name, or just a given name/family name? —MisterSynergy (talk) 20:56, 15 June 2017 (UTC) I have the full names. – The preceding unsigned comment was added by 96.250.12.53 (talk • contribs) at 16:08, 16 June 2017‎‎ (UTC). Try something like this with the information you have: SELECT DISTINCT ?item {
+  ?item wdt:P569 ?dateOfBirth .
+  FILTER(DAY(?dateOfBirth) = 13 && MONTH(?dateOfBirth) = 9) .
+  ?item rdfs:label ?label .
+  FILTER(STR(?label) = 'Thomas Müller') .
+}
+ Try it! If there is no match, there might either be no item about the person you are looking for, or the date of birth is not given, or the name string is given differently. —MisterSynergy (talk) 14:24, 16 June 2017 (UTC) This can be made much much faster by replacing ?item rdfs:label ?label . FILTER(STR(?label) = 'Thomas Müller') . with something like ?item rdfs:label \"Thomas Müller\"@en .. However that also restricts it to a particular language (in this case, \"en\"). Another much faster option is the new MediaWiki API integration (see https://lists.wikimedia.org/pipermail/wikidata/2017-June/010832.html). I don't know much about it, but using that instead (e.g. this query) gives the same result in under a second. I'm not sure how to make it do a proper fulltext search, but it looks like it should be possible. - Nikki (talk) 15:34, 16 June 2017 (UTC) Thank you both for your help. I am doing this for thousands of records. Is there a way it can be done as a request similar to this api [1] or this [2] where you can make an http call and just get a json response or text response? Nikki, your query method with the new MediaWiki API integration is preferred due to the speed. But you mentioned, \"I'm not sure how to make it do a proper fulltext search\". By that do you mean searching for the name in some larger body of text? It matches on the entity name now, but this would be extended to something else? Update: I now see: https://www.mediawiki.org/wiki/Wikidata_query_service/User_Manual#SPARQL_endpoint but I don't know how to convert the SPARQL query example you had given using the mediawiki api intergration into this format. Thanks in advance. 96.250.12.53 20:30, 17 June 2017 (UTC) Hampton Search by items after a specific item I have this query. SELECT ?item WHERE {
+    ?item wdt:P31 wd:Q5 .
+    ?item rdfs:label ?label FILTER( LANG( ?label ) = 'en' ) .
+}
+LIMIT 100
+# Do not delete this
+ Try it! I want it to look for items that are not common, so I would like it to search for items with an item id after 10 million (10000000). How would I do this? PokestarFan • Drink some tea and talk with me • Stalk my edits • I'm not shouting, I just like this font! 16:53, 18 June 2017 (UTC) SELECT ?item WHERE {
+  ?item wdt:P31 wd:Q5 .
+  FILTER( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) > 10000000 ) .
+  ?item rdfs:label ?label FILTER( LANG( ?label ) = 'en' ) .
+}
+LIMIT 100
+ Try it! Matěj Suchánek (talk) 18:12, 18 June 2017 (UTC) P36:Q3551 All items with that has both. MechQuester (talk) 17:22, 18 June 2017 (UTC) SELECT ?item ?itemLabel {
+  ?item wdt:P36 wd:Q3551 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ Try it! Matěj Suchánek (talk) 18:14, 18 June 2017 (UTC) Blacklist People here once wrote me this query. It produces a list of items in which the hebrew sitelink label is different from the hebrew label, and then using quickstatments I change the labels to the sitelink label. However, there are a few item (about 6) that I don't want to be included in the list, because their label is good and it shouldn't be same as the sitelink label. Is there a way to make those items not to be included: dental hygienist (Q1079856), personal trainer (Q762121), suffragette (Q322170), food critic (Q1495660), and 2 more. Thanks--Mikey641 (talk) 15:30, 14 June 2017 (UTC) Add FILTER( ?item NOT IN ( wd:Q1, wd:Q2, ... ) ) . before the last }. Matěj Suchánek (talk) 16:20, 14 June 2017 (UTC) Thanks!--Mikey641 (talk) 12:40, 19 June 2017 (UTC) query to look up redirects I have a list of Q-codes, like Q18507911, and I want to check if they are redirects or not, and is so than redirecting where. Is there a tool or a query I can use? --Jarekt (talk) 04:08, 19 June 2017 (UTC) Something like this? SELECT ?item ?target {
+  VALUES ?item { wd:Q1 wd:Q404 wd:Q18507911 } .
+  OPTIONAL { ?item owl:sameAs ?target } .
+}
+ Try it! Matěj Suchánek (talk) 09:00, 19 June 2017 (UTC) Matěj Suchánek, That is perfect. Thanks. My research into the matter was revolving more around SQL query with quarry, but this is much easier. I have a lot of creator pages in c:Category:Creator templates with Wikidata link: quick statements which are ready to upload some property to Wikidata using Quick Statements, but Quick Statements tool does not work with redirects. --Jarekt (talk) 14:11, 19 June 2017 (UTC) raw Q-code values Hi, how i can get the raw q-item values out of the item? In example if my query is like this and i want to get links like https://example.com?wikidata_id=123 ? SELECT ?item ?itemLabel (concat(\"https://example.com?wikidata_id=\", substr(str(?item),32,300)) as ?link)
+WHERE
+{
+	?item wdt:P31 wd:Q146 .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+LIMIT 5
+ Try it! Thanks. --Zache (talk) 12:58, 21 June 2017 (UTC) Solved. It was just using substr(str(?item),32,300) \\o/ --Zache (talk) 13:12, 21 June 2017 (UTC) targetunit=km2 Hi, is it possible to specify a target unit in SPARQL. The request which follows mixes hectares and square kilometers. SELECT DISTINCT ?item ?itemLabel ?superficie
+WHERE
+{
+	?item wdt:P31 wd:Q23019040 . 
+  	?item wdt:P2046 ?superficie .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\"}
+}
+ Try it! Thx --Yanik B 14:14, 23 June 2017 (UTC) Yes, it is, but this may be much better version: Wikidata_talk:SPARQL_query_service/queries/Archive/2016#Quantities. --Edgars2007 (talk) 14:52, 23 June 2017 (UTC) It is possible to request “normalized values” from quantity claims. Example: SELECT DISTINCT ?item ?itemLabel ?normalizedSuperficie ?normalizedUnitLabel ?originalSuperficie ?originalUnitLabel ?normalizedSuperficieKM2 WHERE {
+  ?item wdt:P31 wd:Q23019040 . 
+  ?item p:P2046 [ psn:P2046 [ wikibase:quantityAmount ?normalizedSuperficie; wikibase:quantityUnit ?normalizedUnit ] ] .
+  ?item p:P2046 [ psv:P2046 [ wikibase:quantityAmount ?originalSuperficie; wikibase:quantityUnit ?originalUnit ] ] .
+  BIND(?normalizedSuperficie/1000000 AS ?normalizedSuperficieKM2) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\"}
+}
+ Try it! If you do ?item wdt:P2046 ?area, you are just requesting the value as it is stored in the item. You get the same numerical value by doing ?item p:P2046 [ psv:P2046 [ wikibase:quantityAmount ?area ] ]. If you use the psn: prefix instead of psv:, you access the “normalized value”, which is square metre (Q25343) in case of areas. You then only need to divide by the factor 1000000 to make it numerically square kilometre (last table column). I combined the SPARQL fragments in the query. —MisterSynergy (talk) 15:15, 23 June 2017 (UTC) Sitelinks on wiktionary Is it possible to query pages that have a link to any *.wiktionary.org site and no other sitelinks as these sitelinks are handled by Cognate? And without pages that have instance of (P31) Wikimedia project page (Q14204246) or any subclass of it. Q.Zanden questions? 22:40, 22 June 2017 (UTC) SELECT DISTINCT ?item ?itemLabel WHERE {
+  {
+    SELECT ?item WHERE {
+      ?article a schema:Article;
+               schema:isPartOf ?wiktionary;
+               schema:about ?item.
+      ?wiktionary wikibase:wikiGroup \"wiktionary\".
+    }
+  }
+  MINUS {
+    ?otherArticle a schema:Article;
+                  schema:isPartOf ?otherProject;
+                  schema:about ?item.
+    ?otherProject wikibase:wikiGroup ?otherGroup.
+    FILTER(?otherGroup != \"wiktionary\")
+  }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q14204246. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --TweetsFactsAndQueries (talk) 07:32, 23 June 2017 (UTC) Thanks! Q.Zanden questions? 21:03, 24 June 2017 (UTC) How to retreive also the sitelink(s)? Q.Zanden questions? 21:21, 24 June 2017 (UTC) @QZanden: Does this work? SELECT DISTINCT ?item ?itemLabel ?article WHERE {
+  {
+    SELECT ?item ?article WHERE {
+      ?article a schema:Article;
+               schema:isPartOf ?wiktionary;
+               schema:about ?item.
+      ?wiktionary wikibase:wikiGroup \"wiktionary\".
+    }
+  }
+  MINUS {
+    ?otherArticle a schema:Article;
+                  schema:isPartOf ?otherProject;
+                  schema:about ?item.
+    ?otherProject wikibase:wikiGroup ?otherGroup.
+    FILTER(?otherGroup != \"wiktionary\")
+  }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q14204246. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --TweetsFactsAndQueries (talk) 20:05, 25 June 2017 (UTC) @TweetsFactsAndQueries: almost, but instead of the title you would see at wikt, it gives the URL with all the special signs, instead of the blank space it gives %20 and instead of ( it shows %28 and also for the cyrillic letters of the russian and ukranian language it shows strange symbols. Would it be possible to show the original title, and if possible also without the prefix https://xx.wiktionary.org/wiki/ ? Q.Zanden questions? 20:40, 25 June 2017 (UTC) @QZanden: sure! SELECT DISTINCT ?item ?itemLabel ?title WHERE {
+  {
+    SELECT ?item ?title WHERE {
+      ?article a schema:Article;
+               schema:isPartOf ?wiktionary;
+               schema:about ?item;
+               schema:name ?title.
+      ?wiktionary wikibase:wikiGroup \"wiktionary\".
+    }
+  }
+  MINUS {
+    ?otherArticle a schema:Article;
+                  schema:isPartOf ?otherProject;
+                  schema:about ?item.
+    ?otherProject wikibase:wikiGroup ?otherGroup.
+    FILTER(?otherGroup != \"wiktionary\")
+  }
+  MINUS { ?item wdt:P31/wdt:P279* wd:Q14204246. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --TweetsFactsAndQueries (talk) 00:16, 26 June 2017 (UTC) Thanks! Q.Zanden questions? 09:47, 26 June 2017 (UTC) Looking up a set of external identifiers I have a set of external identifiers: Swedish minor urban area code (P776). Lets take the set \"S0101\", \"S0102\", \"S0103\" as an example. I would like to know which identifiers isn't present in Wikidata today. As a benchmark: In this example, I know that \"S0102\" does not exists. And how large sets can I look up without causing problems? -- Innocent bystander (talk) 13:42, 25 June 2017 (UTC) I'm ussually doing this batches by some 15-20 IDs, but it probably can be done in larger batches. But I do it with Python script, so it may be not so very user-friendly. Tipical query looks like this: SELECT ?ids ?item WHERE {
+?item wdt:P776 ?ids .
+values ?ids { \"S0101\" \"S0102\" \"S0103\" }
+}
+limit 100
+ Try it! Or, if the number of Px uses isn't very very very large, then simply look up for all instances of particular property and then look up for value, that you need. --Edgars2007 (talk) 15:40, 25 June 2017 (UTC) In such cases I usually perform a query that outputs all identifiers that are stored in Wikidata; subsequently, I use short scripts (mostly php, meanwhile also python) with array union or diff methods to compare to a given set of identifiers to spot those which are either in one or both of the datasets. It should be possible to make a tool for all users with such functionality, but I don’t have time for that right now. —MisterSynergy (talk) 15:55, 25 June 2017 (UTC) @Edgars2007: I wasn't clear enough. What I look for is the parts of the set that isn't here. I have approximately 3000 identifiers for every year. It is S0102 I want to find, not S101 and S0103. -- Innocent bystander (talk) 16:59, 25 June 2017 (UTC) But if you see that S0101 and S0103 is included in output, but S0102 isn't, then I think it's clear, which ID isn't used :) But agree, that Jura's query is better and more usable for humans. As I said, I usually use such things in scripts. --Edgars2007 (talk) 07:12, 26 June 2017 (UTC) You could just invert it : SELECT ?ids 
+WHERE
+{
+  values ?ids { \"S0101\" \"S0102\" \"S0103\" }
+  FILTER NOT EXISTS { ?item wdt:P776 ?ids }
+}
+limit 100
+ Try it! --- Jura 17:50, 25 June 2017 (UTC) ! -- Innocent bystander (talk) 18:14, 25 June 2017 (UTC) Just for curiosity: does this work with 3000 identifiers at once? —MisterSynergy (talk) 18:23, 25 June 2017 (UTC) > https://phabricator.wikimedia.org/T125299 --- Jura 18:44, 25 June 2017 (UTC) I can confirm that I now had no problems with ~3200 identifiers. -- Innocent bystander (talk) 07:19, 26 June 2017 (UTC) Using GET, right? That is, via the standart way of doing things? --Edgars2007 (talk) 07:30, 26 June 2017 (UTC) I simply followed the link Jura1 gave me above and replaced the example-codes with a set I got from a csv-file. -- Innocent bystander (talk) 08:05, 26 June 2017 (UTC) Query Service seems to switch to POST automatically if the input is too big for GET. —MisterSynergy (talk) 08:23, 26 June 2017 (UTC) Cities listed by population density Can you give me a query that lists cities by their population density with the cities with the highest population density on the top? ChristianKl (talk) 18:22, 21 June 2017 (UTC) SELECT DISTINCT ?item ?itemLabel ?population ?area (?density_m2 * 1000000 AS ?density) {
+  ?item wdt:P1082 ?population;
+        wdt:P31/wdt:P279* wd:Q515;
+        p:P2046 [ a wikibase:BestRank; psn:P2046/wikibase:quantityAmount ?area_in_m2 ] .
+  BIND( ?population / ?area_in_m2 AS ?density_m2 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY DESC(?density)
+ Try it! If you take look at the first line (Mar del Plata (Q52607)), you must agree the data is wrong. (700,000 people on 9-metre-wide square?) Matěj Suchánek (talk) 12:26, 22 June 2017 (UTC) @ChristianKl, Matěj Suchánek: Interesting question, nice query, but odd results. I stumbled upon strange edit behavior: [3] by Special:Contributions/186.139.233.48 [4] by Special:Contributions/130.79.243.34 [5] by Special:Contributions/JAustria [6] by Special:Contributions/200.110.53.22 [7] by Special:Contributions/TheRichic [8] by Special:Contributions/187.158.206.82 [9] by Special:Contributions/91.16.121.246 and so on… I do not think that this is classic vandalism. It appears that there is some Wikipedia template around somewhere that does not make use of the quantity unit (or, even better, the normalized value) and thus displays “wrong” values if the quantity unit isn’t square kilometre (Q712226). What to do? —MisterSynergy (talk) 13:02, 22 June 2017 (UTC) That's a good catch, MisterSynergy! It could be a Wikipedia template, most likely I think, but even a third-party use. I will try to find all similar changes and the cause of them. Matěj Suchánek (talk) 15:04, 22 June 2017 (UTC) I am unable to definitely spot the culprit, but I think it might be es:Plantilla:Ficha de entidad subnacional, which has just been changed today (see es:Wikipedia:Café/Archivo/Técnica/Actual#Ficha de entidad subnacional as well). But I am neither a template coder nor an es speaker… —MisterSynergy (talk) 15:27, 22 June 2017 (UTC) Thank you. Spanish users and readers are known for modifying our data heavily, this could be right. Matěj Suchánek (talk) 17:04, 22 June 2017 (UTC) Thanks for the query. The top results are indeed a bit odd. At the moment I would like to see the country of the city but my own attempt at changing the query produce out of memory errors. Is there a way to change the query to see the country? The opportunity to filter by country would also be nice. ChristianKl (talk) 13:31, 22 June 2017 (UTC) SELECT DISTINCT ?item ?itemLabel ?countryLabel ?population ?area_in_m2 (?density_m2 * 1000000 AS ?density) {
+  ?item p:P31 ?statement .
+  ?statement ps:P31/wdt:P279* wd:Q515 .
+  MINUS { ?statement pq:P582 [] } .
+  MINUS { ?item wdt:P576 [] } .
+  ?item wdt:P1082 ?population; p:P2046 [ a wikibase:BestRank; psn:P2046/wikibase:quantityAmount ?area_in_m2 ] .
+  OPTIONAL { ?item wdt:P17 ?country } .
+  # FILTER( ?country = wd:Q183 ) .
+  BIND( ?population / ?area_in_m2 AS ?density_m2 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY DESC(?density)
+ Try it! Matěj Suchánek (talk) 15:00, 22 June 2017 (UTC) The Query also finds historical cities, e.g. Altona (Q1630). Also, some cites like Frankfurt (Q1794) are listed more than once. Can somebody modify the query so that only current cities are found and listed only once? Steak (talk) 15:32, 22 June 2017 (UTC) Frankfurt (Q1794) has multiple preferred population (P1082) about population, that's why you can see it twice (I'd like to have the query as simple as possible). I updated the latest query above. Matěj Suchánek (talk) 17:03, 22 June 2017 (UTC) Thanks, for the latest query. Given that what happens to be a city can be a bit misleading (Paris is 4 times as dense as London), I switched to \"human settlement\". My query tinyurl.com/yawhhsxn works for Germany but when I want to look at the US it doesn't compute. If there a way to optimize the query, so that it computes for the US? Is there otherwise a way to only look at individual US states like California? ChristianKl (talk) 13:42, 27 June 2017 (UTC) How to format string output as clickable link? I cannot get the output of my query in the example below as \"clickable\" as I like. The WP sitelink and the \"official website\" are datatype URL anyway, so that's not a problem. But the Theatres Trust Database ID is a normal string property (like all those authority data properties are, by the way). I does, however, very much represent a defined part of an URL, and it would be nice to be able to generate something clickable. Here's as far as I got (and before you try it, adding the \"<\" and \">\" to the string doesn't help either). """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec128585-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

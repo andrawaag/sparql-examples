@@ -1,0 +1,144 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-901a555aee91d707fa609ce59bb6f5c1> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, le Wikidata Query Service (service de requête de Wikidata), est un outil puissant pour fournir un aperçu du contenu de Wikidata. Ce guide vous apprendra à l'utiliser. Voir aussi le tutoriel interactif par Wikimedia Israël.Avant de rédiger votre propre requête SPARQL, prenez le temps de regarder {{Item documentation}} ou toute autre requête générique avec modèle et voir si votre requête n'existe pas déjà. Contents 1 Avant de commencer 2 Les bases de SPARQL 3 Notre première requête 3.1 Auto-complétion 4 Motifs de triplets avancés 5 Classes et instances 5.1 Chemins de propriétés 6 Qualificatifs 7 ORDER et LIMIT 7.1 Exercice 7.1.1 Les livres d'Arthur Conan Doyle 7.1.2 Éléments chimiques 7.1.3 Les rivières qui se jettent dans le Mississippi 7.1.4 Les rivières qui se jettent dans le Mississippi II 8 OPTIONAL 9 Expressions, FILTER et BIND 9.1 Types de données 9.2 Opérateurs 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Groupement 10.1 Populations des villes 10.2 Matériaux de peinture 10.3 Fusils par fabricant 10.4 Editeurs par nombre de pages 10.4.1 HAVING 10.5 Sommaire des fonctions d’agrégation 10.6 wikibase:Label et agrégations 11 VALUES 12 Libellé en plusieurs langues 13 Et plus loin… 14 Voir aussi Avant de commencer Ce guide peut sembler très long et intimidant. Ne soyez pas effrayé ! Acquérir les bases de SPARQL va déjà vous permettre de faire pas mal de chemin — même si vous vous arrêter de lire après #Notre première requête, vous en saurez assez pour écrire de nombreuses requêtes intéressantes. Chaque section de cette page vous outille pour écrire encore plus de questions formidables.Si vous n'avez jamais entendu parler de Wikidata, SPARQL ou WDQS jusqu'à maintenant, voici une courte explication de ces mots : Wikidata est une base de connaissances. Cette base contient de nombreuses affirmations/déclarations, comme « la capitale du Canada est Ottawa » ou « la Joconde est peinte avec de la peinture à l'huile sur du bois de peuplier » ou encore « l'or a un point de fusion de 1 064,18 degrés Celsius ». SPARQL est un langage pour formuler des questions (requêtes) dans une base de connaissance. Avec la bonne base, une requête SPARQL peut répondre à des questions comme « quelle est la tonalité la plus populaire en musique? » ou « quel est le personnage qui a été le plus joué par des acteurs ou actrices ? » ou « quelle est la distribution des groupes sanguins? » or « quelles sont les œuvres d'auteur qui entrent dans le domaine public cette année? » WDQS, le service de requête Wikidata, joint les deux précédents : vous entrez une requête SPARQL, et elle s'exécute sur l'ensemble des données de Wikidata et vous montre le résultat.  Les bases de SPARQL Une requête SPARQL simple se présente ainsi : SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} La clause SELECT liste les variables que vous voulez renvoyer (les variables commencent avec un point d'interrogation) et la clause WHERE contient des restrictions sur ces variables, principalement sous la forme de triplets ; quand vous exécutez la requête, le service de requête essaye de combiner les variables avec les valeurs courantes de telle manière que les triplets résultant de ce remplissage soient présents dans la base de connaissances, et renvoie un résultat pour chaque combinaison de variables que le service trouve.Un triplet peut être vu comme représentant deux sommets (i.e. 2 noeuds, 2 ressources) connectés par une arête ou arc (une propriété) à l'intérieur du vaste multigraphe de propriétés orienté que constitue Wikidata. - Il peut être lu comme une phrase (qui se termine avec un point), avec un sujet, un prédicat et un objet. Les termes en anglais sont : subject, predicate, and object : SELECT ?fruit
+WHERE
+{
+  ?fruit aCouleur jaune.
+  ?fruit goût acide.
+} Les résultats pour cette question peuvent inclure, par exemple, \"citron\". Dans Wikidata, la plupart des propriétés sont de type \"a le/la\" (en anglais : “has”-kind properties), ainsi la requête pourrait aussi être lue : SELECT ?fruit
+WHERE
+{
+  ?fruit couleur jaune.
+  ?fruit goût aigre.
+} qui se lit comme “?fruit a la couleur ‘jaune’” (et non pas “?fruit est la couleur de ‘jaune’” – gardez cela en tête pour les paires de propriétés comme “parent”/“enfant”!).Cependant, ce n'est pas un bon exemple pour WDQS. Les goûts sont subjectifs, aussi Wikidata n'a pas de propriété pour cela. Laissons cela de côté, et intéressons-nous aux relations parent/enfant, qui sont généralement non-ambigües. Notre première requête Supposons que nous voulions la liste de tous les enfants du compositeur baroque Jean-Sébastien Bach. En utilisant les pseudo-éléments comme dans les requêtes ci-dessus, comment écririez-vous la requête ?Avec un peu de chance, vous obtenez quelque chose comme cela : SELECT ?enfant
+WHERE
+{
+  #  enfant \"a pour parent\" Bach
+  ?enfant parent Bach.
+  # (note : tout ce qui se trouve après un « # » est un commentaire de code et est ignoré par WDQS.)
+} ou ceci, SELECT ?enfant
+WHERE
+{
+  # enfant \"a pour père\" Bach 
+  ?enfant père Bach. 
+} ou ceci, SELECT ?enfant
+WHERE
+{
+  #  Bach \"a pour enfant\" enfant
+  Bach enfant ?enfant.
+} Les deux premiers triplets disent que la variable ?enfant doit avoir le 'parent/père' Bach ; le troisième triplet dit que Bach doit avoir un enfant avec une variable ?enfant. Allons-y avec le deuxième pour l'instant.Que reste-t-il à faire pour transformer cela en une requête WDQS correcte ? Dans Wikidata, les éléments et les propriétés ne sont pas identifiés par des noms lisibles par des humains tel que \"père\" (propriété) ou \"Bach\" (élément). (Pour de bonnes raisons : \"Johann Sebastian Bach\" est aussi le nom d'un peintre allemand et \"Bach\" peut aussi faire référence au nom de famille, à la commune française, au cratère sur Mercure, etc.) Au lieu de cela, éléments et propriétés de Wikidata sont affectés à un identifiant. Pour trouver l'identifiant d'un élément, nous cherchons cet élément et nous copions le Q-nombre qui semble être celui de l'élément que nous cherchons (en nous basant sur la description, par exemple). Pour trouver l'identifiant d'une propriété, nous faisons la même chose mais en cherchant “P:terme cherché” au lieu de “terme cherché”, ce qui limite la recherche aux propriétés. Ceci nous apprend que le fameux compositeur Jean-Sébastien Bach est Q1339 et que la propriété pour désigner le père d'un élément est P:P22.Enfin, nous avons besoin d'inclure les préfixes. Pour des triplets WDQS de base, les éléments doivent être préfixés avec wd: et les propriétés avec wdt:. (Mais ceci ne s'applique qu'aux valeurs - les variables n'ont pas de préfixe !)En mettant tout cela ensemble, nous arrivons à notre première requête WDQS correcte : SELECT ?enfant
+WHERE
+{
+# ?enfant père Bach
+  ?enfant wdt:P22 wd:Q1339.
+}
+ Try it! Cliquez sur le lien « Essayez ! » puis « lancez » la requête sur la page WDQS. Qu'obtenez-vous ? enfant wd:Q57225 wd:Q76428 … Bon c'est décevant. Vous ne voyez que les identifiants. Vous pouvez cliquer dessus pour voir leur page Wikidata (incluant un libellé lisible par les humains), mais n'y a-t-il pas une meilleure manière de voir les résultats ?Et bien, comme nous allons le voir, c'est possible ! (N'est-ce pas que c'est génial de se poser des questions rhétoriques ?) Si vous incluez le texte magique SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } quelque part à l'intérieur de la clause WHERE, vous obtenez des variables additionnelles : pour chaque variable ?foo, vous avez maintenant une variable ?fooLabel qui contient le libellé de l'élément correspondant à ?foo. Si vous ajoutez ceci à la clause SELECT, vous obtenez l'élément et aussi le libellé SELECT ?enfant ?enfantLabel
+WHERE
+{
+# ?enfant père Bach
+  ?enfant wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Essayez d'exécuter la requête — vous devriez voir non seulement les numéros des éléments, mais aussi les noms des différents enfants. enfant enfantLibellé wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach …  Auto-complétion Le bout de code SERVICE est difficile à retenir, n'est-ce pas ? Et parcourir la fonction de recherche pendant que vous écrivez la requête est aussi fastidieux. Heureusement, WDQS offre une bonne solution à ceci : l'auto-complétion. Dans l'éditeur de requêtes query.data.org, vous pouvez appuyer sur Ctrl+Espace (ou Alt+Entrée ou Ctrl+Alt+Entrée) à n'importe quel point de la question et avoir des suggestions de code qui peuvent être appropriées ; sélectionnez la bonne suggestion avec les touches flèche haut et flèche bas, et appuyer sur Entrée pour la sélectionner.Par exemple, au lieu d'écrire SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } à chaque fois, vous pouvez saisir SERV, taper Ctrl+Espace, et la première suggestion sera l'incantation complète du label du service, prête à l'emploi ! Taper simplement Entrée pour l'accepter. (Le formatage sera un peu différent, mais ça n'a pas d'importance.)Et l'auto-complétion peut aussi chercher pour vous. Si vous tapez un des préfixes Wikidata, comme wd: ou wdt:, et que vous écrivez ensuite du texte juste après, Ctrl+Espace va faire une recherche avec ce texte dans Wikidata et suggérer des résultats. wd: cherche des éléments, wdt: des propriétés. Par exemple, au lieu de chercher les éléments pour Johann Sebastian Bach (Q1339) et father (P22), vous pouvez simplement taper wd:Bach et wdt:père et sélectionner la bonne entrée proposée par l'auto-complétion. (Ceci marche aussi avec des espaces dans le texte, par ex. wd:Johann Sebastian Bach.) Motifs de triplets avancés Jusqu'à maintenant nous avons vu tous les enfants de Johann Sebastian Bach - plus exactement : tous les éléments avec le père Johann Sebastian Bach. Mais Bach a eu deux épouses, et ces éléments ont donc deux mères différentes : que faire si nous voulons voir seulement les enfants de Johann Sebastian Bach avec sa première épouse, Maria Barbara Bach (Q57487)? Essayez d'écrire cette requête basée sur celle ci-dessous.C'est fait ? Ok, alors la solution. Le plus simple est d'ajouter un deuxième triplet avec cette restriction : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339.
+  ?enfant wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! En langage naturel, cela se lit : Enfant a pour père Johann Sebastian Bach. Enfant a pour mère Maria Barbara Bach. Cela semble un peu difficile, n'est ce pas ? En langage naturel, nous abrégerions en : Enfant a pour père Johann Sebastian Bach et pour mère Maria Barbara Bach. En fait, il est possible d'exprimer la même version abrégée en SPARQL : si vous terminez un triplet avec un point-virgule (;) au lieu d'un point, vous pouvez ajouter une autre paire prédicat-objet. Ceci nous permet d'abréger la requête ci-dessus en : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! ce qui donne le même résultat, mais avec moins de répétition dans la requête.Maintenant supposons que, parmi ces résultats, nous ne soyons intéressés que par les enfants qui sont compositeurs et pianistes. Les propriétés et les éléments correspondants sont occupation (P106), composer (Q36834) et pianist (Q486748). Essayez de mettre à jour la requête ci-dessus pour ajouter ces restrictions !Voici ma solution : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Cette solution utilise l'abrégé ; deux fois pour ajouter les deux professions. Mais comme vous pouvez le remarquer, il y a encore des répétitions. C'est comme si nous disions : Enfant a la profession compositeur et la profession pianiste. que nous abrégerions généralement en : Enfant a les professions de compositeur et de pianiste. Et SPARQL a aussi une syntaxe pour ça : de la même manière que ; vous permet d'ajouter une paire prédicat-objet à un triplet (en réutilisant le sujet), , vous permet d'ajouter un autre objet à un triplet (en réutilisant à la fois le sujet et le prédicat). Avec cela, la requête peut être abrégée en : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Note : l’indentation et les autres espaces n'ont pas d'importance — ils rendent la lecture plus facile. Vous pouvez aussi l'écrire comme : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # les deux occupations sont sur une seule ligne
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! ou, encore moins lisible : SELECT ?enfant ?enfantLabel
+WHERE
+{
+  ?enfant wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # aucune indentation ; rend plus difficile la distinction entre ; et ,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Heureusement, l'éditeur WDQS indente automatiquement les lignes, donc généralement vous n'avez pas à vous en occuper.Bien, résumons tout cela ici. Nous avons vu que les requêtes sont structurées comme du texte. Chaque triplet sur un sujet est terminé par un point. Des prédicats multiples sur le même sujet sont séparés par des points-virgule, et de multiples objets pour le même sujet et le même prédicat peuvent être écrits comme une liste séparée par des virgules. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Maintenant je veux introduire une autre abréviation qu'offre SPARQL. Vous me permettez un autre scénario hypothétique…Supposons que nous ne sommes pas tellement intéressés par les enfants de Bach (qui sait, c'est peut-être votre cas !). Mais nous nous intéressons à ses petits-enfants (de manière hypothétique). Il y a une complication ici: un petit-enfant peut être relié à Bach par son père ou par sa mère. Il y a deux propriétés différentes, ce qui n'est pas pratique. Au lieu de ça, sautons par-dessus le problème : Wikidata a une propriété « enfant », P:P40, qui pointe d'un parent à un enfant et indépendante du genre. Avec cette information, pouvez-vous écrire une requête qui renvoie les petits-enfants de Bach ?Voici ma solution : SELECT ?petitEnfant ?petitEnfantLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?enfant.
+  ?enfant wdt:P40 ?petitEnfant.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! En langage naturel, cela se lit : Bach a un enfant ?enfant. ?enfant a un enfant ?petitEnfant. Encore une fois, je propose d'abréger cette phrase en langage naturel, et ainsi je veux vous montrer comment SPARQL fournit une telle abréviation. Observez comment nous ne nous soucions pas réellement de l'enfant : nous n'utilisons la variable ?enfant que pour atteindre le petit-enfant. Par conséquent, nous pouvons abréger la phrase en : Bach a un enfant quelconque qui a un enfant ?petitEnfant. Au lieu de dire de quel enfant de Bach il s'agit, nous disons juste un enfant « quelconque » : nous ne faisons pas attention à l'enfant. Mais nous pouvons y faire référence car nous avons dit un enfant « quelconque » « qui » : le « qui » démarre une clause relative (une proposition subordonnée) qui nous permet de dire des choses au sujet de cet enfant « quelconque » (e.g. que quelqu’un « a un enfant ?petitEnfant »). D’une certaine manière, « quelconque » est une variable, mais une variable un peu spéciale qui n'est valide que dans la clause relative, et à laquelle on ne veut pas se référer explicitement (nous disons « une quelconque personne qui est ceci et fait cela », et non pas « une quelconque personne qui est ceci et une quelconque personne qui fait cela » — ce sont deux « quelconques » qui sont des personnes différentes).En SPARQL, cela peut être écrit comme suit : SELECT ?petitEnfant ?petitEnfantLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?petitEnfant ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Vous pouvez utiliser une paire de crochets ([]) à la place d'une variable, ce qui a l'effet d'une variable anonyme. Dans les crochets, vous pouvez spécifier des paires prédicat-objet, comme après un ; qui suit un triplet normal; le sujet implicite est dans ce cas la variable anonyme que les crochets représentent. (Note: comme après un ;, vous pouvez ajouter plus de paires prédicat-objet avec plus de points-virgules, ou plus d'objets pour le même prédicat avec plus de virgules.)Et voilà pour les motifs de triplets ! Il y a plus dans SPARQL, mais comme nous allons quitter les parties qui sont fortement analogues avec le langage naturel, je voudrai résumer ces analogies encore une fois : langage naturel exemple SPARQL exemple phrase Juliette aime Roméo. point juliette aime roméo. conjonction (clause) Roméo aime Juliette et tue Roméo. point-virgule roméo aime juliette ; tue roméo. conjonction (noms) Roméo tue Tybalt et Roméo. virgule roméo tue tybalt, roméo. clause relative (proposition subordonnée) Juliette aime quelqu'un qui tue Tybalt. crochets juliette aime [ tue tybalt ].  Classes et instances Plus tôt, j'ai dit que la plupart des propriétés Wikidata sont des relations \" le / a la\" : a l'enfant, a le père, a la profession. Mais quelquefois (en réalité, fréquemment) vous avez aussi besoin de parler sur ce que quelque chose \"est\". En fait, il y a deux sortes de relations ici : Autant en emporte le vent est un film. Un film est une œuvre d'art. Autant en emporte le vent est un film en particulier. Il a son metteur en scène (Victor Fleming), une durée spécifique (238 minutes), une distribution d'acteurs (Clark Gable, Vivien Leigh, …), etc.Film est un concept général. Les films peuvent avoir des metteurs en scène, des durées, des distributions d'acteurs, mais le concept « film » ne fait référence à aucun metteur en scène, aucune durée, aucune distribution d'acteurs en particulier. Et bien qu'un film soit une œuvre d'art, et qu'une œuvre d'art ait généralement un créateur, le concept de « film » lui-même n'a pas de créateur - seules des instances particulières de ce concept en ont un (créateur).Cette différence explique pourquoi il y a deux propriétés pour « est » dans Wikidata : instance of (P31) et subclass of (P279). Autant en emporte le vent est une instance particulière de la classe « film » ; la classe « film » est une sous-classe (une classe plus spécifique ; une spécialisation) de la classe plus générale « œuvre d'art ».Pour vous aider à faire la différence, vous pouvez essayer d'utiliser deux verbes différents : « est » et « est une sorte de ». Si le verbe « est une sorte de » fonctionne (e.g. Un film « est une sorte de » œuvre d'art), ceci indique que vous énoncez un fait sur une sous-classe, une spécialisation d'une classe plus générale et vous devez utiliser subclass of (P279). Si « est une sorte de » ne fonctionne pas (par ex. la phrase Autant en emporte le vent « est une sorte de » film n'a pas de sens), cela indique que vous énoncez un fait sur une instance particulière et vous devez utiliser instance of (P31).Note pour le français : la traduction française choisie pour instance of est « nature de l'élément », ce qui diffère sensiblement des autres traductions qui veulent plus ou moins dire « est un » ou « instance de ». La justification donnée dans la page instance of (P31) est la suivante « Cet élément est un exemple spécifique de cette classe qui en précise la nature. »Donc qu'est ce que ça signifie pour nous lorsque nous écrivons des requêtes SPARQL ? Lorsque nous voulons chercher « toutes les œuvres d'art », ce n'est pas suffisant de chercher tous les éléments qui sont des instances directes de « œuvre d'art » : SELECT ?oeuvre ?oeuvreLabel
+WHERE
+{
+  ?oeuvre wdt:P31 wd:Q838948. # instance d'une œuvre d'art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Lorsque j'ai écrit ceci (octobre 2016), cette requête retrouvait 2615 résultats - évidemment, il y a plus d’œuvres d'art que cela ! Le problème est qu'il manque des éléments comme \"Autant en emporte le vent\", qui est seulement une instance de \"film\" et non de \"œuvre d'art\". \"film\" est une sous-classe d'\"œuvre d'art\", mais nous devons dire à SPARQL de prendre cela en compte lors de la recherche.Une solution possible est la syntaxe [] dont nous avons déjà parlé : Autant en emporte le vent est l'instance d'une sous-classe quelconque de « œuvre d'art » (Pour vous exercer, essayez d'écrire cette requête !). Mais cela pose toujours des problèmes : Nous n'incluons plus maintenant des éléments qui sont des instances directes de \"œuvre d'art\". Nous manquons des éléments qui sont des instances de certaines sous-classes de certaines \"autres\" sous-classes de \"œuvre d'art\" - par exemple, \"Blanche-Neige et les sept nains\" est un dessin animé, qui est un film, qui est une œuvre d'art. Dans ce cas, nous avons besoin de deux propriétés \"sous-classe de\" - mais on pourrait en avoir besoin de trois, quatre, cinq, de n'importe quel nombre en réalité. La solution : ?element wdt:P31/wdt:P279* ?classe. Cela veut dire qu'il y a un chemin entre l'élément et la classe qui comporte une propriété « nature de l'élément » et n'importe quel nombre de fois la propriété « sous-classe de ». SELECT ?oeuvre ?oeuvreLabel
+WHERE
+{
+  ?oeuvre wdt:P31/wdt:P279* wd:Q838948. # instance de n'importe quelle sous-classe d'une œuvre d'art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (Je ne recommande pas d'exécuter cette requête. WDQS peut la gérer (tout juste), mais il est possible que votre navigateur se plante lors de l'affichage des résultats car ils sont très nombreux.)Maintenant vous savez chercher parmi toutes les œuvres d'art ou tous les bâtiments ou toutes les colonies humaines: l'incantation magique wdt:P31/wdt:P279* avec la classe appropriée. Ceci utilise certaines caractéristiques de SPARQL que je n'ai pas encore expliqué, mais honnêtement, on a là (presque) la seule utilisation pertinente de ces caractéristiques, ainsi vous n'avez pas \"besoin\" de comprendre comment ça fonctionne pour utiliser efficacement WDQS . Si vous voulez en savoir plus, je vais expliquer cela un petit peu, mais vous pouvez aussi sauter la prochaine section et mémoriser ou copier-coller wdt:P31/wdt:P279* à partir d'ici quand vous en avez besoin. Chemins de propriétés En général, le chemin qui permet de connecter le noeud-source (sujet) au noeud-cible (objet) dans le graphe n'est pas toujours direct: on peut avoir à concaténer un ou plusieurs maillons (segments) en une chaîne; et il peut aussi y avoir plusieurs tels chemins pour se rendre. Dans une chaîne donnée, l'objet d'un maillon devient le sujet du maillon qui suit. - Dans SPARQL, les chemins de propriétés sont une manière d'écrire sobrement une telle suite de propriétés entre deux éléments. Le chemin le plus simple est composé d'une seule propriété, ce qui forme un triplet ordinaire : ?élément wdt:P31 ?classe. On peut ajouter des maillons de chemins avec un slash droit (/). ?élément wdt:P31/wdt:P279/wdt:P279 ?classe. Ce qui est équivalent à l'une ou l'autre des formulations suivantes : ?élément wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?classe. """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/fr>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

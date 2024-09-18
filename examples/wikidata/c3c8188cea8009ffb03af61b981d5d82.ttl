@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c3c8188cea8009ffb03af61b981d5d82> a sh:SPARQLExecutable;
+  rdfs:comment """ RDF mappings (above) are different from what we use in SPARQL; Image is used to illustrate idea of additional nodes and links between them Mona Lisa (Q12418)   and made from material (P186) : oil paint (Q296955), the main material; poplar wood (Q291034), with the qualifier applies to part (P518)painting support (Q861259) – this is the material that the Mona Lisa was painted on Suppose we want to find all paintings with their painting surface, that is, those made from material (P186) statements with a qualifier applies to part (P518)painting support (Q861259) . How do we do that? That’s more information than can be represented in a single triple.The answer is: more triples! #extracted from https://www.wikidata.org/wiki/Special:EntityData/Q12418.ttl
+
+wd:Q12418 p:P186 wds:q12418-B76F63CF-7E3D-435F-8694-7F743F494B71 .
+
+wds:q12418-B76F63CF-7E3D-435F-8694-7F743F494B71 rdf:type wikibase:Statement, wikibase:BestRank ;
+	wikibase:rank wikibase:PreferredRank ;
+	ps:P186 wd:Q296955 .
+
+wd:Q12418 p:P186 wds:Q12418-053f412b-4541-92f8-ebba-f73c568f5c9b .
+
+wds:Q12418-053f412b-4541-92f8-ebba-f73c568f5c9b rdf:type wikibase:Statement, wikibase:BestRank ;
+	wikibase:rank wikibase:PreferredRank ;
+	ps:P186 wd:Q291034 ;
+	pq:P518 wd:Q861259 . Wikidata’s solution for almost everything is more resources: references, numeric precision, values with units, geocoordinates, etc... entity wd: direct property wdt: - best values; it respects ranks: only preferred values, else only normal and never deprecated statement node p: - link between entity (item) and statement (wds:); it selects every statement node, regardless of ranks or other information. This node then is the subject of other prefixes below; property statements ps: - ” to statement object using statement nodes property qualifier pq: - ” to statement qualifiers using statement nodes ranks wikibase:rank - ” to rank references prov:wasDerivedFrom - ” to reference nodes  Here’s a concrete example for the Mona Lisa: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

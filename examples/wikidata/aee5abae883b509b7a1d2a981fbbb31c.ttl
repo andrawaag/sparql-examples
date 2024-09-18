@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-aee5abae883b509b7a1d2a981fbbb31c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Search for missing descriptions in a target language.
+# Can be input for Q29032512
+SELECT ?item ?itemLabel ?genderLabel ?occupationLabel ?domainLabel ?positionLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q5.  # instance of human
+  ?item wdt:P27 wd:Q31. # country of citizenship Belgium
+optional{ ?item wdt:P21 ?gender.}
+optional{ ?item wdt:P106 ?occupation.}
+optional{ ?item wdt:P101 ?domain.}
+optional{ ?item wdt:P39 ?position.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,fr,en,de,it,es,pt,no\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"nl\") # with missing Dutch description
+  })
+}
+order by ?itemLabel""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-DEB9224FE826FEC27CA5857190B39217, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-F2CFB6F988A8FDD8DD9405FFDE534B4D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-501171E3CD08D55B965FADFECC770264, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-637C6CBB15C389F1444044AF73E8D369,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-DDA1378993EA3C4DD18FBE07875DDE46, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-AEB79BFEB48BA2274EC2040563DBC6C8,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-DF526F098B4BAB94B2252C0785600777, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112565-7E27879EC5A8ECF8896575420FC95FCD;
+  schema:target <https://query.wikidata.org/sparql/> .

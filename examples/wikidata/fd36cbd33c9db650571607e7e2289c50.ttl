@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd36cbd33c9db650571607e7e2289c50> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#author:Azertus
+#date:2021-09-07
+#title: Articles missing an item for their subject (CRAN R packages)
+SELECT ?item ?itemLabel ?rPackage ?rPackageLabel WHERE {
+    { SELECT * WHERE {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                        wikibase:api \"Search\";
+                        mwapi:srsearch 'haswbstatement:P31=Q13442814 inlabel:R@en inlabel:package@en';
+                        mwapi:language \"en\".
+        ?title wikibase:apiOutput mwapi:title. 
+      }
+      BIND(URI(CONCAT('http://www.wikidata.org/entity/', ?title)) AS ?item)
+    } LIMIT 5000 }
+  
+  MINUS {
+    ?item wdt:P921 ?rPackage .
+    ?rPackage wdt:P31/wd:P279* wd:Q73539779 .
+  }
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+    ?rPackage rdfs:label ?rPackageLabel .
+  }
+}
+limit 10""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-D3B494E4B0B16880A9DD4DE717F51C29, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-3ADA393623A27333CC8FEEB6C2996E24,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-84B95204A675C30245B2B59527D41DCC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-D9FBE7042B1A93F5246CF65B2406B2E4,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-29089F8F01DABF3273C368A2569F853C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-7E16ECE77C1BCC551704AF743FA6DBDD,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-305AB6BDA2B7589B4C83893AEC8C217A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112733-12F76B8619F21C770B4DB6A86A471EB5;
+  schema:target <https://query.wikidata.org/sparql/> .

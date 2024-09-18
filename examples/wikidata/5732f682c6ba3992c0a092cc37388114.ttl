@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5732f682c6ba3992c0a092cc37388114> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemDescription ?adm ?admLabel  ?elevation ?coordinates 
+{
+    ?item wdt:P17 wd:Q252 .
+    ?item wdt:P31 wd:Q8502 .
+    OPTIONAL { ?item wdt:P2044 ?elevation }
+    OPTIONAL { ?item wdt:P625 ?coordinates }
+    OPTIONAL { ?item wdt:P131 ?adm  }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 OR 2 set-like questions 2.1 overlap/INTERSECT 2.2 2 2.3 3 3 List of mountains in Aceh Province 4 P571 with which qualifiers? 5 Objects with the most surface area 6 Get all Estonia related items 7 P1448 with Q27579148 as source 8 Query for award winners who have a VIAF or an Open Library identifer 9 Things in more than one country that doesn't share a border 10 Values of a property 11 disambiguation page 12 References 13 category combines topics (P971) 14 Chemical compounds that melt below 30°C and boil below 250°C that are colored non-white 15 Query for historical events OR SELECT ?item
+WHERE
+{
+  	{ ?item wdt:P31 wd:Q27020041 }
+    { ?item wdt:P31 wd:Q34262376 }
+    MINUS { ?item wdt:P3450 [] }
+}
+ Try it! With the above I can find every item that have P31 --> Q27020041 and P31 --? Q34262376 with P571 completed. How can I find the items that have P31 --> Q27020041 or P31 --? Q34262376 with P571 completed? Xaris333 (talk) 23:48, 2 August 2017 (UTC) @Xaris333: your ways to write queries is something new to me - was it written in some guide? d1g (talk) 02:43, 3 August 2017 (UTC) The following query uses these:Items: season (Q27020041)   , national association football cup (Q34262376)   Properties: instance of (P31)   , sports season of league or competition (P3450)   SELECT ?item
+WHERE
+{
+  VALUES ?values { wd:Q27020041 wd:Q34262376 }
+  ?item wdt:P31 ?values
+  MINUS { ?item wdt:P3450 [] }
+} Try it!The following query uses these:Items: season (Q27020041)   , national association football cup (Q34262376)   Properties: instance of (P31)   , sports season of league or competition (P3450)   SELECT ?item
+WHERE
+{
+  { ?item wdt:P31 wd:Q27020041 }
+  UNION
+  { ?item wdt:P31 wd:Q34262376 }
+  MINUS { ?item wdt:P3450 [] }
+} Try it! Thanks! Xaris333 (talk) 03:09, 3 August 2017 (UTC) set-like questions overlap/INTERSECT  The following query uses these:Items: Saint Elias Mountains (Q48719)   Properties: country (P17)   , instance of (P31)   # Q660304 located in Q16 Q30 Q96
+# Q48719  located in Q30 Q16
+SELECT ?countriesOfItem ?countriesOfClass ?class
+WHERE 
+{
+
+  wd:Q48719 wdt:P17 ?countriesOfItem  .
+  wd:Q48719 wdt:P31 ?class            .
+  ?class    wdt:P17 ?countriesOfClass
+  FILTER EXISTS {
+    FILTER(?countriesOfItem IN (?countriesOfClass) )
+  }
+} Try it! d1g (talk) 18:53, 5 August 2017 (UTC) The following query uses these:Items: Saint Elias Mountains (Q48719)   Properties: country (P17)   , instance of (P31)   # Q660304 located in Q16 Q30 Q96
+# Q48719  located in Q30 Q16
+SELECT ?countriesOfItem ?countriesOfClass ?class
+WHERE 
+{
+
+  wd:Q48719 wdt:P17 ?countriesOfItem  .
+  wd:Q48719 wdt:P31 ?class            .
+  ?class    wdt:P17 ?countriesOfClass
+  FILTER EXISTS {
+    FILTER(?countriesOfItem = ?countriesOfClass)
+  }
+} Try it! d1g (talk) 16:20, 5 August 2017 (UTC) 2  3   List of mountains in Aceh Province Dear all. I would like to request a query to show all mountains, which are located in Aceh (Q1823). The list should have labels, coordinates, and also their elevations. Thank you for your help. ··· 🌸 Rachmat04 · ☕ 10:23, 7 August 2017 (UTC)@Rachmat04: Most mountains in Indonesia don't have a P131 with them: Items used: Indonesia (Q252)   , mountain (Q8502)   Properties used: country (P17)   , instance of (P31)   , elevation above sea level (P2044)   , coordinate location (P625)   , located in the administrative territorial entity (P131)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129968-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

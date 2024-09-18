@@ -1,0 +1,21 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-49b6d37a7956d12d9365fefc32d8b78f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?work ?workLabel ?author ?authorLabel ?article WHERE {
+?work wdt:P50 ?author ;
+       wdt:P31/wdt:P279? wd:Q5185279. # ?work is a poem
+?article schema:about ?work;
+	schema:isPartOf <https://en.wikipedia.org/> .
+MINUS {?author wdt:P106 wd:Q49757} # ?author is not listed as a poet
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?authorLabel""";
+  rdfs:comment "Properties: author (P50)   , instance of (P31)   , subclass of (P279)   , occupation (P106)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

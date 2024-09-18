@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e41435b9136b33ebaa1993bffabf0c86> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?id ?property ?statement ?retrieved
+WHERE
+{
+  # VALUES ?item { wd:Q107331778 }
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P5731 ?id .
+  ?item ?property ?statement . 
+  ?property  ^ wikibase:claim [] .
+  ?statement prov:wasDerivedFrom ?b .
+  ?b pr:P813 ?retrieved . 
+  FILTER NOT EXISTS { ?b ?other [] . FILTER( ?other != pr:P813 && ?other != prv:P813 ) }
+}
+LIMIT 100""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Indigenous (Canadian) humans in a given Wikipedia 2 References containing only P813 3 A list of all items with Label Kobbholmen 4 A map showing all locations of Kobbholmen 5 Scribe help: query noun genders (P5185), but not for given names (Q202444) 6 Get qualifiers of statement with preferred rank 7 Two family name 8 English descriptions starting with \"a\" 9 Usage of an item in qualifiers 10 Items/properties with emoji 11 Limiting results based on number of items 12 cites of the world. 13 Countries of Europe (1900 to present) 14 Accelerate query 15 Items with either of two property statements 16 Interplanetary space missions and their destinations 17 Political party of office holders while they held office 18 Query of political candidates 19 Images on Commons that are referenced in the \"image\" property, but not depicted in structured data 20 find items in a Wikipedia (sub-)category 21 Katakana lexemes that are derived from a word that also exists in my language 22 Biographies by century 23 Retrieve article links from wikidata query service 24 Average lifespan by birth year 25 How to obtain infoxbox from articles 26 All chemists and physicists that are linked to Marie Curie. 27 Other prices of Heinz Maier-Leibnitz-Price winner 28 Oldest Schools in Germany that aren't universitys 29 Example query is lacking subclass traversal 30 Query for Items with a Wikipedia Article in a Certain Language 31 Get actual article name for list of most popular Italian works 32 Need help for query optimization 33 Species described in 2021 with article in the German Wikipedia 34 Scholars with academic discipline specified using of (P642) 35 I need to collect items with first capital letter in description in X language 36 Family tree of the ancestors of Michael Jackson (Q2831) Indigenous (Canadian) humans in a given Wikipedia Hi again - how to count how many biographies (articles about humans) there are in a given Wikipedia (ex. English) about indigenous (aboriginal \"Indians\") who are also Canadian citizens? I am not sure if there is a general \"Indigenous\" element that we could use? Additionaly, I'd like to count the total number of articles about humans in a given Wikipedia. Thanks in advance! Seeris (talk) @Seeris: I have no idea how to know who is indigenous (or even how that is defined). You can count the number of articles about humans in a Wikipedia with this query: SELECT (COUNT(?article) AS ?biographies)
+WHERE
+{
+  ?item wdt:P31 wd:Q5 .
+  ?article schema:about ?item .
+  ?article schema:isPartOf <https://hi.wikipedia.org/> .
+}
+ Try it! It may timeout for the biggest Wikipedias. --Dipsacus fullonum (talk) 18:34, 1 January 2022 (UTC) @Dipsacus fullonum: Thanks! Is there a way to work around timing out in en.wikipedia? No way to know how many bios there are in this Wikipedia? Seeris (talk) @Seeris: There are 8984351 items with a sitelink to enwiki and 9550314 items for humans. I know no query that can count the intersection without timeout, but you can make several queries each counting some of the articles about humans and later sum the results. SELECT (COUNT(?article) AS ?biographies)
+WHERE
+{
+  SERVICE bd:slice
+  {
+    ?article schema:isPartOf <https://en.wikipedia.org/> .
+    bd:serviceParam bd:slice.offset 0 .
+    bd:serviceParam bd:slice.limit 1000000 .
+  }
+  ?article schema:about ?item .
+  ?item wdt:P31 wd:Q5 .
+}
+ Try it! This query will get the first million sitelinks to enwiki (for some unspecified ordering) and count the number of articles about humans among them. If you run the query 9 times and each time increase the bd:slice.offset value by 1000000, you will have counted all. I got 207622 + 207988 + 210311 + 208791 + 221755 + 211080 + 203967 + 202760 + 191207 = 1865481 articles when I did this. --Dipsacus fullonum (talk) 22:45, 2 January 2022 (UTC) @Dipsacus fullonum: wow thank you so much!! :) References containing only P813 Hi! Given a group of items (let's say, e.g., items containing the identifier Angelicum ID (P5731)), which is the best way to obtain of all the items in this group which have at least one statement having a reference containing only retrieved (P813) and no other properties? Thanks, --Epìdosis 16:49, 1 January 2022 (UTC) @Epìdosis: could you clarify your specification, pls. If \"one statement having a reference containing only retrieved (P813) and no other properties\" (which I take to be, no other statements) then we're looking for an item that has 1 or 2 statements total (i.e. a Angelicum ID (P5731) with a retrieved (P813) ref, or a P5731 and one other statements with a P813 ref) ... but for P5731 items, the smallest statement count is 4 and so we'd get zero results. Sorry to be pedantic and/or sorry that I've not understood. --Tagishsimon (talk) 17:27, 1 January 2022 (UTC) @Epìdosis: This query if I understood request correctly: SELECT ?item ?Angelicum_ID ?prop ?statement ?reference ?retrieved
+WHERE
+{
+  ?item wdt:P5731 ?Angelicum_ID .
+  ?item ?prop ?statement .
+  ?statement prov:wasDerivedFrom ?reference .
+  ?reference pr:P813 ?retrieved .
+  ?reference ?refprop ?refvalue .
+}
+GROUP BY ?item ?Angelicum_ID ?prop ?statement ?reference ?retrieved
+HAVING (COUNT(?refprop) = 2) # Having count = 2 because there will minimum also be a prv:P813 value
+ Try it! --Dipsacus fullonum (talk) 17:36, 1 January 2022 (UTC) @Dipsacus fullonum: Yes, you understood correctly! Thanks also to @Tagishsimon:, of course; I meant items where there are references which contain in themselves only P813, so wrong in most cases and to be corrected. --Epìdosis 17:54, 1 January 2022 (UTC) (ec) maybe this: Items used: Donald W. Dayton (Q107331778)   Properties used: Angelicum ID (P5731)   , retrieved (P813)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

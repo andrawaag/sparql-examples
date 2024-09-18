@@ -1,0 +1,68 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cd7af4edc3f34b76db7abebcb7f13ec6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?cod_IAPH 
+WHERE 
+{
+  ?item (wdt:P131*) wd:Q82142;
+    wdt:P8425 ?cod_IAPH.
+  ?item wdt:P1435 wd:Q23712. 
+}
+ORDER BY ?cod_IAPH
+OFFSET 500 LIMIT 500""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Chemical compounds 2 Farthest north 3 comparing a string without comparing languages 4 Split a query output into two or more lists 5 List of Nigerian LGBT articles on any Wikipedia in need of translation or pictures 6 List an P31 value with a specific reference 7 QUERY TO DOWNLOAD ALL MEMBERS OF PARLIAMENTS 8 Items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476) 9 P1013:Q4167410 to P1013:Q24005632 10 First query got timeout 11 Number of generations 12 Noob looks for help 13 A Wikidata list of the articles every Wikipedia should have 14 P81 qualifiers for P197 not matching P81 statement 15 Getting the unit of a quantity 16 Russian paintings that exist on ruwiki but not on frwiki 17 Alphabetical and numberical sorting 18 Location of admin_centre of relation 19 Human settlement in Italy without description in Italian language 20 Swedish Outdoor gyms with most viewed videos on youtube 21 English creative works that have an \"has edition\" but that edition doesn't have \"edition of\" 22 Values with specific unit 23 List people born in a region and dead in nazi camps 24 Wikidata listing query 25 Eye color 26 Matching \"depicts\" wikidata item describing a file in commons with the wikidata item 27 Females billionaires 28 YouTubers who don't have an image Chemical compounds I was wanting a query for a list of chemical compounds (Q11173) that I could use in this image finding tool: https://fist.toolforge.org/wdfist/ But it causes 10% duplicates, because it fails to recognise chemical structure (P117) diagrams as images.So instance of Q11173 Without P117??? Niterurea (talk) 18:59, 2 July 2021 (UTC) @Niterurea: There's somewhere north of 1 million of them; for that reason, no labels b/c timeout. --Tagishsimon (talk) 19:07, 2 July 2021 (UTC) SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q11173 .
+  FILTER NOT EXISTS {?item wdt:P117 [] . }
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 19:07, 2 July 2021 (UTC) ThanksNiterurea (talk) 19:28, 2 July 2021 (UTC) Farthest north Hello, how to query, say, the city of a continent that is the farthest north ? Farthest West, East, etc ? Bouzinac 💬●✒️●💛 19:37, 2 July 2021 (UTC) @Bouzinac: Maybe something like this? #title: The northernmost city in Africa
+SELECT ?x ?xLabel ?latitude ?longitude  WITH {
+
+# select all the cities in a continent
+SELECT ?x WHERE {
+  ?x wdt:P31/wdt:P279* wd:Q515 . # x is a type of city (big city, city state etc)
+  ?x wdt:P17 ?country .
+  ?country wdt:P30 wd:Q15 .  # <== put the continent here
+  MINUS { ?country wdt:P31 wd:Q3024240 } # current countries only
+} } AS %cities
+
+# get each city's latitude/longitude
+# sort depending on east/west or north/south
+# select the first one
+WHERE {
+  INCLUDE %cities
+  ?x p:P625 [
+    psv:P625 [
+    wikibase:geoLatitude ?latitude ; 
+    wikibase:geoLongitude ?longitude ;
+      ]
+    ]          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}     
+ORDER BY DESC (?latitude)      # ASC for southernmost; DESC for northernmost
+#ORDER BY ASC (?longitude)      # ASC for westernmost; DESC for easternmost
+LIMIT 1
+ The northernmost city in Africa Piecesofuk (talk) 14:52, 3 July 2021 (UTC)comparing a string without comparing languages SELECT ?stmt WHERE {
+  wd:Q5252917 p:P1476 ?stmt.
+  ?stmt ps:P1476 \"Tomorrow Is Yesterday\"@en.
+}
+ Try it! This tells me if Tomorrow Is Yesterday (Q5252917) has the English title \"Tomorrow Is Yesterday\". But I don't care for the language. I want to find any identical string. Just removing the @en suffix, won't yield any results. --Shisma (talk) 07:45, 4 July 2021 (UTC)I've found the answer myself: SELECT ?stmt WHERE {
+  wd:Q5252917 p:P1476 ?stmt.
+  ?stmt ps:P1476 ?vl.
+  FILTER (str(?vl) = \"Tomorrow Is Yesterday\")
+}
+ Try it! --Shisma (talk) 08:45, 4 July 2021 (UTC) congrats! Sometimes it helps to spell out the question to find the answer. --- Jura 13:18, 4 July 2021 (UTC) Split a query output into two or more lists Hi:We use this query to generate eswiki anexes: SELECT DISTINCT ?item ?cod_IAPH WHERE {
+  ?item (wdt:P131*) wd:Q82142;
+    wdt:P8425 ?cod_IAPH.
+  ?item wdt:P1435 wd:Q23712. } For technical limitations we need to limit the number of the listed elements to some number.I would like to split this query in two: the first, say, 500 elements and the second query listing the next 500 elements.Any help?--Olea (talk) 18:44, 4 July 2021 (UTC)You need to sort it by some value and then you can use offset and limit, e.g. Items used: Province of Granada (Q82142)   , Bien de Interés Cultural (Q23712)   Properties used: located in the administrative territorial entity (P131)   , IAPH code (P8425)   , heritage designation (P1435)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

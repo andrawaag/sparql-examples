@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3e5830edac95d0823af5fb590caecf9d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item
+  ?itemLabel
+  ?cultura
+  ?culturaLabel
+  ?coordenadas
+WITH {
+  SELECT DISTINCT ?item {
+    ?item wdt:P131* wd:Q419.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?item {
+    INCLUDE %0.
+    ?item wdt:P31/wdt:P279* wd:Q839954.
+  }
+} AS %1
+WITH {
+  SELECT ?item ?cultura ?coordenadas {
+    INCLUDE %1.
+    OPTIONAL{?item wdt:P2596 ?cultura}.
+    OPTIONAL{?item wdt:P625 ?coordenadas}.
+    FILTER(!BOUND(?cultura)|| !BOUND(?coordenadas)).
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es,qu,en\"}.
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112958-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112958-6C2EF54970F3A3216CDF03E804A9D363, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112958-E62B2BBC30207E348758CF59FFCA6D6C;
+  schema:target <https://query.wikidata.org/sparql/> .

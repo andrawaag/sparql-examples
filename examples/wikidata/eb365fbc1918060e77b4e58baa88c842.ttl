@@ -1,0 +1,172 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb365fbc1918060e77b4e58baa88c842> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Any statements or qualifiers relating to a specific point in time
+SELECT ?st ?itemLabel ?role ?propLabel
+WHERE {
+  {
+    ?st ?sp \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    ?prop wikibase:statementProperty ?sp .
+    BIND(\"claim\" AS ?role)
+  }
+  UNION
+  {
+    ?st ?q \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    ?prop wikibase:qualifier ?q .
+    BIND(\"qualifier\" AS ?role)
+  }
+  ?item ?pred ?st . hint:Prior hint:runLast true .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }""";
+  rdfs:comment """Contents 1 Queries 1.1 Query for URLs in References 1.2 Queries for Obtaining Q-IDs 1.3 Query for seeing recent revisions to an item 1.4 Number of statements by property for things (ex. albums) 1.5 Query for common properties, their counts, and examples based on an identifier 1.6 Find statements based on a reference 1.7 Any statements or qualifiers relating to a specific point in time 1.8 Any statements or qualifiers relating to a specific point in time (simplified) 1.9 List of articles about Grace Hopper from all Wikipedias, ordered by descending size of the article in that language Queries [edit] A list of prefixes the Query service uses Query for URLs in References [edit] #title:Find a reference from a specific URL
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL WITH
+{
+  SELECT DISTINCT ?subject WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"http\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\"; wikibase:api \"Generator\"; mwapi:generator \"exturlusage\"; mwapi:geulimit \"500\"; mwapi:geuquery \"digitalcollections.nypl.org\"; mwapi:geuprotocol \"https\"; mwapi:geunamespace \"0\" .
+        ?title wikibase:apiOutput mwapi:title.
+      }
+    }
+    BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?subject)
+  }
+} AS %items {
+  INCLUDE %items .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'digitalcollections.nypl.org')) .    # update orange/brown text to whatever URL string you want...keep the single 'quotes' also update URLs lines 7 and 12
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Find a reference from a specific URL Queries for Obtaining Q-IDs [edit] The following query uses these:#title:Q-ID from a Wikipedia article ID
+SELECT ?pageid ?qid ?itemLabel {
+  VALUES ?wiki { \"en.wikipedia.org\" }
+  VALUES ?pageid { \"53658238\" }
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam wikibase:endpoint ?wiki .
+    bd:serviceParam mwapi:generator \"revisions\" .
+    bd:serviceParam mwapi:pageids ?pageid .
+    ?item wikibase:apiOutputItem mwapi:item .}
+  FILTER(BOUND(?item))
+  BIND(SUBSTR(STR(?item), 32) AS ?qid)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Q-ID from a Wikipedia article ID Query for seeing recent revisions to an item [edit] The following query uses these:Items: house cat (Q146)   Properties: instance of (P31)   #title:Query for recent revisions to items
+select ?item ?itemLabel ?string ?content ?timestamp ?user {
+  ?item wdt:P31 wd:Q146. # find cats
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  BIND(STRAFTER(wikibase:decodeUri(str(?item)), \"http://www.wikidata.org/entity/\") AS ?string)
+  # need to make the ID something the API can understand
+  
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+       wikibase:api \"Generator\";
+       wikibase:limit \"once\";
+       mwapi:generator \"allpages\";
+       mwapi:gapfrom ?string;
+       mwapi:gapnamespace 0 ; # main namespace
+       mwapi:gaplimit 1; # only one 
+       mwapi:prop \"revisions\";
+       mwapi:rvdir \"newer\"; # FIRST revision
+       mwapi:rvprop \"timestamp Query for recent revisions to items Number of statements by property for things (ex. albums) [edit] The following query uses these:Items: album (Q482994)   Properties: instance of (P31)   #title:Number of statements by property for things (ex. albums)
+SELECT ?property ?propertyLabel ?count ?type WITH {
+  SELECT ?property (count(?property) as ?count)
+WHERE 
+{
+  ?item wdt:P31 wd:Q482994.      # the thing you're interested in. \"albums\" (Q482994) in this example
+  hint:Prior hint:runFirst true.
+  ?item ?predicate [].
+  ?property wikibase:directClaim ?predicate .
+} group by ?property ?propertyLabel } as %i
+WHERE
+{
+  INCLUDE %i.
+  ?property wikibase:propertyType ?type.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count) Number of statements by property for things (ex. albums) Query for common properties, their counts, and examples based on an identifier [edit] The following query uses these:Items: Wikidata property for an identifier (Q19847637)   , Wikidata property for authority control (Q18614948)   Properties: Smithsonian American Art Museum person/institution ID (P1795)   , instance of (P31)   , subclass of (P279)   #title:Query for common properties, their counts, and examples based on an identifier
+SELECT ?prop ?propLabel ?item_count ?stmt_count ?samp ?sampLabel ?valLabel 
+
+WITH {
+   SELECT ?prop (COUNT(DISTINCT ?item) AS ?item_count)  (COUNT(DISTINCT ?stmt) AS ?stmt_count) (SAMPLE(?item) AS ?samp) (SAMPLE(?value) AS ?val) WHERE {           
+      hint:Query hint:optimizer \"None\" .
+      ?item wdt:P1795 ?yp_id . # select an identifer here
+      ?item ?p ?stmt .
+      ?prop wikibase:claim ?p .
+      ?prop wikibase:statementProperty ?ps .
+      ?stmt ?ps ?value .
+    } GROUP BY ?prop
+} AS %counts
+
+WHERE {
+  INCLUDE %counts .
+  MINUS {
+     VALUES ?identifier {wd:Q19847637 wd:Q18614948} . # Wikidata property representing a unique identifier, Wikidata property for authority control 
+     ?prop wdt:P31/wdt:P279* ?identifier . 
+  }
+
+  ?prop rdfs:label ?prop_label . FILTER(lang(?prop_label) = 'en') .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+   
+
+} ORDER BY DESC(?item_count) DESC(?stmt_count) Query for common properties, their counts, and examples based on an identifier Find statements based on a reference [edit] The following query uses these:Items: The New York Times (Q9684)   #title:Find statements based on a reference
+SELECT ?item ?itemLabel ?prop2 ?prop2Label
+  ?thing
+  ?prop_pred {
+  ?thing ?prop_pred wd:Q9684. # your item here
+  ?prop wikibase:reference ?prop_pred.
+  ?claim prov:wasDerivedFrom ?thing.
+  ?claim ?p_ []. ?prop2 wikibase:statementProperty ?p_.
+  BIND(IRI(CONCAT(STR(wd:),UCASE(STRBEFORE(STRAFTER(STR(?claim),STR(wds:)),\"-\")))) as ?item)
+  FILTER(?prop != wd:P31)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } Find statements based on a reference Any statements or qualifiers relating to a specific point in time [edit] The following query uses these:Properties: subproperty of (P1647)   # Any statements or qualifiers relating to a specific point in time
+SELECT ?st ?itemLabel ?role ?propLabel
+WHERE {
+  {
+    ?prop wdt:P1647* wd:P585 ;
+      wikibase:claim ?c ;
+      wikibase:statementProperty ?sp ;
+      wikibase:qualifier ?q .
+
+    ?st ?sp \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    BIND(\"claim\" AS ?role)
+
+    ?item ?c ?st .
+  }
+  UNION
+  {
+    ?prop wdt:P1647* wd:P585 ;
+      wikibase:claim ?c ;
+      wikibase:statementProperty ?sp ;
+      wikibase:qualifier ?q .
+
+    ?st ?q \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    BIND(\"qualifier\" AS ?role)
+
+    ?item ?pred ?st .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } Try it! Any statements or qualifiers relating to a specific point in time (simplified) [edit] The following query uses these:"""@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

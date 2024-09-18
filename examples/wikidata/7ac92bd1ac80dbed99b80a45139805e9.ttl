@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7ac92bd1ac80dbed99b80a45139805e9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?type 
+ (COUNT(DISTINCT ?instance) AS ?count)
+ ?Label_en
+ (group_concat(distinct ?occupationType1_en;separator=\"; \") as ?occupationTypes1_en) 
+ (group_concat(distinct ?occupationType2_en;separator=\"; \") as ?occupationTypes2_en)
+ (group_concat(distinct ?occupationType3_en;separator=\"; \") as ?occupationTypes3_en)
+ (group_concat(distinct ?occupationType4_en;separator=\"; \") as ?occupationTypes4_en)
+WHERE {
+ ?type wdt:P279* wd:Q639669.
+ OPTIONAL { ?instance wdt:P106 ?type }  
+ OPTIONAL { ?type rdfs:label ?Label_en . FILTER (lang(?Label_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType1 . ?occupationType1 wdt:P279/^wdt:P279 wd:Q639669 . ?occupationType1 rdfs:label ?occupationType1_en . FILTER (lang(?occupationType1_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType2 . ?occupationType2 wdt:P279 wd:Q639669 . ?occupationType2 rdfs:label ?occupationType2_en . FILTER (lang(?occupationType2_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType3 . ?occupationType3 wdt:P279/wdt:P279 wd:Q639669 . ?occupationType3 rdfs:label ?occupationType3_en . FILTER (lang(?occupationType3_en) = \"en\") }
+ OPTIONAL { ?type wdt:P279+ ?occupationType4 . ?occupationType4 wdt:P279/wdt:P279/wdt:P279 wd:Q639669 . ?occupationType4 rdfs:label ?occupationType4_en . FILTER (lang(?occupationType4_en) = \"en\") }
+}
+GROUP BY ?type 						#List all the variables for which the values are not concatenated!
+  ?count
+  ?Label_en 
+ORDER BY DESC(?count)
+LIMIT 10000""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/da>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Typologies/en>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-D6BCA30539D1BA1DE4065197AFA0CA03, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-80EEEBCB63DE57001A7BE7F38EB3FE6C,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-7BE5B36114F370F2D49612EB415BA2B0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-CD5A5405E733E425409F9A5072DC8C07,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-55C0C6135D32FC0059058AAC8A51D69C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec129929-9C6E89DB9B43A5B3602DEDD2695D1269;
+  schema:target <https://query.wikidata.org/sparql/> .

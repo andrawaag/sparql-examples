@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b32c9d93e176d93fb6e0a975d913b940> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Combine the Wikidata Query Service and the Mediawiki API
+#https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
+#(which is backed by Elasticsearch) to perform very fast searching of entities by their label.
+#
+#This query will first contact EntitySearch (an alias to wbsearchentities)
+#which will pass the items with a label of \"soriano\" it found to the triple store
+#which in turn can now query the graph in a timely manner and filter those entities that are not humans.
+#This solution only works if the number of items returned by wbsearchentities remains reasonable.
+
+SELECT ?item ?itemLabel WHERE {
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+        wikibase:api \"EntitySearch\";
+        mwapi:search \"soriano\"; # Search for things named \"soriano\"
+        mwapi:language \"en\".
+      ?item wikibase:apiOutputItem mwapi:item.
+  }
+  MINUS {
+    ?item wdt:P31 wd:Q5 . # but MINUS or negate any of those things that are instances of human
+  }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\".}
+}
+LIMIT 100""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-7C37597C5DD33EB9C9FB12182AD04049, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-CE2820C63BE1AB997D862FF4CA3709F0,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-4A40F592B58FFD48EC0662AD9FFB8B18, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-894359B6E63B3B374B25488C71A07C37,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-D38CCDECDAD939954D0247CEE8E8154D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-F598C14F89A5FAC3B7933854754229F3,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-837C5A979292A7B540D128A08A3002AC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-355BB6F9B73686060924035F0A36F5B4,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112520-F7B82A407F4D726F63771C7E8FE6DAFA;
+  schema:target <https://query.wikidata.org/sparql/> .

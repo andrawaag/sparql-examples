@@ -1,0 +1,85 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e126d8096222efc6962bfb0ecb6bcea4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title: <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">Animals which are Threatened as per IUCN Red List</span>
+# https://en.wikipedia.org/wiki/Conservation_status
+# Common names are in English only
+
+SELECT ?animal ?scientific_names ?common_names ?statusLabel where
+{
+  # hint:Prior hint:runLast true
+   {
+      SELECT DISTINCT ?animal (GROUP_CONCAT(DISTINCT ?scientific_name; separator=\", \") as ?scientific_names) (GROUP_CONCAT(DISTINCT ?common_name; separator=\", \") as ?common_names) WHERE
+      {
+
+        ?animal wdt:P141 ?status;
+                wdt:P225 ?scientific_name;
+                wdt:P1843 ?common_name.
+        filter( ?status
+           IN (
+               wd:Q11394,  #Endangered
+               wd:Q219127, #critcally endangered
+               wd:Q278113  #vulnurable
+              )
+          ).
+
+        # Only return common names in English
+        FILTER(LANGMATCHES(LANG(?common_name), \"en\"))
+      }
+      GROUP BY ?animal
+   }.
+   ?animal wdt:P141 ?status.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en-gb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/vec>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/id>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/be-tarask>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ro>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/he>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/pt-br>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/si>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eo>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/da>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ar>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ko>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ms>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lt>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ca>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/it>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/de>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-9B673622C55BA2BCB1FBE0C2EF80A5AE, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-A906140580EF842EF451F295E5E08C87,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-340CBE663034316C809B347A5ED3DB48, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-379FA5F2F74A853166DEBA7A7D961C45,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-B09EF46269C1B8DBE5F244E6A3E57399, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-DFB38BBD66ED0377205F7A788B8BA3E7,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-CD4A63716CD08B22E3E79DF6C69A34FA, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-B69BEB7EA40D34723E7873443A6DC925,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-978EF72DF244475586996C0D14BE37A7, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-C87EB8464FC863CF82B4CBB2E684E13F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-AEF935AFDE39194DBF9EAC56017BCADF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-8DD5E2DFD8644B88E8E22656A26FFAC6,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-B3AC316A5B815E763746216B07DD6F85, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-9BC8CEFA7C394BD424EAF070D1F8B76F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-FEC5DC02CA8CCE663894B68AB5BC390F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-8C278B04D9C8E0C7DE4EBF4840B5E547,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-83DEB85484B0962C70CA538E328CDF03, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-086046C705FB068E9120DD3E324F0505,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-A3F18915D1D7490EBBEC8C3F357B9109, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-B785D3955A7A3182FD8DA6D01ECA579B,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-04DD5E11D58C5B65ED273FCEA4F407F9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-AD6A39E50AAB5048023879328C778F3E,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-813F4A0853D4BCF10531761BE0E54495, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-55DCD743749AB3E7575AF0C1D1A37FCB,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-A393D0D52D04CB7ECD282E206DAD366D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-116D51DA5F3DED3D1A49D69582D5044A,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-FFEB1336F4DDD0CEC4ED1831A3EAE4FA, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115913-8490A5117F1DC7A3F1E99014D4BE2812;
+  schema:target <https://query.wikidata.org/sparql/> .

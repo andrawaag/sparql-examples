@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1a509cce87c5cc2703668cb181d5969a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+ #Definition for Occitania (Q104285) is the one defined by P527 on item Q104285
+SELECT ?item ?yob ?yod
+WHERE
+{
+	# items with property place of birth
+	?item wdt:P19 ?pob .
+	#place of birth must be using P131 with one of the \"?parts\" (or -- note the \"*\" -- a value that uses one of the parts in P131, etc.)
+	?pob wdt:P131* ?parts .
+
+	# ?parts are those listed on item Q104285 with property P527
+	wd:Q104285 wdt:P527 ?parts . 
+
+	# humans only
+  	?item wdt:P31 wd:Q5 .
+
+	#for display in the list, extract yob/yod. Could also be done by using P569 and P570 in \"columns=\" of Listeria's template
+	OPTIONAL { ?item wdt:P569 ?dob . BIND(YEAR(?dob) as ?yob) }
+	OPTIONAL { ?item wdt:P570 ?dod . BIND(YEAR(?dod) as ?yod) }
+}
+#LIMIT to 2000 as Listeria can only handle up to 5000
+LIMIT 2000""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-09EDAC2081F947F90FEE555E16420608, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-8EA92A7C2175BC48015363CAFBE95196,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-2AF0A330EFD3F6583212B6BF2AA81F0D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-339DB0946F0CDDE0784C3C7838398FDC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-B785B4BF5F9CEEADA61ED2819A8151E9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-C34F1982C7AB66E605529332E77DCB82,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-A372215856A822FDFF96F3077567A551, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-B51BD3129EF48F8EC416533E4AF377E6,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112508-24A055E34E294D31E8D8F23A723E2C91;
+  schema:target <https://query.wikidata.org/sparql/> .

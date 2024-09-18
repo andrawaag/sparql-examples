@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ded6e726c17dd76fcd5311c3db947413> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+
+PREFIX entity: <http://www.wikidata.org/entity/>
+#partial results
+
+SELECT ?propUrl ?propLabel ?valUrl ?valLabel ?picture
+WHERE
+{
+	hint:Query hint:optimizer 'None' .
+	{	BIND(entity:Q42 AS ?valUrl) .
+		BIND(\"N/A\" AS ?propUrl ) .
+		BIND(\"identity\"@en AS ?propLabel ) .
+	}
+	UNION
+	{	entity:Q42 ?propUrl ?valUrl .
+		?property ?ref ?propUrl .
+		?property rdf:type wikibase:Property .
+		?property rdfs:label ?propLabel
+	}
+	
+  	?valUrl rdfs:label ?valLabel
+	FILTER (LANG(?valLabel) = 'en') .
+	OPTIONAL{ ?valUrl wdt:P18 ?picture .}
+	FILTER (lang(?propLabel) = 'en' )
+}
+ORDER BY ?propUrl ?valUrl
+LIMIT 200""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-5E40DC251A822C71929ED082FFFAB58A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-BBB66DFE37D384DE3C6E3ABBD5B5EA65,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-25FC93AA1A8796A78FC55803447F05E3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-8F29AE1D6A89E75365E063635D41D199,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-C9C89E10A872F4492317FA3DDB7852C6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-F6A5B057D53226E9AA8EC9263D577F7F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-75CD8EF4EBAE195446AD0BDFBBE5B2B3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-CAAFD0507578C15DA2F09C15D670EA3D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-136A9B79E6E459E1BAB5CFD997885886, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112316-59F2FF9331EB868157D70DA0622E7855;
+  schema:target <https://query.wikidata.org/sparql/> .

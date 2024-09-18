@@ -1,0 +1,335 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b2bca69ec0ee8fa7e46d2e82623ba2fc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (COUNT (*) as ?count)  
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P569 ?time.
+  FILTER ((?time < \"1940-01-01\"^^xsd:dateTime) && (?time > \"1900-01-02\"^^xsd:dateTime)).
+  MINUS { [] schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> } 
+  ?item wdt:P18 [] ; wdt:P31 wd:Q5 .
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Year columns and total for year? 2 List of references for taxon name 3 How to get a pageviews for all English Wikipedia articles about species 4 List of teachers and the Querybuilder 5 How many species have English Wikipedia articles? 6 list of scholarly article (Q13442814) by a author (P50) also listing P819, P1932, and P1545 7 Otherwise great query returns duplicate results 8 Resolution of image (on item for painting) 9 People born from 1900-1939 with images on Wikidata and no article on enwiki 10 Need help with this query. 11 Display Commonscat but not from P373 12 How to get a list of taxon articles (e.g species, genus, family etc) on English Wikipedia which don't have a photo? 13 Clergy houses and Manses in Norway 14 rugby league grounds 15 Aggregation q 16 Newly created/added items that are instances of? Year columns and total for year? Hello,As you can see at https://tr.wikipedia.org/wiki/T%C3%BCrkiye%27deki_k%C3%B6m%C3%BCr_yak%C4%B1tl%C4%B1_enerji_santralleri_listesi the third column has values for 2019 and 2020. Is it possible to have each years data in a separate column? And can I get a total for each year? As I don't intend to do previous years the years can be hardcoded if necessary.RegardsChidgk1 (talk) 12:28, 28 October 2021 (UTC) @Chidgk1: I've amended the query & page. Note that Listeria queries do not require a label service nor ?itemLabel in the select, and so I have removed both ... Listeria provides labels without needing to reference the label service. --Tagishsimon (talk) 18:27, 30 October 2021 (UTC) @Tagishsimon: Thank you very much. Do you know if it is possible for me to have a total at the bottom that kind of column? Chidgk1 (talk) 05:59, 1 November 2021 (UTC) @Chidgk1: Sorry, I omitted to answer that part. Sadly no; Listeria does not, as far as I know, provide a mechanism. Neither really does SPARQL; one can aggregate and SUM, but one cannot provide row-by-row detail and SUM. Again, at least as far as I know. It would be a nice feature to have in Listeria, though. I'll get around to suggesting it to Listeria's author, sometime, although I'll not hold my breath for it to be implemented. --Tagishsimon (talk) 06:26, 1 November 2021 (UTC) List of references for taxon name Hello, I would like a query that gives the list of references stored within stated in (P248) for taxon name (P225) for one specific taxon but also for all its potential synonyms.Exemple we have: Antipathes hypnoides (Q13380337) → taxon synonym (P1420) → Tylopathes hypnoides (Q3998744) Tylopathes hypnoides (Q3998744) → taxon name (P225) → stated in (P248) → Q91631400 Antipathes hypnoides (Q13380337) → taxon name (P225) → stated in (P248) → Q100556046 Whether you search with Antipathes hypnoides (Q13380337) or Tylopathes hypnoides (Q3998744) in this specific case such a query should be able to provide you a list of 2 values: Q91631400 and Q100556046. Christian Ferrer (talk) 17:02, 7 November 2021 (UTC) @Christian Ferrer: This might do what you want. We'd need to roll back some of your changes to Q13380337 to test it, or find another candidate taxon item. Or it might not do what you want: I've interpreted your requirement as \"starting with this ***string***, give me the item values\", but you might want a query which finds these situations without being seeded with a string, in which case you may be out of luck b/c too many taxons. Or the query might not work. Who knows. SELECT distinct ?item ?itemLabel ?taxon_name ?derived ?derivedLabel WITH { SELECT ?cand ?tname ?label
+WHERE 
+{
+  VALUES ?tname {\"Antipathes hypnoides\"} .
+  BIND(STRLANG(?tname,\"en\") as ?label)
+  {?cand wdt:P225 ?tname . }
+  UNION
+  {?cand rdfs:label ?label . }
+  } } as %i
+WITH { SELECT ?item WHERE
+{
+  INCLUDE %i
+  ?cand wdt:P225 ?taxonname .
+  BIND(STRLANG(?taxonname,\"en\") as ?label2)
+  {?item wdt:P225 ?tname . }
+  UNION
+  {?item rdfs:label ?label . }
+  UNION
+  {?item wdt:P225 ?taxonname . }
+  UNION
+  {?item rdfs:label ?label2 . }
+  }  } as %j
+WHERE
+{
+  INCLUDE %j
+  ?item p:P225 ?stat . 
+  ?stat prov:wasDerivedFrom/pr:P248 ?derived.
+  ?stat ps:P225 ?taxon_name
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! --Tagishsimon (talk) 17:56, 7 November 2021 (UTC) @Tagishsimon: Thanks you, no that is exactly not what I want, but I will study your query which teaches me things and if necessary I will find a way to rephrase what I want. Christian Ferrer (talk) 18:37, 7 November 2021 (UTC) How to get a pageviews for all English Wikipedia articles about species Hi allI'm working on a partnership with a large natural history organisation and I would like provide them with some metrics to give them an idea of the scale of readership of Wikipedia. If anyone is able to help me by giving me a metric of how many page views English Wikipedia articles on species receive per month I would really really appreciate it. I've tried using categories to get page views but I can't work out how to only get species articles, assume that there are a few infoboxes which could be used to identify species articles. I assume a much cleaner way of doing this is a query for all species articles on Wikidata with a Wikipedia article (I'm happy with just the Englsih Wikipedia articles for now). And then somehow make a pagepile from those list of pages to use in Treeviews to get an overall number of articles. However I assume a very large query like this will just time out.Thanks very much--John Cummings (talk) 21:35, 9 November 2021 (UTC) @John Cummings: I suspect massviews may be your best friend in this matter. It's possible to get (very limited?) pageview stats through WDQS and the MWAPI, but I've not seen it done which very much success. Have just run massviews on Category:Asteraceae 19/10/2021 - 08/11/2021, and the results were, I thought, very satisfactory & probably fit for your purpose. --Tagishsimon (talk) 21:55, 9 November 2021 (UTC) Tagishsimon thanks so much, if I can work out if there is a category that has all species and nothing else in its subcategories this is perfect. --John Cummings (talk) 22:00, 9 November 2021 (UTC) List of teachers and the Querybuilder I am running a query https://w.wiki/4NBX giving me a list of norwegian teacher (Q37226) , I am also asking for the date of birth an their Histreg ID. As stated before the querybuilder gives only the item-number and Itemlabel and no other coloumns. The result is 198 items. I am then transfring my query to the query service adding ?dob and ? histreg in line no 1. The result is with empty coulumns for DOB and HistReg. https://w.wiki/4NBn Pmt (talk) 20:14, 10 November 2021 (UTC) Something like this? Streetmathematician (talk) 20:25, 10 November 2021 (UTC)  @Pmt: (EC) I will dissect the Querybuilder query if you want - let me know (i.e. if the point of your question was how to move from querybuilder to WDQS). Right now it just makes me cry. At the least, it was missing columns in the SELECT statement, and had no clause dealing with the HistReg. Without being at all pissy about Querybuilder, it's a bit like stabilisers for a bike: it won't teach you balance & you can't go off-road on it. And the SPARQL it produces is interesting, in many ways very sensible, but worlds removed in format and approach from the SPARQL we see on this board. Much better, IMO, to do it by hand - the concepts in this query are fairly straightforward (and again, I'll happily bore for England to expand that claim, if you wish) although I well understand that its straightforwardness only becomes obvious with familiarity. Here's what I think you want, if it's the data you're after (and hats off to Streetmathematician for wrangling much the same thing, without optionals, in the querybuilder code): SELECT ?item ?itemLabel ?dob ?HistReg   # These columns, pls. Each column valiable is found in the body of the query except 
+                                           # ?itemLabel which is supplied by the wikibase:label service 
+WHERE 
+{
+  ?item wdt:P27 wd:Q20.                    # They're Norwegian
+  ?item wdt:P39/wdt:P279* wd:Q37226.       # a teacher, or subclass thereof
+  OPTIONAL {?item wdt:P569 ?dob . }        # might have a dob
+  OPTIONAL {?item wdt:P4574 ?HistReg . }   # might have a HistReg
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],nn,no,en\". }
+                                           # get me labels in my UI language, and if not then in nn, then in no, then in en 
+}
+ Try it! --Tagishsimon (talk) 20:42, 10 November 2021 (UTC) (after edit conflict - maybe same solution as Tagishsimon?) I recommend 1) Using best rank values only instead of all values 2) drop testing for subclasses of Norway (there are hardly any) 3) make the test for DOB and Histreg values optional so missing values don't truncate the result. Using this, I get: SELECT DISTINCT ?item ?itemLabel ?P569 ?P4574 WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item ?P569 ?P4574 WHERE {
+      ?item wdt:P27 wd:Q20.
+      ?item wdt:P39/wdt:P279* wd:Q37226.
+      OPTIONAL { ?item wdt:P569 ?P569. }
+      OPTIONAL { ?item wdt:P4574 ?P4574. }
+    }
+    LIMIT 500
+  }
+}
+ Try it! --Dipsacus fullonum (talk) 20:44, 10 November 2021 (UTC) As mine, but improved by the DISTINCT. I didn't deal with items having multiple subclasses of teacher. --Tagishsimon (talk) 20:53, 10 November 2021 (UTC) Nice! @Tagishsimon: @Streetmathematician: @Dipsacus fullonum: Thanks to you all! How many species have English Wikipedia articles? Hi allFollowing on from my previous question above would it be possible for someone to tell me how many species articles there are on English Wikipedia? I just need a number, not a list. I can't work it out from the infoboxes on en.wiki because there are many different kinds for different kingdoms, domains etc. I assume they should all be instance of = taxon.Thanks very much--John Cummings (talk) 18:46, 10 November 2021 (UTC) @John Cummings: Ah, interesting question. Probably ~407,842. WDQS won't complete the query, but there's a full (?) & fairly recent (?) copy of WD being used to demonstrate another SPARQL engine, Qlever, which engine excels in speediness - https://qlever.cs.uni-freiburg.de/wikidata/tpsftn 400k is clearly a lot, but it's not incredible. WDQS says there are 3,237,995 taxon items on WD (QLever finds 2,950,139). 1 in 8 taxons? --Tagishsimon (talk) 19:34, 10 November 2021 (UTC) Not all taxons are species, so you should add \"?item wdt:P105 wd:Q7432.\" (taxon rank species) to the query. Then the number decreases to 314023. --Dipsacus fullonum (talk) 19:43, 10 November 2021 (UTC) t/y - taxons, species, very much not my area. Obvs, super impressed with the speed of QLever, but I understand it cannot accommodate incremental triple loading; its thing, as I understand it, is to ingest a complete set of triples, index, & generally be very fast. Anyway, updated query looking at P105 as advised: https://qlever.cs.uni-freiburg.de/wikidata/Al01hf --Tagishsimon (talk) 19:55, 10 November 2021 (UTC) I have better conditions here because my username is a species taxon, Dipsacus fullonum (Q160099) :) --Dipsacus fullonum (talk) 00:16, 11 November 2021 (UTC) Hi Tagishsimon and Dipsacus fullonum thanks so much, this is extremely helpful. --John Cummings (talk) 10:33, 11 November 2021 (UTC) list of scholarly article (Q13442814) by a author (P50) also listing P819, P1932, and P1545 Can I get a list of scholarly articles by an author, e.g. Martha C. Anderson (Q58171141), that states article's ADS bibcode (P819), and the author's object named as (P1932), and series ordinal (P1545) on that article? If there are blanks in the ADS bibcode (P819), that's okay. Thanks very much, Trilotat (talk) 00:53, 13 November 2021 (UTC) @Trilotat: I think this is what you're after. P1932 and P1545 from the P50 author statement, P819 as a main statement. SELECT ?item ?itemLabel ?bibcode ?seriesord ?statedas WHERE 
+{
+  ?item p:P50 ?stat.
+  ?stat ps:P50 wd:Q58171141 . 
+  OPTIONAL { ?stat pq:P1932 ?statedas . }
+  OPTIONAL { ?stat pq:P1545 ?seriesord . }  
+  OPTIONAL { ?item wdt:P819 ?bibcode . }
+  ?item wdt:P31 wd:Q13442814. hint:Prior hint:runLast true.                                                                                     
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! --Tagishsimon (talk) 01:04, 13 November 2021 (UTC) @Tagishsimon:It's precisely what I'm after. Thank you so much!! Trilotat (talk) 04:50, 13 November 2021 (UTC) Otherwise great query returns duplicate results Hi, The last few weeks I've been using/testing this query that @Quesotiotyo: helped me with: (see this and this for context) SELECT
+  ?item ?articlename ?itemLabel ?itemDescription ?sl ?dob
+  ?dod ?dod_refs ?cod ?mod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod
+    (GROUP_CONCAT(CONCAT(?dod_ref_propLabel, \": \", ?dod_ref_valueLabel); SEPARATOR=\" ~ \") AS ?dod_refs)
+  WHERE
+  {
+    VALUES ?dod {\"+1953-03-05\"^^xsd:dateTime}
+    ?dod ^wdt:P570 ?item .
+    ?item wdt:P31 wd:Q5 .
+    OPTIONAL
+    {
+      ?item p:P570 ?dod_stm .
+      ?dod_stm ps:P570 ?dod ;
+               psv:P570 [wikibase:timePrecision ?dod_precision].
+      FILTER( ?dod_precision >= \"11\"^^xsd:integer )
+      OPTIONAL
+      {
+        ?dod_stm prov:wasDerivedFrom ?dod_ref .
+        ?dod_ref ?dod_ref_pr ?dod_ref_value .
+        ?dod_ref_prop wikibase:reference ?dod_ref_pr .
+      }
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?dod_ref_prop rdfs:label ?dod_ref_propLabel .
+      ?dod_ref_value rdfs:label ?dod_ref_valueLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod
+} AS %get_dod_refs
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs (GROUP_CONCAT(?codLabel; SEPARATOR=\", \") AS ?cod)
+  WHERE
+  {
+    INCLUDE %get_dod_refs
+    OPTIONAL
+    {
+      ?item p:P509 ?cod_stm .
+      ?cod_stm ps:P509 ?cod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?cod rdfs:label ?codLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs
+} AS %get_cod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs ?cod (SAMPLE(?modLabel) AS ?mod)
+  WHERE
+  {
+    INCLUDE %get_cod
+    OPTIONAL
+    {
+      ?item p:P1196 ?mod_stm .
+      ?mod_stm ps:P1196 ?mod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?mod rdfs:label ?modLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs ?cod
+} AS %get_mod
+WHERE
+{
+  INCLUDE %get_mod
+  ?item wikibase:sitelinks ?sl .
+  ?item ^schema:about ?article .
+  ?article schema:isPartOf <https://en.wikipedia.org/> ;
+           schema:name ?articlename .
+  OPTIONAL { ?item wdt:P569 ?dob ;
+                   p:P569 ?dob_stm .
+             ?dob_stm ps:P569 ?dob ;
+                      psv:P569 [wikibase:timePrecision ?dob_precision].}
+  SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?item rdfs:label ?itemLabel .
+      ?item schema:description ?itemDescription .
+    }
+  BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
+} ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel)) I'm very happy with the query but regarding date of death 5 March 1953 the query returns duplicate results (Sergei Prokofiev: twice). What could be the reason for this? Is it fixable? Nb: if the fix slows down the query than never mind; the execution time of the query is great. Mill 1 (talk) 21:01, 12 November 2021 (UTC) @Mill 1: The problem lies in the date of birth optional clause in the final of the queries. I'm not sure why it is causing two rows, have not dig in. But adding ?dob_stm a wikibase:BestRank to that clause seems to clear it up. I've also commented out psv:P569 [wikibase:timePrecision ?dob_precision]. b/c that didn't seem to be doing anything useful. The change will have negligible effect on speed. SELECT
+  ?item ?articlename ?itemLabel ?itemDescription ?sl ?dob
+  ?dod ?dod_refs ?cod ?mod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod
+    (GROUP_CONCAT(CONCAT(?dod_ref_propLabel, \": \", ?dod_ref_valueLabel); SEPARATOR=\" ~ \") AS ?dod_refs)
+  WHERE
+  {
+    VALUES ?dod {\"+1953-03-05\"^^xsd:dateTime}
+    ?dod ^wdt:P570 ?item .
+    ?item wdt:P31 wd:Q5 .
+    OPTIONAL
+    {
+      ?item p:P570 ?dod_stm .
+      ?dod_stm ps:P570 ?dod ;
+               psv:P570 [wikibase:timePrecision ?dod_precision].
+      FILTER( ?dod_precision >= \"11\"^^xsd:integer )
+      OPTIONAL
+      {
+        ?dod_stm prov:wasDerivedFrom ?dod_ref .
+        ?dod_ref ?dod_ref_pr ?dod_ref_value .
+        ?dod_ref_prop wikibase:reference ?dod_ref_pr .
+      }
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?dod_ref_prop rdfs:label ?dod_ref_propLabel .
+      ?dod_ref_value rdfs:label ?dod_ref_valueLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod
+} AS %get_dod_refs
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs (GROUP_CONCAT(?codLabel; SEPARATOR=\", \") AS ?cod)
+  WHERE
+  {
+    INCLUDE %get_dod_refs
+    OPTIONAL
+    {
+      ?item p:P509 ?cod_stm .
+      ?cod_stm ps:P509 ?cod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?cod rdfs:label ?codLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs
+} AS %get_cod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs ?cod (SAMPLE(?modLabel) AS ?mod)
+  WHERE
+  {
+    INCLUDE %get_cod
+    OPTIONAL
+    {
+      ?item p:P1196 ?mod_stm .
+      ?mod_stm ps:P1196 ?mod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?mod rdfs:label ?modLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs ?cod
+} AS %get_mod
+WHERE
+{
+  INCLUDE %get_mod
+  ?item wikibase:sitelinks ?sl .
+  ?item ^schema:about ?article .
+  ?article schema:isPartOf <https://en.wikipedia.org/> ;
+           schema:name ?articlename .
+  OPTIONAL { ?item wdt:P569 ?dob ;
+                   p:P569 ?dob_stm .
+             ?dob_stm ps:P569 ?dob .
+             ?dob_stm a wikibase:BestRank
+           #           psv:P569 [wikibase:timePrecision ?dob_precision].
+           }
+  SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?item rdfs:label ?itemLabel .
+      ?item schema:description ?itemDescription .
+    }
+  BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
+} ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel))
+ Try it! --Tagishsimon (talk) 22:57, 12 November 2021 (UTC) The ?dob_precision was part of a formula to calculate each person's age at death (as seen here [1]). --Quesotiotyo (talk) 23:21, 12 November 2021 (UTC) @Mill 1: It's a result of Prokofiev having two equivalent date of birth values: 23 April 1891 in the modern-day Gregorian calendar and 11 April 1891 in the Julian calendar (also known as \"Old Style\"), which was used in Russia until the early 20th century. WD displays Old Style dates as they are entered but stores them internally as New Style. For example, at William Shakespeare (Q692) you will see date of death (P570)23 April 1616 Julian , but in the query that you have been using he will not show up when 23 April 1616 is input (he does appear when 3 May 1616 is used instead). How do you handle this issue with the work that you do on WP? It shouldn't be too hard to adjust the query to account for such discrepancies but it would help me to know what will best fit your needs. --Quesotiotyo (talk) 23:09, 12 November 2021 (UTC) (EC) And the cause is ... there are three DoB statements. The code as you supplied it required that a truthy DoB be found and bound as ?dob - ?item wdt:P569 ?dob after which the query looked for the P569 statament, and the ps: value for that statement - also bound as ?dob. That finds two rows, because 11 April 1891 Julian - one of the DoB statements, equals the truthy 23 April 1891 Gregorian DoB value. So for the optional clause, two dates are in scope. If we comment out the ?item wdt:P569 ?dob, and the ?dob_stm a wikibase:BestRank, then ?dob is unbound when we go into ?item p:P569 ?dob_stm . ?dob_stm ps:P569 ?dob . Uncomment the ?item wdt:P569 ?dob and we constrain ?dob to the 23 April and for the reason above, find two rows. Add in the ?dob_stm a wikibase:BestRank and we tell that part of the query that we're only interested in a statement which is BestRank, and we get what we wanted, a single row. In short, the query was trying to use the wdt:P569 to select the truthy DoB value, but for reasons unknown (maybe a cut & paste error) also decided to go down the p:/ps: path to get exactly the same data.  SELECT ?item ?itemLabel ?dob ?dob_stm
+WHERE 
+{
+VALUES   ?item {wd:Q49481}
+  
+ # ?item wdt:P569 ?dob .
+  ?item p:P569 ?dob_stm .
+  ?dob_stm ps:P569 ?dob .
+# ?dob_stm a wikibase:BestRank  
+                        
+                        
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it!--Tagishsimon (talk) 23:20, 12 November 2021 (UTC)@Quesotiotyo: and @Tagishsimon: Thanks again for helping me building this crucial part of my application. It works like a charm! Again, will give an update once I have someting to show for (almost there). By the way; never knew that Prokofiev and Stalin died on the same day ;) Cheers, Mill 1 (talk) 09:53, 13 November 2021 (UTC) Resolution of image (on item for painting) Is there a good way to add an indication of the resolution of the available image to a list of paintings?Maybe there are three or four basic resolutions: 1. Wikipedia infobox resolution: maybe 300px wide (sample) 2. Commons/Wikipedia file description page: is that 800px ? 3. zoomable on details: depends on actual painting size (there are columns with W and H in cm), not sure what a good measure would be 4. printing quality (same size as original, dpi?). How to call the resolutions? < 1 very low < 2 low < 3 medium < 4 high 4 very high --- Jura 05:35, 13 November 2021 (UTC) I asked for help on (3) and (4) at c:Commons:Village_pump#determine_available_image_resolution_(for_a_list_of_paintings). --- Jura 10:31, 14 November 2021 (UTC)  Items used: painting (Q3305213)   , Ramon Casas (Q725681)   , metre (Q11573)   Properties used: instance of (P31)   , creator (P170)   , image (P18)   , height (P2048)   , width (P2049)   SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+  (ROUND(?height*100) as ?h_cm) (ROUND(?width*100) as ?w_cm) (ROUND(?height * 10 * ?width)/10 as ?size) 
+  ?img0 ?imgh ?imgw ?imgsize ?available_img_res
+WHERE
+{
+  ?item wdt:P31 wd:Q3305213;
+    wdt:P170 wd:Q725681.
+  OPTIONAL { ?item p:P2048 /psn:P2048 [wikibase:quantityAmount ?height ; wikibase:quantityUnit wd:Q11573 ] }
+  OPTIONAL { ?item p:P2049 /psn:P2049 [wikibase:quantityAmount ?width ; wikibase:quantityUnit wd:Q11573 ]. }  
+
+  OPTIONAL { 
+    ?item wdt:P18 ?img0
+    BIND(replace(wikibase:decodeUri(SUBSTR(STR(?img0), 52)),\"_\",\" \") AS ?img)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:prop \"imageinfo\" .
+      bd:serviceParam mwapi:gapprefix ?img .
+      bd:serviceParam mwapi:gapnamespace \"6\" .
+      bd:serviceParam mwapi:iiprop \"timestamp|user|mediatype|metadata|dimensions\" .
+      ?imgsize wikibase:apiOutput \"imageinfo/ii/@size\".
+      ?imgw wikibase:apiOutput \"imageinfo/ii/@width\".
+      ?imgh wikibase:apiOutput \"imageinfo/ii/@height\".
+      ?imgmediatype wikibase:apiOutput \"imageinfo/ii/@mediatype\".
+    } 
+    BIND(xsd:integer(?imgw) as ?imgwi)
+    BIND(
+        IF(?imgwi < 290, \"very low\", 
+        IF(?imgwi < 750, \"low\", 
+           \"medium or higher\"))
+           as ?available_img_res)
+   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!Thanks to query from Smalyshev, above the first part.. now \"medium or higher\" just needs to be sorted out. --- Jura 13:15, 14 November 2021 (UTC) People born from 1900-1939 with images on Wikidata and no article on enwiki I'm hoping to make a ListeriaBot list hosted on enwiki for the given category. Thanks to anyone who can pick this up. Not sure if the correct phrasing for what I want in the title is 'images on Wikidata' or 'images on Commons' -- I'm going for something like the Women in Red lists but with a different scope. Vaticidalprophet (talk) 06:02, 13 November 2021 (UTC) There may be a bunch .. I had problems even counting them: :SELECT (COUNT (*) as ?count)  (?count * 365 * 40 as ?total)
+:WHERE
+:{
+:  ?item wdt:P569 \"1919-10-01\"^^xsd:dateTime .
+:  MINUS { [] schema:about ?item ; schema:isPartOf <https://en.wikipedia.org> } 
+:  ?item wdt:P18 [] ; wdt:P31 wd:Q5 .
+:}
+:
+ Try it! --- Jura 07:29, 13 November 2021 (UTC) @Jura1: Sorry for barging in, but it wasn't obvious to me that schema:isPartOf only works with URLs ending in a slash. This finds only 6 results rather than 12: Items used: human (Q5)   Properties used: date of birth (P569)   , image (P18)   , instance of (P31)   SELECT (COUNT (*) as ?count)  (?count * 365 * 40 as ?total)
+WHERE
+{
+  ?item wdt:P569 \"1919-10-01\"^^xsd:dateTime .
+  MINUS { [] schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> } 
+  ?item wdt:P18 [] ; wdt:P31 wd:Q5 .
+} Try it! --- Streetmathematician (talk) 12:50, 13 November 2021 (UTC) Good point .. explains my time-outs. Thanks. Items used: human (Q5)   Properties used: date of birth (P569)   , image (P18)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

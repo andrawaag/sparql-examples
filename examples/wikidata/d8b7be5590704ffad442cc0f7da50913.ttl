@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d8b7be5590704ffad442cc0f7da50913> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?peruane
+  ?peruaneLabel
+  ?ocupación
+  ?ocupaciónLabel
+WITH {
+  SELECT DISTINCT ?ocupación {
+    ?ocupación wdt:P279* wd:Q82955.
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?peruane ?ocupación {
+    ?peruane
+       wdt:P31 wd:Q5;
+       wdt:P27 wd:Q419;
+       wdt:P106 ?ocupación.
+  }
+} AS %1
+WITH {
+  SELECT ?peruane ?ocupación {
+    INCLUDE %0.
+    INCLUDE %1.
+  }
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\"}.
+}
+ORDER BY ASC(LCASE(?peruaneLabel))""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112919-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112919-73FE2EF2E41350F09D4C4519CC697A49, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112919-8F7813A75058AD1FF8A1A2EFB8DE0507;
+  schema:target <https://query.wikidata.org/sparql/> .

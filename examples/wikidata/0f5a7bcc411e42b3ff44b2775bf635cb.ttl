@@ -1,0 +1,659 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0f5a7bcc411e42b3ff44b2775bf635cb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX llemma:   <http://wikiba.se/ontology#lemma>
+PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
+PREFIX llang:    <http://purl.org/dc/terms/language>
+PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
+PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+PREFIX lfeature: <http://wikiba.se/ontology#grammaticalFeature>
+PREFIX lsenses:  <http://www.w3.org/ns/lemon/ontolex#sense>
+PREFIX lglos:    <http://www.w3.org/2004/02/skos/core#definition>
+
+# List words of in some titles and corresponding lexemes (or \"placeholder\") 
+#  limited to the 42 first words & English language titles
+#  includes glos for any of the senses already defined on one of the lexemes (more generally needed)
+#  by Jura1, 10 March 2020
+
+SELECT
+  ?a ?title ?nv ?word (GROUP_CONCAT(DISTINCT ?lemma; separator=\"/\") as ?all_lemma) 
+  (SAMPLE(?lexeme) as ?a_lexeme) 
+  (GROUP_CONCAT(DISTINCT ?lexcatLabel; separator=\", \") as ?all_lexcat) 
+  (COUNT(DISTINCT ?sense) as ?senses)
+  (GROUP_CONCAT(DISTINCT ?glos_en; separator=\" [other sense: ]_\") as ?all_glos_en) 
+WITH
+{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+  #skip some characters in title
+  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
+  WHERE
+   {
+      # { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
+      # UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
+      # above for COVID-19, use the following for ZIKA instead, add other items as needed
+      ?a wdt:P921 wd:Q202864 .
+      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } OFFSET 1000 LIMIT 200
+} as %titles
+WITH
+{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                            
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
+} as %getwords
+WHERE
+{   INCLUDE %getwords
+    hint:Query hint:optimizer \"None\".
+    FILTER ( ?word != \"Z\"@en )
+    # check against English forms of lexemes (\"en\")
+    OPTIONAL { ?lf lhasform: ?word . ?lexeme1 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against lowercase forms 
+    BIND( Lcase(?word) as ?lword)
+    OPTIONAL { ?lf lhasform: ?lword . ?lexeme2 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against noun forms with 's (incomplete, not en-gb, not different cases)
+    BIND( strlang(REPLACE(str(?word),\"^(.+)'s$\", \"$1\"),\"en\") as ?noun)
+    OPTIONAL { ?lf lhasform: ?noun . ?lexeme5 lforms: ?lf ; llang: wd:Q1860 ; lcat: wd:Q1084 }
+ 
+    # check against British-English lowercase forms (\"en-gb\")
+    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
+    OPTIONAL { ?lf lhasform: ?lword_engb . ?lexeme3 lforms: ?lf ; llang: wd:Q1860 }
+  
+    # exclude digits-only strings and 1-letter strings
+    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
+    FILTER ( strlen( stR(?word)) != 1  ) 
+ 
+    BIND( COALESCE( ?lexeme1, ?lexeme2, ?lexeme5, ?lexeme3, wd:L254535 ) as ?lexeme)
+    ?lexeme llemma: ?lemma ; lcat: ?lexcat .
+    ?lexcat rdfs:label ?lexcatLabel . FILTER(lang(?lexcatLabel) = \"en\") .
+    OPTIONAL { ?lexeme lsenses: ?sense .
+               OPTIONAL { ?sense lglos: ?glos_en . FILTER(lang(?glos_en) = \"en\")   }
+             }
+}
+GROUP BY ?a ?title ?nv ?word
+ORDER BY ?a ?nv""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Unification of distances in the stars 2 Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors 3 Weird football statistics (2 queries) 3.1 Top 10 of the youngest and the oldest goal scorers and players in tournament history 3.2 Places of birth of soccer players on a world map 4 Nigeria women biographies without photos on Wikipedia 5 Renaming label variables 6 Project country coverage stats 7 How to query all places within a place? 8 How to show only unique values when using several GROUP_CONCAT? 9 List of IATA airport codes with geo coords, city, country, continent 10 Get a list of lexemes with sense 11 Timeline US news 12 List of 1000 female with the highest number of interwikis, but without a be:interwiki 13 Query no longer working 14 Simple request (Participants to the 2016 Olympics) 15 Getting the lexeme for a given form 15.1 How many words to check 15.2 List words 15.3 Cross-check against existing lexemes 15.4 Article titles and corresponding lexemes (or \"placeholder\") 16 \"has part/part of\" tree 17 Every 'instance of' X which has more than one 'instance of' statement and a list of values of these 'instance of' stataments 18 Catalan label and Roman people 19 Timeout, but has been running two weeks ago every day. 20 Revenue: Newest Number and Qualifier 21 Items with more than 30 sitelinks 22 Pageviews of a given item in a given endpoint 23 Playing with references 24 List of city residents, with street names 25 All Encompassing Query 26 Wikipedia categories and sub-categories 27 Instance of (P31) Disease Outbreak (Q3241045) of (P642) COVID-19 (Q84263196) 28 List of the websites of all cities in Germany 29 Abfrage der Bürgermeister ein Stadt in zeitlicher Reihenfolge 30 List of Oscar Best Movies 31 Thousands separator 32 Searching for a specific property from a list of items 33 Upper case titles 34 Article titles about persons that contain a certain string 35 Mayors 36 Part of string with P973 37 Spelling out the language of a Wikimedia page from sitelink 38 Query on qualifier and display it on results 39 ORDER BY Family name 40 FILTER NOT EXISTS 41 Better query for P301 inverse constraint? 42 electoral district of a political position held? 43 Many wikiquote entries, but few wikipedia entries 44 List of artists in City of Pori art collection 45 Select Australian women who have an infobox with the parameter \"image =\" (and possibly therefore an image) where there is no image in wikidata Unification of distances in the stars By running the following query: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance
+WHERE
+{
+	?star wdt:P31 wd:Q523 ;
+	      wdt:P2583 ?distance;
+    FILTER( ?distance < 19 )
+		SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?distance
+ Try it! The logical thing would be to think that the first result should be Alpha Centauri A (Q2090157) (since it is the closest to Earth), but in reality is COSMOS2015 489026 (Q75031832) which is 0.15 kiloparsec. Is there any way to detect the distances expressed in parsec and kiloparsec to convert them to light years? Otherwise, the distance from Earth (P2583) should be added in each star both in light years and in (kilo)parsecs and choose from the query which to use.--190.139.216.64 02:25, 20 February 2020 (UTC) There are two possibilities. One is the built-in normalization of units: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+      ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?statement.
+      ?statement wikibase:quantityUnit ?unit.
+      ?statement wikibase:quantityAmount ?distance.
+      ?statement wikibase:quantityNormalized/wikibase:quantityAmount ?distanceNormalized. # convert to normalized unit (meter)
+      BIND (?distanceNormalized / 9460800000000000  AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100
+ Try it! You can also explicit convert the units: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unit ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+	  ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?d.
+      ?d wikibase:quantityUnit ?unit.
+      ?d wikibase:quantityAmount ?distance.
+      BIND(
+        COALESCE(
+          IF(?unit = wd:Q531, ?distance, 1/0), # lightyear
+          IF(?unit = wd:Q12129, ?distance*3.2616, 1/0), # paresc
+          IF(?unit = wd:Q11929860, ?distance*3261.6, 1/0), # kiloparsec
+          IF(?unit = wd:Q3773454, ?distance*3261600, 1/0), # megaparsec
+          -1
+      ) AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100
+ Try it! I have limited both queries to 100 results before sorting because theywill timeout without a limit. There are 1,542,325 stars in Wikidata. I think it is impossible to search them all and convert the units in 60 seconds using SPARQL. --Dipsacus fullonum (talk) 05:15, 20 February 2020 (UTC) The most time-consuming part of the queries is the FILTER function (when removed its run almost instantaneously). Ideally, all these distances (light-year (Q531), parsec (Q12129), kiloparsec (Q11929860) and megaparsec (Q3773454)) should be stored in the database instead of being calculated on the fly and that everyone chooses the unit they prefer, I think that would improve the execution times of the query.--190.139.216.64 13:18, 20 February 2020 (UTC) Probably it's better to use \"wdt:P31/wdt:P279* wd:Q523\" as not all the stars have preferred \"Q523\" value. Also do you want e.g. brown dwarf (Q101600) (one is very close to the Sun)? They are even technically not stars... --Infovarius (talk) 10:14, 3 March 2020 (UTC) Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors Hi allI'm not sure exactly what query I'm looking for but I'm working on schemas and other instructions for new contributors and I really like some information on common kinds of items so I know what people want to work on. What I would like to know is what are the most common 'kinds' of items are, as these, I guessing, are probably what they will want to create an item for. I guess this could be measured in a couple of different ways Most common statements overall (this will be useful for quick instructions for themed editathons etc) Most common 'instance of' Other very common statements and the most common values for those statements I assume there are a lot of people on Wikidata, to break this down a bit, what are the most common statements for people and what are the most common values? Once there's a list of the most common 'kinds' of items what are the most common statements for them e.g What are the most common statements for scientists? (I assume the professional would be more granular than 'scientist' but would have very similar instructions to create Thanks very much--John Cummings (talk) 19:56, 28 February 2020 (UTC) @John Cummings: There's some statistics info at the bottom of Wikidata:Statistics, and you can get an idea of common properties for kinds of items from the WD:Recoin tool. --Yair rand (talk) 19:51, 2 March 2020 (UTC) Weird football statistics (2 queries) I just added full individual statistics for the UEFA Super Cup (Q484028) (example1example2). Top 10 of the youngest and the oldest goal scorers and players in tournament history Every player has dates of his first & last game and goal. Given their dates of births, I need to get the maximum and minimum differences with the dates of goals and games. Сидик из ПТУ (talk) 19:01, 1 March 2020 (UTC) @ Сидик из ПТУ: 10 youngest and 10 oldest goal scorers: SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
+WITH
+{
+  SELECT ?player ?dob ?date_first ?date_latest ?age_first ?age_latest
+  WHERE
+  {
+    ?player p:P6509 ?p6509stm . # goals
+    ?p6509stm pq:P7124 ?date_first .
+    ?p6509stm pq:P7125 ?date_latest .
+    ?p6509stm pq:P642 wd:Q484028 . # for UEFA Super Cup
+    ?player wdt:P569 ?dob . # Date of birth
+    BIND(?date_first - ?dob AS ?age_first)
+    BIND(?date_latest - ?dob AS ?age_latest)
+  }
+} as %query
+WHERE
+{
+  {
+    SELECT ?player ?dob (?date_first AS ?goal_date) (?age_first AS ?goal_age_days)
+    {
+      INCLUDE %query
+    }
+    ORDER BY ASC(?goal_age_days)
+    LIMIT 10
+  }
+  UNION
+  {
+    SELECT ?player ?dob (?date_latest AS ?goal_date) (?age_latest AS ?goal_age_days)
+    {
+      INCLUDE %query
+    }
+    ORDER BY DESC(?goal_age_days)
+    LIMIT 10
+  }
+  BIND(?goal_age_days/365.25 AS ?goal_age_years)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?goal_age_days)
+ Try it! --Dipsacus fullonum (talk) 21:00, 1 March 2020 (UTC) Great! Thanks! Сидик из ПТУ (talk) 21:16, 1 March 2020 (UTC) Places of birth of soccer players on a world map Can I mark on the map with circles the places of births of all goal scorers in the tournament history? They must have more than 0 goals scored. Сидик из ПТУ (talk) 19:01, 1 March 2020 (UTC) @Сидик из ПТУ: Something like this maybe: #defaultView:Map{\"hide\":\"?coord\"}
+SELECT ?itemLabel ?birthplaceLabel ?coord ?layer {
+  ?item p:P6509 ?p6509stm .
+  ?p6509stm ps:P6509 ?layer .
+  FILTER(?layer > 0)
+  ?p6509stm pq:P642 wd:Q484028 .
+  ?item wdt:P19 ?birthplace .
+  ?birthplace wdt:P625 ?coord .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Larske (talk) 19:59, 1 March 2020 (UTC) Great! Thanks! Сидик из ПТУ (talk) 20:03, 1 March 2020 (UTC) Nigeria women biographies without photos on Wikipedia HiGreetings,I need a query on Wikidata for the list of Nigerian's women biography on Wikipedia without photos.Thanks as I await your help.Olaniyan Olushola (talk) 13:21, 2 March 2020 (UTC) @Olaniyan Olushola: I sorry to say that it is impossible to query on Wikidata the details of articles on a Wikipedia. I can easily write a query for Nigerian women without an image on Wikidata, but not a query for Wikipedia biographies without image. There may be other tools which can do that, but I cannot help with that. Maybe others can. --Dipsacus fullonum (talk) 19:34, 2 March 2020 (UTC) Items used: Nigeria (Q1033)   , female (Q6581072)   Properties used: country of citizenship (P27)   , place of birth (P19)   , country (P17)   , place of death (P20)   , sex or gender (P21)   , image (P18)   SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+{
+    { ?item wdt:P27 wd:Q1033 } UNION { ?item wdt:P19/wdt:P17 wd:Q1033 } UNION { ?item wdt:P20/wdt:P17 wd:Q1033 } 
+    ?item wdt:P21 wd:Q6581072 .
+    FILTER NOT EXISTS { ?item wdt:P18 [] }
+    [] schema:about ?item . 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! You could use the above in https://tools.wmflabs.org/fist/wdfist/ [1] and first add images we might already have at Commons, but not yet here on Wikidata (10 or so). Once done, you could re-run it. There might be some that get missed though (images locally at Wikipedia or search not working well) --- Jura 22:19, 2 March 2020 (UTC) Renaming label variables Hi, I only need the label of the entity, but I need this variable mapped to a specific variable name (`innerText`). SELECT ?innerText  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?century wdt:P31 wd:Q578.
+  ?century wdt:P585 \"1600-00-00T00:00:00Z\"^^xsd:dateTime.
+  BIND(?centuryLabel as ?innerText)
+}
+LIMIT 1
+ Try it! In this case I expect the word 16th century. How do I do that? --Shisma (talk) 18:58, 2 March 2020 (UTC) @Shisma: You can use the manual mode of the label service: SELECT ?innerText  WHERE {
+  ?century wdt:P31 wd:Q578.
+  ?century wdt:P585 \"1600-00-00T00:00:00Z\"^^xsd:dateTime.
+  SERVICE wikibase:label
+  { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?century rdfs:label ?innerText .
+  }
+}
+LIMIT 1
+ Try it! --Dipsacus fullonum (talk) 19:22, 2 March 2020 (UTC) @Dipsacus fullonum: thats it. thank you 🙂--Shisma (talk) 19:27, 2 March 2020 (UTC) Project country coverage stats I'm trying to write a query that would give some statistics on the number of articles on a particular country's citizens/subdivisions/other in each Wikipedia, but it keeps timing out. Even this query, which only deals with citizens and only lists the top 15, times out: SELECT ( count( ?q ) as ?i ) ?project WHERE {
+  ?q wdt:P17 wd:Q30 ;
+     ^schema:about / schema:isPartOf ?project .
+  FILTER EXISTS { ?project wikibase:wikiGroup 'wikipedia' . }
+} GROUP BY ?project ORDER BY DESC ( ?i ) LIMIT 15
+ Try it! Is there any way to make this kind of query run faster? --Yair rand (talk) 20:34, 2 March 2020 (UTC) @Yair rand: Remove the filter. The majority of sitelinks goes to Wikipedias anyway, so the filter uses time without limiting the results much. There will only be Wikipedias among the 15 first results, but if you increase the limit you can always add a filter after the grouping and counting by using subqueries – or take out unwanted results manually. Without filter and with P17 (country) changed to P27 (citizenship) I could run the query in 32 s without timeout. For items in USA (using P17) I think you have to query more specific subgroups in each query by adding more conditions with e.g. P31. --Dipsacus fullonum (talk) 22:42, 2 March 2020 (UTC) How to query all places within a place? How do I query Ancestral Home (P66) so I get all values within Finland (Q33), not just Finland?With the query below, I get two results that have the exact value Finland - not all places within Finland. SELECT ?item ?itemLabel WHERE {
+ ?item wdt:P66 wd:Q33;
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+ } For example, I know that Richard Dean Andersson (Q203047) has a ancester from Munsala in Finland. What do I need to change in the query so he and others would be included in the result?Thanks for any help! Hi. You can add P17+ (country) to the property path after P66. You will also need a hint to engine to search the path forward to avoid a timeout from looking at all things in Finland: SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P66/wdt:P17+ wd:Q33 . hint:Prior hint:gearing \"forward\" .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 09:49, 3 March 2020 (UTC) @Dipsacus: Thank you! Works as I hoped :) How to show only unique values when using several GROUP_CONCAT? Hello,Is there any way to leave out duplicates when using GROUP_CONCAT on multiple columns? The following query will duplicate values within each cell. I'd like to just have unique ones. SELECT ?place ?placeLabel 
+ (GROUP_CONCAT(?p31label;SEPARATOR=\", \") AS ?instances) 
+ (GROUP_CONCAT(?p361label;SEPARATOR=\", \") AS ?part_ofs) 
+ WHERE {
+   ?place wdt:P37 wd:Q9027.
+   OPTIONAL { ?place wdt:P31 ?p31 . ?p31 rdfs:label ?p31label . FILTER(lang(?p31label)='sv') }
+   OPTIONAL { ?place wdt:P361 ?p361 . ?p361 rdfs:label ?p361label . FILTER(lang(?p361label)='sv') }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }
+ GROUP BY ?place ?placeLabel
+ ORDER BY STR(?placeLabel) Thank you for help! @Robertsilen: You can add the word DISTINCT as the first word in GROUP_CONCAT arguments, like GROUP_CONCAT(DISTINCT ?p31label;SEPARATOR=\", \"). --Dipsacus fullonum (talk) 10:13, 3 March 2020 (UTC) PS. I would recommend using the label service in manual mode with language fallback for the labels you concatenate in case some items don't have Swedish labels. --Dipsacus fullonum (talk) 10:19, 3 March 2020 (UTC) @Dipsacus: Thank you, adding DISTINCT did the trick! Regarding the label service - I picked up the above way of doing it from an example I was given - so I'm not totally sure of how it works. Please do tell me how to do \"language fallback for the labels you concanate\". It seems that simply changing FILTER(lang(?p31label)='sv') to FILTER(lang(?p31label)='[AUTO_LANGUAGE],sv') does not work. I'd like the result to be in Swedish, and fallback to anything else if Swedish is not available. @Robertsilen: Here is a version using the label service for the labels. It tries first for a Swedish label, then a Finnish and English label if none is found. Last resort will be the Q-number instead of a label. You can of course change the language codes to your preferences. It is described in the user manual. SELECT ?place ?placeLabel 
+ (GROUP_CONCAT(DISTINCT ?p31label;SEPARATOR=\", \") AS ?instances) 
+ (GROUP_CONCAT(DISTINCT ?p361label;SEPARATOR=\", \") AS ?part_ofs) 
+ WHERE {
+   ?place wdt:P37 wd:Q9027.
+   OPTIONAL { ?place wdt:P31 ?p31 . }
+   OPTIONAL { ?place wdt:P361 ?p361 . }
+   SERVICE wikibase:label { 
+     bd:serviceParam wikibase:language \"sv,fi,en\".
+     ?place rdfs:label ?placeLabel .
+     ?p31 rdfs:label ?p31label .
+     ?p361 rdfs:label ?p361label .
+   }
+ }
+ GROUP BY ?place ?placeLabel
+ ORDER BY STR(?placeLabel)
+ Try it! --Dipsacus fullonum (talk) 21:55, 3 March 2020 (UTC) List of IATA airport codes with geo coords, city, country, continent Hi all, I'm new to SPARQL, I'm trying to create a query to have: IATA airport code Geographical coordinates City Country Continent What I did with the query editor: SELECT ?codice_aeroportuale_IATA ?coordinate_geografiche ?PaeseLabel ?continenteLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?item wdt:P238 ?codice_aeroportuale_IATA. }
+  OPTIONAL { ?item wdt:P625 ?coordinate_geografiche. }
+  OPTIONAL { ?item wdt:P17 ?Paese. }
+  OPTIONAL { ?item wdt:P30 ?continente. }
+}
+LIMIT 10
+ Try it! But all I have are IATA codes, geo coords and country. No continent (blanks). Moreover, I wasn't able to add city to the query as a property.And i receive lots of cases of duplicated IATA code because of different geo coords, for example: ROD Point(19.899918 -33.812355) ROD Point(19.903697222 -33.811775) Is there anyone that can help me obtain the result I need without duplicates?Thank you!--195.32.95.24 13:21, 3 March 2020 (UTC) Continent are blank because there are no values for airport items. continent (P30) are normally only used for countries, and in case of countries in more than one continent also in the largest subdivisions. So you would need to use a chain of located in the administrative territorial entity (P131) values until you found an item giving the continent. It can be a little tricky to do that and only select the correct values for countries in multiple continents. To avoid duplicates of coordinates the results can grouped by IATA code. I don't have time to write code for this now, but can do it later if no one else has done it. --Dipsacus fullonum (talk) 14:17, 3 March 2020 (UTC) Hi Dipsacus, thank you for your feedback. I don't know actually how to \"chain\" located in the administrative territorial entity (P131) values; I also tried to group by ?codice_aeroportuale_IATA but I received an error. I guess I'll wait your kind support ;)--195.32.95.24 15:21, 3 March 2020 (UTC) Here is a \"simple\" version without continent, but with the results grouped by IATA code to avoid duplicate coordinates. I will return with a query to include continent later. SELECT ?codice_aeroportuale_IATA (SAMPLE(?coord) AS ?coordinate_geografiche) ?PaeseLabel
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item wdt:P238 ?codice_aeroportuale_IATA.
+  OPTIONAL { ?item wdt:P625 ?coord. }
+  OPTIONAL { ?item wdt:P17 ?Paese. }
+}
+GROUP BY ?codice_aeroportuale_IATA ?PaeseLabel
+LIMIT 10
+ Try it! --Dipsacus fullonum (talk) 21:35, 3 March 2020 (UTC) Hello again. Here is a query which gives continent. However there are problems. First, there isn't data about continent for all places in Wikidata! When a country has parts in more than one continent, the code will try to get the continent from the largest administrative unit that the item is in instead of from the country. But that isn't always possible, so for some airports there will more than one value for continent, even though only one is true. Another problem is that there isn't time enough to handle all 8.745 airports with IATA code on Wikidata. So if you remove the limit on results, you have to also remove either all the code for continent or the code for labels (the SERVICE wikibase:label line) to avoid that the query times out. SELECT DISTINCT ?item ?itemLabel ?codice_aeroportuale_IATA ?Paese ?PaeseLabel ?coordinate_geografiche ?continent ?continentLabel
+WHERE
+{
+  {
+    SELECT ?item ?codice_aeroportuale_IATA (SAMPLE(?coord) AS ?coordinate_geografiche) ?Paese
+    WHERE
+    {
+      ?item wdt:P238 ?codice_aeroportuale_IATA.
+      OPTIONAL { ?item wdt:P625 ?coord. }
+      OPTIONAL { ?item wdt:P17 ?Paese. }
+    }
+    GROUP BY ?item ?codice_aeroportuale_IATA ?Paese
+    LIMIT 10
+  }
+  OPTIONAL
+  {
+    # Find continent for the country
+    ?Paese wdt:P30 ?continent_country. 
+  }
+  OPTIONAL
+  {
+    # Find continent for the largest subunit in the country
+    ?item wdt:P131+ ?subunit. hint:Prior hint:gearing \"forward\".
+    ?subunit wdt:P131 ?Paese.
+    FILTER(?subunit != ?Paese)
+    ?subunit wdt:P30 ?continent_subunit.
+  }
+  # Use continent for subunit if present, otherwise for country
+  BIND(COALESCE(?continent_subunit,?continent_country) AS ?continent)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 19:46, 4 March 2020 (UTC) Thank you! Your first query fits perfect for what I actually need; I can always add the continent from a reference list in excel, that's not a problem. Again, thank you!--195.32.95.24 09:07, 5 March 2020 (UTC) Get a list of lexemes with sense Hello! Some months ago I made this request and @TweetsFactsAndQueries: gave me this query that seems to be broken. SELECT ?lexeme (GROUP_CONCAT(?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
+WITH {
+  SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
+    SERVICE bd:sample {
+      ?lexeme dct:language wd:Q8752.
+      bd:serviceParam bd:sample.limit 20 .
+    }
+    OPTIONAL { ?lexeme ontolex:sense ?sense. }
+  }
+  GROUP BY ?lexeme
+} AS %lexemesWithOneSense
+WHERE {
+  INCLUDE %lexemesWithOneSense.
+  ?lexeme wikibase:lemma ?lemma.
+  OPTIONAL { ?sampleSense skos:definition ?gloss. }
+}
+GROUP BY ?lexeme ?sampleSense
+ Try it! I don't know exactly where it breaks. Can someone help me figure out? Thanks! -Theklan (talk) 11:52, 4 March 2020 (UTC) @Theklan: Can you clarify how it’s broken? The potential problem I’m seeing is that it might be returning too many results (I’m getting 222284) – is that also your problem? --TweetsFactsAndQueries (talk) 19:46, 4 March 2020 (UTC) @TweetsFactsAndQueries: Instead of giving a list of 20 lexemes and their definition (it made that) now it gives thousands of repeated results with linked glosses that are not in the same language, and are not evident why they are there. For example I get: wd:L224884 independizatu wd:L22370-S1 stát v Evropě And it doesn't make sense, because independizatu (L224884) is not Suède (L22370-S1) and the word isn't a stát v Evropě. -Theklan (talk) 19:53, 4 March 2020 (UTC) @Theklan: Yeah, I think that’s due to the “produce all glosses that exist” I mentioned below (it would also, in reverse, produce the corresponding senses). I thought I had time to write the second part of my response before you’d see the first one, but clearly not, sorry :D --TweetsFactsAndQueries (talk) 20:00, 4 March 2020 (UTC) And as for the too many results, I think I just made a mistake in the query logic and it didn’t surface before because all the results had senses (I think). But if the inner query doesn’t find any senses for a lexeme, and ?sampleSense is unbound for some result, then I think the OPTIONAL in the outer query will produce all glosses that exist. I can’t think of a correct way to fix that, actually (the skos:definition triple needs to move inside the ontolex:sense OPTIONAL block, but then you’d need to do both SAMPLE(?sense) and SAMPLE(?gloss) in the same aggregation, and I think the two might select a sense and gloss that don’t match up), but maybe the sense isn’t actually necessary as a query output, in which case this should work: SELECT ?lexeme (GROUP_CONCAT(DISTINCT ?lemma; separator = \"/\") AS ?lemmata) (SAMPLE(?gloss) AS ?anyGloss) WHERE {
+  SERVICE bd:sample {
+    ?lexeme dct:language wd:Q8752.
+    bd:serviceParam bd:sample.limit 20 .
+  }
+  ?lexeme wikibase:lemma ?lemma.
+  OPTIONAL { ?lexeme ontolex:sense/skos:definition ?gloss. }
+}
+GROUP BY ?lexeme
+ Try it! --TweetsFactsAndQueries (talk) 19:52, 4 March 2020 (UTC) No, wait, I found a solution that gives you the ?sampleSense and corresponding ?anyGloss without exploding the results. It’s a bit hacky, and a lot slower, though, so I don’t recommend it unless you really need both. SELECT ?lexeme (GROUP_CONCAT(DISTINCT ?lemma; separator = \"/\") AS ?lemmata) ?sampleSense (SAMPLE(?gloss) AS ?anyGloss)
+WITH {
+  SELECT ?lexeme (SAMPLE(?sense) AS ?sampleSense) WHERE {
+    SERVICE bd:sample {
+      ?lexeme dct:language wd:Q8752.
+      bd:serviceParam bd:sample.limit 20 .
+    }
+    OPTIONAL { ?lexeme ontolex:sense ?sense. }
+  }
+  GROUP BY ?lexeme
+} AS %lexemesWithOneSense
+WHERE {
+  INCLUDE %lexemesWithOneSense.
+  ?lexeme wikibase:lemma ?lemma.
+  BIND(BOUND(?sampleSense) AS ?haveSampleSense) # if ?sampleSense is unbound, the result of the below OPTIONAL is meaningless
+  BIND(?sampleSense AS ?sampleSense_) # copy of ?sampleSense that can be bound without harm (not included in GROUP BY / SELECT)
+  OPTIONAL { ?sampleSense_ skos:definition ?gloss_. } # if ?sampleSense_ was unbound, it is now bound to any sense of any gloss
+  BIND(IF(?haveSampleSense, ?gloss_, ?unbound) AS ?gloss) # use the gloss only if it belongs to the already known ?sampleSense
+}
+GROUP BY ?lexeme ?sampleSense
+ Try it! --TweetsFactsAndQueries (talk) 20:12, 4 March 2020 (UTC) Timeline US news Items used: 2020 United States presidential election (Q22923830)   Properties used: follows (P155)   , point in time (P585)   , image (P18)   , candidate (P726)   , end time (P582)   #defaultView:Timeline
+SELECT ?candidate ?candidateLabel ?candidateDescription ?start (COALESCE(?end, NOW()) as ?to) ?img 
+{
+    BIND( wd:Q22923830 as ?el ) 
+    ?el p:P726 ?st . 
+    ?st ps:P726 ?candidate .
+    OPTIONAL { ?st pq:P582 ?end }
+    ?el wdt:P155 / wdt:P585 ?start . 
+    OPTIONAL { ?candidate wdt:P18 ?img }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}  
+ORDER BY BOUND(?end) DESC(?to) Try it!Is there a way to improve the timeline? --- Jura 23:46, 4 March 2020 (UTC) List of 1000 female with the highest number of interwikis, but without a be:interwiki Hello. Is it possible to create a query for a list of 1000 articles about female with the highest number of interwikis, but without a Belarusian (be:) interwiki? Thanks. --Maksim L. (talk) 07:09, 6 March 2020 (UTC)  # Biełarusian women covered in other Wikipedias but not in Biełarusan
+SELECT ?person ?personLabel ?personDescription (COUNT(DISTINCT ?sitelink) as ?linkcount) WHERE {
+  ?person wdt:P31 wd:Q5 . # human
+  ?person wdt:P21 wd:Q6581072 . # woman
+  ?person wdt:P27 wd:Q184 . # Biełarusan
+  ?sitelink schema:about ?person . # get Wikimedia pages about the person
+  FILTER NOT EXISTS {
+    ?links schema:about ?person . # get Wikimedia pages about the person
+    ?links schema:isPartOf <https://be.wikipedia.org/> . # but exclude Biełarusan Wikipedia.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],be-tarask,en,uk,pl,ru\". }
+} GROUP BY ?person ?personLabel ?personDescription
+ORDER BY DESC(?linkcount) 
+LIMIT 1000
+ Try it! --Taravyvan Adijene (talk) 07:42, 6 March 2020 (UTC) @Maksim L.: The following query gives you a list of objects that don't have a link to bewp. It is not limited to country of citizenship (P27) equal to Belarus (Q184). SELECT ?item ?itemLabel ?itemDescription ?sitelinks WITH {
+SELECT ?item ?sitelinks {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wikibase:sitelinks ?sitelinks .
+  FILTER(?sitelinks>40)
+  OPTIONAL { ?bewp schema:about ?item; schema:isPartOf <be.wikipedia.org/> }
+  FILTER(!BOUND(?bewp))
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 1000
+} AS %i WHERE {
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?sitelinks) ?itemLabel
+ Try it! Note:Links to all wikimedia project, not just Wikipedias, are included in the \"sitelinks\". --Larske (talk) 07:51, 6 March 2020 (UTC) The strategy is correct, but your query was not fully correct. This one works as desired: SELECT ?item ?itemLabel ?itemDescription ?sitelinks WITH {
+  SELECT ?item ?sitelinks WHERE {
+    ?item wdt:P21 wd:Q6581072; wikibase:sitelinks ?sitelinks .
+    FILTER(?sitelinks > 30) .
+    MINUS { ?item ^schema:about/schema:isPartOf <https://be.wikipedia.org/> }
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item wdt:P31 wd:Q5 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY DESC(?sitelinks) LIMIT 1000
+ Try it! —MisterSynergy (talk) 08:11, 6 March 2020 (UTC) Thanks for the correction! --Larske (talk) 08:21, 6 March 2020 (UTC) And one more: if the ranking should be sorted according to Wikipedia sitelink counts only, this query would be the way to go. —MisterSynergy (talk) 08:23, 6 March 2020 (UTC) Query no longer working Until recently, the below query was working fine. Now, I have a java error. Is this issue linked to the query or to WQS? SELECT ?instance ?instanceLabel (COALESCE(?instanceLabel, \" autres\") AS ?itemLabel) ?count {{
+    SELECT ?instance (COUNT(DISTINCT ?item) as ?count) {
+          ?item  wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+    GROUP BY ?instance
+    HAVING (?count > 50)}
+  UNION {
+    SELECT (SUM(?count) AS ?count) {{
+        SELECT (COUNT(DISTINCT ?item) as ?count) {
+          ?item wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+        GROUP BY ?instance
+        HAVING (?count <=50)}}}
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }}
+ORDER BY DESC(?count)
+ Try it! Thanks. Ayack (talk) 19:08, 6 March 2020 (UTC) You need to change \"(SUM(?count) AS ?count)\" to something like (SUM(?count) AS ?count1) --- Jura 19:12, 6 March 2020 (UTC) By doing that, I no longer have an error, but I've only the result of the first part of the UNION... Ayack (talk) 19:27, 6 March 2020 (UTC) Items used: France (Q142)   , church building (Q16970)   , other (Q55107540)   Properties used: country (P17)   , instance of (P31)   , subclass of (P279)   SELECT ?type ?typeLabel (SUM(?count) as ?count_types) 
+{
+    {  SELECT ?instance (COUNT(DISTINCT ?item) as ?count)
+       WHERE
+       {
+          ?item  wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance
+       }
+       GROUP BY ?instance
+    }             
+    BIND( If(?count < 51 , wd:Q55107540 , ?instance) as ?type) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". }
+}
+GROUP BY ?type ?typeLabel 
+ORDER BY (?type = wd:Q55107540 ) DESC(?count_types) Try it!There seems to be another issue with the aggregate. I re-wrote it slightly differently above. I suppose that's what you are looking for. --- Jura 19:41, 6 March 2020 (UTC) Items used: France (Q142)   , church building (Q16970)   Properties used: country (P17)   , instance of (P31)   , subclass of (P279)   SELECT ?instance ?instanceLabel (COALESCE(?instanceLabel, \" autres\") AS ?itemLabel) ?count {{
+    SELECT ?instance (COUNT(DISTINCT ?item) as ?count) {
+          ?item  wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+    GROUP BY ?instance
+    HAVING (?count > 50)}
+  UNION {
+    SELECT (SUM(?count0) AS ?count) {{
+        SELECT ?instance (COUNT(DISTINCT ?item) as ?count0) {
+          ?item wdt:P17 wd:Q142. 
+          ?item (wdt:P31/wdt:P279*) wd:Q16970 ; wdt:P31 ?instance.}
+        GROUP BY ?instance
+        HAVING (?count0 <=50)}}}
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }}
+ORDER BY DESC(?count) Try it! Original query edited. --- Jura 19:51, 6 March 2020 (UTC) Thanks, it's what I expected. However it's strange that the original query has stop working... Ayack (talk) 20:02, 6 March 2020 (UTC) See https://phabricator.wikimedia.org/T235540 --Tagishsimon (talk) 20:06, 6 March 2020 (UTC) Note that reusing a name in an aggregate function is not allowed in SPARQL (see https://www.w3.org/TR/sparql11-query/#aggregateExample), so it should not be expected to work. However it would be nice to have a better error message. --Dipsacus fullonum (talk) 22:09, 6 March 2020 (UTC) If so, I suppose the bug should be closed as \"wont fix\". The other day, I fixed a few queries that failed for that reason since the change in October. Some are probably still left on https://tools.wmflabs.org/listeria/botstatus.php . --- Jura 02:00, 7 March 2020 (UTC) I would have closed it with \"Invalid\", as it isn't a bug. --Dipsacus fullonum (talk) 02:45, 7 March 2020 (UTC) Simple request (Participants to the 2016 Olympics) Hi, Id like a request that would list all the athletes participating to the 2016 Olympics (Q8613) Thanks--Kimdime (talk) 19:59, 7 March 2020 (UTC) @ Kimdime: Answer 1 with 1,540 results, atheletes who participated using participant in (P1344) 2016 Summer Olympics (Q8613): SELECT ?item ?itemLabel
+WHERE
+{
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P1344 wd:Q8613.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! And answer 2 with 4,582 results, athetles and teams who are in a subcategory of Category:Competitors at the 2016 Summer Olympics (Q24335239) at English Wikipedia: SELECT ?title
+WHERE 
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:api \"Search\" .
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+    bd:serviceParam mwapi:srnamespace \"0\" .
+    bd:serviceParam mwapi:srsearch 'deepcat:\"Competitors at the 2016 Summer Olympics\"' .
+    ?title wikibase:apiOutput mwapi:title .
+  }
+}
+ Try it! --Dipsacus fullonum (talk) 20:32, 7 March 2020 (UTC) Dipsacus fullonum Thank you for showing me how to interrogate Wikipedia categories.--Kimdime (talk) 09:31, 8 March 2020 (UTC) With this PetScan query we get 10,737 articles in the enwp category tree en:Category:Competitors at the 2016 Summer Olympics, and all of them seem to be connected to a Wikidata object. As an example, only 3 of the first 20 items in the \"PetScan query\" result are present in the \"Search query\" result. @Dipsacus fullonum: Do you know the reason for this big discrepancy? --Larske (talk) 09:40, 8 March 2020 (UTC) @Larske: I don't know for sure but the search may have hit the limits of the \"deepcat\" search method in Wikipedia. See en:Help:Searching#deepcategory:. The help page says: \"The depth of the tree is currently limited to 5 levels, and the overall number of categories is limited to 256.\" --Dipsacus fullonum (talk) 10:34, 8 March 2020 (UTC) @Dipsacus fullonum: I think there must be some other problem with the deepcat search. The number of categories are just 40, well below 256, and the depth i just 2 levels (excluding the top level), well below 5. And if the limit(s) were hit, I think there should be a warning message on this search result page, but there isn't. I noticed that PetScan misses the 474 articles on the subcategories to Sailors (379 articles i 8 subcategories) and Volleyball players (95 articles in one subcategory). The total number of articles in the category tree is 11,211. --Larske (talk) 14:25, 8 March 2020 (UTC) @Larske: The deepcat search only gives 4.582 results (see https://en.wikipedia.org/w/index.php?title=Special:Search&limit=5000&offset=0&ns0=1&search=deepcat%3A%22Competitors+at+the+2016+Summer+Olympics%22&advancedSearch-current={}) so the result isn truncated by the MWAPI service. Maybe there also is a limit on the total number of search results? --Dipsacus fullonum (talk) 14:45, 8 March 2020 (UTC) Getting the lexeme for a given form I'm trying to check whether the strings in titles of a set of publications already exist as lexemes and am stuck at the ?lexeme ontolex:lexicalForm ?form point. So here is what I have so far, with the problematic part commented out. The following query uses these:Items: Zika virus (Q202864)   Properties: main subject (P921)   , title (P1476)   , image (P18)   ################
+# Checking whether strings from the titles of publications already exist as lexemes
+# The query has three parts:
+#   I - get a list of publications on a given topic
+#  II - extract strings from the titles
+# III - check whether these strings exist as Wikidata lexemes
+################
+
+SELECT DISTINCT
+  ?word ?wordUrl
+  ?form ?formLabel
+  ?lexeme ?lexemeLabel
+  ?lexical_category ?lexical_categoryLabel
+  (GROUP_CONCAT(DISTINCT ?featureLabel; separator=\" // \") AS ?features)
+  ?sense ?senseLabel
+  (IRI(CONCAT(\"https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file&width=100&wpvalue=\", 
+          SUBSTR(STR(SAMPLE(?images)), 52))) AS ?sense_image)
+WHERE {
+
+#   I - get a list of publications on a given topic
+  
+  {
+    SELECT DISTINCT ?x ?title WHERE {
+      ?x wdt:P921 wd:Q202864 ;  # Zika virus
+         wdt:P1476 ?title.
+      FILTER(STRLEN(?title) >= 6)
+    }
+    LIMIT 10
+  }
+  
+#  II - extract strings from the titles
+  
+  BIND(LCASE(?title) AS ?ltitle)
+  BIND(REPLACE(?ltitle, \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w1)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w1), \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w2)
+  BIND(REPLACE(STRAFTER(?ltitle, ?w2), \"^.*?(\\\\b\\\\w{6,}\\\\b).*$\", \"$1\") AS ?w3)
+  VALUES ?w_ { 1 2 3 }
+  BIND(IF(?w_ = 1, ?w1, IF(?w_ = 2, ?w2, ?w3)) AS ?word)
+  FILTER(REGEX(?word, \"^\\\\w+$\")) # since ?w may evaluate to an empty string, e.g. for one-word titles
+
+  FILTER (LANG(?word) = \"en\")
+  
+# III - check whether these strings exist as Wikidata lexemes
+# This part is taken from https://tools.wmflabs.org/ordia/text-to-lexemes
+  
+  OPTIONAL {
+    ?form ontolex:representation ?word . 
+    OPTIONAL {
+      ?form wikibase:grammaticalFeature ?feature .
+      BIND(STR(?feature) AS ?default_featureLabel)
+      OPTIONAL {
+        ?feature rdfs:label ?featureLabel_ .
+        FILTER (LANG(?featureLabel_) = \"en\")
+      }
+      BIND(COALESCE(?featureLabel_, ?default_featureLabel) AS ?featureLabel)
+    }
+    ?form ontolex:representation ?formLabel .
+  
+# START OF PROBLEMATIC SECTION    
+#    ?lexeme ontolex:lexicalForm ?form .
+#
+#    ?lexeme wikibase:lexicalCategory ?lexical_category .
+#    BIND(STR(?lexical_category) AS ?default_lexical_categoryLabel)
+#    OPTIONAL {
+#      ?lexical_category rdfs:label ?lexical_categoryLabel_ .
+#      FILTER (LANG(?lexical_categoryLabel_) = 'en')
+#    }
+#    BIND(COALESCE(?lexical_categoryLabel_, ?default_lexical_categoryLabel) AS
+#	 ?lexical_categoryLabel)
+#      
+#	  
+#    ?lexeme wikibase:lemma ?lexemeLabel .
+#
+#    OPTIONAL {
+#      ?lexeme ontolex:sense ?sense .
+#      BIND(SUBSTR(STR(?sense), 32) AS ?senseLabel)
+#      OPTIONAL {
+#        ?sense wdt:P18 ?images .
+#      }
+#    }
+# END OF PROBLEMATIC SECTION    
+    
+  }
+  BIND(IF(BOUND(?form), \"\", CONCAT(\"search?language=en&q=\", ?word)) AS ?wordUrl)
+  
+}
+GROUP BY
+  ?word ?wordUrl ?form ?formLabel
+  ?lexeme ?lexemeLabel ?lexical_category ?lexical_categoryLabel
+  ?sense ?senseLabel
+ORDER BY ?word Try it! Thanks for any pointers! --Daniel Mietchen (talk) 06:25, 7 March 2020 (UTC) Items used: Zika virus (Q202864)   Properties used: main subject (P921)   , title (P1476)   SELECT (GROUP_CONCAT(DISTINCT ?title) as ?input_for_ordia)
+WHERE
+{
+      [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title .
+      FILTER(lang(?title) = \"en\" )
+} Try it! I guess that's not what you are looking for, but you could just paste the result of above into https://tools.wmflabs.org/ordia/text-to-lexemes Ordia then does the single string to array conversion --- Jura 12:58, 7 March 2020 (UTC) .. you could place the query in a Listeria list and then use LUA to generate the query or link to Ordia. --- Jura 13:08, 7 March 2020 (UTC) @Jura1: Thanks, Jura — your suggestions are not precisely what I wanted, but still a massive inspiration! Pasting into Ordia's text to lexemes is what I have done so far, and I am using Listeria queries a lot for testing such things (example) but here specifically, I was wondering how this could be streamlined and perhaps triggered by some missing page on Scholia, as per this ticket. Thanks again! --Daniel Mietchen (talk) 22:44, 7 March 2020 (UTC) @Daniel Mietchen: I think the last one below does what you had asked for (\"to check whether the strings in titles of a set of publications already exist as lexemes\"). It can run on all Zika article that currently exist. It shouldn't be too complicated to invert it (list the words that exist). --- Jura 23:04, 7 March 2020 (UTC) @Jura1: That last query is indeed very close to what I wanted (which is not entirely spelled out above), but it differs in some details, e.g. it does not list the corresponding lexeme's identifier. But this set of queries of yours has inspired me for several days, and as soon as I got the draft query above to work by adding some more OPTIONAL clauses to the problematic part, I started experimenting with incorporating some of your solutions. Thanks again! --Daniel Mietchen (talk) 01:37, 10 March 2020 (UTC) @Daniel Mietchen: I added another query that lists the lexical categories of corresponding lexemes (and one of these lexemes). If no lexeme is found, placeholder (L254535) is used. Maybe this could work for Scholia. I think we still need to find a good way to handle taxon names (see Property talk:P225#IETF tag for values and its parts e.g.). I revised the other queries slightly. --- Jura 13:29, 11 March 2020 (UTC) If it's not available yet, a service that does that on WQS would be good to have. Maybe with a federation query, one could try to do the conversion on another SPARQL server that has a corresponding extension installed (if there is). There are probably a few complicated ways of solving this with existing functions, e.g. count word delimiters, extract each word, combine that .. --- Jura 15:15, 7 March 2020 (UTC)  How many words to check Items used: Zika virus (Q202864)   Properties used: main subject (P921)   , title (P1476)   #How many words are in these titles:
+SELECT ?wordcount (COUNT(?title) as ?titles_count)
+{
+      [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title .
+      FILTER(lang(?title) = \"en\" )
+      BIND(REPLACE(str(?title), \" \", \"\") as ?test)
+      BIND(strlen(str(?title)) - strlen(?test)+1 as ?wordcount)
+}
+GROUP BY ?wordcount
+ORDER BY DESC(?wordcount) Try it! Items used: COVID-19 (Q84263196)   , COVID-19 pandemic (Q81068910)   , Coronaviridae (Q1134583)   Properties used: main subject (P921)   , title (P1476)   SELECT ?wordcount (COUNT(?title) as ?titles_count)
+{
+      { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }  UNION { ?a wdt:P921 wd:Q1134583 }  
+      ?a wdt:P1476 ?title .
+      BIND(REPLACE(str(?title), \" \", \"\") as ?test)
+      BIND(strlen(str(?title)) - strlen(?test)+1 as ?wordcount)
+}
+GROUP BY ?wordcount
+ORDER BY DESC(?wordcount) Try it! List words Items used: Zika virus (Q202864)   Properties used: main subject (P921)   , title (P1476)   , KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   Features used: BubbleChart (Q24515280)   #defaultView:BubbleChart
+#Bubblechart and list of words in titles of articles about Zika. Limited to English titles, first 42 words, some words filtered.
+#by Jura1, 7 March 2020
+
+SELECT ?word (COUNT(DISTINCT ?title) as ?count)
+WITH
+{  SELECT ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+   {  [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } #  LIMIT 100
+} as %titles
+WITH
+{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                             
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+} as %b 
+WHERE
+{
+    INCLUDE %b
+    FILTER ( ?word != \"Z\" && ?word != \"Zika\" && ?word != \"Corona\" 
+            && strlen(?word) > 3 
+            && ?word != \"pandemic\" && ?word != \"virus\" && lcase(?word) != \"infection\" && ?word != \"mortality\"
+           )               
+}
+GROUP BY ?word Try it!As a starter .. --- Jura 16:40, 7 March 2020 (UTC) Cross-check against existing lexemes Items used: COVID-19 (Q84263196)   , COVID-19 pandemic (Q81068910)   , Coronavirus (Q57751738)   , Coronaviridae (Q1134583)   , SARS-CoV-2 (Q82069695)   , Coronavirus (Q290805)   , Zika virus (Q202864)   , English (Q1860)   Properties used: main subject (P921)   , title (P1476)   , KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+PREFIX llang: <http://purl.org/dc/terms/language>
+PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
+
+# List words of some titles that don't exists as lexeme form 
+#  limited to the 42 first words, English language titles
+#  by Jura1, 7-11 March 2020
+
+SELECT ?word ?count ?sample
+WITH
+{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+  #skip some characters in title
+  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
+  WHERE
+   {
+      { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
+     UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
+      # above for COVID-19, use the following for ZIKA instead, add other items as needed
+      # ?a wdt:P921 wd:Q202864 .
+      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") }
+} as %titles
+WITH
+{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                            
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
+} as %getwords
+WITH
+{  SELECT ?word (COUNT(DISTINCT ?title) as ?count) (SAMPLE(?title) as ?sample) WHERE { INCLUDE %getwords FILTER ( ?word != \"Z\"@en ) } GROUP BY ?word
+} as %countedwords
+WHERE
+{
+    INCLUDE %countedwords
+    hint:Query hint:optimizer \"None\".
+  
+    # check against English forms of lexemes (\"en\")
+    FILTER NOT EXISTS { ?lf lhasform: ?word 
+      # ?lexeme lforms: ?lf ; llang: wd:Q1860 .
+    }
+
+    # check against lowercase forms 
+    BIND( Lcase(?word) as ?lword)
+    FILTER NOT EXISTS { ?lf lhasform: ?lword }
+  
+    # check against British English lowercase forms (\"en-gb\")
+    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
+    FILTER NOT EXISTS { ?lf lhasform: ?lword_engb }  
+
+    # exclude digits-only strings and 1-letter strings
+    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
+    FILTER ( strlen( str(?word)) != 1  ) 
+} Try it! Another approach, checking against lexemes. --- Jura 19:03, 7 March 2020 (UTC) Article titles and corresponding lexemes (or \"placeholder\") Items used: COVID-19 (Q84263196)   , COVID-19 pandemic (Q81068910)   , Coronavirus (Q57751738)   , Coronaviridae (Q1134583)   , SARS-CoV-2 (Q82069695)   , Coronavirus (Q290805)   , Zika virus (Q202864)   , English (Q1860)   , noun (Q1084)   Properties used: main subject (P921)   , title (P1476)   , KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

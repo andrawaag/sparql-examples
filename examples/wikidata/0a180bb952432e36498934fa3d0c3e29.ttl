@@ -1,0 +1,21 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0a180bb952432e36498934fa3d0c3e29> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?wiki_sitelink ?sitelink_label ?label {
+  ?wiki_sitelink schema:about ?item; schema:isPartOf <https://it.wikipedia.org/>; schema:name ?sitelink_label .
+  ?item rdfs:label ?label .
+  FILTER(LANG(?label) = 'it') .
+  FILTER(false = (LCASE(SUBSTR(STR(?wiki_sitelink), 31)) = LCASE(ENCODE_FOR_URI(LCASE(STR(?label))))) )
+  FILTER(false=CONTAINS(?sitelink_label,\")\"))
+} LIMIT 100""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>,
+    <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127829-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127829-1C0C74505457CE0D24984003760F6EB9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127829-ED2EF188A83847BB7B9D97F722580EB3;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5e4221b91b9f3e884d9eab75b2d317d8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (COUNT(DISTINCT ?wdt) as ?count) ?n 
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  wd:Q11922067 ?wdt [] .
+  wd:Q11922067 wikibase:identifiers ?n .
+}
+GROUP BY ?n""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Music help - personnel that played on a recording 2 Count identifiers with exceptions 3 Interwiki table from mwapi 4 Query of a category on EN WP vs Simple English WP 5 check for missing values 6 Query for novalue on qualifier 7 I would like to query wiki data by numeric twitter ID 8 Listed buildings in Coventry 9 Can you query by twitterID? 10 Query an Exact Instrumentation 11 Property-based neighbourhood graph 12 MWAPI insource 13 All articles on the English WIkipedia about National parks around the world 14 Countries with population - but no result for Greece? 15 Remove duplicates when the subject has several objects that corresponds to one predicate 16 MPs representing Coventry 17 Numeration of rows 18 Number of votes of a given party on an election by municipality 19 How to get all the attributes QID/UID 20 Find the today's featured article or a range (from the start to today for example) 21 Calculating ratios 22 Correcting wikidata list, avoiding country bug 23 Need to select all the coutries in the world, and their GPD 24 Extraction d'un qualificatif lié à une propriété 25 Search for element in subcategories 26 Get LatLng of Administrative territorial entity if available 27 RfQ: enwikisource interwiki to ruwiki / ruwikisource 28 Distribution of alma mater of elected members by legislature 29 Item ID in label, but only sometimes 30 Specific description and now P31/P279 set 31 Trying to query whether new data has been created in WikiData for a particular subject. 32 List of people from a state 33 Count of female artists with articles in the Portuguese Wikipedia 34 Grammatical featue 35 Using wikibase:around and also return the aggregate count of statements for each returned item 36 If recursive 37 Subway stations that aren't subway stations Music help - personnel that played on a recording TIA for any help! I saw on the Wikiproject Music page that it's possible to \"Use performer (P175) to list all the performers with instrument (P1303) as a qualifier to say which instrument each performer played on that recording.\" I'd be interested in either performers with instruments on a recording or a release. But I haven't been able to find an example query showing how to do this nor have I been able to construct one myself.Using the Beatles as an example, I am guessing I want to look at a track and not a song. I see I can get the composer and producer as properties, and I can return the band as performer, but have had no luck in my attempts to get the personnel roles. But I'm also not confident how to know if the entities will even have roles. I've tried with a few different tracks & releases but don't know if it's my query or the entities I'm looking at. Both? Any help much appreciated.Query: # personnel and instruments played on a recording 
+SELECT ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+wd:Q60712461 wdt:P175 ?statement .
+?statement ps:wd:Q5 ?performer .
+?statement pq:P1303 ?instrument .
+  
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+} @Nikoladelikatesla: So a couple of things to say about your version. If you want to reach for ps: and pq: values, you generally start with a p:P175, not a wdt:P175. And then the ?performer statement ... would just be ps:P175. That they're a human is neither here nor there. Here's a working query. It's actually written pretty much in reverse order, since the scarcest values are instruments used as qualifiers to performer. There are > 460k uses of P175, so queries involving this property will probably have to have some other conditions to decrease the result set, such as country, or genre, or whatever. # personnel and instruments played on a recording 
+SELECT ?item ?itemLabel ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+?statement pq:P1303 ?instrument .
+?statement ps:P175 ?performer .
+?item p:P175 ?statement .
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! --Tagishsimon (talk) 19:56, 1 April 2021 (UTC) Thank you very much Tagishsimon! This is exactly it. I'm cleary very hazy on the qualifier stuff, need to spend some more time studying it. Appreciate the fast response. -- Nikoladelikatesla 20:07, 1 April 2021 (UTC) @Nikoladelikatesla: This section of the WDQS tutorial is quite good on qualifiers; and the datamodel for an item tries to convey how data is strung together with predicates. (Start at the item bubble; wdt: takes you to a simple value, but is otherwise a dead end. p: takes you to a statement which allows you to look at ps:, pq:, prov:wasDerivedFrom (which leads to pr: ) and other good stuff. --Tagishsimon (talk) 20:17, 1 April 2021 (UTC) Count identifiers with exceptions Hi all! Starting from the following banal query SELECT ?n WHERE { wd:Q11922067 wikibase:identifiers ?n . }
+ Try it! I would like to ask you if the two following improvements are possible: obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers only once (i.e. counting P8034 one time instead of three times, P227 one time instead of two times etc.) obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers except one or more specific properties, e.g. excluding all the values of P214 and P1871 from count Thank you very much! --Epìdosis 07:23, 1 April 2021 (UTC) Items used: Philumenus (Q11922067)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

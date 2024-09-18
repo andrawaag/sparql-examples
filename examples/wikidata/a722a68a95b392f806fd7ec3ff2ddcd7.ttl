@@ -1,0 +1,62 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a722a68a95b392f806fd7ec3ff2ddcd7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Fathers with non-existent or unusual gender statements
+
+SELECT
+  (?father as ?father_id) ?father_name ?father_is_a ?father_gender
+  (?child  as ?child_id)  ?child_name  ?child_is_a
+WHERE {
+  ?child  wdt:P22 ?father .
+  ?father wdt:P31 ?f_is_a . #?father wdt:P31 wd:Q5 . 
+  ?child  wdt:P31 ?c_is_a . #?child wdt:P31 wd:Q5 .
+  OPTIONAL { ?father wdt:P21 ?f_gender . }
+  
+  # Aliases for the headings in the results table. Must be done this way because
+  # SELECT (?var as ?varAlias) works, but (?varLabel as ?varLabelAlias) doesn't.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?father   rdfs:label ?father_name .
+    ?f_is_a   rdfs:label ?father_is_a .
+    ?f_gender rdfs:label ?father_gender .
+    ?child    rdfs:label ?child_name .
+    ?c_is_a   rdfs:label ?child_is_a .
+  }
+  
+  # Show only results where the father's gender:
+  FILTER( 
+    # ...is not set
+    NOT EXISTS { ?father wdt:P21 [] }
+    # ...or is set to something other than \"male\" or \"male organism\", or \"unknown value\"
+    || ?f_gender NOT IN(wd:Q6581097, wd:Q44148) && !wikibase:isSomeValue(?f_gender)
+  )
+}
+ORDER BY DESC(?f_gender)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-30A4B5C01810884A58F01919B8FC25C4, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-14F5443DCD6B46F3194864383A13482D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-8427E26F8705144C2BBE7357815A8AC3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-D8EC741C031F750FE30E0BE62A7BF33D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-2EB317E46DB28EBE385DB7B278EA050F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-010A1F70316DAD16A82D211CBFB50578,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-21D32596063A858DA7C5C195068EBB13, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-E0B9ED7033044C85A6E8B7EE63B46518,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-F82B426CCF30C5FE43E14C1D994C7B42, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-0597B2A512D750E4598B1FF534B4F707,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-4C656007D28E02DC815B88B620AB167F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112691-60DD12C9BCF3AB35F2D84BA269E7CE46;
+  schema:target <https://query.wikidata.org/sparql/> .

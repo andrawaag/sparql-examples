@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d7393fe93d10d0d74f56f3180bda0ae7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?fragment ?authorLabel ?fragmentLabel ?genreLabel ?dialectLabel ?title
+WHERE 
+{
+	{ ?fragment wdt:P136/wdt:P279* wd:Q1885775 . }
+	UNION { ?fragment wdt:P136 wd:Q3906966 . }
+	UNION { ?fragment wdt:P136 wd:Q3164714 . }
+
+  	OPTIONAL { ?fragment wdt:P50 ?author .}
+	OPTIONAL { ?fragment wdt:P136 ?genre .}
+	OPTIONAL { ?fragment wdt:P364 ?dialect .}
+	OPTIONAL { ?fragment wdt:P1476 ?title .}
+
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,grc\" }    
+} 
+ORDER BY ?authorLabel""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Sitelink count 2 List all Pokémon moves 3 TV series in a language and in a interval of time 4 Archaic Greek lyric fragments 5 Kosovo 6 Works by Canova 7 Histogram 8 All items that have P1440 with qualifier p585 set to \"+2014-04-01T00:00:00Z/10\" and S1440 set to \"P1140\" 9 Count of occupation for women with no en.wikipedia article 10 Listeria versus Query service problem 11 Properties with multiple formatter URLs 12 Median-length featured article in specific languages 13 Percentage of genders in ... (an art collection, on a certain language wiki, etc) 14 All Grandmasters with qualifier Sitelink count Recently phab:T129046 was resolved, so I thought one could write queries like select * where{
+  ?item wdt:P31 wd:Q79007 . 
+  ?item wikibase:sitelinks ?cnt .
+}
+ Try it! but the result is definitly wrong. How to do it right? --Pasleim (talk) 21:24, 4 October 2016 (UTC) For two items I checked sitelink count was OK. --Edgars2007 (talk) 21:27, 4 October 2016 (UTC) The query results look correct to me (at a glance). Slight inconsistencies might occur, see T145712 for that. Cheers, Hoo man (talk) 21:44, 4 October 2016 (UTC) The problem are not wrong numbers but many missing results. select * where{
+  ?item wdt:P31 wd:Q79007 . 
+}
+ Try it! returns 261,837 items wheareas the first query only returns 2992 items. --Pasleim (talk) 21:59, 4 October 2016 (UTC) It's only added when an item is edited. --- Jura 05:28, 5 October 2016 (UTC) List all Pokémon moves I think this is a very simple query: How I can list all Pokémon moves?By now moves are defined with instance of (P31) and a subclass of Pokémon move (Q15141195). For example:⟨ Fire Spin (Q26156767)    ⟩ instance of (P31) ⟨ fire-type Pokémon move (Q26001209)    ⟩and fire-type Pokémon move (Q26001209) is a subclass of Pokémon move (Q15141195)). However, I'd like to have a list of all moves, not just fire type moves (i.e. even normal, ice, steel, ... ones).Then I'd like that the output is ordered alphabetically by English label. Could someone help me? Thank you in advance, --★ → Airon 90 15:41, 6 October 2016 (UTC) @Airon90: SELECT DISTINCT ?move ?moveLabel WHERE {
+  ?move wdt:P31/wdt:P279* wd:Q15141195 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY ?moveLabel
+ Try it! Matěj Suchánek (talk) 16:09, 6 October 2016 (UTC) @Airon90: I modified the class of move so that it's not a subclass of fire pokemon as of course a move is not a Pokémen. The point is that the main agent of the move is the pokémon itself, and those specific moves are performed by fire pokemons. author TomT0m / talk page 18:52, 6 October 2016 (UTC) @Matěj Suchánek: Thank you very much! @TomT0m: I saw your edit on fire-type Pokémon move (Q26001209) and I did the same with every other similar item. Please check my other edit on fire-type Pokémon move (Q26001209). --★ → Airon 90 20:02, 6 October 2016 (UTC) TV series in a language and in a interval of time Hi, I'm bored and I'd like to watch a TV series (television series (Q5398426)) in a certain language (e.g. Italian (Q652)) and produced in a certain interval of time (i.e. 2001 - 2009). Could someone help me listing all those kind of TV series? Thank you very much! --★ → Airon 90 06:50, 7 October 2016 (UTC) You can start with this: SELECT ?item ?itemLabel ?incept {
+  ?item wdt:P31/wdt:P279* wd:Q5398426;
+        (wdt:P364|wdt:P407|wdt:P2439) wd:Q652;
+        (wdt:P571|wdt:P580|wdt:P585) ?incept .
+  FILTER ( 2000 < YEAR( ?incept ) && YEAR( ?incept ) < 2010 ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY ?incept
+ Try it! Matěj Suchánek (talk) 12:18, 7 October 2016 (UTC) Arf, {{SPARQL}} do not support pipes ('|') in its arguments :) My solution to this problem was to make a table.concat(frame.args,\"|\") on Module:Show Path Items. author TomT0m / talk page 12:28, 7 October 2016 (UTC) It works now. author TomT0m / talk page 13:22, 7 October 2016 (UTC) Archaic Greek lyric fragments I tried to create this query: SELECT ?fragment ?authorLabel ?fragmentLabel ?genreLabel ?dialectLabel ?title
+WHERE {
+  ?fragment wdt:P136/wdt:P279* wd:Q1885775 .
+  ?fragment wdt:P136 wd:Q3906966 .
+  ?fragment wdt:P136 wd:Q3164714 .
+  ?fragment wdt:P50 ?author .
+  ?fragment wdt:P136 ?genre .
+  ?fragment wdt:P364 ?dialect .
+  ?fragment wdt:P1476 ?title .
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,grc\" }    
+} ORDER BY ?authorLabel
+ Try it! My problem is: the three lines which describe what a ?fragment is should be alternative (either ... or ... or ...), not and ... and ... and ... as in this formulation. Could you help me? --Epìdosis 17:23, 11 October 2016 (UTC) { } UNION { } UNION { } seems generally faster than VALUES ?fragmenttype { wd:Q3906966 wd:Q3164714 } ?fragment wdt:P136 ?fragmenttype --- Jura 17:32, 11 October 2016 (UTC) @Jura1: Could you please rewrite the entire query with your first option? I tried but I evidently made a mistake. --Epìdosis 17:41, 11 October 2016 (UTC) Items used: Greek lyric (Q1885775)   , iambic poetry (Q3906966)   , ancient Greek elegy (Q3164714)   Properties used: genre (P136)   , subclass of (P279)   , author (P50)   , original language of film or TV show (P364)   , title (P1476)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127172-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

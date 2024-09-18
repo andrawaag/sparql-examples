@@ -1,0 +1,125 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ed8efe8c7a2ebaa6203ec9788812f928> a sh:SPARQLExecutable;
+  rdfs:comment """Contents 1 Simple Queries 1.1 Cats 1.2 Goats 1.3 Horses (showing a few info about them) 1.4 Cats, with pictures 1.5 Map of hospitals 1.6 Number of humans in Wikidata 1.7 Humans without children 1.8 Items with a Wikispecies sitelink 1.9 Items about authors with a Wikispecies page 1.10 Recent Events 1.11 Popular eye colors among humans 1.12 Humans whose gender we know we don't know 1.13 URLs of Wikipedia in all languages 1.14 All items with a property 2 Showcase Queries 2.1 Largest cities with female mayor 2.2 List of countries ordered by the number of their cities with female mayor 2.3 Popular surnames among humans 2.4 Given names with most variations 2.5 Popular surnames among fictional characters 2.6 Women with most sitelinks and no image born in 1921 or later 2.7 Whose birthday is today? 2.8 Finding John and Sarah Connor 2.9 Data of Douglas Adams 2.10 Data of Douglas Adams (modified version) 2.11 Bubble charts 2.11.1 Overall causes of death ranking 2.11.2 WWII battle durations 2.11.3 The top 10 heaviest humans Simple Queries [edit] These basic queries help to understand SPARQL and the Wikibase RDF format. Cats [edit] The following query uses these:Items: house cat (Q146)   Properties: instance of (P31)   SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q146.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! The following query uses these:FIND item
+WITH instanceof( :Q146 );   # class() is a function expanding to wikidata:P31/wikidata:P279*
+RETURN id(), label();   # id() and label() are functions providing access to well known fields
+PRAGMA language: auto, en. Try it!  Goats [edit] The following query uses these:Items: goat (Q2934)   Properties: instance of (P31)   SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q2934.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! The following query uses these:FIND item
+WITH instanceof( search(\"item\", \"goat\") ); # search by label/alias, using pragma language (ignoring auto), may expand to multiple hits
+RETURN id(), label();   # id() and label() are functions providing access to well known fields
+PRAGMA language: auto, en. Try it! Horses (showing a few info about them) [edit] #Illustrates optional fields, instances of subclasses, language fallback on label service, date to year conversion
+#Horses on Wikidata
+SELECT DISTINCT ?horse ?horseLabel ?mother ?father (year(?birthdate) as ?birthyear) (year(?deathdate) as ?deathyear) ?genderLabel
+WHERE
+{
+	?horse wdt:P31/wdt:P279* wd:Q726 .     # Instance et sous-classes de Q726-Cheval
+	 
+	OPTIONAL{?horse wdt:P25 ?mother .}       # P25  : Mère
+	OPTIONAL{?horse wdt:P22 ?father .}       # P22  : Père
+	OPTIONAL{?horse wdt:P569 ?birthdate .} # P569 : Date de naissance
+	OPTIONAL{?horse wdt:P570 ?deathdate .}     # P570 : Date de décès
+	OPTIONAL{?horse wdt:P21 ?gender .}       # P21  : Sexe
+ 
+	SERVICE wikibase:label { #BabelRainbow
+		bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\"
+	}
+}
+ORDER BY ?horse
+ Try it! The following query uses these:FIND item
+WITH instanceof( :Q726 ); 
+RETURN id() => horse, label() => horseLabel, # $id and $label are special fields, not property values
+	@mother, @father, # @father is a shorthand for search(\"property\", \"father\"), for accessing properties by name
+	year( :P569 ) => birthyear, year( :P570 ) => deathyear, # functions may modify output
+	@gender.label() => genderLabel; # functions may be called method-style
+ORDER BY :P569;
+PRAGMA language: auto, en. Try it! Cats, with pictures [edit] The following query uses these:Items: house cat (Q146)   Properties: instance of (P31)   , image (P18)    Features: ImageGrid (Q24515278)  #added before 2016-10
+
+#defaultView:ImageGrid
+SELECT ?item ?itemLabel ?pic
+WHERE
+{
+?item wdt:P31 wd:Q146 .
+?item wdt:P18 ?pic
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Try it! The following query uses these:FIND item
+WITH instanceof( :Q146 ); 
+WITH defined( :P18 ); 
+RETURN id(), label(), :P18 => pic
+PRAGMA display: ImageGrid. Try it! Map of hospitals [edit] The following query uses these:Items: hospital (Q16917)   Properties: instance of (P31)   , subclass of (P279)   , coordinate location (P625)    Features: map (Q24515275)  #added 2017-08
+#defaultView:Map
+SELECT * WHERE {
+  ?item wdt:P31*/wdt:P279* wd:Q16917;
+        wdt:P625 ?geo .
+} Try it! The following query uses these:FIND item
+WITH instanceof( :Q16917 ); 
+WITH defined( :P625 ); 
+RETURN id(), label(), :P625 => geo
+PRAGMA display: Map. Try it! Number of humans in Wikidata [edit] Using the count function SELECT (COUNT(?item) AS ?count)
+WHERE {
+	?item wdt:P31/wdt:P279* wd:Q5 .
+}
+ Try it! The following query uses these:FIND item
+WITH instanceof( :Q5 ); 
+AGGREGATE count( id() ). Try it! Humans without children [edit] In the simplest form: The following query uses these:Items: human (Q5)   Properties: instance of (P31)   , child (P40)   #added before 2016-10
+#Demonstrates \"no value\" handling
+SELECT ?human ?humanLabel
+WHERE
+{
+	?human wdt:P31 wd:Q5 .       #find humans
+	?human rdf:type wdno:P40 .   #with at least one P40 (child) statement defined to be \"no value\"
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Try it! An equivalent query (slightly more verbose): SELECT ?human ?humanLabel 
+WHERE
+{
+  ?human wdt:P31 wd:Q5 .         #find humans
+  ?human p:P40 ?childStatement . #with at least one P40 (child) statement
+  ?childStatement rdf:type wdno:P40 .   #where the P40 (child) statement is defined to be \"no value\"
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! The following query uses these:FIND item
+WITH instanceof( :Q5 ); 
+WITH novalue( :P40 ); 
+RETURN id(), label(). Try it! Items with a Wikispecies sitelink [edit] #added before 2016-10
+#illustrates sitelink selection, \";\" notation
+SELECT ?item ?itemLabel ?article
+WHERE
+{
+	?article 	schema:about ?item ;
+			schema:isPartOf <https://species.wikimedia.org/> .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+LIMIT 200
+ Try it! The following query uses these:FIND item
+WITH instanceof( :Q5 ); 
+WITH sitelink( 'https://species.wikimedia.org/' ); 
+RETURN id(), label(), sitelink( 'https://species.wikimedia.org/' ). Try it! Items about authors with a Wikispecies page [edit] SELECT ?author ?authorLabel (COUNT(?paper) AS ?count)
+WHERE
+{
+	?article 	schema:about ?author ;
+			schema:isPartOf <https://species.wikimedia.org/> .
+    ?author wdt:P31 wd:Q5.
+    ?paper wdt:P50 ?author.
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+GROUP BY ?author ?authorLabel
+ORDER BY DESC(?count)
+LIMIT 200
+ Try it! Ideomatic WDQL: The following query uses these:"""@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

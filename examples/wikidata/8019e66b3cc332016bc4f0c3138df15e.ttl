@@ -1,0 +1,412 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8019e66b3cc332016bc4f0c3138df15e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?id ?title WHERE {   
+  ?id wdt:P669 wd:Q1083850 ;
+      wdt:P1435 wd:Q916333 ;
+      wdt:P6375 ?adres ;
+      wdt:P359 ?rijksmonumentid ;
+      rdfs:label ?label .
+  FILTER (LANG(?label)='nl')
+  ?article schema:about ?id ; 
+           schema:isPartOf <https://nl.wikipedia.org/> ;
+           schema:name ?articlename . 
+  BIND(CONCAT(?rijksmonumentid, ' - [[', STR(?articlename), '|', STR(?label), ']] - ', ?adres ) AS ?title )
+  #BIND(CONCAT(?rijksmonumentid, ' - ', STR(?label), ' - ', ?adres ) AS ?title )
+} LIMIT 200""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Number of languages a Wikipedia page has been translated into 2 How to pass a list of QIDs to a secondary query 3 Prevent Duplication with Multiple GROUP_CONCAT Properties 4 Still rubbish at aggregation 4.1 How much are items about rivers used in Wikidata (one country) 5 Execution methods by country with time of usage 6 Query works non aggregated or for single QID, but not with both 7 Map of stadiums with a capacity of at least 25000 8 Single value and separator 9 Resumption of: https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/04#list_of_Nazi_camps 10 Optional Wikipedia links 11 Including Wikipedia link in the query 12 Trying to get WD items that have a specific Property multiple times 13 Genres used as P31 14 Number of links of \"what links here\" in Wikipedia for Italian Books 1980-2021 15 List of all people born between certain years 16 Get each mammal species scientific name, common name & every parent taxon 17 Seeking to list data on all positions held (P39) for a set of items 18 Querying wikidata about movies 19 Query any popular entry 20 #Unique items in a specific language 21 churches without coordinates 22 WikiProject Writing: Querying for writing studies topics to develop article lists 23 List of streets with alt labels 24 Wikipedia articles in all languages 25 Comparison of labels on a set of items 26 Querying wikidata about movies 2 27 Help for query, art gallery of paintings of Venus or Aphrodite 28 Search within subdivisions of administrative entities 29 Finding an error in the parents (Note: AFD is a faunal directory) 30 Get only one item, not one in every language it is available Number of languages a Wikipedia page has been translated into I'm trying to get the number of Wikipedia pages languages Italian books 1980-2021 have been translated into. For instance, \"My brilliant friend\" has been translated into 4 other wikipedia pages. My query returns results but, for instance, doesn't count \"My brilliant friend\" and I was wondering why. SELECT ?item ?label ?authorlabel (count(?lang) as ?numWikipediaLanguages) WHERE { hint:Query hint:optimizer \"None\".
+
+VALUES ?type {wd:Q571 wd:Q7725634} 
+
+?item wdt:P31 ?type .
+
+?item wdt:P577 ?date .
+
+?item wdt:P50 ?author .
+
+?author wdt:P1559 ?authorlabel filter (lang(?label) = \"en\")
+
+hint:Prior hint:rangeSafe \"true\" .
+
+FILTER (?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime) .
+
+
+?item rdfs:label ?label filter (lang(?label) = \"en\")
+
+?item wdt:P407 wd:Q652.
+
+?article schema:about ?item ;
+
+schema:inLanguage ?lang ;
+
+schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ] .
+
+} group by ?item ?label ?authorlabel
+
+ORDER BY DESC(?numWikipediaLanguages)
+ Try it! Elena Ferrante (Q368127) has no name in native language (P1559) statement. Query needs to make ?author wdt:P1559 ?authorlabel. optional (and fix the variable name in filter(lang(?authorlabel) = \"en\")). And, indeed, questionable whether limiting name in native language to EN values would work effectively for IT authors. lang=\"it\" might work a little better. SELECT ?item ?label ?authorlabel (count(?lang) as ?numWikipediaLanguages) WHERE 
+{ 
+  hint:Query hint:optimizer \"None\".
+  VALUES ?item {wd:Q22263533}
+  VALUES ?type {wd:Q571 wd:Q7725634}
+  ?item wdt:P31 ?type .
+  ?item wdt:P577 ?date . hint:Prior hint:rangeSafe \"true\" .
+  ?item wdt:P50 ?author .
+  OPTIONAL {?author wdt:P1559 ?authorlabel . filter(lang(?authorlabel) = \"en\")}
+  FILTER (?date > \"1979-01-01T00:00:00Z\"^^xsd:dateTime) .
+  ?item rdfs:label ?label filter (lang(?label) = \"en\")
+  ?item wdt:P407 wd:Q652.
+  ?article schema:about ?item ;
+  schema:inLanguage ?lang ;
+  schema:isPartOf [ wikibase:wikiGroup \"wikipedia\" ] .
+} group by ?item ?label ?authorlabel
+ORDER BY DESC(?numWikipediaLanguages)
+ Try it! --Tagishsimon (talk) 11:44, 2 March 2022 (UTC) Thank you so much! How can I add the name of the author? 137.204.150.19 12:29, 2 March 2022 (UTC) If you're unfamiliar with the WD user interface, maybe take the statements tour. Largely, the answer is, visit the item and add a statement. However for this author there is a question: does a pseudonymous writer name have a name in a native language? --Tagishsimon (talk) 12:55, 2 March 2022 (UTC) How to pass a list of QIDs to a secondary query I have a query as such SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label WITH {
+   SELECT DISTINCT ?art WHERE {
+       ?art wdt:P31 wd:Q3305213 ; # Get items that are instances of painting
+            wdt:P170 wd:Q5598 ; # By creator Rembrandt
+            wdt:P195/wdt:P361* ?collection . # That are in some collection
+   }
+ } AS %select_art
+ WHERE {
+   include %select_art
+   ?art ?p ?statement .
+   ?statement ?ps ?ps_ .
+   ?wd wikibase:claim ?p.
+   ?wd wikibase:statementProperty ?ps.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+ } limit 100
+ Try it! In my mental model, %select_art stores a list of QIDs. Say I now have a list of QIDs I'm interested in, say [Q57, Q103, Q149, Q187, Q187, Q187, Q276, Q372, Q373, Q428], can I set that to %select_art? Naively I'd think of bind or something but unsureThanks, Carlinmack (talk) 22:32, 3 March 2022 (UTC) @Carlinmack: It's VALUES you're wanting - VALUES ?art {wd:Q57 wd:Q103 wd:Q149 wd:Q187 wd:Q276 wd:Q372 wd:Q373 wd:Q428}, I think. --Tagishsimon (talk) 22:36, 3 March 2022 (UTC) https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial#VALUES <- Yep this looks perfect, thank you! :: SELECT ?art ?artLabel ?artDescription ?wdLabel ?ps_Label {
+::   VALUES ?art {wd:Q57 wd:Q103 wd:Q149 wd:Q187 wd:Q276 wd:Q372 wd:Q373 wd:Q428}
+::   ?art ?p ?statement .
+::   ?statement ?ps ?ps_ .
+::   ?wd wikibase:claim ?p.
+::   ?wd wikibase:statementProperty ?ps.
+::    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+:: } limit 10
+::
+ Try it! Carlinmack (talk) Carlinmack (talk) 22:40, 3 March 2022 (UTC) Prevent Duplication with Multiple GROUP_CONCAT Properties Hello! I'm working on a query for data on people with University of Virginia as an employer: SELECT
+  ?person ?personLabel ?sexorgender (GROUP_CONCAT(?ethnicityLabel;SEPARATOR=', ') AS ?ethnicity) 
+  ?birthplace (GROUP_CONCAT(?citizenshipLabel;SEPARATOR=', ') AS ?citizenship) ?religion 
+  ?sexuality
+WHERE
+{
+  ?person wdt:P108 wd:Q213439 .
+  ?person rdfs:label ?personLabel . FILTER(LANG(?personLabel)='en')
+  OPTIONAL { ?person wdt:P21 ?value .
+           ?value rdfs:label ?sexorgender . FILTER(LANG(?sexorgender)='en') }
+  OPTIONAL { ?person wdt:P172 ?ethnicity .
+           ?ethnicity rdfs:label ?ethnicityLabel . FILTER(LANG(?ethnicityLabel)='en') }
+  OPTIONAL { ?person wdt:P19 ?value2 . 
+           ?value2 rdfs:label ?birthplace . FILTER(LANG(?birthplace)='en') }
+  OPTIONAL { ?person wdt:P27 ?citizenship .
+           ?citizenship rdfs:label ?citizenshipLabel . FILTER(LANG(?citizenshipLabel)='en') }
+  OPTIONAL { ?person wdt:P140 ?value3 .
+           ?value3 rdfs:label ?religion . FILTER(LANG(?religion)='en') }
+  OPTIONAL { ?person wdt:P91 ?value4 .
+           ?value4 rdfs:label ?sexuality . FILTER(LANG(?sexuality)='en') }
+}
+GROUP BY ?person ?personLabel ?sexorgender ?birthplace ?religion ?sexuality
+ Try it! Unfortunately, when a person has multiple values for one of the properties being concatenated--like Ferid Murad--it duplicates the value of the other property. So Murad has \"Americans\" and \"Albanians\" properly displayed but two instances of \"United States of America\". What would be a better way to format my query to prevent this type of duplication? Thanks for your help! @Tjg6ph: Probably solved by DISTINCT: (GROUP_CONCAT(DISTINCT ?ethnicityLabel;SEPARATOR=', ') AS ?ethnicity) (GROUP_CONCAT(DISTINCT ?citizenshipLabel;SEPARATOR=', ') AS ?citizenship) --Tagishsimon (talk) 23:29, 3 March 2022 (UTC) Fantastic, thank you so much! Tjg6ph (talk) 23:52, 3 March 2022 (UTC) Still rubbish at aggregation I have a query which counts incoming links to Scottish watercourses, and produces sane results; the Clyde has 54 incoming links, the Tweed 53 &c: SELECT ?river ?riverLabel ?count WITH {
+  SELECT ?river WHERE {
+   ?river wdt:P131/wdt:P131 wd:Q22 . 
+    } } as %i
+WITH {
+  SELECT ?river (count(distinct ?item) as ?count) WHERE {
+    INCLUDE %i
+    ?river wdt:P31/wdt:P279* wd:Q55659167. hint:Prior hint:gearing \"forward\".
+    ?item ?predicate ?river .
+    ?property wikibase:directClaim ?predicate . 
+    } group by ?river } as %j
+WHERE
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} ORDER BY DESC(?count)
+ Try it! But if I now try to count how many rivers have particular counts of incoming links, I get batshit insane numbers - there's now one instance of a river with 648 incoming links. It doesn't seem to make any difference whether I (COUNT(?count_linked_items) ... or (COUNT(?river) ... or (COUNT(DISTINCT ?river) ..., which gives you further insight into my frail grip on aggregation. SELECT ?count_linked_items (COUNT(?count_linked_items) as ?count_rivers_with_this_many_linked_items) WITH {
+  SELECT ?river WHERE {
+   ?river wdt:P131/wdt:P131 wd:Q22 .             # get things in Scotland
+    } } as %i
+WITH {
+  SELECT ?river (COUNT(?item) as ?count_linked_items) WHERE {    # river, how many items link to the river
+    INCLUDE %i
+    ?river wdt:P31/wdt:P279* wd:Q55659167.       # ensure it is a watercourse
+      hint:Prior hint:gearing \"forward\".
+    ?item ?predicate ?river .                    # something links to it
+    ?property wikibase:directClaim ?predicate .  # using a wdt: predicate
+    } GROUP BY ?river } as %j
+WHERE
+{
+  INCLUDE %j
+} GROUP BY ?count_linked_items ORDER BY DESC(?count_linked_items)
+ Try it! --Tagishsimon (talk) 18:54, 4 March 2022 (UTC) What numbers are you looking for? Plenty of places could be located on a given river and plenty of bridges (and roads?) could cross a river. --- Jura 19:02, 4 March 2022 (UTC) Items used: River Clyde (Q19721)   SELECT ?property ?propertyLabel ?count ?sample ?sampleLabel
+WITH
+{
+  SELECT ?property (count(distinct ?bla) as ?count) (SAMPLE(?bla) as ?sample)
+  {
+    ?bla ?predicate wd:Q19721  .
+    ?property wikibase:directClaim ?predicate . 
+  }
+  group by ?property 
+} as %j
+WHERE
+{
+  INCLUDE %j
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} 
+ORDER BY DESC(?count) Try it! --- Jura 19:05, 4 March 2022 (UTC) Thanks. I'm looking for the numbers on the tin: count of how many Scottish waterway items have n directClaims of which they are the object (i.e. how many have 1, 2, 3, &c directClaims). --Tagishsimon (talk) 19:11, 4 March 2022 (UTC) Maybe COUNT(DISTINCT ?item) is needed in the second query. /wdt:P279* tends to added duplicates. --- Jura 19:18, 4 March 2022 (UTC) Thanks, yes, that fixes it. The two queries were counting different things; the first, distinct items having directClaims, the second, directClaims (plus heaps of duplicate rows). All looking better sorted in this version, which I can amend to count items or claims, and in which duplicate rows are knocked on the head by an additional subquery. SELECT ?claims (COUNT(?claims) as ?no_of_rivers) WITH {
+  SELECT distinct ?river WHERE {
+  #  VALUES ?river {wd:Q19721}
+   ?river wdt:P131/wdt:P131 wd:Q22 . 
+    } } as %i
+WITH {
+  SELECT distinct ?river WHERE {
+    INCLUDE %i
+    ?river wdt:P31/wdt:P279* wd:Q55659167. hint:Prior hint:gearing \"forward\".
+    } } as %j
+WITH {
+  SELECT ?river (count(?item) as ?items) (count(distinct ?item) as ?claims) WHERE {
+    INCLUDE %j
+    OPTIONAL { ?item ?predicate ?river .
+    ?property wikibase:directClaim ?predicate . } 
+    } group by ?river } as %k
+WHERE
+{
+  INCLUDE %k
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP BY ?claims ORDER BY DESC(?claims)
+ Try it! --Tagishsimon (talk) 19:44, 4 March 2022 (UTC) Maybe the main problem in this type of query is that /wdt:P279* or /wdt:P131* can take several paths and end up including the same item twice. This may not happen for simple trees, e.g. SELECT (COUNT(*) as ?count) { ?item wdt:P279* wd:Q181388 } SELECT DISTINCT ?item { ?item wdt:P279* wd:Q181388 } --- Jura 19:58, 4 March 2022 (UTC) Yup. I was getting a Cartesian product of river duplicates multiplied by the number of directClaims. I've tweaked the query one last time, above, to include waterways that have no items pointing at them. --Tagishsimon (talk) 20:07, 4 March 2022 (UTC) And for those following along at home, here's the same query as a bar chart; note the STR(?claims) mangling, necessary to get the bar chart visualisation thingie to do what's expected of it. #defaultView:BarChart
+SELECT  (STR(?claims) as ?no_of_incoming_links) (COUNT(?claims) as ?no_of_rivers)  WITH {
+  SELECT distinct ?river WHERE {
+  #  VALUES ?river {wd:Q19721}
+   ?river wdt:P131/wdt:P131 wd:Q22 . 
+    } } as %i
+WITH {
+  SELECT distinct ?river WHERE {
+    INCLUDE %i
+    ?river wdt:P31/wdt:P279* wd:Q55659167. hint:Prior hint:gearing \"forward\".
+    } } as %j
+WITH {
+  SELECT ?river (count(?item) as ?items) (count(distinct ?item) as ?claims) WHERE {
+    INCLUDE %j
+    OPTIONAL { ?item ?predicate ?river .
+    ?property wikibase:directClaim ?predicate . } 
+    } group by ?river } as %k
+WHERE
+{
+  INCLUDE %k
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+} GROUP BY ?claims ORDER BY DESC(?claims)
+ Try it! --Tagishsimon (talk) 23:12, 4 March 2022 (UTC) How much are items about rivers used in Wikidata (one country) Items used: natural watercourse (Q55659167)   , France (Q142)   Properties used: instance of (P31)   , subclass of (P279)   , country (P17)   #title:How much are items about rivers used in Wikidata: river items used as value (sample country: France)
+#defaultView:BarChart
+# based on query by https://www.wikidata.org/wiki/User:Tagishsimon , 2022-03-05
+SELECT (STR(?claims) as ?no_of_incoming_links) (COUNT(?claims) as ?no_of_rivers) (SAMPLE(?river) as ?sample_river)
+WITH 
+{
+  SELECT distinct ?river WHERE {
+    ?river wdt:P31/wdt:P279* wd:Q55659167. hint:Prior hint:gearing \"forward\".
+    ?river wdt:P17 wd:Q142 . # sample country
+  } 
+} as %j
+WITH 
+{
+  SELECT ?river (count(?item) as ?items) (count(distinct ?item) as ?claims) WHERE {
+    INCLUDE %j
+    OPTIONAL { ?item ?predicate ?river .
+    ?property wikibase:directClaim ?predicate . } 
+    } group by ?river 
+} as %k
+WHERE
+{
+  INCLUDE %k
+  # SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,en\". } 
+} 
+GROUP BY ?claims 
+ORDER BY DESC(?claims) Try it!Seems these are somewhat underused. --- Jura 08:15, 5 March 2022 (UTC) Execution methods by country with time of usage I attempted to write said query, this is what I came up with: Items used: execution method (Q15169167)   Properties used: instance of (P31)   , country (P17)   , start time (P580)   , end time (P582)   #Execution methods by country with time of usage
+SELECT DISTINCT ?itemLabel ?countryLabel ?from ?to WHERE {
+  ?item wdt:P31 wd:Q15169167 .
+  ?item wdt:P17 ?country .
+  ?item p:P17 ?abstractCountry .
+  
+  OPTIONAL { ?abstractCountry pq:P580 ?from }
+  OPTIONAL { ?abstractCountry pq:P582 ?to }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!However, the results are not correct. It shows multiple start dates for multiple countries regardless of the individual start (or end) time.Can someone please help me correcting this request and also explain what I did wrong? (For example, only US should have 1924 as from for gas chamber, not 1937, which applies to Lithuania) You're getting some sort of Cartesian product of the wdt:P17 and the p:P17 ... the two were not properly tied together. For electric chair (Q185639), for instance, two countries are specified in its P17, so you have two possible wdt:P17 values and two possible p:P17 values & so you get four rows: US wdt:P17 plus US p:P17 US wdt:P17 plus Philippines p:P17 Philippines wdt:P17 plus US p:P17 Philippines wdt:P17 plus Philippines p:P17 Use p:P17 to get the statement node (as you did) and then ps:P17 to get the Country value: #Execution methods by country with time of usage
+SELECT DISTINCT ?itemLabel ?countryLabel ?from ?to WHERE {
+  ?item wdt:P31 wd:Q15169167 .
+#  ?item wdt:P17 ?country .
+  ?item p:P17 ?abstractCountry .
+  ?abstractCountry ps:P17 ?country .
+  
+  OPTIONAL { ?abstractCountry pq:P580 ?from }
+  OPTIONAL { ?abstractCountry pq:P582 ?to }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 12:50, 5 March 2022 (UTC) Thank you, that works fine! 2003:6:6320:8B32:50AF:F464:4185:D 13:30, 5 March 2022 (UTC) Maybe this is a case of the XY problem? Most of the data you are interested in is not registered on the execution method itself, but rather on the victim. I had some problems with the aggregation of minimum and maximum values, maybe someone can help with that? Infrastruktur (talk) 15:35, 5 March 2022 (UTC) SELECT
+  ?what
+  (SAMPLE(?whatLabel) AS ?execution_method)
+  (GROUP_CONCAT(DISTINCT ?whateverLabel; SEPARATOR=\", \") AS ?given_as)
+  (GROUP_CONCAT(DISTINCT ?country_Label; SEPARATOR=\", \") AS ?country)
+  (YEAR(MIN(?dod)) AS ?dodMin)
+  (xsd:integer(AVG(YEAR(?dod))) AS ?dodAvg)
+  (YEAR(MAX(?dod)) AS ?dodMax)
+  (COUNT (?whatLabel) AS ?count)
+WHERE {
+  ?what wdt:P31 wd:Q15169167 .
+  ?item wdt:P31 wd:Q5;
+    ?whatever ?what;
+    p:P570 ?dod_st .
+  ?dod_st psv:P570 ?dod_vn;
+    rdf:type wikibase:BestRank .
+  ?dod_vn wikibase:timeValue ?dod;
+    wikibase:timePrecision ?dod_prec .
+  FILTER (?dod_prec >= 9)
+  OPTIONAL {
+    ?whatever_prop wikibase:claim|wikibase:directClaim|wikibase:directClaimNormalized ?whatever .
+    ?whatever_prop rdfs:label ?whateverLabel . FILTER(LANG(?whateverLabel) = \"en\") .
+  }
+  ?what rdfs:label ?whatLabel . FILTER(LANG(?whatLabel) = \"en\") .
+  OPTIONAL {
+    ?item wdt:P27 ?country_ .
+    ?country_ rdfs:label ?country_Label . FILTER(LANG(?country_Label) = \"en\")
+  }
+}
+GROUP BY ?what
+ORDER BY DESC(?count)
+ Try it! Query works non aggregated or for single QID, but not with both This aggregation works SELECT ?cid (COUNT(?article) AS ?count) WHERE {
+    VALUES ?cid { wd:Q104123 } 
+    ?article schema:about ?cid .
+ } 
+ GROUP BY ?cid
+ Try it! Without aggregation but with multiple QIDs also works SELECT ?cid ?article WHERE {
+    VALUES ?cid { wd:Q104123 wd:Q172975 } 
+    ?article schema:about ?cid .
+ }
+ Try it! but doesn't work when they are both combined SELECT ?cid (COUNT(?article) AS ?count) WHERE {
+    VALUES ?cid { wd:Q104123 wd:Q172975 } 
+    ?article schema:about ?cid .
+ } 
+ GROUP BY ?cid
+ Try it! Any ideas?PS grouping by ?article and counting ?cid instead leads to a timeout/json error. Very strange!Everlasting thanks, Carlinmack (talk) 23:13, 7 March 2022 (UTC) Weird. (SAMPLE()) works. Umm... SELECT ?cid (sample(?article) AS ?count) WHERE {
+    VALUES ?cid { wd:Q104123 wd:Q172975 } 
+    ?article schema:about ?cid .
+ } 
+ GROUP BY ?cid
+ Try it! --Tagishsimon (talk) 08:09, 8 March 2022 (UTC) @Carlinmack: This seems to be a solution; a similar pattern is mentioned in the SPARQL spec - 11.4 Aggregate Projection Restrictions. Presuming this is the issue, I don't really understand why ?cid is \"not a simple variable expression\", nor why the (SAMPLE()) worked. SELECT ?cids (count(?article) AS ?count) WHERE {
+    VALUES ?cid { wd:Q104123 wd:Q172975 } 
+    ?article schema:about ?cid .
+ } 
+ GROUP BY (str(?cid) as ?cids)
+ Try it! --Tagishsimon (talk) 08:21, 8 March 2022 (UTC) Map of stadiums with a capacity of at least 25000 Hi,with the Wikidata Query Builder I managed to build a query that finds all stadiums in use with a capacity of more than 25000 people, that have coordinates: SELECT DISTINCT ?item ?itemLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q483110.
+      ?item p:P1083 ?statement1.
+      ?statement1 (psv:P1083/wikibase:quantityAmount) ?numericQuantity.
+      FILTER(?numericQuantity > \"25000\"^^xsd:decimal)
+      ?item p:P1619 ?statement_2.
+      ?statement_2 psv:P1619 ?statementValue_2.
+      ?statementValue_2 wikibase:timeValue ?P1619_2.
+      MINUS {
+        ?item p:P3999 ?statement_3.
+        ?statement_3 psv:P3999 ?statementValue_3.
+        ?statementValue_3 wikibase:timeValue ?P3999_3.
+      }
+      ?item p:P625 ?statement4.
+      ?statement4 (ps:P625) _:anyValueP625.
+    }
+  }
+}
+ Try it! How can i display those stadiums on a map? It would be nice for them to have different colours based on their capacity (25k - 40k one colour, 40k - 50k another colour, ...)Thanks for your help! --SiMon (talk) 10:50, 9 March 2022 (UTC) @SiMon: As a very rough & ready demo from your starting point, as below. I've commented the parts where additions have been made. I'm not sure whether it is possible to fix the order of the layers in the dropdown provided in the map; current order is a bit haphazard. #defaultView:Map                                                  # set the output visualisation
+SELECT DISTINCT ?item ?itemLabel ?coord ?layer WHERE {            # put ?coord & ?layer in this select          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". 
+   }
+  {
+    SELECT DISTINCT ?item ?coord ?numericQuantity ?layer WHERE {  # put ?coord ?layer in this select
+      OPTIONAL {?item wdt:P625 ?coord.}                           # get the coord
+      ?item p:P31 ?statement0.
+      ?statement0 (ps:P31/(wdt:P279*)) wd:Q483110.
+      ?item p:P1083 ?statement1.
+      ?statement1 (psv:P1083/wikibase:quantityAmount) ?numericQuantity.
+      FILTER(?numericQuantity > \"25000\"^^xsd:decimal)
+      ?item p:P1619 ?statement_2.
+      ?statement_2 psv:P1619 ?statementValue_2.
+      ?statementValue_2 wikibase:timeValue ?P1619_2.
+      MINUS {
+        ?item p:P3999 ?statement_3.
+        ?statement_3 psv:P3999 ?statementValue_3.
+        ?statementValue_3 wikibase:timeValue ?P3999_3.
+      }
+      ?item p:P625 ?statement4.
+      ?statement4 (ps:P625) _:anyValueP625.
+      bind(if(?numericQuantity >100000,\"100k+\",                     # assign numeric ranges
+        if(?numericQuantity >90000,\"90k+\",
+        if(?numericQuantity >80000,\"80k+\",
+        if(?numericQuantity >70000,\"70k+\",
+        if(?numericQuantity >60000,\"60k+\",
+        if(?numericQuantity >50000,\"50k+\",
+        if(?numericQuantity >40000,\"40k+\",
+        if(?numericQuantity >30000,\"30k+\",
+        if(?numericQuantity >20000,\"20k+\",
+        if(?numericQuantity >10000,\"10k+\",
+        if(?numericQuantity >10000,\"0k+\",\"\"))))))))))) as ?layer)
+    }
+  }
+}
+ Try it! --Tagishsimon (talk) 11:53, 9 March 2022 (UTC) Thanks a lot! SiMon (talk) 12:56, 9 March 2022 (UTC) Single value and separator Could someone fix this problem in the query in {{Property documentation}}? Thanks! --Epìdosis 21:21, 9 March 2022 (UTC) Resumption of: https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/04#list_of_Nazi_camps Hi, I would like to reopen this request from two years ago because I would like to add the source of references of coordinates. I learned that these references can have different properties and must be queried separately. I tried so but I failed and now I'm looking for help.One regular source is property P248 which derives from \"Encyclopedia of Camps and Ghettos, 1933-1945\" (Q6946780) and the other references have mostly P143 from different national Wikimedia projects like e.g. \"Dutch Wikipedia\". One example would be \"Amersfoort concentration camp\" (Q119517). I would like to create a query where I get for every available coordinates the source of the reference. To be able to decide - if there is more than one set of coordinates for a location - which to use in a project I try to set up. Because I have noticed that the coordinates of the UHSMM encyclopedia often refer only to the city centre, while those from Wikimedia projects often refer to the place where the respective memorial is located today. Thanks! @DigiArchivist: Starting from the final complete query in the previous thread, and ignoring any changes which were subsequently discussed in that thread, you're looking at something along these lines. In this example you'll get one row per coord reference, thus dupliction of some camps. There's scope to aggregate, or to excude camps with no coords, &c. The main change is the new OPTIONAL clause, and consequent changes to the SELECT, GROUP BY and the label service call. SELECT ?camp ?campLabel (GROUP_CONCAT(DISTINCT ?instance_ofLabel ; SEPARATOR=\", \") AS ?type) ?coord ?propertyLabel ?refvalue ?refvalueLabel
+WHERE 
+{
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q328468. # Nazi concentration camp
+  }
+  UNION
+  {
+    ?camp wdt:P31 ?instance_of.
+    ?instance_of wdt:P279* wd:Q1719244. # Subcamp
+  }
+  UNION
+  {
+    ?mother_camp wdt:P31 ?mc_instance_of.
+    ?mc_instance_of wdt:P279* wd:Q328468. # Nazi concentration camp
+    ?mother_camp wdt:P355 ?camp. # camp is a subsidiary of mother_camp 
+    ?camp wdt:P31 ?instance_of.
+  }
+  OPTIONAL {?camp p:P625 ?stat . 
+           ?stat ps:P625 ?coord . 
+            OPTIONAL {?stat prov:wasDerivedFrom ?refstat .
+                      ?refstat ?predicate ?refvalue .
+                      ?property wikibase:reference ?predicate .
+                     } 
+           }
+  SERVICE wikibase:label
+  {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de\". 
+    ?camp rdfs:label ?campLabel.
+    ?instance_of rdfs:label ?instance_ofLabel.
+    ?property rdfs:label ?propertyLabel.
+    ?refvalue rdfs:label ?refvalueLabel .
+  }
+} GROUP BY ?camp ?campLabel ?propertyLabel ?refvalue ?refvalueLabel ?coord ORDER BY ?camp ?refvalue
+ Try it! --Tagishsimon (talk) 14:09, 11 March 2022 (UTC) Optional Wikipedia links I'm playing around with queries for Kartographer, see for example nl:Lijst van rijksmonumenten aan de BakenessergrachtThe normal query works: Items used: Grote Markt (Q1083850)   , Rijksmonument (Q916333)   Properties used: located on street (P669)   , heritage designation (P1435)   , street address (P6375)   , Rijksmonument ID (P359)   SELECT ?id ?title WHERE {   
+  ?id wdt:P669 wd:Q1083850 ;
+      wdt:P1435 wd:Q916333 ;
+      wdt:P6375 ?adres ;
+      wdt:P359 ?rijksmonumentid ;
+      rdfs:label ?label .
+  FILTER (LANG(?label)='nl')
+    BIND(CONCAT(?rijksmonumentid, ' - ', STR(?label), ' - ', ?adres ) AS ?title )
+} LIMIT 200 Try it!And the one with links too: Items used: Grote Markt (Q1083850)   , Rijksmonument (Q916333)   Properties used: located on street (P669)   , heritage designation (P1435)   , street address (P6375)   , Rijksmonument ID (P359)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

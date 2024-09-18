@@ -1,0 +1,151 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-52563b9ba86fe581cc7f46bf6dfbc3fd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#added before 2016-10
+ # Schools between San Jose, CA and Sacramento, CA
+#defaultView:Map
+SELECT *
+WHERE
+{
+  wd:Q16553 wdt:P625 ?SJloc .
+  wd:Q18013 wdt:P625 ?SCloc .
+  SERVICE wikibase:box {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:cornerWest ?SJloc .
+      bd:serviceParam wikibase:cornerEast ?SCloc .
+    }
+  ?place wdt:P31/wdt:P279* wd:Q3914 .
+}""";
+  rdfs:comment """Contents 1 Basics 1.1 Items with a head of state (simple query on a property) 1.2 Individual cats (query on a property and a value) 1.3 Individual female cats 1.4 Individual cats, with gender shown in an additionnal column (when known) 1.5 Cats with no children indicated in Wikidata 1.6 Citizens of Italy known to be without children (better use cats but 0 hits at the moment) 1.7 Items whose English label is \"Cat\" 1.8 Items whose English label is either \"Cat\" or \"Hello Kitty\" 2 Quantities 2.1 Basketball players with height provided in meters, sorted by height 2.2 Basketball players with a height provided in meters and shorter than 1.9 m 2.3 Basketball players with a height provided in meters and either shorter than 1.9 m, order by height or taller than 2.15 m 3 Coordinates 3.1 Items near the South Pole (use of radius) 3.2 Airports near Berlin (use of radius and filter) 3.3 Schools between San Jose, CA and Sacramento, CA (times out !) = 4 Use of sitelinks 4.1 Cats with an article in de.wikipedia 4.2 Individual cats with most sitelinks (counting links) 4.3 Number of articles about cats in different Wikipedias 5 References 6 Count 7 Output formats 8 Strings 9 Mathematical operations on data 10 Output of various data from a single item 11 Queries on properties 12 Other / to be sorted Basics [edit] Items with a head of state (simple query on a property) [edit] #List all items containing a statement using property:P35
+SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P35 ?anything
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Individual cats (query on a property and a value) [edit] #Items that are instances of cats (P31: Q146)
+SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q146.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Individual female cats [edit] #cats (items with P31: Q146) and female (P21 Q43445)
+SELECT ?item ?itemLabel
+WHERE
+{
+	?item wdt:P31 wd:Q146 .
+	?item wdt:P21 wd:Q43445 .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! Individual cats, with gender shown in an additionnal column (when known) [edit] SELECT ?item ?itemLabel ?genderLabel
+#select is used for choosing the columns to be displayed genderLabel is the label of the optional \"gender\" value below
+WHERE
+{
+	?item wdt:P31 wd:Q146 .
+	OPTIONAL{?item wdt:P21 ?gender .}
+ 
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! Cats with no children indicated in Wikidata [edit] SELECT ?item ?itemLabel ?child #select is used for choosing the columns to be displayed
+WHERE
+{
+	?item wdt:P31 wd:Q146 .
+	MINUS { ?item wd:P40 ?child }.
+ 	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! Citizens of Italy known to be without children (better use cats but 0 hits at the moment) [edit] SELECT ?item ?itemLabel
+#citizens of Italy (P38 Q142) with a \"novalue\" as a value of the child property (P40)
+WHERE
+{
+	?item wdt:P27 wd:Q38 .       #find humans
+	?item rdf:type wdno:P40 .   #with at least one P40 (child) statement defined to be \"no value\"
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! Items whose English label is \"Cat\" [edit] SELECT ?lab ?item WHERE {
+  ?item rdfs:label ?lab .
+  VALUES ?lab {
+    \"Cat\"@en
+  } .
+}
+ Try it! Items whose English label is either \"Cat\" or \"Hello Kitty\" [edit] SELECT ?lab ?item WHERE {
+  ?item rdfs:label ?lab .
+  VALUES ?lab {
+    \"Cat\"@en
+    \"Hello Kitty\"@en
+  } .
+}
+ Try it! Quantities [edit] Basketball players with height provided in meters, sorted by height [edit] #basketball players (P106: Q3665646) 
+SELECT ?item ?itemLabel ?heightval ?image WHERE {
+  ?item wdt:P106  wd:Q3665646.
+  ?item p:P2048/psv:P2048  ?height.
+  ?height wikibase:quantityAmount ?heightval.
+  ?height wikibase:quantityUnit ?unit.
+  filter( ?unit = wd:Q11573)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?val
+ Try it! Basketball players with a height provided in meters and shorter than 1.9 m [edit] #basketball players (P106: Q3665646) 
+SELECT ?item ?itemLabel ?heightval ?image WHERE {
+  ?item wdt:P106  wd:Q3665646.
+  ?item p:P2048/psv:P2048  ?height.
+  ?height wikibase:quantityAmount ?heightval.
+  ?height wikibase:quantityUnit ?unit.
+  filter( ?unit = wd:Q11573 && ?heightval < 1.9 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?val
+ Try it!  Basketball players with a height provided in meters and either shorter than 1.9 m, order by height or taller than 2.15 m [edit] #basketball players (P106: Q3665646) 
+SELECT ?item ?itemLabel ?heightval ?image WHERE {
+  ?item wdt:P106  wd:Q3665646.
+  ?item p:P2048/psv:P2048  ?height.
+  ?height wikibase:quantityAmount ?heightval.
+  ?height wikibase:quantityUnit ?unit.
+  filter( ?unit = wd:Q11573 && ?heightval < 1.9 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?heightval
+ Try it!  Coordinates [edit] Items near the South Pole (use of radius) [edit] SELECT ?place ?placeLabel ?location
+WHERE
+{
+  # Berlin coordinates
+  wd:Q933 wdt:P625 ?poleposition .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?poleposition .
+    bd:serviceParam wikibase:radius \"1000\" .
+  } .
+  # Is an airport
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+  } 
+}
+ Try it! Airports near Berlin (use of radius and filter) [edit] #added before 2016-10
+
+#defaultView:Map
+SELECT ?place ?placeLabel ?location
+WHERE
+{
+  # Berlin coordinates
+  wd:Q64 wdt:P625 ?berlinLoc .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?berlinLoc .
+    bd:serviceParam wikibase:radius \"100\" .
+  } .
+  # Is an airport
+  FILTER EXISTS { ?place wdt:P31/wdt:P279* wd:Q1248784 } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+  } 
+}
+ Try it! Schools between San Jose, CA and Sacramento, CA (times out !) = [edit] The following query uses these:Items: San Jose (Q16553)   , Sacramento (Q18013)   , school (Q3914)   Properties: coordinate location (P625)   , instance of (P31)   , subclass of (P279)    Features: map (Q24515275)   , wikibase:box (Q26211169)   , wikibase:box with West and East corners (Q26211177)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

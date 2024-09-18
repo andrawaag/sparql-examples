@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-01910fdc141726c1b9ad1ab6932e724e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?year (COUNT(?_genre) AS ?count ) (SAMPLE(?_genreLabel) AS ?genreLabel )  WHERE {
+  ?item wdt:P31 wd:Q571;
+        wdt:P577 ?_publication_date;
+        wdt:P136 ?_genre.
+  BIND(str(YEAR(?_publication_date)) AS ?year)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                         ?_genre rdfs:label ?genreLabel.}
+ FILTER (?_publication_date >= \"2000-00-00T00:00:00Z\"^^xsd:dateTime)
+}
+GROUP BY ?_genreLabel ?year
+HAVING (?count > 10)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-A96D7F059175225CAD33A53225124E24, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-C8DDA6635E528A70AEC05DE96F05D09A,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-800A7B93EF567F7154588A9EA17ACC2E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-19143F6EB49A8ED3BA0D23017D1A5064,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-84F9BA74EF24C373A37E24AF11DE6A5C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-F602F88D77A78684B91E053FF64F3C51,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-3E71C0902BCCAB9F32046AC3047EF53D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-BE5CA78FCB9F78F30AFC02286A1BEE9A,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112376-691D19E510594EA4D762EBC58273FBD8;
+  schema:target <https://query.wikidata.org/sparql/> .

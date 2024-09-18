@@ -1,0 +1,206 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3f94aae14bf98ec631e357235ea5f132> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?start ?t1 ?end ?t2 ?startprecision ?endprecision ?precision ?duration ?tp ?conv ?converted 
+{
+    {  SELECT *
+       WHERE
+       {
+          #  VALUES ?item { wd:Q2139412 wd:Q585291 wd:Q840250 wd:Q815122 }
+           ?item wdt:P31 wd:Q188055 .
+           ?item p:P580/psv:P580 [ wikibase:timeValue ?start ; wikibase:timePrecision ?startprecision ] .
+           ?item p:P582/psv:P582 [ wikibase:timeValue ?end ; wikibase:timePrecision ?endprecision ]
+       }
+       LIMIT 200
+    }
+    #determine lowest precision
+    BIND( IF( ?startprecision > ?endprecision , ?endprecision , ?startprecision ) as ?precision) 
+    #change dates to lowest precision (here: only year precision)
+    BIND( IF( ?startprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?start)),\"-01-01T00:00:00Z\")), ?start)  as ?t1) 
+    BIND( IF( ?endprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?end)),\"-12-31T00:00:00Z\")), ?end)  as ?t2) 
+    #calc duration on adjusted dates (in days)
+    BIND( ?t2 - ?t1 as ?duration)                  
+    #get unit corresponding to precision and conversion factor from days
+    ?tp wdt:P2803 ?pr . FILTER( str(?pr) = str(?precision) )
+    OPTIONAL { ?tp p:P2442 / psv:P2442 [ wikibase:quantityAmount ?conv ; wikibase:quantityUnit wd:Q573 ] .
+             ?tp rdfs:label ?unit . FILTER(lang(?unit) = \"en\") 
+             } 
+    # convert from days to unit corresponding to precision, add \"ca.\" and unit label
+    BIND( CONCAT( \"ca. \", str(ROUND(FLOOR((1 / ?conv * ?duration) +1))), \" \", ?unit ) as ?converted) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to list a range of Q-items? 2 People of a certain type with the closest connections to a particular person 3 Query for last name 4 Multiple ID values, but not counting deprecated values 5 Q 6 Automatically update Wikidata page 7 Need help fixing up an old query I request here a couple of years ago 8 Pulling back Q codes by IPEDs ID 9 Overcoming timeout 10 Writing to Wikidata 11 finding redirected wikidata items used by SDC 12 End date with precision limited to year (and not day+month) 13 Stats on the number of identifiers for a given collection 14 Fishers that have an article on the French Wikipedia 15 Problem with query 16 potential issues 17 Trouble with preferred values/normal rank values 18 Disappointing query :( 19 A list of every personality which have a personal page in the french wikipedia with their date of birth 20 European trips 21 Articles not in \"Deaths in year\" articles 22 A query to find lexemes 23 Find Wikidata items for a list of persons with known biographical data 24 A kind query request 25 All dates for a given item 26 list all female employees and those who have positions at the Bank of England 27 Sustainable Development Goal (Q53580881) - Sustainable Development Goal Target (Q56724848) - Sustainable Development Goal Indicator (Q56726345) 28 Member of the French National Assembly but only those who belong to the 13th legislature of the Fifth French Republic 29 Request a query for Battles in history and the generals who won it 30 Time out 31 Query to match WD tapestries with Commons images based on Palissy ID 32 Strange quantityUnit in P4214 property for 11 objects 33 Not include items with P582 34 To add images for items which dont have images 35 German federal ministers 36 Number of characters 37 People who are most probably dead 38 Listings of women with nationality 39 List of places How to list a range of Q-items? Is this possible. I'm trying to catch (timeout) a range of Q's before and after 4626 AM (Q16128701) to curate them with the right P31.--So9q (talk) 22:06, 23 November 2019 (UTC)I could generate this myself in a spreadsheet and use in a values block perhaps?--So9q (talk) 10:17, 24 November 2019 (UTC)It worked! Is there a way to generate a range of Q-items dynamically say a special word RANGE(1, 100) that would result in a list of wd:-prefixed Q-items? If not I think we should open a ticket for this, because it is really useful to be able to do to limit queries to a certain range of Q-items.--So9q (talk) 11:36, 24 November 2019 (UTC)I tried with 5000 in the range and the WDQS UI freeze all the time making it almost impossible to type in the SPARQL window. I think this is related to auto completion which should be possible to turn of (as it acts strangely on mobile devices also). This is bug I think.--So9q (talk) 11:46, 24 November 2019 (UTC) SPARQL doesn't afaik have a concept of range, beyond creative use of FILTER to establish them; but I get the impression that's not very efficient. I can imagine a bespoke WDQS service which provides better support for QId ranges (and other matters - append/edit dates & ranges). I doubt such a thing will be commissioned, but by all means open a ticket, since it's even less likely to be built if the suggestion is not made. Not sure about the UI bug; again, worth raising, if there's for instance a client process that could be knocked on the head for super-large queries. --Tagishsimon (talk) 20:44, 24 November 2019 (UTC) On some SPARQL systems (but, I think, not ours) there is full string indexing of all strings and URLs, so a strategy would be to find all URLs that were Q-ids, and CONTAINED the initial digits of the range you were looking for after their Q-number. FILTER could then be applied to this set to reduce it to the range that you were looking for. Full indexing of strings was not implemented on our system, because (i) it is a perfrmance overhead, and (ii) it was considered that such string searching could be achieved through the ElasticSearch API. Nevertheless, STRSTARTS still works better than one might expect (I think -- see Lucas's tips on range-searching in the optimisation page for more. But perhaps it only applies to numbers/dates). So that might be one strategy that could be investigated. Alternatively, one could investogate whether the string search API could be used to extract a block of Qids, that could then be filtered. Jheald (talk) 22:57, 24 November 2019 (UTC) Where is the optimisation page? What about filtering on the dump file? wget https://dumps.wikimedia.org/wikidatawiki/entities/latest-truthy.nt.gz && zcat latest-truthy.nt.gz | wikidata-filter Or a simpler sed that works on the (much bigger) json newline devided dump: wget https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz && zcat latest-all.json.gz | sed -e '/nifty expression/' > output.json.gz --So9q (talk) 19:47, 27 November 2019 (UTC) @So9q: Wikidata:SPARQL query service/query optimization --Tagishsimon (talk) 21:23, 27 November 2019 (UTC) Thanks :)--So9q (talk) 21:54, 27 November 2019 (UTC) Went ahead and created a ticket for the UI freeze bug: https://phabricator.wikimedia.org/T239385--So9q (talk) 07:28, 28 November 2019 (UTC) @So9q: I couldn’t find an efficient way to generate a range of items – but item IDs aren’t supposed to be significant anyways. And since you were limiting the results to those with a specific description anyways, it’s possible to efficiently query for all of those items with this description, without any range restriction: SELECT ?item WHERE {
+  ?item schema:description \"Hebrew calendar year\"@en;
+        wdt:P155 ?follows.
+  FILTER NOT EXISTS { ?item wdt:P31 ?instanceOf. }
+}
+ Try it! – does that help? (Alternatively, one thing you could do efficiently is filter by the last modification date of the item, which is available in schema:dateModified. But that’s the only bit of the history that’s available – you can’t get the item creation time like that.) --TweetsFactsAndQueries (talk) 16:38, 1 December 2019 (UTC) Big thanks! It had only one result so I guess I succeded in my quest. I'm a little surprised it did not time out, but that is a good thing.--So9q (talk) 18:23, 1 December 2019 (UTC) People of a certain type with the closest connections to a particular person I would like to request a SPARQL query that allows me to find the people of a certain type with the closest connections to a particular person (counting only parents, children, spouses, and siblings). Miraclepine (talk) 22:19, 1 December 2019 (UTC) @Miraclepine: Perhaps something like this, to start. It's a bidirectional relationship, so there's information to be had from (up to) two items for each relationship. Here's Robbie Burns, whose item doesn't seem to record the fact of one of his children. With more work this could be coalesced into a more simple list. SELECT distinct ?item ?itemLabel ?item2 ?item2Label ?relation_to_subjectLabel ?relation_to_objectLabel
+WHERE 
+{
+  VALUES ?item {wd:Q81960}
+ { ?item2 wdt:P26| wdt:P40 | wdt:P3373 | wdt:P22 | wdt:P25 ?item .
+    ?item2 ?propertyRel ?item .  
+   ?relation_to_subject wikibase:directClaim ?propertyRel.            
+}
+  union 
+ { ?item wdt:P26 | wdt:P40 | wdt:P3373 | wdt:P22 | wdt:P25 ?item2 .
+   ?item ?propertyRel ?item2 .  
+   ?relation_to_object wikibase:directClaim ?propertyRel.            
+ }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 22:50, 1 December 2019 (UTC) @Tagishsimon: I tried Queen Victoria who, unlike Burns, has a lot of relatives, descendants, and ancestors, but it only gives me everyone who is one relationship (sibling/parent/child/spouse) removed, and displays most of them twice. I'd like it to go beyond the first degree and to display only the relationship in the direction away from the search target. Miraclepine (talk) 22:59, 1 December 2019 (UTC) Query for last name Items used: Douglas Adams (Q42)   , family name (Q101352)   Properties used: instance of (P31)   SELECT *
+WITH
+{
+    SELECT ?item ?name ?l 
+    {
+        BIND( wd:Q42 as ?item) 
+        ?item rdfs:label ?l . 
+        FILTER( lang(?l) = \"en\" )
+        # BIND(strafter(?l, \" \") as ?name)
+        BIND(REPLACE(?l, \"^.+ (.+)$\", \"$1\") as ?name)      
+    }
+}  as %a
+WHERE
+{
+  INCLUDE %a 
+  OPTIONAL { ?lastname wdt:P31 wd:Q101352 ; rdfs:label ?name }
+} Try it!Is there an easy way to speed this up? I tried a couple of ways with more items, but they tend to timeout or the optional part not even matching. --- Jura 10:17, 2 December 2019 (UTC)Actually, it's much easier to highlight when it gets slow: SELECT *
+WHERE
+{
+  BIND(\"Douglas Adams\"@en as ?name1)  BIND(strafter(?name1, \" \") as ?name)  #slow
+  # BIND( strlang(\"Adams\", \"en\") as ?name)                                  #slow
+  # BIND(\"Adams\"@en as ?name)                                               #fast
+  OPTIONAL { ?lastname wdt:P31 wd:Q101352 ; rdfs:label ?name }
+}
+ Try it! Compare the first two binds with the last bind. Actual times can very a lot from one name to the other. Is there a way to ensure the first two are just as quick? --- Jura 13:04, 2 December 2019 (UTC) Multiple ID values, but not counting deprecated values Please can we have a version of https://w.wiki/D9v that excludes deprecated ID values? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 18:41, 2 December 2019 (UTC) @Pigsonthewing: Try https://w.wiki/D9x That query will exclude Richard Bowdler Sharpe (Q432586) who has a lot of deprecated ID values, but only one that is not deprecated. --Larske (talk) 19:00, 2 December 2019 (UTC) Q Is there a way to auto create an item by scanning selected wikis (specifically en, sr, zh, zh-min-nan & fa)? For example, en, sr and zh has Template:Taxonomy/A but there is no item link for it, is there a way to make a query so the item can be \"auto-created\"? Secondly, if the item already exists but the page on a specific wiki, lets say zh is not linked, is it possible to use the item label that is already available to scan a wiki for the page to be added into the item? 大诺史 (Talk/留言/토론/Discussion) 06:22, 29 November 2019 (UTC) @大诺史: The most obvious thing to point you at is petscan (manual) which can generate lists of Wikipedia (and related projects) pages, such as all pages in a certain category tree, and compare them with wikidata - do they have an item; and if they do not, is there not item which has the same label (i.e. identify articles for which items can be created automatically) and if there is (and using a linked tool called Duplicity) show the list of possibly matching items allowing the user to choose which one to sitelink to. There's an array of such petscans at https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Women_in_Red/Metrics/Wikidata which you might have a poke around to better familiarise yourself. It helps to be logged in via Oath when using Petscan - look for a login button allowing you to do so. I'm not very sure of Petscan's ability to look across multiple language wikipedias at once, or so compare one with another. It may be that it is for the most part \"limited\" to working in a single wikipedi, or comparing that wikipedia with wikidata. It's a remarkable tool. --Tagishsimon (talk) 08:28, 29 November 2019 (UTC) @Tagishsimon: To be honest, after reading the manual and the en page, I still have no idea how to use PetScan. 大诺史 (Talk/留言/토론/Discussion) 08:55, 29 November 2019 (UTC) @大诺史: Very understandable. Let me take you through one example, to start, Consider this petscan. First, notice that petscan has tabbed pages - Categories, Page properties, Templates&links, etc. In the categories tab, we see that Language is set to en; Project to Wikipedia; and the categories field has 'living people' in it. So that tells petscan to look at all the article in https://en.wikipedia.org/wiki/Category:Living_people . Next place to look is the Wikidata tab, where the setting \"Only pages without item (enables Wikidata item creation mode)\" is checked. That says: only show articles where there is no wikidata item, i.e. the article has not been linked to an item. If you hit the \"Do it\" button, after a few minutes (it's doing a lot of work), you'll get a list of the articles in that category with no wikidata link. Some of them will have a tick in a blue-background box against them: that means that there is not an item in wikidata with a label that matches the article title. The rest have no tick; that means there is an item with the same label value as the article title. To the right of each name on the list, there's a 'check wikidata' link, which invokes an application called Duplicity, which will (often very slowly) show the article in question, a list of wikidata items that might match the item, and the details of a highlighted wikidata item, and which provides buttons allowing you to link the article to a selected wikidata item. Note also the \"Log into WiDaR to perform Wikidata edits\" ... in short, you should do this so as to enable editing under your control through Petscan and Duplicity ... so for instance, the buttons Duplcity gives you will not work if you are not logged in; and you get an additional box in Petscan results which allows you to select a set of articles and create items with a specified list of property values. Obvs, this is but one example of Petscan in action; and in this example, all of the other petscan fields and settings were left at their default values. So, next example: this petscan which finds all articles in https://en.wikipedia.org/wiki/Category:Women and in any of its subcategories to a depth of 5 levels (the Depth parameter in the categories tab). In this one, if we check out the Wikidata tab, it has 'Only pages with item' checked and a value of P21 in 'Uses items/props', with, to the right, 'None' checked. Together, these say \"the article must be linked to an item, but the item must not have a P21 property on it\". And then there's one more step: in the 'Other sources' tab, in the SPARQL field, there's a little SPARQL query: select ?item where {?item wdt:P31 wd:Q5} which requires that any of the articles selected by the Petscan query must be linked to an item which has a P31 value of Q5. So overall, the report finds articles in Category:Women plus subcats, where there is an item, the item is an instance of Human (P31=Q5), but the item lacks a Gender property (P21 is null). I hope that quick guided tour gives you a bit more insight. It's well worth bashing your head against Petscan until you grok it, if you want to compile the sorts of lists your question indicates. It's capable of thousands of variations on a basic theme of 'inspect articles in a category'. Feel free to bring Petscan questions here if you want more input; I think this board is a wide enough church to stray from SPARQL into Petscan. --Tagishsimon (talk) 16:05, 30 November 2019 (UTC) What a wonderful introduction! Maybe we should augment the manual with these examples? --So9q (talk) 20:42, 30 November 2019 (UTC) I think that would be welcome - perhaps as a supplement to the exising manual? But I've never felt enough on an expert on Petscan to presume to do so ... I'm sure I'm barely scratching the surface in my understanding of it. There are whole areas of related tooling - like pagepile - on which I don't have a grasp. Obvs, I'd benefit from some sort of extended manual. --Tagishsimon (talk) 21:14, 30 November 2019 (UTC) @Tagishsimon: Thank you for your explanation! I've tried with articles in the main space and it worked. However, it doesn't seem to work with templates. 大诺史 (Talk/留言/토론/Discussion) 04:52, 6 December 2019 (UTC) Automatically update Wikidata page I am trying to figure out how to automatically update a Wikidata page that is missing data from the Wikidata Query Service? For example, if I am trying to pull the start and end dates for a particular venue (Denver Broncos) but it does not have them listed on the Wikidata page yet, is there a way to write a statement to update those start and end dates from the Query Service and then pull those dates back? Do I need to use another service for this? Thank you – The preceding unsigned comment was added by 216.116.232.243 (talk • contribs) at 3 december 2019 at 02.36‎ (UTC). Such data can be extracted from wikidata if it exists, which is not the case for Denver Broncos and Sports Authority Field at Mile High. Updating a wikipedia page direct from wikidata (presuming we're talking about e.g. in an infobox or within the article text, but excluding the Wikidata:Listeria approach) requires the language wikipedia to have appropriate templates (such as en:Template:Wikidata) and to permit articles to be updated in this fashion. Generally there'll be a family of such templates for different occasions - e.g. en:Category:Wikidata_templates. --Tagishsimon (talk) 03:03, 3 December 2019 (UTC) Wikidata Query Service is a tool to get (read) data already in Wikidata, so when it comes to the question how to update (write) a Wikidata page (=a Wikidata object?), I think you have to look for other tools. (If Wikidata SPARQL supports some kind of UPDATE I would also like to learn about that.) Anyway, here is an addition to the answer given above, although I think it is an answer to a different question. If the values you want to get from Wikidata are properties (and not qualifiers) you can get the value(s) by just using the magic word #property on the Wikipedia page, like this: To get the inception (P571) for Denver Broncos (Q223507), write like this: {{#property:P571|from=Q223507}} → 1960 To get the date of official opening (P1619) for Empower Field at Mile High (Q1046135), write like this: {{#property:P1619|from=Q1046135}} → 10 September 2001 If the object is linked to the Wikipedia article where you want to have this information, you don't have to include the \"from\" part. --Larske (talk) 12:38, 4 December 2019 (UTC) Need help fixing up an old query I request here a couple of years ago Back in April 2017 I asked for help creating a query that generates a list of Wikivoyage articles sorted by the amount of articles that exists for each destination in all Wikivoyage editions.The user Pasleim then created this amazing query. SELECT ?item (count(*) as ?cnt) WHERE {
+    ?article schema:about ?item;
+             schema:isPartOf/wikibase:wikiGroup \"wikivoyage\".
+} GROUP BY ?item ORDER BY DESC(?cnt)
+LIMIT 4000
+ Try it! If possible, please help me upgrade it so that the list would include not only the wikidata id (for example Q5859), but also the Wikidata name and description, so that it would be much easier to go over the entire list fast. ויקיג'אנקי (talk) 21:34, 6 December 2019 (UTC) Also, if possible please fix the code so that the list generated would only show instances in which there isn't an article in the Hebrew Wikivoyage. ויקיג'אנקי (talk) 21:38, 6 December 2019 (UTC) Pulling back Q codes by IPEDs ID I am trying to write a query to pull back the Q code for colleges/universities by their IPEDs ID. I want it to be as if I do not know what the colleges Q code is but it will pull back all the Qcodes for the colleges that I have an IPEDs ID for but am unsure how to do this. The code I have below does not do what I want for my purposes but it's just an example of terms I am using to pull back the information. Can anyone help me? Thank you!SELECT ?college ?teamUnitID ?teamQCode WHERE { VALUES ?college {wd:Q61930514 } OPTIONAL {?college wdt:P1771 ?teamUnitID.} OPTIONAL {?college wdt:P115 ?teamQCode.} SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } }– The preceding unsigned comment was added by 216.116.232.243 (talk • contribs) at 8 december 2019 at 15.40‎ (UTC). Does the following query give you the expected result? SELECT ?college_IPED_ID ?college ?collegeLabel ?college_Q_code WHERE {
+ ?college wdt:P1771 ?college_IPED_ID. 
+ BIND(STRAFTER(STR(?college),'entity/') AS ?college_Q_code )
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?college_IPED_ID
+ Try it! --Larske (talk) 17:54, 8 December 2019 (UTC) Yes, this is great! Do you also know how to then pull back the same information but by a specific IPEDS ID (for example if I wanted to pull back the college name and Q code for the IPED ID 100636)? – The preceding unsigned comment was added by 216.116.232.243 (talk • contribs) at 8 december 2019 at 19.18‎ (UTC). Just add the following line to the query: VALUES ?college_IPED_ID { '100636' } like this: SELECT ?college_IPED_ID ?college ?collegeLabel ?college_Q_code WHERE {
+ VALUES ?college_IPED_ID { '100636' }
+ ?college wdt:P1771 ?college_IPED_ID. 
+ BIND(STRAFTER(STR(?college),'entity/') AS ?college_Q_code )
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?college_IPED_ID
+ Try it! --Larske (talk) 23:15, 8 December 2019 (UTC) Overcoming timeout #defaultView:LineChart
+# Scholarly articles as a function of gender
+SELECT ?age (COUNT(?gender) as ?count) (SAMPLE(?genderLabel) AS ?genderLabel ) WHERE {
+  ?article wdt:P31 wd:Q13442814 .
+  ?article wdt:P577 ?date .
+  ?article wdt:P50 ?author .
+  ?author wdt:P569 ?dob .
+  ?author wdt:P21 ?gender .
+  ?gender rdfs:label ?genderLabel .
+  FILTER((LANG(?genderLabel)) = \"en\")
+  bind( 1000+year(?date)-year(?dob) as ?age_num )
+  bind( SUBSTR(str(?age_num),1,4) as ?age )
+  FILTER(year(?date)>=2000)
+  FILTER(BOUND(?age_num))
+  FILTER(?age_num<=1100)
+  FILTER(?age_num>=1000)
+}
+GROUP BY ?genderLabel ?age
+ Try it! This query (one of 99of9's used to work. I am hoping it can be made to work again. Thanks, MargaretRDonald (talk) 22:01, 6 December 2019 (UTC) @MargaretRDonald: It seems more than 40 percent of Wikidata consists of items that are instance of (P31) scholarly article (Q13442814) - almost 30 million objects! So it is not much you can do with all these objects in just 60 seconds, just 2 microseconds per object. --Larske (talk) 14:52, 7 December 2019 (UTC) Hi MargaretRDonald - I love that query too. I'd be interested to know what you're using it for. Here's a version that works even with the massive scale of publication data in Wikidata now. You can reduce the LIMIT 300000 if you start getting timeouts. #defaultView:LineChart
+SELECT
+	?age ?count ?genderLabel
+WHERE
+{
+	{ SELECT ?gender ?age (count(*) as ?count) WHERE {
+		{ SELECT ?gender ?age WHERE {
+  
+         ?author p:P569/psv:P569 ?dob_node . # node for date of birth
+         ?dob_node wikibase:timePrecision \"11\"^^xsd:integer . # date precision = day
+         ?dob_node wikibase:timeValue ?dob . 
+         ?author wdt:P21 ?gender .
+         ?article wdt:P50 ?author .  
+         ?article wdt:P31 wd:Q13442814 .
+         ?article wdt:P577 ?date .
+
+        FILTER(year(?date)>=2000)
+
+        bind( 1000+year(?date)-year(?dob) as ?age_num )
+        bind( SUBSTR(str(?age_num),1,4) as ?age )
+  
+        FILTER(BOUND(?age_num))
+        FILTER(?age_num<=1100)
+        FILTER(?age_num>=1000)
+        }
+         LIMIT 300000
+        }
+	} GROUP BY ?gender ?age  }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! --99of9 (talk) 06:42, 9 December 2019 (UTC) Thanks @Larske: and @99of9: (I wasn't using it for anything except to demonstrate the power of these 3 component linked databases...) And yes it is a great query. MargaretRDonald (talk) 08:08, 9 December 2019 (UTC) Writing to Wikidata Does anyone know how to write a GET/POST request to write to Wikidata from the Wikidata Query Service in order to update information on a Wikidata page? I am wanting to be able to add in a new entry to a Wikidata page if there is information missing through the Wikidata Query Service. Thank you! – The preceding unsigned comment was added by 216.116.232.243 (talk • contribs) at 19:00, 8 December 2019‎ (UTC). You cannot write to Wikidata via WDQS, it is a read-only interface. However, there are plenty of Wikidata:Tools available that allow you to edit Wikidata via scripts (some rules apply). QuickStatements is the tool which is used most to automate editing. WDQS will then be fed internally with your edits. —MisterSynergy (talk) 20:28, 9 December 2019 (UTC) finding redirected wikidata items used by SDCI am trying to find cases where wikidata items stored in Structured data on Commons (SDC) point to redirected items which need updating. I was hoping to run something like:SELECT ?commonsItem ?wikidataItem ?target
+WHERE 
+{
+  ?commonsItem wdt:P6243 ?wikidataItem.
+  ?wikidataItem owl:sameAs ?target.
+}
+limit 100
+ Try it!on the new SDC query service. but it does not work. Closer look shows that the querySELECT ?wikidataItem ?target
+WHERE 
+{
+  VALUES ?wikidataItem { wd:Q57935507 }
+  OPTIONAL { ?wikidataItem owl:sameAs ?target. }
+}
+ Try it!run on standard Wikidata query service finds that Monkey with violets. (Q57935507) redirects to other item. Similar query run on new SDC query service:SELECT ?commonsItem ?wikidataItem ?target
+WHERE 
+{
+  #VALUES ?commonsItem { sdc:M50692878 }
+  VALUES ?wikidataItem { wd:Q57935507 }
+  ?commonsItem wdt:P6243 ?wikidataItem.
+  OPTIONAL { ?wikidataItem owl:sameAs ?target. }
+}
+ Try it!does not find redirects. Any ideas how to perform my query? --Jarekt (talk) 20:05, 9 December 2019 (UTC)--Jarekt (talk) 20:05, 9 December 2019 (UTC) End date with precision limited to year (and not day+month) Hello I've come across this query and for a specific case use [BIND(wd:Q4337360 AS ?siège)], the result are disappointing because of this : if a date has only year level precision, the calculations will assume it will be at January 1st. For a start date, OK, makes sense. However, when it comes to an end time (P582), it's confusing. Is there a way for P582 to behave as if it was December 31th ? select ?siège ?siègeLabel (sample(?whereLabel) as ?whereLabel2) ?start ?end ?days {
+SELECT ?siège ?siègeLabel ?whereLabel ?start ?end ?days WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+?siège wdt:P31 wd:Q188055.
+ BIND(wd:Q4337360 AS ?siège)
+OPTIONAL { ?siège wdt:P580 ?start. }
+OPTIONAL { ?siège wdt:P582 ?end. }
+OPTIONAL { ?siège wdt:P276 ?where. } 
+OPTIONAL { ?siège p:P2047/psn:P2047/wikibase:quantityAmount ?lengthNorm.}
+BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
+
+}
+}
+group by ?siège ?siègeLabel ?start ?end ?days
+order by desc(year(?end)) ?whereLabel2
+ Try it! Bouzinac (talk) 20:18, 5 December 2019 (UTC) @Bouzinac: In the following modified query the end time (P582) value used for days calculation is changed to 31 December if the time precision is \"year\" (9): select ?siège ?siègeLabel (sample(?whereLabel) as ?whereLabel2) ?start ?end ?days {
+SELECT ?siège ?siègeLabel ?whereLabel ?start ?end ?days WHERE {
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+?siège wdt:P31 wd:Q188055.
+ BIND(wd:Q4337360 AS ?siège)
+OPTIONAL { ?siège wdt:P580 ?start. }
+OPTIONAL { 
+           ?siège p:P582/psv:P582 ?p582node . 
+           ?p582node wikibase:timeValue ?tv .       # get the time value
+           ?p582node wikibase:timePrecision ?tp .   # get the time precision
+           BIND(IF(?tp=9,xsd:dateTime(REPLACE(STR(?tv),\"-01-01\",\"-12-31\")),?tv) AS ?end) # set end date to 31 December if time precision is \"year\" (9)
+         }
+OPTIONAL { ?siège wdt:P276 ?where. } 
+OPTIONAL { ?siège p:P2047/psn:P2047/wikibase:quantityAmount ?lengthNorm.}
+BIND(COALESCE(?lengthNorm/86400,(?end - ?start+1)) as ?days)
+}
+}
+group by ?siège ?siègeLabel ?start ?end ?days
+order by desc(year(?end)) ?whereLabel2
+ Try it! --Larske (talk) 23:21, 5 December 2019 (UTC)  Items used: Siege of Zierikzee (Q2139412)   , Siege of Autun (Q585291)   , Battle of Mainz (Q840250)   , Siege of Bensheim (Q815122)   , siege (Q188055)   , day (Q573)   Properties used: instance of (P31)   , Wikidata time precision (P2803)   , start time (P580)   , end time (P582)   , conversion to standard unit (P2442)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

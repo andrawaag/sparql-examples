@@ -1,0 +1,144 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-80f94adf1102e1cf52b25c6b3e2c3677> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel 
+  (GROUP_CONCAT(DISTINCT ?phi1; separator=\", \") as ?phi)
+  (GROUP_CONCAT(DISTINCT ?digilib1; separator=\", \") as ?digilib)
+  (GROUP_CONCAT(DISTINCT ?treccani1; separator=\", \") as ?treccani)
+  (GROUP_CONCAT(DISTINCT ?ei1; separator=\", \") as ?ei)
+  (GROUP_CONCAT(DISTINCT ?ol1; separator=\", \") as ?ol)
+  (GROUP_CONCAT(DISTINCT ?viaf1; separator=\", \") as ?viaf)
+WHERE
+{
+   { ?item wdt:P6941 ?phi1 . } UNION { ?item wdt:P6862 ?digilib1 . }
+   OPTIONAL { ?item wdt:P3365 ?treccani1 . }
+   OPTIONAL { ?item wdt:P4223 ?ei1 . }
+   OPTIONAL { ?item wdt:P648 ?ol1 . }
+   OPTIONAL { ?item wdt:P214 ?viaf1   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\"  }    
+}
+GROUP BY ?item ?itemLabel
+ORDER BY ?itemLabel""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of all cities (only cities) in the world together with city name (in English), latitude, longitude, administrative region name, population, elevation, IANA timezone identifier and country ISO (2-letter) code 2 Plant Genera/Families without an article in English wikipedia 3 UK Members of Parliament 4 Can we say anything about which items are included / excluded in a LIMIT 3000 type query 5 Categories with the same label 6 People with P3829 who has a WP article 7 Query to list plant species articles having no image 8 list of scholarly article (Q13442814) by publisher (P123) United States Geological Survey (Q193755) 9 List of parliament members 10 P1889 11 Little improvement to a query 12 External ID with link fonctionnability 13 List of country (Q6256) 14 Fusión de Gita Gopinath 15 Deleting Items 16 Items that exist on a specific project 17 Get only one value on query with two web references 18 US presidents sharing names with UK prime ministers 19 Pablo(s) Escobar 20 Round to 2 digits after the point 21 Looking for examples of displays for publications 22 Find out wikidata items which does not have labels in particular langues 23 Items with Indie DB game ID (P6717) but not Mod DB game ID (P6774) 24 ORDER BY (despite uppercase/lowercase and accented character) 25 get itemLabels of items whose Q is known 26 properties by country 27 Born on the Tenth 28 Adding hyperlinks in map view 29 Oldest living tennis players 30 somevalue + stated as 31 Get all wikipedia articles related to a country? 32 list of items with more than 10 external ID 33 Timezone of a city or a country 34 2018 ATP World Tour 35 Municipalities of Catalonia 36 Lonely items 37 Is it possible to get a list of places that exist only on Swedish and Cebuano Wikipedias? 38 Italian notorious people since 1850 39 Handle different levels of date precision 40 Preparing quickstatements for located in the administrative territorial entity (P131) 41 Map of Camino de Santiago not showing all the coordinates 42 All articles in Category:Biology and its subcategories 43 Foreigners by country 44 Including items with identifiers in deprecated rank List of all cities (only cities) in the world together with city name (in English), latitude, longitude, administrative region name, population, elevation, IANA timezone identifier and country ISO (2-letter) code I need the list of all cities (only cities) in the world together with city name (in English), latitude, longitude, administrative region name, population, elevation, IANA timezone identifier and country ISO (2-letter) code Do you really mean city (Q515)? Or town (Q3957) and city or town (Q7930989) are also OK? There are also city (Q11881845), city (Q15253706), city in British Columbia (Q60458065)... --Infovarius (talk) 11:47, 4 July 2019 (UTC) Plant Genera/Families without an article in English wikipedia Query to list wikidata Q items, Q labels of plant Genera/Families which lack an article in English wikipedia. MargaretRDonald (talk) 22:55, 2 July 2019 (UTC)@MargaretRDonald: Here are the families. Sorry for the ugly way of getting down from plantae, but I've checked that this is far enough to get them all. --99of9 (talk) 13:38, 4 July 2019 (UTC) Impressive query ! --- Jura 17:47, 4 July 2019 (UTC) It's an old workaround. :( --Succu (talk) 18:20, 4 July 2019 (UTC) Maybe using SERVICE gas:service and ?article schema:isPartOf <https://en.wikipedia.org/> could modernize it. --- Jura 19:13, 4 July 2019 (UTC) I would prefer making (wdt:P171)* workable here. --Succu (talk) 19:27, 4 July 2019 (UTC) In general, I think wdt:P171/wdt:P171* might work better than that.--- Jura 19:33, 4 July 2019 (UTC) Items used: family (Q35409)   , plant (Q756)   Properties used: taxon rank (P105)   , parent taxon (P171)   SELECT DISTINCT ?item
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P105 wd:Q35409.  
+  ?item wdt:P171/wdt:P171* wd:Q756 .
+  hint:Prior hint:gearing \"forward\".
+  OPTIONAL { ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/>  }
+  FILTER(!BOUND(?article))  
+} Try it!Not sure why it works ;) --- Jura 19:40, 4 July 2019 (UTC) Thank you all, so much. @99of9:@Jura1:@Succu:. MargaretRDonald (talk) 20:44, 4 July 2019 (UTC) (99of9's query returns 819 items - with/without the limit of 10000, Jura's returns 822. Together, they give an impressive work list. MargaretRDonald (talk) 20:49, 4 July 2019 (UTC) I guess the question is why the second one doesn't work correctly. About gas, I only found Wikidata:SPARQL_query_service/queries/examples#Asterophryinae_parent_taxon_reverse_graph which works in the opposite direction. --- Jura 21:16, 4 July 2019 (UTC) @MargaretRDonald: Probably most of them are redirects. --Succu (talk) UK Members of Parliament Looking to capture all past or present members of parliament in the UK, with:- Date of birth - Date of death - FIRST position held in parliament - Start time/inception of that positionAbsolute beginner at SPARQL. I've been running into problems trying to only get positions which are subclasses of 'Member of Parliament'. Eg. \"Member of the 16th Parliament of the United Kingdom\" is a subclass of 'Member of Parliament'. However my code only returns 'Member of Parliament' positions.Don't really have the chops to work out how to return only the first position held (ie. their first entry into UK parliament).Any help appreciated. Cheers. – The preceding unsigned comment was added by 123.208.85.153 (talk • contribs) at 5 juli 2019 kl. 10.10‎ (UTC). Try this query, but please note that only those position held (P39) where a start time (P580) is stated are considered: SELECT ?item ?itemLabel ?birth_date ?death_date ?first_parliamentLabel ?start_time WITH {
+  SELECT ?item (MIN(?start) AS ?start_time) {
+    ?item p:P39 [pq:P580 ?start; ps:P39 [p:P279*/ps:P279* wd:Q16707842]] . 
+    FILTER(!isBLANK(?start))
+  }
+  GROUP BY ?item 
+} AS %i WHERE {
+  include %i
+  ?item p:P39 [pq:P580 ?start_time; ps:P39 ?first_parliament] .
+  OPTIONAL { ?item wdt:P569 ?birth_date }
+  OPTIONAL { ?item wdt:P570 ?death_date }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?start_time ?itemLabel
+ Try it! --Larske (talk) 13:30, 5 July 2019 (UTC) -> Thanks very much, this has worked just as intended. Can we say anything about which items are included / excluded in a LIMIT 3000 type query Consider a query such as the one below, which returns 3,000 rows of a possible 12,000, by virtue of a LIMIT statement. Can we say anything about the way in which Blazegraph goes about selecting the 3k rows? There's no ORDER ... are we getting the lowest QIds, or a fairly random set of items? --Tagishsimon (talk) 17:37, 5 July 2019 (UTC) SELECT distinct ?item ?linkcount WHERE {
+	?item wdt:P31 wd:Q5 .
+	?item wdt:P21 wd:Q6581072 .
+        ?item wikibase:sitelinks ?linkcount .
+   ?item wdt:P106 ?prof .
+VALUES ?prof {
+wd:Q1056391#head_teacher
+wd:Q37226#teacher
+wd:Q974144#educator
+wd:Q1569495#lecturer
+wd:Q901222#tutor
+wd:Q20794925#college_head
+wd:Q121594#professor
+wd:Q1622272#university_teacher
+}
+	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:isPartOf <https://en.wikipedia.org/>.}
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"en,fr,de,pl\" .
+	}
+}
+LIMIT 3000
+ Try it!  Probably lowest QIDs or whatever was loaded into the server database first, possibly similar to what you get when using SAMPLE(). The result might even vary from one server to another. In any case, I don't think it's fairly random. --- Jura 08:33, 6 July 2019 (UTC) Categories with the same label Hi! I would need a query listing all the items with the same \"it\" label and having instance of (P31)Wikimedia category (Q4167836) , grouped by \"it\" label. Thank you! --Epìdosis 08:26, 6 July 2019 (UTC) The best I could get with SQL (using legacy schema): USE wikidatawiki_p;
+SELECT term_text, GROUP_CONCAT(page_title) FROM pagelinks
+JOIN page ON pl_from = page_id
+JOIN wb_terms ON term_full_entity_id = page_title
+WHERE page_namespace = 0
+AND pl_namespace = 0 AND pl_title = 'Q4167836'
+AND term_language = 'it'
+AND term_type = 'label'
+GROUP BY term_text
+HAVING COUNT(*) > 1;
+ --Matěj Suchánek (talk) 09:12, 8 July 2019 (UTC) People with P3829 who has a WP article Does someone would be able to write a query to find all the people who has an article on the French Wikipedia and who has a property Publons author ID (P3829)? Thanks in advance. Pamputt (talk) 17:56, 7 July 2019 (UTC) @Pamputt: Try this query: SELECT ?item ?itemLabel ?publon_id ?publon_link ?frwp {
+  ?item wdt:P3829 ?publon_id .
+  ?frwp schema:about ?item; schema:isPartOf <https://fr.wikipedia.org/> .
+  wd:P3829 wdt:P1630 ?p1630 .
+  BIND(URI(REPLACE(?p1630,'\\\\$1',?publon_id)) AS ?publon_link)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\". }
+}
+ORDER BY ?itemLabel
+ Try it! --Larske (talk) 18:21, 7 July 2019 (UTC) Many thanks Larske. Pamputt (talk) 18:23, 7 July 2019 (UTC) Query to list plant species articles having no image Query to list wikidata Qitems, Q labels, english wikipedia article names for plant species articles (in enwiki) which have no image in their taxo/species (info) box. MargaretRDonald (talk) 22:58, 2 July 2019 (UTC) The query service cannot search article contents. --Matěj Suchánek (talk) 09:13, 8 July 2019 (UTC) @MargaretRDonald: Maybe this PetScan query is in the neighbourhood of what you ask for. It gives a list of articles in enwp that uses the \"Automatic_taxobox\" template but don't have | image = <some usual file name patterns like *.jpg and *.png> the the wikitext. It also exclude articles with imagemaps. In the result list, with currently 9,996 entries, you have a column, \"Item\", with the Q-numbers and links to the Wikidata items. --Larske (talk) 10:58, 9 July 2019 (UTC) @Matěj Suchánek: Thanks for the info. MargaretRDonald (talk) 17:42, 9 July 2019 (UTC) @Larske:Thanks for your solution. Very helpful. MargaretRDonald (talk) 17:42, 9 July 2019 (UTC) list of scholarly article (Q13442814) by publisher (P123) United States Geological Survey (Q193755) Looking to run query for list of scholarly article (Q13442814) that are main subject (P921) Clark County (Q108403) but I'd like to limit to articles published in (P1433) by United States Geological Survey (Q193755). I use the following to find items but I'd like the results to be limited to those articles in USGS publications. Can I get there with the following as a start? Maybe where the DOI starts with \"10.3133\". Thanks. Trilotat (talk) 20:28, 6 July 2019 (UTC) SELECT DISTINCT ?item ?title
+WHERE {
+  hint:Query hint:optimizer \"None\".
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\\\"clark county\\\" haswbstatement:P31=Q13442814\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  } }
+  
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  FILTER NOT EXISTS { ?item wdt:P921 wd:Q108403. }
+  
+  ?item wdt:P31 wd:Q13442814;
+        wdt:P1476 ?title.
+  FILTER CONTAINS(LCASE(?title), \"clark county\").
+}
+ Try it! @Trilotat: Try adding the following line at the bottom of your query: ?item wdt:P356 ?doi . FILTER(STRSTARTS(?doi,'10.3133')) --Larske (talk) 04:19, 7 July 2019 (UTC) @Larske: Thank you. That does it. Trilotat (talk) 13:55, 9 July 2019 (UTC) List of parliament members Hello. I want to find the items that have position held (P39) -> member of the House of Representatives of Cyprus (Q19801674) with qualifier parliamentary term (P2937) -> 11th Cypriot Parliament (Q64918130). (If it is possible I want to see in the results also the values of the qualifiers electoral district (P768) start time (P580) end time (P582) parliamentary group (P4100) elected in (P2715)) Xaris333 (talk) 14:54, 8 July 2019 (UTC) SELECT DISTINCT ?item ?itemLabel ?constituencyLabel ?partyLabel ?start ?electionLabel ?end ?causeLabel {
+ ?item p:P39 ?positionStatement .
+ ?positionStatement ps:P39 wd:Q19801674 . 
+ ?positionStatement pq:P2937 wd:Q64918130.
+ OPTIONAL { ?positionStatement pq:P768 ?constituency . }
+ OPTIONAL { ?positionStatement pq:P4100|pq:P102 ?party . }
+ OPTIONAL { ?positionStatement pq:P580 ?start . }
+ OPTIONAL { ?positionStatement pq:P2715 ?election . }
+ OPTIONAL { ?positionStatement pq:P582 ?end . }
+ OPTIONAL { ?positionStatement pq:P1534 ?cause . }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ORDER BY ?start
+ Try it! There are also lots of MP reports here - Wikidata:WikiProject British Politicians/Sample Queries which can fairly easily be adapted. --Tagishsimon (talk) 15:08, 8 July 2019 (UTC) Thanks. Xaris333 (talk) 18:03, 9 July 2019 (UTC) P1889 Hello, who are the Qid having the most numbers of different from (P1889) statements ? Bouzinac (talk) 22:33, 4 July 2019 (UTC) @Bouzinac: Here is a query for a top10 list: SELECT ?item ?itemLabel ?count WITH {
+SELECT ?item (COUNT(?p1889) AS ?count) WHERE { ?item wdt:P1889 ?p1889 . }
+GROUP BY ?item 
+ORDER BY DESC(?count)
+LIMIT 10
+} AS %i WHERE {
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)
+ Try it! --Larske (talk) 07:20, 5 July 2019 (UTC) Hey Larske, thank you very much! I've added a minus there [[1]]. Well, it comes always about the \"same\" relationship, how to show 10 \"very distinct\" P1889 relationships? Thanks :) Bouzinac (talk) 20:40, 9 July 2019 (UTC) Plus I'd like to get a query to top the items having same labels in a given language (ex \"John Freeman\" : x times ) Little improvement to a query Hi! I have written this query SELECT ?item ?itemLabel ?phi ?digilib ?treccani ?ei ?ol ?viaf
+{
+ { ?item wdt:P6941 ?phi . } UNION { ?item wdt:P6862 ?digilib . }
+ OPTIONAL { ?item wdt:P3365 ?treccani . }
+ OPTIONAL { ?item wdt:P4223 ?ei . }
+ OPTIONAL { ?item wdt:P648 ?ol . }
+ OPTIONAL { ?item wdt:P214 ?viaf . }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\"  }    
+}
+GROUP BY ?item ?itemLabel ?phi ?digilib ?treccani ?ei ?ol ?viaf
+ORDER BY ?itemLabel
+ Try it! In some cases Treccani's Enciclopedia Italiana ID (P4223), Open Library ID (P648) and VIAF ID (P214) have more than one value, so the same ?item is repeted in two or more rows; moreover, when an item has both PHI Latin Texts author ID (P6941) and digilibLT author ID (P6862), it appears in two rows. Would it be possible forcing the same ?item to appear only in one row, separating in the cells the multiple values with commas? Thank you very much, --Epìdosis 21:16, 9 July 2019 (UTC) Properties used: PHI Latin Texts author ID (P6941)   , digilibLT author ID (P6862)   , Treccani ID (P3365)   , Treccani's Enciclopedia Italiana ID (P4223)   , Open Library ID (P648)   , VIAF ID (P214)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

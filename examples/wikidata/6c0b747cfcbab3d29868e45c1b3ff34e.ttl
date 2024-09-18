@@ -1,0 +1,378 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6c0b747cfcbab3d29868e45c1b3ff34e> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, Wikidata Query Service, adalah perkakas hebat yang dapat memberikan wawasan konten yang ada di Wikidata. Panduan ini akan mengajarkanmu cara menggunakannya. Lihat pula tutorial interaktif oleh Wikimedia Israel.Sebelum menulis kueri SPARQL Anda sendiri, periksa {{Item documentation}} atau templat kueri SPARQL generik lainnya dan lihat apakah kueri Anda sudah ada. Contents 1 Sebelum kita mulai 2 Dasar-dasar SPARQL 3 Kueri pertama kita 3.1 Pelengkap otomatis 4 Pola tripel lanjut 5 Instans and kelas 5.1 Jejak atribut 6 Penjelas 7 ORDER dan LIMIT 7.1 Latihan 7.1.1 Buku-buku Arthur Conan Doyle 7.1.2 Unsur-unsur Kimia 7.1.3 Sungai-sungai yang mengalir ke Mississippi 7.1.4 Sungai yang mengalir ke Mississippi II 8 OPTIONAL 9 Ekspresi, FILTER dan BIND 9.1 Tipe-tipe data 9.2 Operator-operator 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Pengelompokkan 10.1 Populasi kota 10.2 Material lukisan 10.3 Senjata berdasarkan pembuat 10.4 Penerbit berdasarkan banyaknya halaman 10.4.1 HAVING 10.5 Rangkuman fungsi agregat 10.6 Kutu wikibase:Label dan agregasi 11 VALUES 12 Label in multiple languages 13 Dan seterusnya... 14 Lihat pula Sebelum kita mulai Meskipun panduan ini tampak panjang dan menakutkan, tolong jangan terusir! Pelajari saja dasar-dasar SPARQL sembari jalan – bahkan jika kamu berhenti membaca setelah kueri pertama kita, kamu akan sudah cukup paham bagaimana merakit kueri-kueri yang menarik. Setiap bab dari tutorial ini akan memberdayakanmu untuk menulis kueri yang lebih canggih.Kalau kamu belum pernah mendengar Wikidata, SPARQL atau WDQS sebelumnya, berikut ini penjelasan singkat istilah-istilah tersebut: Wikidata adalah basisdata pengetahuan. Ia mengandung jutaan pernyataan, seperti “Ibukota Kanada adalah Ottawa”, atau “Mona Lisa dilukis dengan cat minyak pada kayu poplar”, atau “emas memiliki titik lebur 1,064.18 derajat Celsius”. SPARQL adalah bahasa untuk memformulasi pertanyaan (kueri) pada basisdata pengetahuan. Pada basisdata yang tepat, kueri SPARQL dapat menjawab pertanyaan-pertanyaan seperti “apakah tonalitas di musik yang paling populer?” atau “karakter apa yang paling banyak diperankan oleh para aktor?” atau “bagaimana distribusi golongan darah?” atau “karya penulis apa saja yang jadi domain publik tahun ini?”. WDQS, Wikidata Query Service, menyambung kedua hal tersebut: Kamu memasukkan kueri SPARQL, WDQS menjalankannya terhadap dataset Wikidata dan memberikan hasilnya kepadamu.  Dasar-dasar SPARQL Kueri SPARQL sederhana tampak seperti ini: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} Klausa SELECT mendaftarkan variabel yang kamu mau dapatkan (variabel diawali tanda tanya), dan klausa WHERE mengandung batasan-batasannya, umumnya dalam bentuk kumpulan tripel. Semua informasi di Wikidata (dan basisdata pengetahuan sejenisnya) disimpan dalam bentuk kumpulan tripel; tiap kali kamu menjalankan kueri, layanan kueri mencoba mengisikan variabel-variabel dengan nilai yang sesuai dengan tripel-tripel yang ada di basisdata pengetahuan, dan mengembalikan satu hasil untuk setiap kombinasi variabel-variabel yang ditemukan. Sebuah tripel dapat dibaca seperti layaknya kalimat (itulah sebabnya diakhiri tanda titik) yang terdiri dari \"subjek\", \"predikat\", dan \"objek\". SELECT ?buah
+WHERE
+{
+  ?buah berwarna kuning.
+  ?buah berasa asam.
+} Hasil dari kueri ini dapat mencakup, misalnya \"jeruk nipis\". Di Wikidata, kebanyakan atribut adalah atribut \"ber-\" sehingga kueri juga dapat dibaca: SELECT ?buah
+WHERE
+{
+  ?buah warna kuning.
+  ?buah warna asam.
+} yang dibaca sebagai “?buah ber warna ‘kuning’” (bukan “?buah adalah warna ‘kuning’” – ingatlah bahwa pasangan atribut seperti “orangtua”/“anak”!).Bagaimanapun, itu bukan contoh yang baik untuk WDQS. Rasa adalah hal yang subjektif sehingga Wikidata tidak memiliki atribut seperti itu. Lebih baik kita bayangkan tentang relasi orangtua/anak yang umumnya tidak rancu. Kueri pertama kita Andaikan kita ingin mendaftarkan semua anak dari komponis baroque Johann Sebastian Bach. Dengan menggunakan pseudo-elemen seperti kueri-kueri di atas, bagaimana kamu akan menuliskan kueri?Semoga kamu mendapatkan yang seperti berikut: SELECT ?anak
+WHERE
+{
+  #  anak \"punya orang tua\" Bach
+  ?anak orangtua Bach.
+  # (cat: semua yang muncul setelah tanda '#' adalah komentar yang diabaikan oleh WDQS.)
+} atau ini, SELECT ?anak
+WHERE
+{
+  # anak \"punya bapak\" Bach 
+  ?anak bapak Bach. 
+} atau ini, SELECT ?anak
+WHERE
+{
+  #  Bach \"punya anak\" anak
+  Bach anak ?anak.
+} Kedua tripel pertama mengatakan bahwa ?anak harus memiliki orangtua/bapak Bach; yang ketiga mengatakan bahwa Bach harus memiliki anak ?anak. Mari kita pakai yang kedua untuk saat ini.Sekarang tinggal bagaimana mengubah hal-hal tersebut menjadi kueri WDQS yang layak. di Wikidata, butir dan atribut tidak diidentifikasi dengan nama yang mudah dibaca seperti \"bapak\" (atribut) atau \"Bach\" (butir). (\"Johann Sebastian Bach\" juga adalah nama untuk Pelukis Jerman, dan \"Bach\" mungkin juga merujuk ke nama marga, komune di Perancis, kawah di Merkurius, dst.) sebagai gantinya, butir dan atribut Wikidata diberi penanda unik. Untuk mencari penanda suatu butir, kita cari butir tersebut dan salin Q-angka dari hasil yang paling pas dengan yang kita cari (misalnya, berdasarkan pemerian). Untuk mencari penanda atribut, kita lakukan yang sama. hanya saja pencariannya menggunakan \"P:istilah pencarian\" dan bukan sekadar \"istilah pencarian\" sehingga pencariannya dibatasi hanya pada atribut saja. Dari sini kita tahu bahwa komponis terkenal Johann Sebastian Bach adalah Q1339, dan atribut yang menentukan bapak dari butir adalah P:P22.Akhirnya, kita perlu menambahkan prefiks. untuk tripel-tripel WDQS sederhana, butir-butirnya perlu diawali wd: dan wdt: untuk atribut. (ini hanya berlaku untuk nilai yang sudah tetap – variabel tidak membutuhkan prefix!)Menggabungkan itu semua, sampailah kita pada kueri WDQS kita pertama yang layak: SELECT ?anak
+WHERE
+{
+# ?anak bapak Bach.
+  ?anak wdt:P22 wd:Q1339.
+}
+ Try it! klik tautan \"Cobalah\" dan \"Jalankan\" kueri di halaman WDQS. Apa yang kamu dapatkan? ?anak wd:Q57225 wd:Q76428 … Tampak tidak menarik. Kamu hanya melihat penanda-penanda. Kamu bisa klik pada penanda tersebut untuk melihat halaman Wikidatanya (termasuk label yang berterbaca manusia), tapi bukankah ada cara yang lebih baik untuk melihat hasilnya?Ternyata ada! (pertanyaan retoris itu keren, kan?) kalau kamu tambahkan teks ajaib berikut SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } di beberapa tempat dalam klausa WHERE, kamu bisa menemukan variabel tambahan: untuk setiap variabel ?anu di kuerimu, kamu juga bisa menggunakan variabel ?anuLabel yang mengandung label dari butir dibalik ?anu. Kalau kamu tambahkan ini ke klausa SELECT, kamu akan mendapatkan tidak hanya butir tetapi juga labelnya: SELECT ?anak ?anakLabel
+WHERE
+{
+# ?anak bapak Bach.
+  ?anak wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Coba jalankan kueri tersebut – kamu semestinya dapat melihat tidak hanya nomor butir, tetapi juga nama dari anak-anak. anak anakLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach …  Pelengkap otomatis potongan SERVICE tampak sulit diingat? menggunakan fungsi pencarian tiap kali menulis kueri juga agak membosankan. Untungnya, WDQS menawarkan solusi untuk ini: \"Pelengkap otomatis\". di penyunting kueri query.wikidata.org, kamu bisa menekan kombinasi tombol Ctrl+Spasi dimanapun pada kueri dan kode yang pas akan disarankan; pilih saran yang paling pas dengan tombol panah atas/bawah, dan tekan Enter untuk memilihnya.Sebagai contoh, alih-alih selalu menulis SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }, kamu cukup mengetik SERV, tekan Ctrl+Spasi, dan saran pertama adalah rapalan layanan yang lengkap dan siap digunakan! Cukup tekan Enter untuk memakainya. (pemformatannya mungkin berbeda tapi itu lain soal.)Pelengkap otomatis juga bisa mencarikan untukmu. Jika kamu ketikkan salah satu prefiks Wikidata seperti wd: atau wdt: dan tulis teks setelahnya, Ctrl+Spasi akan mencari teks tersebut pada Wikidata dan menyarankan hasilnya. wd: mencari butir sedangkan wdt: untuk atribut. Sebagai contoh, alih-alih mencari butir untuk Johann Sebastian Bach (Q1339) dan father (P22), kamu cukup mengetikkan wd:Bach dan wdt:bapak kemudian pilih saran yang paling pas dari pelengkap. (Hal ini juga berlaku pada teks yang mengandung spasi seperti wd:Johann Sebastian Bach.) Pola tripel lanjut Jadi kita sudah lihat semua anak-anak dari Johann Sebastian Bach – lebih tepatnya: semua butir yang memiliki bapak Johann Sebastian Bach. tetapi Bach punya dua istri, dan butir-butir tersebut punya dua ibu yang berbeda: Bagaimana jika kita hanya ingin melihat anak-anak Johan Sebastian Bach dari istri pertama, Maria Barbara Bach (Q57487)? Coba tulis kueri tersebut berdasarkan kueri sebelumnya di atas.Sudah? Oke, sekarang langsung ke solusi! solusi paling sederhana adalah dengan menambahkan tripel kedua dengan pembatas tersebut: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339.
+  ?anak wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! dalam Bahasa Indonesia, ini dibaca: Anak memiliki bapak Johann Sebastian Bach. Anak memiliki ibu Maria Barbara Bach. terdengar aneh? dalam bahasa sehari-hari kita bisa menyingkat ini menjadi: Anak memiliki bapak Johann Sebastian bach dan ibu Maria Barbara Bach. Bahkan, penyingkatan ini juga mungkin diekspresikan dalam SPARQL juga: jikan kamu menakhiri suatu tripel dengan titik koma (;) dan bukannya tanda titik, kamu bisa menambahkan pasangan predikat-objek. Dengan demikian kueri kita bisa juga disingkat menjadi: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! yang mengembalikan hasil yang sama tetapi dengan lebih sedikit pengulangan pada kueri.Sekarang coba bayangkan, dari hasil-hasil tersebut, kita hanya tertarik pada anak-anak yang juga merupakan komponis dan pianis. Atribut dan butir yang relevan untuk hal ini adalah occupation (P106), composer (Q36834) dan pianist (Q486748). Coba perbarui kueri di atas dengan menambahkan pembatasan tersebut!Berikut ini solusi saya: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Tanda ; digunakan dua kali lebih banyak untuk menambahkan kedua pekerjaan yang diperlukan. Seperti yang mungkin kamu perhatikan, masih ada beberapa pengulangan seperti jika kita mengatakan: Anak memiliki pekerjaan komponis dan pekerjaan pianis. yang mungkin kita bisa singkat sebagai: Anak memiliki pekerjaan komponis dan pianis. dan SPARQL memiliki sintaks untuk itu juga: sama seperti ; bisa digunakan untuk menambahkan pasangan atribut-objek pada suatu tripel (menggunakan subjek yang sama), tanda , bisa digunakan untuk menambahkan objek pada tripel (mengulang penggunaan kedua subjek dan predikat). Dengan demikian, kuerinya dapat disingkat menjadi: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Catatan: indentasi dan spasi tidak berpengaruh – Saya hanya mengindentasi kueri supaya lebih mudah dibaca. Kamu juga bisa menulis ini sebagai: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # kedua pekerjaan dalam satu baris
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! atau, agak tidak terlalu mudah dibaca: SELECT ?anak ?anakLabel
+WHERE
+{
+  ?anak wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # tanpa adanya indentasi, membedakan antara ; dan , menjadi lebih sulit
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Untungnya, penyunting WDQS mengindentasi tiap baris secara otomatis sehingga kamu tidak perlu khawatir tentang hal ini.Baiklah, mari kita coba rangkum sampai di sini. Kita telah melihat kueri yang terstruktur seperti teks. Setiap tripel tentang suatu subjek diakhiri oleh titik. Beberapa predikat tentang subjek yang sama dipisahkan titik koma, dan beberapa objek pada subjek dan predikat yang sama dapat didaftarkan dengan dipisah oleh koma. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Sekarang Saya mau memperkenalkan satu lagi singkatan yang ditawarkan SPARQL. Jadi kalau kamu mau mendengarkan skenario khayalan satu lagi...Misalkan kita tidak tertarik dengan anak-anaknya Bach (Siapa tahu, mungkin kamu sebetulnya berpikir demikian) tetapi kita tertarik pada cucu-cucunya (misalkan). Ada satu permasalahan di sini: cucu dari Bach yang lewat jalur ibu atau bapak? keduanya atribut yang berbeda sehingga jadi agak menjengkelkan. Sebagai gantinya, mari kita putar saja relasinya: Wikidata juga punya atribut \"anak\" P:P40 yang menunjuk dari orangtua ke anak dan juga bebas gender. Dengan informasi ini, bisakah kamu menulis kueri yang mengembalikan cucu-cucu dari Bach?Berikut ini solusi saya: SELECT ?cucu ?cucuLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?anak.
+  ?anak wdt:P40 ?cucu.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! dalam bahasa manusia, ini dibaca: Bach memiliki anak ?anak. ?anak memiliki anak ?cucu. Sekali lagi, Saya sarankan agar kita menyingkan kalimat ini. Kemudian Saya akan perlihatkan bagaimana SPARQL mendukung penyingkatan serupa. Perhatikan bagaimana kita sebetulnya tidak terlalu peduli tentang anaknya: kita tidak perlu menggunakan variabel kecuali untuk membahas tentang cucu sehingga kita dapat menyingkat kalimatnya menjadi: Bach memiliki anak seseorang yang memiliki anak ?cucu. Alih-alih mengatakan siapa anaknya Bach, kita cukup sebut dengan \"seseorang\": kita tidak peduli siapa dia tapi kita bisa menrujuk balik ke mereka karena kita mengatakan \"seseorang yang\": bagian ini memulai klausa relatif dan dalam klausa relatif kita bisa mengatakan hal-hal tentang \"seseorang\" (mis. apakah dia \"memiliki anak ?cucu\"). Dengan kata lain, \"seseorang\" adalah variabel khusus yang hanya valid dalam klausa relatif ini dan kita tidak perlu secara eksplisit merujuk padanya (kita katakan \"seseorang yang begini dan melakukan itu\" dan bukan \"seseorang yang begini dan seseorang yang melakukan itu\", itu bisa jadi dua \"seseorang\" yang berbeda).dalam SPARQL, hal ini dapat dituliskan sebagai: SELECT ?cucu ?cucuLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?cucu ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Kamu bisa menggunakan pasangan kurung siku ([]) sebagai variabel yang berperan sebagai variabel anonim. Di dalam kurung, kamu bisa menambahkan pasangan predikat-objek, sama seperti ketika setelah tanda ; setelah suatu tripel biasa; subjek implisit dalam hal ini adalah variabel anonim yang direpresentasikan oleh kurung. (Catatan: seperti juga setelah tanda ;, kamu dapat menambahkan lebih banyak pasangan predikat-objek dengan titik koma, atau objek-objek lainnya untuk predikat yang sama dengan koma.)Begitulah pola tripel! tentunya masih ada hal lainnya tentang SPARQL. tetapi sambil kita kesampingkan dulu hal tersebut, saya mau membuat rangkuman sekali lagi: bahasa manusia contoh SPARQL contoh kalimat Juliet mencintai Romeo. titik juliet mencintai romeo. konjungsi (klausa) Romeo mencintai Juliet dan membunuh dirinya. titik-koma romeo mencintai juliet; membunuh romeo. konjungsi (nomina) Romeo membunuh Tybalt dan dirinya. koma romeo membunuh tybalt, romeo. klausa relatif Juliet mencintai seseorang yang membunuh Tybalt. tanda kurung juliet mencintai [ membunuh tybalt ].  Instans and kelas Sebelumnya, Saya sebutkan bahwa kebanyakan atribut Wikidata adalah relasi \"ber-\" atau \"punya\": \"punya\" anak, \"punya\" bapak, \"punya\" pekerjaan. Kadang kala (bahkan mungkin sering) kamu juga perlu mengatakan bahwa sesuatu \"adalah\" namun kenyataannya ada dua jenis relasi untuk hal tersebut: Gone with the Wind adalah film. Film adalah karya seni. Gone with the Wind adalah suatu film. Ia memiliki suatu sutradara (Victor Fleming), memiliki durasi tertentu (238 menit), daftar pemeran (Clark Gable, Vivien Leigh, …), dan seterusnya.\"Film\" adalah konsep yang umum. Film bisa punya sutradara, durasi, dan daftar pemeran, namun konsep \"film\" tidak mesti punya sutradara, durasi, atau daftar pemeran tertentu. Walaupun suatu film \"adalah\" karya seni dan karya seni biasanya punya pencipta, konsep \"film\" itu sendiri tidak punya pencipta – hanya \"instans\" dari konsep ini yang punya.Perbedaan inilah kenapa ada dua atribut untuk \"adalah\" di Wikidata instance of (P31) dan subclass of (P279). \"Gone with the Wind\" adalah instans tertentu dari suatu kelas \"film\"; kelas \"film\" adalah subkelas (kelas yang lebih spesifik; spesialisasi) dari kelas yang lebih umum yaitu \"karya seni\".Untuk membantumu memahami bedanya, kamu bisa coba menggunakan dua predikat yang berbeda: \"adalah suatu\" dan \"adalah jenis dari\". Jika sesuatu \"adalah jenis dari\" karya (mis. film \"adalah jenis dari\" karya seni), itu menunjukkan bahwa kamu sedang membahas subkelas, spesialisasi atau pengkhususan dari kelas yang lebih luas dan kamu seharusnya menggunakan subclass of (P279). Jika sesuatu bukan \"adalah jenis dari\" karya (mis. kalimat \"Gone with the wind \"adalah jenis dari\" film\" kurang masuk akal), itu menunnjukkan bahwa kamu sedang membahas instans tertentu dan kamu semestinya menggunakan instance of (P31).jadi apa artinya ini buat kita ketika kita sedang menulis kueri SPARQL? Ketika kita mau mencari \"semua karya seni\", tidak cukup hanya mencari semua butir yang merupakan instans langsung dari \"karya seni\": SELECT ?karya ?karyaLabel
+WHERE
+{
+  ?karya wdt:P31 wd:Q838948. # instans dari karya seni
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Ketika tulisan ini ditulis (Oktober 2016), kueri tersebut hanya mengembalikan 2815 hasil – padahal, ada jauh lebih banyak karya seni daripada itu! Persoalannya adalah kueri ini melewatkan butir-butir seperti \"Gone with the Wind\", yang hanya merupakan instans dari \"film\", bukan \"karya seni\". \"film\" adalah subkelas dari \"karya seni\" namun kita perlu memberitahukan kepada SPARQL tentang hal ini ketika melakukan pencarian.Salah satu solusi yang mungkin untuk hal ini adalah menggunakan sintaks [] yang sudah kita bahas sebelumya: \"Gone with the Wind\" adalah instans dari \"suatu\" subkelas dari \"karya seni\". (Sebagai latihan, coba tuliskan kueri tersebut!) Namun masih ada beberapa masalah: Kita tidak lagi mencantumkan butir-butir yang merupakan instans langsung dari karya seni. Kita masih melewatkan butir-butir yang merupakan instans dari beberapa subkelas dari subkelas karya seni yang lain – sebagai contoh, \"Snow White and the Seven Dwarfs\" adalah film animasi, yang juga adalah film, yang juga adalah karya seni. Dalam hal ini, kita perlu menelusuri dua pernyataan \"subkelas dari\" – bisa juga tiga, empat, lima, berapapun. Solusinya: ?butir wdt:P31/wdt:P279* ?kelas. Ini artinya ada sesuatu yang \"adalah\" dan ada berapapun pernyataan \"subkelas dari\" di antara butir dan kelas tersebut. SELECT ?karya ?karyaLabel
+WHERE
+{
+  ?karya wdt:P31/wdt:P279* wd:Q838948. # instans dari subkelas karya seni manapun
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (Saya tidak menyarankan menjalankan kueri tersebut. WDQS mungkin saja (hampir) bisa menanganinya tetapi perambanmu mungkin akan membeku ketika mencoba menampilkan seluruh hasil saking banyaknya.)Sekarang kamu tahu caranya mencari semua karya seni, atau semua bangunan, atau semua permukiman manusia: mantra ajaibnya wdt:P31/wdt:P279* diikuti kelas yang sesuai. Hal ini menggunakan beberapa fitur SPARQL yang belum saya jelaskan tetapi sejujurnya ini merupakan hampir satu-satunya penggunaan fitur-fitur tersebut yang relevan. jadi, kamu tidak \"perlu\" memahami cara kerjanya sekarang untuk menggunakan WDQS secara efektif. Jika kamu ingin tahu, Saya akan jelaskan sedikit, tapi kamu juga bisa melewatkan bab berikut dan mengingat atau salin+tempel wdt:P31/wdt:P279* dari sini ketika kamu membutuhkannya. Jejak atribut Jejak atribut adalah cara singkat untuk menulis jejak atribut antara dua butir. Jejak paling sederhana adalah satu atribut yang membentuk tripel biasa: ?item wdt:P31 ?class. Kamu bisa menambahkan elemen jejak dengan tanda garis miring (/). ?item wdt:P31/wdt:P279/wdt:P279 ?class. Ini ekuivalen dengan salah satu diantara: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Latihan: tulis ulang kueri \"cucu Bach\" sebelumnya menggunakan sintaks ini.Tanda bintang (*) setelah elemen jejak berarti “nol or lebih elemen ini”. ?item wdt:P31/wdt:P279* ?class.
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">means:</span>
+?item wdt:P31 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or ...</span> Jika tidak ada elemen lagi di dalam jejak, ?a sesuatu* ?b berarti ?b mungkin saja merupakan ?a tanpa ada elemen jejak diantaranya sama sekali. Tanda tambah (+) mirip dengan tanda bintang namun berarti “satu atau lebih elemen ini”. Kueri berikut menemukan semua keturunan Bach: SELECT ?keturunan ?keturunanLabel
+WHERE
+{
+  wd:Q1339 wdt:P40+ ?keturunan.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Jika kita gunakan tanda bintang sebagai pengganti tanda tambah di sini, hasil kueri juga akan mencantumkan Bach.Tanda tanya (?) juga mirip dengan tanda bintang atau tanda tambah, tetapi artinya adalah “nol atau satu dari elemen ini”.Kamu bisa memisahkan elemen-elemen jejak dengan tanda vertikal (|) alih-alih menggunakan garis miring; ini artinya \"salah-satu\": jejaknya bisa jadi adalah salah satu dari atribut tersebut. (Tapi bukan keduanya – segmen jejak salah-satu selalu mencocokkan jejak berpanjang satu.)Kamu juga bisa mengelompokkan elemen jejak dengan menggunakan tanda kurung (()) dan bebas mengombinasikan elemen-elemen sintaks (code>/|*+?). Ini artinya ada cara lain untuk menemukan semua keturunan Bach, yaitu: SELECT ?keturunan ?keturunanLabel
+WHERE
+{
+  ?keturunan (wdt:P22|wdt:P25)+ wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Alih-alih menggunakan atribut anak untuk menelusuri dari Bach ke keturunannya, kita menggunakan atribut bapak dan ibu untuk menelusuri dari para keturunan ke Bach. Jejaknya mungkin memasukkan dua ibu dan satu bapak, atau empat bapat, atau bapak-ibu-ibu-bapak, atau kombinasi lainnya. (Walaupun tentunya Bach tidak mungkin adalah ibu dari seseorang sehingga elemen terakhir pasti adalah Bapak.) Penjelas (Kabar baik dulu: bab ini tidak memperkenalkan sintaks tambahan untuk SPARQL – yey! Tarik nafas dalam-dalam dan santailah, mestinya ini mudah, kan?)Sejauh ini, kita hanya membahas pernyataan-pernyataan sederhana: subjek, atribut, objek. Namun pernyataan Wikidata sebetulnya lebih daripada itu: penjelas dan rujukan juga termasuk di dalamnya. Sebagai contoh, Mona Lisa (Q12418) punya tiga pernyataan made from material (P186): oil paint (Q296955), material utama; poplar wood (Q291034), dengan penjelas applies to part (P518)painting support (Q861259) – ini adalah material Mona Lisa yang dilukiskan pada mulanya; dan wood (Q287), dengan penjelas applies to part (P518)stretcher (Q1737943) dan start time (P580) 1951 – ini adalah bagian yang ditambahkan pada lukisan kemudian. Anggap kita mau mencari semua lukisan dengan permukaan lukisannya, yakni, pernyataan made from material (P186) dengan penjelas applies to part (P518)painting support (Q861259) . Bagaimana kita melakukannya? Ada lebih banyak informasi yang bisa direpresentasikan dalam satu tripel.Jawabannya adalah: lebih banyak tripel! (solusi Wikidata untuk hampir semuanya adalah \"lebih banyak butir\" dan kaidah WDQS yang bersesuaian adalah \"lebih banyak tripel\". Rujukan, keakuratan numerik, angka dengan satuan, koordinat geografis, dll. semua yang kita lewatkan di sini juga dimodelkan dengan cara ini). Sejauh ini, kita telah menggunakan prefiks wdt: untuk tripel pernyataan yang menunjuk langsung ke objek peryataan tersebut. Namun ada juga prefiks p: yang menunjuk tidak ke objek tapi ke simpul pernyataan. Simpul ini kemudian adalah subjek dari tripel-tripel lainnya: prefiks ps: (dalam bahasa inggris, singkatan ps merujuk ke property statement atau pernyataan atribut) menunjuk ke objek pernyataan, prefiks pq: (dalam bahasa inggris, pq merujuk ke property qualifier atau penjelas atribut) ke penjelas, dan prov:wasDerivedFrom menunjuk ke simpul rujukan (yang akan kita abaikan untuk saat ini).Ada banyak sekali teks abstrak. Berikut contoh konkret untuk Mona Lisa: wd:Q12418 p:P186 ?statement1.    # Mona Lisa: material used: ?statement1
+?statement1 ps:P186 wd:Q296955.  # value: oil paint
+
+wd:Q12418 p:P186 ?statement2.    # Mona Lisa: material used: ?statement2
+?statement2 ps:P186 wd:Q291034.  # value: poplar wood
+?statement2 pq:P518 wd:Q861259.  # qualifier: applies to part: painting surface
+
+wd:Q12418 p:P186 ?statement3.    # Mona Lisa: material used: ?statement3
+?statement3 ps:P186 wd:Q287.     # value: wood
+?statement3 pq:P518 wd:Q1737943. # qualifier: applies to part: stretcher bar
+?statement3 pq:P580 1951.        # qualifier: start time: 1951 (pseudo-syntax) Kita bisa menyingkat banyak dari ini dengan sintaks [] menggantikan variabel ?statement: wd:Q12418 p:P186 [ ps:P186 wd:Q296955 ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q291034;
+            pq:P518 wd:Q861259
+          ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q287;
+            pq:P518 wd:Q1737943;
+            pq:P580 1951
+          ]. Bisakah kamu menggunakan pengetahuan ini untuk menulis kueri semua lukisan dengan permukaan lukisannya?Berikut ini solusi saya: SELECT ?lukisan ?lukisanLabel ?material ?materialLabel
+WHERE
+{
+  ?lukisan wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?material; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Pertama, kita batasi ?lukisan ke semua instans dari painting (Q3305213) atau subkelasnya. kemudian, kita ekstrak material dari simpul pernyataan p:P186 sehingga membatasi ke pernyataan yang mempunyai penjelas applies to part (P518)painting support (Q861259) . ORDER dan LIMIT Kita kembali ke agenda program reguler fitur-fitur SPARQL lainnya.Sejauh ini, kita telah temukan kueri-kueri yang kita tertarik untuk semua hasilnya. Namun tidak jarang juga kita hanya ingin tahu beberapa hasilnya saja; hal-hal yang sifatnya superlatif – tertua, termuda, termula, terbaru, populasi terbanyak, titik lebur terendah, anak terbanyak, material yang paling sering digunakan, dst. Faktor yang menyatukan itu semua adalah hasilnya diurutkan dan kita hanya perlu beberapa hasil terawal (urutan-urutan awal).Hal ini dikendalikan dengan dua klausa yang ditambahkan setelah blok WHERE {} (setelah kurung kurawal, bukan di dalamnya!): ORDER BY dan LIMIT.ORDER BY sesuatu mengurutkan hasil berdasarkan sesuatu. sesuatu dapat berupa ekspresi apapun – untuk saat ini, satu-satunya ekspresi yang kita tahu adalah satu variabel sederhana (?sesuatu), tapi kita akan lihat jenis lainnya nanti. Ekspresi ini juga dapat dikemas dalam ASC() atau DESC() untuk menspesifikasi jenis urutan (asc untuk urut menaik atau desc untuk urut menurun). (Jika kamu tidak menspesifikasikannya maka yang akan digunakan adalah urut menaik sehingga ASC(sesuatu) ekuivalen dengan sesuatu.)LIMIT sekian memotong daftar hasil menjadi hanya sekian hasil dengan sekian adalah bilangan asli. Sebagai contoh, LIMIT 10 membatasi hasil kueri menjadi hanya maksimal sepuluh butir. LIMIT 1 hanya mengembalikan satu hasil (bila ada).(Kamu juga bisa menggunakan LIMIT tanpa ORDER BY. Pada kasus ini, hasilnya menjadi tidak diurutkan jadi kamu tidak punya jaminan hasil mana yang akan kamu dapatkan. Hal ini bisa jadi tidak masalah jika kamu tahu bahwa hanya ada sejumlah hasil atau kamu hanya tertarik dengan beberapa hasil saja tanpa peduli dengan hasil yang mana. Apapun kasusnya, menambahkan LIMIT dapat mempercepat kueri karena WDQS dapat berhenti mencari sesegera mungkin jika hasil yang didapat sudah memenuhi batas.)Waktunya latihan! Coba tuliskan kueri yang mengembalikan sepuluh negara dengan populasi terbanyak. (Negara adalah sovereign state (Q3624078), dan atribut untuk populasi adalah P:P1082.) Kamu bisa memulai dengan mencari negara dan populasinya lalu menambahkan klausa ORDER BY dan LIMIT.Berikut ini solusi saya: SELECT ?negara ?negaraLabel ?populasi
+WHERE
+{
+  ?negara wdt:P31/wdt:P279* wd:Q3624078;
+           wdt:P1082 ?populasi.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?population)
+LIMIT 10
+ Try it! Perhatikan bahwa jika kita ingin negara dengan populasi \"terbanyak\", kita perlu mengurutkan berdasarkan populasi yang \"mengecil\" sehingga hasil teratas akan berisi nilai yang paling besar. Latihan Kita telah meliputi cukup banyak dasar sejauh ini – Saya pikir ini waktunya untuk latihan lagi. (Kamu bisa melewati bab ini jika kamu sedang terburu-buru.) Buku-buku Arthur Conan Doyle Tuliskan kueri yang mengembalikan semua buku oleh Sir Arthur Conan Doyle. Petunjuk Butir dan atribut yang relevan adalah: Arthur Conan Doyle (Q35610), author (P50). Contoh solusi SELECT ?buku ?bukuLabel
+WHERE
+{
+  ?buku wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Unsur-unsur Kimia Tulislah kueri yang mengembalikan semua unsur-unsur kimia dengan simbol dan nomor atomnya berurut berdasrkan nomor atom. Petunjuk Butir dan atribut yang relevan adalah: chemical element (Q11344), element symbol (P246), atomic number (P1086). Contoh solusi SELECT ?unsur ?unsurLabel ?simbol ?nomor
+WHERE
+{
+  ?unsur wdt:P31 wd:Q11344;
+           wdt:P246 ?simbol;
+           wdt:P1086 ?nomor.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?nomor
+ Try it!  Sungai-sungai yang mengalir ke Mississippi Tulislah kueri yang mengembalikan semua sungai-sungai yang mengalir langsung ke sungai Mississippi. (tantangan utamanya adalah menemukan atribut yang tepat...) Petunjuk Butir dan atribut yang relevan adalah: Mississippi River (Q1497), mouth of the watercourse (P403). Contoh solusi SELECT ?sungai ?sungaiLabel
+WHERE
+{
+  ?sungai wdt:P403 wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Sungai yang mengalir ke Mississippi II Tulislah kueri yang mengembalikan semua sungai-sungai yang mengalir ke sungai Mississippi, langsung atau tidak langsung. Petunjuk kueri ini hampir sama dengan sebelumnya. Perbedaannya adalah sekarang kamu perlu jejak sebagai pengganti tripel. (kalau kamu melewatkan bab tentang jejak, lewati latihan ini juga.) Contoh solusi SELECT ?sungai ?sungaiLabel
+WHERE
+{
+  ?sungai wdt:P403+ wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! OPTIONAL Pada latihan-latihan di atas, kita sudah memiliki kueri untuk semua buku oleh Sir Arthur Conan Doyle: SELECT ?book ?bookLabel
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Tapi itu agak membosankan. Ada banyak data potensial tentang buku dan kita hanya menampilkan labelnya? Mari kita coba buat kueri yang juga menggunakan title (P1476), illustrator (P110), publisher (P123) dan publication date (P577).Percobaan pertama mungkin tampak seperti ini: SELECT ?buku ?judul ?ilustratorLabel ?penerbitLabel ?diterbitkan
+WHERE
+{
+  ?buku wdt:P50 wd:Q35610;
+        wdt:P1476 ?judul;
+        wdt:P110 ?ilustrator;
+        wdt:P123 ?penerbit;
+        wdt:P577 ?diterbitkan.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Jalankan kueri tersebut. Ketika saya menulis ini, kueri itu hanya mengembalikan dua hasil – tampak terlalu sedikit! Mengapa begitu? Tadi kita temukan lebih dari ratusan buku!Hal ini disebabkan bahwa untuk mencocokkan kueri tersebut, suatu butir hasil (buku) harus sesuai dengan semua tripel yang kita jabarkan: harus punya judul, ilustrator, penerbit, dan tanggal publikasi. Jika suatu buku hanya punya beberapa atribut tetapi tidak semuanya maka buk tersebut tidak akan dianggap cocok dan tidak akan dimasukkan ke dalam hasil. Hal itu bukan seperti yang kita inginkan dalam kasus ini: kita utamanya hanya ingin daftar semua buku – kalau ada informasi tambahan maka sebaiknya dimasukkan tetapi kita tidak ingin hal ini membatasi hasil kueri.Solusinya adalah memberitahu WDQS bahwa tripel-tripel tersebut adalah \"opsional\": SELECT ?buku ?judul ?ilustratorLabel ?penerbitLabel ?diterbitkan
+WHERE
+{
+  ?buku wdt:P50 wd:Q35610.
+  OPTIONAL { ?buku wdt:P1476 ?judul. }
+  OPTIONAL { ?buku wdt:P110  ?ilustrator. }
+  OPTIONAL { ?buku wdt:P123  ?penerbit. }
+  OPTIONAL { ?buku wdt:P577  ?diterbitkan. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Hal ini memberikan kita variabel-variabel tambahan (?judul, ?penerbit, dst.) jika pernyataan yang sesuai memang ada. Bila pernyataan yang sesuai tidak ada maka variabel-variabel tersebut hanya akan dikosongkan.Catatan: Sangat penting menggunakan klausa OPTIONAL terpisah di sini. Jika kamu menempatkan semua tripel dalam satu klausa seperti ini – SELECT <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">?book ?title ?illustratorLabel ?publisherLabel ?published</span>
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  OPTIONAL {
+    ?book wdt:P1476 ?title;
+          wdt:P110 ?illustrator;
+          wdt:P123 ?publisher;
+          wdt:P577 ?published.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! – kamu akan melihat bahwa kebanyakan hasilnya tidak mengandung informasi tambahan apapaun. Hal ini disebabkan klausa opsional dengan beberapa tripel hanya dianggap cocok bila semua tripelnya terpenuhi. yaitu, jika suatu buku punya judul, ilustrator, penerbit, dan tanggal terbit maka klausa opsional terpenuhi dan nilai-nilai tersebut akan diisikan ke variabel yang bersesuaian. Namun jika suatu buku punya, sebagai contoh, judul tapi tidak ada ilustrator, maka keseluruhan klausa optional dianggap tidak terpenuhi dan walaupun hasilnya tidak disingkirkan, semua variabel akan tetap kosong. Ekspresi, FILTER dan BIND Bab ini mungkin agak kurang teratur dibanding bab lainnya karena mencakup topik yang cukup luas. Konsep dasarnya adalah kita sekarang mau melakukan sesuatu dengan nila yang sejauh ini cukup dipilih dan akan dikembalikan tanpa kecuali. \"Ekspresi\" adalah cara untuk mengekspresikan operasi-operasi terhadap nilai. Ada berbagai macam ekspresi dan banyak hal yang bisa dilakukan dengannya – tapi sebelumya, mari kita mulai dari dasar: tipe data. Tipe-tipe data Setiap nilai di SPARQL punya tipe yang menyatakan bahwa nilai seperti apa isinya dan apa yang bisa dilakukan terhadapnya. Tipe-tipe data yang paling penting diantaranya: butir, seperti wd:Q12507668 untuk Raditya Dika (Q12507668). boolean, untuk dua nilai yang mungkin benar (true) atau salah (false). Nilai Boolean tidak disimpan secara eksplisit dalam pernyataan tapi banyak ekspresi mengembalikan nilai boolean, mis. 2 < 3 (true) atau \"a\" = \"b\" (false). string, sepotong teks. Literal string dituliskan dalam apitan kutip ganda. teks monolingual, suatu string yang ditambahkan tag bahasa. Pada suatu literal, kamu dapat menambahkan tag bahasa setelah string tersebut dengan tanda @, mis. \"Raditya Dika\"@id. bilangan, baik bilangan bulat (1) atau desimal (1.23). tanggal. Literal tanggal dapat dituliskan dengan menambahkan tanda ^^xsd:dateTime (sensitif kapital – ^^xsd:datetime tidak akan dianggap!) terhadap string tanggal ISO 8601: \"2012-10-29\"^^xsd:dateTime. (Wikidata belum mendukung stempelmasa dengan jam, menit, detik, dst.)  Operator-operator Operator-operator matematika yang biasa kita kenal yang tersedia antara lain:+, -, *, / untuk penjumlahan, pengurangan, perkalian atau pembagian bilangan, <, >, =, <=, >= untuk perbandingan. Uji ketidaksamaan ≠ ditulis sebagai !=. Perbandingan juga didefinisikan untuk tipe data lainnya; sebagai contoh, \"abc\" < \"abd\" bernilai benar (perbandingan leksikal), begitu juga \"2016-01-01\"^^xsd:dateTime > \"2015-12-31\"^^xsd:dateTime dan wd:Q4653 != wd:Q283111. Kondisi boolean dapat dikombinasikan dengan && (operator logika DAN: a && b bernilai benar jika kedua suku a dan b sama-sama bernilai benar) dan || (operator logika ATAU: a || b bernilai benar jika salah satu (atau keduanya) dari a dan b bernilai benar). FILTER Info Untuk alternatif pengganti FILTER yang terkadang lebih cepat, Anda bisa juga melihat MINUS, lihat contoh.FILTER(kondisi) adalah klausa yang bisa kamu selipkan ke dalam kueri SPARQL untuk menyaring hasil eksekusi. Di dalam tanda kurung, kamu bisa menempatkan ekspresi bertipe boolean dan hanya hasil yang sesuai dengan ekspresi tersebut (evaluasi ekspresi menghasilkan true) yang dikembalikan.Sebagai contoh, untuk mendapatkan daftar semua orang yang lahir di tahun 2015, pertama-tama kita cari dulu semuau manusia dan tanggal lahirnya – SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+} – kemudian saring supaya hanya mengembalikan hasil yang memiliki tahun lahir 2015. Ada dua cara untuk melakukan ini: ekstrak tahun dari tanggal menggunakan fungsi YEAR, lalu ujikan apakah nilainya 2015 – FILTER(YEAR(?dob) = 2015). – atau periksa apakah tanggalnya ada di antara 1 Januari 2015 (inklusif) dan 1 Januari 2016 (eksklusif): FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime). Kalau menurut saya opsi pertama lebih sederhana tetapi ternyata opsi kedua jauh lebih cepat. Kalau begitu mari gunakan yang kedua: SELECT ?orang ?orangLabel ?ttl
+WHERE
+{
+  ?orang wdt:P31 wd:Q5;
+          wdt:P569 ?ttl.
+  FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?ttl < \"2016-01-01\"^^xsd:dateTime).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+ Try it! Kemungkinan lain penggunaan FILTER terkait pada label. Layanan label sangat berguna jika kamu hanya ingin menampilkan label dari suatu variabel tetapi jika kamu ingin melakukan sesuatu terhadap label– misalnya: cek jika label diawali dengan “Mr. ” – kamu akan dapatkan bahwa itu tidak bisa: SELECT ?human ?humanLabel
+WHERE
+{
+  ?human wdt:P31 wd:Q15632617.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  #This FILTER does not work!
+  FILTER(STRSTARTS(?humanLabel, \"Mr. \")).
+}
+ Try it! kueri ini menemukan semua instans dari fictional human (Q15632617) dan menguji jika labelnya diawali dengan \"Mr. \" (STRSTARTS merupakan singkatan dari “string starts [with]” atau string diawali [dengan]; ada juga STRENDS untuk string yang diakhiri dan CONTAINS untuk string yang mengandung). Hal ini tidak dapat dilakukan karena layanan label menambahkan variabel label di akhir proses evaluasi kueri; layanan label belum membuat variabel ?manusiaLabel bahkan ketika kita mencoba melakukan FILTER terhadap variabel tsb.Sayangnya, layanan label bukan satu-satunya cara untuk mendapatkan label dari suatu butir. Label juga disimpan sebagai tripel biasa menggunakan predikat rdfs:label. Tentunya ini berarti semua label bukan sekadar label bahasa Inggris; tapi jika kita hanya ingin label bahasa Inggris, maka kita harus memfilter terhadap bahasa dari label tersebut: FILTER(LANG(?label) = \"en\"). Fungsi LANG mengembalikan bahasa dari string monolingual, dan di sini kita hanya memilih label dalam bahasa Inggris. Kueri keseluruhannya adalah: SELECT ?manusia ?label
+WHERE
+{
+  ?manusia wdt:P31 wd:Q15632617;
+         rdfs:label ?label.
+  FILTER(LANG(?label) = \"[AUTO_LANGUAGE]\").
+  FILTER(STRSTARTS(?label, \"Mr. \")).
+}
+ Try it! Kita dapatkan label dengan tripel ?manusia rdfs:label ?label lalu membatasi hanya untuk label berbahasa Inggris, kemudian menguji apakah label tersebut diawali “Mr. ”.FILTER juga bisa digunakan dengan ekspresi reguler. Pada contoh berikut SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"[\\\\.q]\")) 
+}
+ Try it! Jika pewatas format suatu ID adalah [A-Za-z][-.0-9A-Za-z]{1,}: SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"^[A-Za-z][-.0-9A-Za-z]{1,}$\"))
+}
+ Try it! Elemen spesifik dapat disaring dengan cara seperti ini FILTER ( ?item not in ( wd:Q4115189,wd:Q13406268,wd:Q15397819 ) ) Bisa juga menyaring dan mengambil elemen yang tidak diisi: FILTER ( NOT EXISTS { ?item  wdt:P21 [] } )  BIND, BOUND, IF Ketiga fitur ini sering digunakan bersamaan satu sama lain, jadi Saya akan menjelaskan ketiganya dan menunjukkan beberapa contoh.Klausa BIND(ekspresi AS ?variabel). dapat digunakan untuk mengisi hasil suatu ekspresi ke dalam suatu variabel (biasanya variabel baru namun juga bisa digunakan untuk mengisi variabel yang sudah ada sebelumnya).BOUND(?variable) menguji apakan suatu variabel sudah diikat ke nilai tertentu (bernilai true atau false). Hal ini biasanya berguna pada variabel yang ditambahkan oleh klausa OPTIONAL.IF(kondisi,ekspresiKalauYa,ekspresiKalauTidak) dievaluasi sebagai ekspresiKalauYa jika kondisi bernilai true, dan ekspresiKalauTidak jika kondisi bernilai false. Jadi, IF(true, \"ya\", \"tidak\") akan dievaluasi sebagai \"ya\", dan IF(false, \"bagus\", \"jelek\") akan dievaluasi sebagai \"jelek\".BIND dapat digunakan untuk mengikat beberapa perhitungan ke dalam variabel baru. Hal ini bisa berupa hasil antara dari perhitungan yang lebih besar atau berupa hasil dari suatu kueri. Sebagai contoh, untuk mendapatkan usia dari korban hukuman mati: SELECT ?orang ?orangLabel ?usia
+WHERE
+{
+  ?orang wdt:P31 wd:Q5;
+          wdt:P569 ?lahir;
+          wdt:P570 ?wafat;
+          wdt:P1196 wd:Q8454.
+  BIND(?wafat - ?lahir AS ?usiaHari).
+  BIND(?usiaHari/365.2425 AS ?usiaTahun).
+  BIND(FLOOR(?usiaTahun) AS ?usia).
+  # atau, sebagai satu ekspresi:
+  #BIND(FLOOR((?wafat - ?lahir)/365.2425) AS ?usia).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! BIND juga dapat digunakan untuk mengikat nilai konstan ke variabel untuk mempermudah keterbacaan. Sebagai contoh, kueri untuk menemukan semua pendeta wanita: SELECT ?perempuan ?perempuanLabel
+WHERE
+{
+  ?perempuan wdt:P31 wd:Q5;
+         wdt:P21 wd:Q6581072;
+         wdt:P106 wd:Q42603.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! juga dapat dituliskan sebagai: SELECT ?wanita ?wanitaLabel
+WHERE
+{
+  BIND(wdt:P31 AS ?adalah).
+  BIND(wd:Q5 AS ?manusia).
+  BIND(wdt:P21 AS ?jenisKelamin).
+  BIND(wd:Q6581072 AS ?wanita).
+  BIND(wdt:P106 AS ?pekerjaan).
+  BIND(wd:Q42603 AS ?pendeta).
+  ?perempuan ?adalah ?manusia;
+         ?jenisKelamin ?wanita;
+         ?pekerjaan ?pendeta.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Bagian yang mengandung makna dari kueri, dari ?wanita ke ?pendeta kini jadi lebih mudah dibaca. Namun, sebagian besar blok BIND di bagian depan kueri cukup mengganggu sehingga penggunaannya perlu dipertimbangkan ulang. (di antarmuka WDQS, kamu bisa melewatkan tetikus di atas sembarang istilah seperti wd:Q123 atau wdt:P123 dan melihat label dan deskripsi entitas tersebut, jadi ?wanita hanya akan lebih mudah dibaca jika fitur ini diabaikan.)Ekspresi IF seringkali digunakan bersama BOUND sebagai ekspresinya. Sebagai contoh, anggap kamu punya kueri yang menampilkan beberapa orang dan alih-alih hanya menampilkan labelnya, kamu berniat menampilkan pseudonym (P742) jika tersedia dan hanya menggunakan label jika pseudonim tidak tersedia. Untuk itu, kamu pilih pseudonim dalam klausa OPTIONAL (harus optional – kamu tidak ingin membuang hasil yang tidak punya pseudonim), kemudian gunakan BIND(IF(BOUND(… untuk memilih antara pseudonim atau label. SELECT ?writer ?label
+WHERE
+{
+  # French writer born in the second half of the 18th century
+  ?writer wdt:P31 wd:Q5;
+          wdt:P27 wd:Q142;
+          wdt:P106 wd:Q36180;
+          wdt:P569 ?dob.
+  FILTER(\"1751-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"1801-01-01\"^^xsd:dateTime).
+  # get the English label
+  ?writer rdfs:label ?writerLabel.
+  FILTER(LANG(?writerLabel) = \"en\").
+  # get the pseudonym, if it exists
+  OPTIONAL { ?writer wdt:P742 ?pseudonym. }
+  # bind the pseudonym, or if it doesn’t exist the English label, as ?label
+  BIND(IF(BOUND(?pseudonym),?pseudonym,?writerLabel) AS ?label).
+}
+ Try it! atribut-atribut lain yang dapat digunakan dalam hal ini melingkupi nickname (P1449), posthumous name (P1786), dan taxon common name (P1843) – apapun yang bisa jadi semacam \"cadangan\" yang masuk akal.Kamu juga bisa menggabungkan BOUND dengan FILTER untuk menjamin bahwa paling tidak ada satu atau beberapa blok OPTIONAL telah terpenuhi. Sebagai contoh, mari dapatkan semua astronot yang pernah ke Bulan sekalian dengan anggota Apollo 13 (Q182252) (cukup mendekati, bukan?). Pengetatan itu tidak dapat diekspresikan dalam satu jejak atribut sehingga kita perlu satu klausa OPTIONAL untuk \"anggota dari beberapa misi ke Bulan\" dan satu lagi untuk \"anggota Apollo 13\". Tapi kita hanya ingin memilih hasil yang paling tidak salah satu kondisi ini terpenuhi. SELECT ?astronot ?astronotLabel
+WHERE
+{
+  ?astronot wdt:P31 wd:Q5;
+             wdt:P106 wd:Q11631.
+  OPTIONAL {
+    ?astronot wdt:P450 ?misi.
+    ?misi wdt:P31 wd:Q495307.
+  }
+  OPTIONAL {
+    ?astronot wdt:P450 wd:Q182252.
+    BIND(wd:Q182252 AS ?misi).
+  }
+  FILTER(BOUND(?misi)).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! COALESCE Fungsi COALESCE dapat digunakan sebagai singkatan dari pola BIND(IF(BOUND(?x), ?x, ?y) AS ?z). sebagai cadangan yang disebut di atas: fungsi tersebut menerima sejumlah ekspresi dan mengembalikan ekspresi pertama yang dievaluasi tanpa kesalahan. Sebagai contohm cadangan \"pseudonim\" di atas BIND(IF(BOUND(?pseudonim),?pseudonim,?penulisLabel) AS ?label). dapat dituliskan secara lebih singkat sebagai BIND(COALESCE(?pseudonim, ?penulisLabel) AS ?label). menambahkan label cadangan satu lagi dalam kasus ?penulisLabel tidak terdefinisi pun juga mudah: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/id>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

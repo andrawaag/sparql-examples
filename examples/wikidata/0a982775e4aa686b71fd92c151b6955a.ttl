@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0a982775e4aa686b71fd92c151b6955a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?itemLabel ?itemType ?itemTypeLabel
+
+WHERE
+
+{
+
+&nbsp; ?item wdt:P50 wd:Q17508688. 
+
+&nbsp; UNION 
+
+&nbsp; { SERVICE wdsubgraph:wikidata_main { ?item wdt:P50 wd:Q17508688}&nbsp; }
+
+&nbsp; &nbsp; 
+
+&nbsp;
+
+&nbsp; SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". } # Helps get the label in your language, if not, then default for all languages, then en language
+
+}""";
+  rdfs:comment """ Request a query Fishing in the Wikidata river requires both an idea where to look for fish and a suitable fishing method. If you have the former, this page can help you find the latter. This is a page where SPARQL queries [Q114898838] can be requested. Please provide feedback if a query is written for you. You can also request help to rewrite queries that don't work anymore, due to the WDQS graph split. For sample queries, see Examples and Help:Dataset sizing. Property talk pages include also summary queries for these. For help writing your own queries, or other questions about queries, see Wikidata talk:SPARQL query service/queries and Wikidata:SPARQL query service/query optimization. Help resources about Wikidata Query Service (Q20950365) and SPARQL: Wikidata:SPARQL query service/Wikidata Query Help and Category:SPARQL. To report an issue about the Query Service (interface, results views, export...) please see Wikidata:Contact the development team/Query Service and search. Translate this header box! Start a new discussion  On this page, old discussions are archived. An overview of all archives can be found at this page's archive index. The current archive is located at 2024/09. Project chat Translators' noticeboard Bot requests Lexicographical data Request a query Requests for permissions Interwiki conflicts Administrators' noticeboard Requests for deletions Property proposal Bureaucrats' noticeboard Report a technical problem Requests for comment Properties for deletion Requests for checkuser  Contents 1 All items that have a P1705 for Skolt Saami and a P4119 value 2 Help with WDGS 3 Labels for scholarly articles 4 WDQS being weird (railway junctions) 5 humans without source ? 6 Olympic medalists 7 inferring narrower occupations 8 Islands 9 Slightly different results after federating a query 10 Slice, how does it work? 11 List of persons whose age is a multiple of 25 12 Query to find all Renaissance Artists born in Italy 13 List of cyclists and URLs to Wikipedia in different languages All items that have a P1705 for Skolt Saami and a P4119 value [edit] I've been trying to get a list of all of the items on wd that have a native label (P1705) value in Skolt Sami (Q13271) and have a NLS Geographic Names Register Place ID (P4119) value as someone has imported all of these as part of a batch where everything else is correct and these particular values are usually not, so I don't want to just revert the batch. I haven't figured out how to isolate the native label (P1705) for only the Skolt Sami (Q13271) values, so I'd appreciate the help. - Yupik (talk) 16:37, 1 September 2024 (UTC)[reply] @Yupik: select ?l ?lLabel ?sms ?p4119 {
+  ?l wdt:P4119 ?p4119 ; # has a P4119
+     wdt:P1705 ?sms . # has a P1705
+     filter(lang(?sms)=\"sms\") # with language sms
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+} order by ?sms
+ Try it! does this return what you want? Mahir256 (talk) 16:43, 1 September 2024 (UTC)[reply] Yes, thank you! - Yupik (talk) 16:45, 1 September 2024 (UTC)[reply] Help with WDGS [edit] Hi, I have a number of queries written as part of a project Wikidata:WikiProject LSEThesisProject and will need to re-write them due to the Graph Split. My SPARQL knowledge is basic and the queries produced were achieved by trial and error / modifying others' queries / kind help from the community. In preparation for trying to learn how I might re-write those queries I tried, using the Federation Guide, to write federated queries which would pick up all research outputs produced by an academic - this includes not only scholarly articles, but also book chapters, version edition translations, blog posts, chapters and articles. In the main graph as it was all these can be picked up in one query https://w.wiki/B6Ct but I'm failing to re-write this for the scholarly graph. I've tried SELECT ?item ?itemLabel ?itemType ?itemTypeLabel
+
+WHERE
+
+{
+
+&nbsp; ?item wdt:P50 wd:Q17508688.
+
+&nbsp; SERVICE wdsubgraph:wikidata_main {
+
+&nbsp;&nbsp; ?item wdt:P50 wd:Q17508688.
+
+
+}
+
+&nbsp; SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". } # Helps get the label in your language, if not, then default for all languages, then en language
+
+} This gives me no results.And I've tried """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

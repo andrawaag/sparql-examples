@@ -1,0 +1,201 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-60f2736f35245f9aa93fbe9f36b6b3b9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription
+WHERE
+{
+    hint:Query hint:optimizer \"None\".
+    ?item wdt:P31 wd:Q11424 .
+    { ?item wdt:P144*/wdt:P50 wd:Q36322 }
+    union { ?item wdt:P1877 wd:Q36322  }
+    UNION { ?item wdt:P58 wd:Q36322 }  
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?itemDescription""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of taxa whom taxon author is Edmond Perrier 2 Echinodermata (Q44631) 3 Countries of Europe by area 4 List of intersex people who have children 5 Scholary Articles (Q13442814) - how can I count citations (something like What links here) 6 Simple Query request: population of a city 7 Mapping Russian federal subjects 8 Entries of the Dictionary of African Biography 9 P6216 Statements without qualifiers 10 Movie after a work by OR based on work from Jane Austen 11 All inhabited places with at least population of 1000 per country 12 Get all the hashtags, facebook page and official websites of every french broadcast content 13 Query optimization 14 Country and city attribution of geolocated item 15 Possible to search to return list of items, as per website search box? 16 number of publications from before 1800 without copyright statement 17 SPARQL query result erroneous 18 Sitelinks query optimization 19 Qualifers on a Heritage Register Item 20 Wikielements that contains only a redirection 21 Optimize query 22 Tallest buildings 23 Discontinued properties 24 Uruguay-related query 25 Teams with colours 26 Usage history for multiple properties in one query 27 Corrections, errata and corrigenda, oh my 28 Articles without images on a specific Wikipedia 29 Find longest substrings in a title 30 P1342 (members in lower and upper houses) 31 Twinned administrative body 32 Latest additions of specific properties to a set of items 33 Personalities elevated to the public domain 34 Patronage of airports in a country 35 Retraction, Retraction Notice or Retracted Article 36 Query to return 'also known as' labels for writers? 37 Query timing out 38 Listeria query for MP's position held data 39 Query for cities without articles in atj.wp 40 Slide show with images 41 Complete filter with value of a qualifier 42 Listeria query for missing articles of MacTutor archive 43 Top Articles Per Category 44 Entities with most featured/good articles about it 45 Items that are linked only to Bulgarian Wikipedia and to not have instance of and subclass of 46 List records with a Spotify ID 47 guidance request List of taxa whom taxon author is Edmond Perrier Can I have a query that give me the list of the taxa that have Edmond Perrier (Q927667) as value for taxon author (P405). Example this item Remaster palmatus (Q2264145) should be in the result. Thanks you. Christian Ferrer (talk) 12:41, 2 January 2019 (UTC) Items used: Edmond Perrier (Q927667)   Properties used: taxon name (P225)   , taxon author (P405)   SELECT ?item ?itemLabel ?itemDescription
+{
+	?item p:P225 / pq:P405 wd:Q927667 . 
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! like this? --- Jura 12:45, 2 January 2019 (UTC) Yes. Great, thanks you! Christian Ferrer (talk) 12:51, 2 January 2019 (UTC) Echinodermata (Q44631) Hello, can I have a list of all taxa that are echinoderms, and whatever their taxon rank, please? Christian Ferrer (talk) 18:01, 2 January 2019 (UTC) @Christian Ferrer: Does \"that are echinoderms\" mean \"where parent taxon is echinoderms\". If so: SELECT ?item ?itemLabel ?rankLabel
+WHERE 
+{
+  ?item wdt:P171 wd:Q44631.
+  ?item wdt:P105 ?rank.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?rankLabel ?itemLabel
+ Try it! --Tagishsimon (talk) 18:32, 2 January 2019 (UTC) No Tagishsimon, thanks you. You give me a list of the taxa whom parent taxon (P171) is directly Echinodermata (Q44631), in fact I would want a query to list all taxa that are echinoderms, this includes all the species, all the genus, families ect, ect.... possible? the result will be extraordinarily large (likely near 10000 items), but it's mostly to have the query example, that I can modify. Christian Ferrer (talk) 18:55, 2 January 2019 (UTC) @Christian Ferrer: I'm hopeless when it comes to taxa, Christian, and not much better when it comes to SPARQL. Still. Does this look any more promising? We still need to understand exactly what in a wikidata record constitutes your \"that are echinoderms\". I'm banking on parent - and in this query, grandparent &c. 11.4k results. SELECT ?item ?itemLabel ?rankLabel
+WHERE 
+{
+  ?item wdt:P171/wdt:P171* wd:Q44631.
+  ?item wdt:P105 ?rank.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?rankLabel ?itemLabel
+ Try it! --Tagishsimon (talk) 19:13, 2 January 2019 (UTC) Yes, very great, that's it. Thanks you! I was not far when I said 10000, in fact it is 11405. Thanks again. Christian Ferrer (talk) 19:16, 2 January 2019 (UTC) Countries of Europe by area I'm trying to get a list of countries in Europe by area. It seems pretty straightforward, but for some reason I only get 11 results. I manually checked France (Q142) and it seems to have all the required properties and yet it does not appear in the results. The query I tried is: select ?country ?countryLabel ?area 
+{ 
+  ?country wdt:P31 wd:Q6256 .
+  ?country wdt:P30 wd:Q46 .
+  ?country wdt:P2046 ?area . 
+  service wikibase:label { bd:serviceParam wikibase:language \"ro,en\" } 
+} order by desc(?area)
+ Try it! --Strainu (talk) 10:56, 30 December 2018 (UTC) select DISTINCT ?country ?countryLabel ?area ?area2 ?unit2 
+{ 
+  ?country p:P31/ps:P31 wd:Q6256 .
+  ?country wdt:P30 wd:Q46 .
+  # ?country wdt:P2046 ?area . 
+  ?country p:P2046 / psn:P2046 [ wikibase:quantityAmount ?area2 ; wikibase:quantityUnit ?unit2 ] .
+  service wikibase:label { bd:serviceParam wikibase:language \"ro,en\" } 
+} 
+order by desc(?area2)
+ Try it! I added an edited version above. As some added preferred rank to p31-statements on these items, not all countries appeared. Also, to ensure you get same unit for area, I added the format in meter. --- Jura 11:18, 30 December 2018 (UTC) Thanks Jura1! I understand the first change, but I'm not sure about the second. It returns some weird results for Russia, especially if you drop the \"DINSTINCT\".--Strainu (talk) 12:16, 30 December 2018 (UTC) I would add the filters ; MINUS { ?country wdt:P576 _:b2. } # remove items with P576 (dissolved, abolished or demolished) as a main property MINUS { ?country wdt:P582 _:b3. } Bouzinac (talk) 14:10, 30 December 2018 (UTC) It has three values. The easy fix is to comment out the line with (wdt:P2046) to avoid combining them with ?area2 they don't belong (done above). One could also use p:P2046 and map it correctly. --- Jura 08:07, 31 December 2018 (UTC) Items used: country (Q6256)   , Europe (Q46)   Properties used: continent (P30)   , dissolved, abolished or demolished date (P576)   , instance of (P31)   , area (P2046)   , applies to part (P518)   SELECT DISTINCT ?country ?countryLabel (ROUND(COALESCE(?area3, ?area2)/1000000) as ?area_km2) ?part ?partLabel
+{
+  ?country p:P31/ps:P31 wd:Q6256 .
+  ?country wdt:P30 wd:Q46 .
+  ?country p:P2046 / psn:P2046 [ wikibase:quantityAmount ?area2  ] .
+  OPTIONAL { ?country p:P30 [ pq:P518 ?part ; ps:P30 wd:Q46 ] .
+            ?part p:P2046 / psn:P2046 [ wikibase:quantityAmount ?area3  ] .
+            }
+  MINUS { ?country wdt:P576 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER by desc(?area_km2) Try it!@Strainu: above a slightly improved version, notably for transcontinental countries. --- Jura 18:44, 3 January 2019 (UTC) List of intersex people who have children Can someone write a query that lists all people with sex or gender (P21) intersex (Q1097630) in Wikidata that have children? – The preceding unsigned comment was added by ChristianKl (talk • contribs) at 14:23, 31 December 2018‎ (UTC). SELECT ?item WHERE {
+  VALUES ?gender { wd:Q48270 wd:Q1097630 }
+  ?item wdt:P21 ?gender .
+  { 
+    ?item wdt:P1971 ?num .
+    FILTER(?num > 0) .
+  } UNION {
+    ?item wdt:P40 [] .
+  }
+}
+ Try it!(there are none) —MisterSynergy (talk) 14:26, 31 December 2018 (UTC)Thanks, it's interesting that we have no people who fall under that query. ChristianKl ❪✉❫ 11:07, 1 January 2019 (UTC) @MisterSynergy: Our data changed a bit and now the query does show one person with zero children. Additionally, it would be great if non-binary (Q48270) would be also included along intersex (Q1097630). ChristianKl ❪✉❫ 16:10, 3 January 2019 (UTC) Query updated above. —MisterSynergy (talk) 16:11, 3 January 2019 (UTC) @MisterSynergy:Thanks, it now shows Joey Soloway (Q771690). However it still seems to show Sir Ewan Forbes, 11th Baronet (Q3061693) who has no children. – The preceding unsigned comment was added by ChristianKl (talk • contribs) at 16:41, 3 January 2019‎ (UTC). Now cases with \"number of children (P1971): 0\" are no longer shown. —MisterSynergy (talk) 16:44, 3 January 2019 (UTC) Thanks, now it works well. I tried to put it into a list so that I can follow changes in the data at https://www.wikidata.org/wiki/User%3AChristianKl%2FNonBinaryParents. Somehow that doesn't work. What's wrong with my attempt? ChristianKl ❪✉❫ 16:53, 3 January 2019 (UTC) Works now. The query wasn’t fully correct, and you need the {{Wikidata list end}} template as well. —MisterSynergy (talk) 16:56, 3 January 2019 (UTC) Scholary Articles (Q13442814) - how can I count citations (something like What links here) Dear Community, is there a way to count citations (not references, this is the bottom example mentioned) - it should be something like the Special Page \"What links here\" - for example, the value for the citations of New developments in hyperbranched polymers (Q29048985) should be now about 45 [1] #publications brigitte voit
+SELECT DISTINCT ?item ?itemLabel ?publicationDate (COUNT(?citations) AS ?count)
+WHERE 
+{
+ ?item wdt:P31 wd:Q13442814.
+ ?item wdt:P50 wd:Q21256003.
+ ?item wdt:P577 ?publicationDate.
+ optional {
+   ?item wdt:P2860 ?citations.
+ }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?item ?itemLabel ?publicationDate ?count ORDER BY ?publicationDate Try it! – The preceding unsigned comment was added by Erfurth (talk • contribs).  Items used: New developments in hyperbranched polymers (Q29048985)   Properties used: cites work (P2860)   SELECT (COUNT(DISTINCT ?citedby) as ?count) WHERE { ?citedby wdt:P2860 wd:Q29048985 } Try it! Maybe the above is what you are looking for? --- Jura 09:24, 1 January 2019 (UTC)  Items used: Brigitte Voit (Q21256003)   Properties used: cites work (P2860)   , author (P50)   SELECT ?pub ?pubLabel (COUNT(DISTINCT ?citedby) as ?count) (SAMPLE(?citedby) as ?sample)
+WHERE
+{ 
+    ?citedby wdt:P2860 ?pub .  
+    ?pub wdt:P50 wd:Q21256003 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?pub ?pubLabel
+ORDER BY DESC(?count) Try it! @Erfurth: Also, one that does all publications by an author. --- Jura 09:32, 1 January 2019 (UTC) Actually, you could just add \"^\" before \"wdt:P2860\" in your query. --- Jura 09:43, 1 January 2019 (UTC) The SAMPLE approach is exactly what I want!!! Thank you very much. --Erfurth (talk) 18:31, 1 January 2019 (UTC) @Erfurth: you might like https://tools.wmflabs.org/author-disambiguator/ --- Jura 10:49, 3 January 2019 (UTC) Simple Query request: population of a city I'm new to SPARQL and trying to create a simple query, population of a named city. This is as far as I've got (which works):SELECT ?city ?population ?cityLabel WHERE { ?city (wdt:P31/wdt:P279*) wd:Q515;
+      ?range wd:Q16;
+       rdfs:label ?cityLabel.
+?city wdt:P1082 ?population.
+FILTER(LANG(?cityLabel) = \"en\").
+FILTER(CONTAINS(?cityLabel,\"Vancouver\")).
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } } ORDER BY DESC(?population) LIMIT 100But... using \"?range wd:Q16;\" doesn't seem correct as it locked me to a coded value for Canada. But if it's left out I get Vancouver BC and Vancouver WA. Also, I don't understand why I get an error if I leave out the ORDER BY DESC(?population) LIMIT 100The goal is to call this query from http and use a variable for country and city. Thanks Without commenting much on why you need the LIMIT 100 - beyond noting that ?city ?range wd:Q16. requires the query engine to check every property in the city record, here's a reworked version: SELECT ?city ?population ?cityLabel WHERE {
+?city (wdt:P31/wdt:P279*) wd:Q515.
+?city rdfs:label ?cityLabel.        FILTER(LANG(?cityLabel) = \"en\")
+?city wdt:P17 ?country .
+?country rdfs:label ?countryLabel . FILTER(LANG(?countryLabel)=\"en\")
+?city wdt:P1082 ?population.
+FILTER(CONTAINS(?cityLabel,\"Vancouver\")).
+FILTER(CONTAINS(?countryLabel,\"Canada\")).
+}
+ Try it! --Tagishsimon (talk) 18:47, 3 January 2019 (UTC) Mapping Russian federal subjects I'm trying to create a locator map of the administrative divisions of Russian federal subjects by using Mapframe/Maplink. This is what I got so far. The issue is that the query goes too deep in selecting some administrative divisions (hence the different shades of green), while others are not selected at all (like Berezniki (Q105002) and Perm (Q915)).This is the query: SELECT ?id
+  (if(BOUND(?link),
+      concat('[[', substr(str(?link),31,500),  '|', ?idLabel, ']]'),
+      ?idLabel)
+   as ?title)
+WHERE {  
+  {  ?id wdt:P31/wdt:P279* wd:Q192287.
+     ?id wdt:P131 wd:Q5400. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language 'en' .
+    ?id rdfs:label ?idLabel .
+  }
+  OPTIONAL {?link schema:about ?id.
+  ?link schema:isPartOf <https://en.wikipedia.org/> . }
+} GROUP BY ?id ?link ?idLabel ?hexcolor ?idhexcolor
+ Try it! --Underlying lk (talk) 11:58, 3 January 2019 (UTC) Maybe replacing \"wdt:P31/wdt:P279*\" with \"p:P31/ps:P31/wdt:P279*\" works out. Someone set preferred rank on Q105002 which prevented it from showing up. --- Jura 12:41, 3 January 2019 (UTC) Even after changing it too many maps look like Swiss cheese. This one for instance.--Underlying lk (talk) 14:11, 3 January 2019 (UTC) I'm not sure if these maps are entirely defined at Wikidata. Maybe OSM lacks the relevant qid. It's a wmf staff maintained feature, maybe you could ask them. --- Jura 15:01, 3 January 2019 (UTC) @Underlying lk: There are several reasons why you see overlapping areas and holes: sometimes not only the next higher level for located in the administrative territorial entity (P131) is set but also the one after next. Thus lower-level entites are showing up which overlap the higher-level entities. some items do not have the right value for instance of (P31), e.g. only city or town (Q7930989). Thus they are not returned by the query. some items do not have any located in the administrative territorial entity (P131) set. some towns are the administrative center of a region but itself they are not located in that region. On Wikidata this is sometimes wrongly stated and therefore those towns are not returned by the query but OSM has excluded the city area from the region area. Reverse happens too, Wikidata has the correct hirarchy but not OSM. --Pasleim (talk) 13:52, 4 January 2019 (UTC) Entries of the Dictionary of African Biography Hi there, I already asked for a similar query, but nevertheless I'm not able to write one. I'm sorry, so I'm asking again for a query that lists all humans described by source (P1343) in Dictionary of African Biography (Q46002746) with their sex or gender (P21) and their country of citizenship (P27) and, if possible, links to Wikipedia articles in any language. I would like to use the query for a working list to be updated by the ListeriaBot.Would that be possible? Thank you!Best regards, --Jcornelius (talk) 15:19, 4 January 2019 (UTC)  Sure, you came to the right place. Here is one: Items used: Dictionary of African Biography (Q46002746)   , human (Q5)   Properties used: described by source (P1343)   , instance of (P31)   , sex or gender (P21)   , country of citizenship (P27)   SELECT ?item ?itemLabel ?itemDescription
+  (GROUP_CONCAT(DISTINCT ?genderLabel) as ?genderLabel)
+  (GROUP_CONCAT(DISTINCT ?natLabel; separator=\", \") as ?natLabels)
+WHERE   
+{
+    ?item wdt:P1343 wd:Q46002746 ; wdt:P31 wd:Q5  
+    OPTIONAL { ?item wdt:P21 ?gender }
+    OPTIONAL { ?item wdt:P27 ?nat  }              
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+        ?item rdfs:label ?itemLabel .                           
+        ?item schema:description ?itemDescription .
+        ?nat rdfs:label ?natLabel .
+        ?gender rdfs:label ?genderLabel .                            
+                           }
+}
+GROUP BY ?item ?itemLabel ?itemDescription
+ORDER BY ?itemLabel Try it!It would be slightly simpler if you didn't ask for nationality, as that tends to be multi-valued, what would generate several lines for the same person with the below approach: SELECT ?item ?itemLabel ?itemDescription  ?genderLabel
+WHERE   
+{
+    ?item wdt:P1343 wd:Q46002746 ; wdt:P31 wd:Q5  
+    OPTIONAL { ?item wdt:P21 ?gender }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+}
+ORDER BY ?itemLabel
+ Try it! If you just add it to Listeria, the following could be sufficient, as Listeria allows to define the columns to display. SELECT DISTINCT ?item 
+WHERE   
+{
+    ?item wdt:P1343 wd:Q46002746 .
+    ?item wdt:P31 wd:Q5 
+}
+ Try it! Hope that helps. --- Jura 16:05, 4 January 2019 (UTC) P6216 Statements without qualifiers All copyright status (P6216) statements require qualifiers to more precisly specify copyright status, so I tried to write a query to catch statements without any queries. I come up with SELECT ?item {
+  ?item p:P6216 ?statement .
+  MINUS {?statement ?pq_qual ?pq_obj }.
+} LIMIT 1000
+ Try it! but it does not seem to work. Any way to fix it it? --Jarekt (talk) 05:10, 4 January 2019 (UTC) @Jarekt: This might be a bit inelegant, but it seems to work.: SELECT ?item  {
+  ?item p:P6216 ?statement .
+  ?statement ?p ?q .
+  bind (if(strstarts(str(?p),\"http://www.wikidata.org/prop/qualifier/\" ),1,0)as ?test) 
+  filter(?test=0)  
+} LIMIT 1000
+ Try it! The cause of the problem was that, even without a qualifier, {?statement ?pq_qual ?pq_obj }. still finds stuff, so the solution is to test for the absence of the sort of stuff of interest - qualifiers. And there may be a more elegant way to do that than stringification and filtering, but I'm only a pretend SPARQList and haven't a clue what that might be: SELECT ?item ?p ?q  {
+  ?item p:P6216 ?statement .
+  ?statement ?p ?q .
+} LIMIT 100
+ Try it! --Tagishsimon (talk) 05:55, 4 January 2019 (UTC) How about defining Help:Property_constraints_portal/Mandatory_qualifiers? --- Jura 19:01, 4 January 2019 (UTC) Jura, I was thinking about this while writing Help:Copyrights and the issue is that we might need different qualifiers for public domain (Q19652) and copyrighted (Q50423863) cases, and we did not start with many aspects of copyrighted works yet. So I was thinking about using separate queries for those 2 cases, like: SELECT distinct ?item  ?itemLabel {
+  ?item wdt:P6216 wd:Q19652 .# copyright status = public domain
+  ?item p:P6216 ?statement .
+  ?statement ?p ?q .
+  FILTER NOT EXISTS { ?statement pq:P1001 ?j }
+  FILTER NOT EXISTS { ?statement pq:P459  ?d }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} LIMIT 100
+ Try it! Maybe once we figure out how to model copyrighted works, like files on Commons claiming \"Own work\" we would be able to specify that you always need applies to jurisdiction (P1001) and determination method (P459), but at this point it is unclear. By the way, Tagishsimon, thank you for your help debuging my query. --Jarekt (talk) 19:18, 4 January 2019 (UTC) I think if you list several qualifier-properties in the same constraint statement, any of these will do. This way at least you wont end up without any qualifier at all. --- Jura 19:24, 4 January 2019 (UTC) Movie after a work by OR based on work from Jane Austen Hello, cloud you please help me to write correctly this query? #Movie after a work by OR based on works from Jane Austen
+SELECT ?item ?itemLabel 
+WHERE 
+{
+    ?item wdt:P31 wd:Q11424;
+     OPTIONAL {(wdt:P144) [wdt:P50 wd:Q36322]}.
+     OPTIONAL {(wdt:P1877) [wdt:P50 wd:Q36322]}.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Thanks in advance--2le2im-bdc (talk) 20:01, 6 January 2019 (UTC) #Movie after a work by OR based on works from Jane Austen
+SELECT ?item ?itemLabel 
+WHERE 
+{
+    ?item wdt:P31 wd:Q11424 . # item is a film
+    ?work wdt:P50 wd:Q36322 . # work is by Austen
+           {?item wdt:P144* ?work }    # item is based on work
+     union {?item wdt:P1877* ?work }.  # OR item is after work
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! @2le2im-bdc: Here you go! The two types of thing (P144 or P1877) are in seperate UNION queries, and the * element means that they also go down the chain - so items based on a work X which is itself based on a work by Austen. (This adds one thing, which is a film based on a parody novel). Andrew Gray (talk) 20:30, 6 January 2019 (UTC) Great! Thanks a lot @Andrew Gray:.--2le2im-bdc (talk) 09:59, 7 January 2019 (UTC)  Items used: film (Q11424)   , Jane Austen (Q36322)   Properties used: instance of (P31)   , based on (P144)   , author (P50)   , after a work by (P1877)   , screenwriter (P58)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

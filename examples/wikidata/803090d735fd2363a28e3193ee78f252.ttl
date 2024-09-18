@@ -1,0 +1,378 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-803090d735fd2363a28e3193ee78f252> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, der Wikidata Query Service, ist ein leistungsfähiges Werkzeug, das dir Einblick in die Inhalte von Wikidata verschafft. In diesem Tutorial lernst du, wie du den WDQS benutzen kannst. Siehe auch das interaktive Tutorial von Wikimedia Israel.Bevor du deine eigene SPARQL-Abfrage schreibst, schaue nach, ob deine Abfrage bereits in {{Item documentation}} oder den anderen SPARQL-Beispielvorlagen enthalten ist. Contents 1 Bevor wir beginnen 2 SPARQL-Basics 3 Unsere erste Abfrage 3.1 Autovervollständigung 4 Fortgeschrittene Tripelmuster 5 Instanzen und Klassen 5.1 Eigenschaftspfade 6 Qualifikatoren 7 ORDER und LIMIT 7.1 Übung 7.1.1 Bücher von Arthur Conan Doyle 7.1.2 Chemische Elemente 7.1.3 Flüsse, die in den Mississippi fließen 7.1.4 Flüsse, die in den Mississippi fließen II 8 OPTIONAL 9 Ausdrücke, FILTER und BIND 9.1 Datentypen 9.2 Operatoren 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Gruppierung 10.1 Einwohnerzahlen von Städten 10.2 Gemäldematerialien 10.3 Waffen nach Hersteller 10.4 Verlage nach Seitenanzahl 10.4.1 HAVING 10.5 Zusammenfassung der Aggregat-Funktionen 10.6 wikibase:Label und Aggregat 11 VALUES 12 Label in multiple languages 13 Und darüber hinaus… 14 Siehe auch Bevor wir beginnen Auch wenn dieser Leitfaden lang und einschüchternd wirkt, lass dich davon nicht abschrecken! Alleine mit den SPARQL-Grundlagen kommst du schon sehr weit. Wenn du nach #Unsere erste Abfrage aufhörst, wirst du schon genug wissen, um viele interessante Abfragen zu erstellen. Mit jedem weiteren Kapitel wirst du in der Lage sein, noch umfangreichere Abfragen zu schreiben.Du hast noch nie von Wikidata, SPARQL oder WDQS gehört? Hier eine kurze Erklärung dieser Begriffe: Wikidata ist eine Wissensdatenbank. Sie enthält Millionen von Aussagen wie zum Beispiel „Die Hauptstadt von Kanada ist Ottawa” oder „Die Mona Lisa wurde mit Ölfarbe auf Pappelholz gemalt” oder „Gold hat einen Schmelzpunkt von 1064,18 Grad Celsius”. SPARQL ist eine Sprache, um Abfragen (Queries) für Wissensdatenbanken zu formulieren. Mit der richtigen Datenbank kann eine SPARQL-Abfrage Fragen wie “Was ist die beliebteste Tonart in der Musik?” oder “Welche Rolle wurde von den meisten Schauspielern gespielt?” oder “Wie ist die Verteilung von Blutgruppen?” oder “Welche Werke von Autoren sind in diesem Jahr frei zugänglich geworden?” beantworten. WDQS, der Wikidata Query Service, bringt diese beiden Dinge zusammen: Du gibst eine SPARQL-Abfrage ein, sie durchsucht die Wikidata-Datensätze und zeigt dir das Resultat.  SPARQL-Basics Eine einfache SPARQL-Abfrage sieht so aus: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} Unter SELECT werden die Variablen aufgeführt, die du als Ausgabe haben willst (Variablen beginnen mit einem Fragezeichen) und unter WHERE steht, worauf sie eingeschränkt werden sollen, meistens in Form von Tripeln. Alle Informationen in Wikidata (und ähnlichen Wissensdatenbanken) sind in Tripeln gespeichert. Wenn du die Abfrage durchführst, versucht der Query Service, die Variablen so mit tatsächlichen Werten zu füllen, dass der Tripel in der Wissensdatenbank vorkommt. Zurückgegeben wird dann ein Resultat für jede Kombination von Variablen, die gefunden wird.Ein Tripel kann man wie einen Satz lesen (deshalb endet es auch mit einem Punkt): Es hat ein „Subjekt“, ein „Prädikat“ und ein „Objekt“. Und er hört mit einem Punkt auf. SELECT ?frucht
+WHERE
+{
+  ?frucht hatFarbe gelb.
+  ?frucht schmeckt sauer.
+} Das Resultat dieser Abfrage könnte zum Beispiel “Zitrone” enthalten. In Wikidata sind die meisten Eigenschaften “hat”-Eigenschaften; die Abfrage sieht somit folgendermaßen aus: SELECT ?frucht
+WHERE
+{
+  ?frucht farbe gelb.
+  ?frucht geschmack sauer.
+} ... was sich folgendermaßen liest: “?frucht hat farbe ‘gelb’” (nicht “?frucht ist die Farbe von ‘gelb’”. Merk dir das für Eigenschafts-Paare wie “eltern”/“kind”!).Das ist jedoch kein gutes Beispiel für WDQS. Geschmack ist subjektiv, also hat Wikidata dafür keine Eigenschaft. Reden wir stattdessen über Eltern-/Kind-Beziehungen nachdenken, diese sind meistens eindeutig. Unsere erste Abfrage Angenommen wir möchten alle Kinder des Barock-Komponisten Johann Sebastian Bach auflisten. Wie würdest du diese Abfrage schreiben, wenn du Pseudo-Elemente wie im Beispiel oben verwendest?Es sollte etwas in dieser Art sein: SELECT ?kind
+WHERE
+{
+  #  kind \"hat Elternteil\" Bach
+  ?kind elternteil Bach
+  # (Hinweis: alles nach einem „#“ ist ein Kommentar und wird vom WDQS ignoriert.)
+} oder das: SELECT ?kind
+WHERE
+{
+  # kind \"hat Vater\" Bach 
+  ?kind vater Bach 
+} oder das: SELECT ?kind
+WHERE
+{
+  #  Bach \"hat Kind\" Kind
+  Bach unterelement ?kind.
+} Die ersten beiden Tripel sagen: ?kind muss den Elternteil/Vater Bach haben; das dritte sagt, dass Bach das Kind ?kind haben muss. Fangen wir erst einmal mit dem zweiten an:Was müssen wir also noch machen, um daraus eine richtige WDQS-Abfrage zu machen? In Wikidata sind Objekte und Eigenschaften nicht mit für Menschen verständlichen Namen wie “Vater” (Eigenschaft) oder “Bach” (Gegenstand) bezeichnet. (Aus gutem Grund: “Johann Sebastian Bach” ist auch der Name eines Deutschen Malers und “Bach” könnte auch ein Vorname, eine Französische Gemeinde, ein Krater auf dem Merkur usw. sein.) Stattdessen teilt Wikidata jedem Objekt und jeder Eigenschaft einen Identifikator zu. Um den Identifikator eines Objekts zu finden, suchen wir das Objekt und kopieren die Q-Nummer des Resultates, welches uns passend erscheint (zum Beispiel aufgrund der Beschreibung). Um den Identifikator für eine Eigenschaft zu finden, machen wir es genauso, suchen aber nach „P:Suchbegriff” statt nur „Suchbegriff”, was unsere Suche auf Eigenschaften beschränkt. Das sagt uns dann, dass der berühmte Komponist Johann Sebastian Bach Q1339 ist und die Eigenschaft, um den Vater eines Gegenstandes zu bestimmen, ist P:P22.Zum Schluss müssen wir noch Präfixe einbinden. Bei einfachen WDQS-Triples sollte Objekten das Präfix wd: und Eigenschaften das Präfix wdt: vorangestellt werden. (Das betrifft aber nur feste Werte, Variablen bekommen kein Präfix!)Zusammengenommen erhalten wir unsere erste richtige WDQS-Abfrage: SELECT ?kind
+WHERE
+{
+# ?kind vater Bach
+  ?kind wdt:P22 wd:Q1339.
+}
+ Try it! Klicke auf den Link „Versuche es” und dann „Abfrage ausführen” auf der WDQS-Seite. Was ist das Ergebnis? kind wd:Q57225 wd:Q76428 … Das Ergebnis ist enttäuschend: Du siehst nur die Identifikatoren der Ergebnisse. Du kannst auf diese Identifikatoren klicken und die dazugehörige Wikidata-Seite (mit verständlichen Beschriftungen) öffnen. Aber kann man die Ergebnisse nicht besser anzeigen?Nun, tatsächlich, das kannst du! (Sind rhetorische Fragen nicht großartig?) Indem du die Zauberworte SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } irgendwo innerhalb des WHERE-Abschnitts einfügst, erhältst du zusätzliche Variablen: Für jede Variable ?foo hast du jetzt eine Variable ?fooLabel, der die Bezeichnung für ?foo beinhaltet. Wenn Du also diese Variable dem SELECT-Abschnitt hinzufügst, wird auch die Bezeichnung angezeigt. SELECT ?kind ?kindLabel
+WHERE
+{
+# ?kind vater Bach
+  ?kind wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Probiere die Anfrage aus. Du solltest nun nicht nur die Objektnummern sehen, sondern auch die Namen der verschiedenen Kinder. kind kindLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach …  Autovervollständigung Dieses SERVICE-Snippet lässt sich jedoch schwer merken. Und beim Schreiben einer Abfrage die ganze Zeit in der Suchfunktion nachzuschlagen ist umständlich. Glücklicherweise bietet WDQS eine ausgezeichnete Lösung für dieses Problem: „Autovervollständigung”. Im query.wikidata.org Abfrage-Editor kannst du an jedem Punkt der Abfrage mit Strg+Leertaste (oder Alt+Eingabe oder Strg+Alt+Leertaste) Vorschläge für möglicherweise passenden Code angezeigt bekommen. Wähle den richtigen Vorschlag mit den Pfeiltasten nach oben/nach unten aus und bestätige mit der Enter-Taste.Beispielsweise kannst du, statt jedes Mal SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } zu schreiben, einfach SERV tippen, dann Ctrl+Leertaste betätigen. Der erste Vorschlag wird immer der gesamte Label-Service-Aufruf sein, bereit zum Einsatz! Betätige einfach Enter um den Vorschlag anzunehmen. (Die Formatierung wird ein bisschen anders sein, aber das macht nichts.)Die Autovervollständigung kann dir auch beim Suchen helfen. Wenn du eines der Wikidata-Präfixe eingibst, wie zum Beispiel wd: oder wdt:, und dann einfach Text hintendran schreibst, kannst du mit Ctrl+Leertaste eine Suche nach diesem Text in Wikidata veranlassen und dir Suchergebnisse zeigen lassen. wd: sucht nach Datenobjekten, wdt: nach Eigenschaften. Ein Beispiel: Statt nach den Objekten für Johann Sebastian Bach (Q1339) und father (P22)zu suchen, kannst du wd:Bach und wdt:Vat eingeben und dann einfach den richtigen Eintrag aus der Autovervollständigung wählen. (Das funktioniert auch mit Leerzeichen im Text, z. B. wd:Johann Sebastian Bach.) Fortgeschrittene Tripelmuster Jetzt haben wir also alle Kinder von Johann Sebastian Bach gesehen, genauer gesagt: alle Objekte mit dem Vater Johann Sebastian Bach. Aber Bach war zweimal verheiratet, und diese Objekte können verschiedene Mütter haben. Was ist, wenn wir nur die Kinder von Johann Sebastian Bach und seiner ersten Ehefrau, Maria Barbara Bach (Q57487), sehen möchten? Versuche diese Abfrage zu schreiben, basierend auf der von weiter oben.Fertig? OK, dann zur Lösung!Am einfachsten machst du es, indem du ein zweites Tripel mit dieser Beschränkung hinzufügst: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339.
+  ?kind wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Übersetzt heißt das: Kind hat Vater Johann Sebastian Bach. Kind hat Mutter Maria Barbara Bach. Klingt ein bisschen umständlich, oder? In natürlicher Sprache würden wir das abkürzen: Kind hat Vater Johann Sebastian Bach und Mutter Maria Barbara Bach. Du kannst diese Abkürzung auch in SPARQL ausdrücken: Wenn du ein Tripel mit einem Semikolon (;) statt mit einem Punkt beendest, kannst du ein weiteres Eigenschaft-Objekt-Paar hinzufügen. Damit verkürzt sich die obige Abfrage zu: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Das ergibt dieselben Ergebnisse – ohne Wiederholungen in der Abfrage.Angenommen, von all diesen Ergebnissen interessieren uns nur die Kinder, die auch Komponisten und Pianisten waren. Die relevanten Eigenschaften und Objekte sind occupation (P106), composer (Q36834) und pianist (Q486748). Versuche, die vorige Abfrage anzupassen, um diese Beschränkung hinzuzufügen!Hier ist meine Lösung: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Diese Lösung verwendet die Abkürzung \";\" zwei weitere Male, um die zwei geforderten Berufe hinzuzufügen. Aber wie du vielleicht merkst, gibt es immer noch Wiederholungen. Es ist als ob wir sagen würden: Das Kind hat den Beruf Komponist und den Beruf Pianist. Das würden wir normalerweise so abkürzen: Das Kind hat die Berufe Komponist und Pianist. SPARQL hat auch hierfür die passende Syntax: Genauso wie ein ; es dir ermöglicht, einem Tripel ein Prädikat-Objekt-Paar hinzuzufügen (unter Wiederverwendung des Subjekts), erlaubt ein , es dir, einem Tripel ein weiteres Objekt hinzuzufügen (unter Wiederverwendung sowohl des Subjekts als auch des Prädikats). So kann die Abfrage wie folgt abgekürzt werden: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Beachte: Einzüge und Leerzeichen spielen keine Rolle, sie machen es nur leichter lesbar. Man könnte es auch so schreiben: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # beide Berufe in einer Zeile
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! oder, nicht so gut lesbar: SELECT ?kind ?kindLabel
+WHERE
+{
+  ?kind wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # ohne Einzüge. Das macht es schwierig, zwischen ; und , zu unterscheiden.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Glücklicherweise rückt der WDQS-Editor Zeilen automatisch ein, d. h. du musst dich normalerweise nicht darum kümmern.Gut, lasst uns hier mal zusammenfassen. Wir haben gesehen, dass Abfragen wie Text strukturiert sind. Jedes Tripel zu einem Subjekt wird mit einem Punkt beendet. Verschiedene Prädikate zum selben Subjekt werden getrennt durch Semikolons und verschiedene Objekte für dasselbe Subjekt und dasselbe Prädikat können getrennt durch Kommas aufgelistet werden. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Jetzt möchte ich dir eine weitere Abkürzung aus dem Repertoire von SPARQL vorstellen. Lass mich dazu wieder ein hypothetisches Szenario beschreiben.Gehen wir davon aus, dass uns Bachs Kinder nicht interessieren. (Wer weiß, vielleicht trifft das ja tatsächlich auf dich zu!). Aber seine Enkelkinder interessieren uns (hypothetisch). Hier wird es kompliziert: Ein Enkelkind kann mit Bach über seine Mutter oder über seinen Vater verwandt sein. Das sind zwei verschiedene Eigenschaften, was unpraktisch ist. Drehen wir lieber die Beziehung um: Wikidata hat auch eine „Kind“-Eigenschaft, P:P40, die vom Elternteil auf das Kind zeigt, und geschlechtsunabhängig ist. Kannst du mithilfe dieser Information eine Abfrage schreiben, die Bachs Enkelkinder ausgibt?Hier ist meine Lösung: SELECT ?enkelkind ?enkelkindLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?kind.
+  ?kind wdt:P40 ?enkelkind.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Übersetzt heißt das: Bach hat das Kind ?kind. ?kind hat das Kind ?enkelkind. Wieder möchte ich vorschlagen, dass wir diesen Satz abkürzen, und dann möchte ich dir zeigen, wie SPARQL eine ähnliche Abkürzung unterstützt. Du siehst: das Kind ist uns eigentlich egal. Wir verwenden die Variable nur, um etwas über das Enkelkind auszusagen. Wir könnten den Satz also wie folgt abkürzen: Bach hat als Kind jemanden, der das Kind ?enkelkind hat. Statt zu sagen, wer Bachs Kind ist, sagen wir einfach „jemand“: Wer das ist, ist uns egal. Aber wir können auf diese Person verweisen, da wir gesagt haben „jemand der“: Hiermit wird ein Relativsatz angefangen, und innerhalb dieses Satzes können wir Aussagen machen über „jemanden“ (z. B. dass er oder sie „ein Kind ?enkelkind hat“). In gewisser Weise ist „jemand“ eine Variable, aber eine spezielle, die nur gültig ist innerhalb dieses Relativsatzes, und eine, auf die wir nicht explizit verweisen (wir sagen „jemand der dies ist und jenes macht“, nicht „jemand der dies ist und jemand der jenes macht“ - das wären zwei verschiedene Personen).In SPARQL kann dies wie folgt geschrieben werden: SELECT ?enkelkind ?enkelkindLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?enkelkind ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Statt einer Variable kannst du ein Klammernpaar ([]) verwenden, das sich wie eine anonyme Variable verhält. Innerhalb der Klammern kannst du Prädikat-Objekt-Paare spezifizieren, genau so wie nach einem ; nach einem normalem Tripel. Das implizite Subjekt ist in diesem Fall die anonyme Variable, wofür die Klammern stehen. (Anmerkung: genauso wie nach einem ; kannst du mehr Prädikat-Objekt-Paare mit Semikolons hinzufügen, oder mehr Objekte für dasselbe Prädikat mit Kommas.)Und das war’s auch schon mit den Tripelmustern! Es gibt in SPARQL noch mehr davon. Aber wir verlassen jetzt die Bereiche, die der gesprochenen Sprache sehr ähnlich sind. Ich fasse deshalb diesen Zusammenhang noch einmal zusammen: gesprochene Sprache Beispiel SPARQL Beispiel Satz Julia liebt Romeo. Punkt julia liebt romeo. Konjunktion (Klausel) Romeo liebt Julia und tötet sich selbst. Semikolon romeo liebt julia; tötet romeo. Konjunktion (Substantiv) Romeo tötet Tybalt und sich selbst. Komma romeo tötet tybalt, romeo. Relativsatz Julia liebt jemanden der tötet Tybalt. Klammern julia liebt [ tötet tybalt ].  Instanzen und Klassen Vorhin habe ich erzählt, dass die meisten Wikidata-Eigenschaften „hat“-Eigenschaften sind: „hat“ das Kind, „hat“ den Vater, „hat“ den Beruf. Aber manchmal (eher häufig) geht es auch mal um etwas, das „ist“. Tatsächlich gibt es in diesem Fall zwei verschiedene Arten der Beziehung: „Vom Winde verweht“ ist ein Film. Ein Film ist ein Kunstwerk. „Vom Winde verweht“ ist ein bestimmter Film. Er hat einen bestimmten Regisseur (Victor Fleming), eine bestimmte Dauer (238 Minuten), eine Reihe von Darstellern (Clark Gable, Vivien Leigh, …) und so weiter.„Film“ ist ein allgemeines Konzept. Filme können Regisseure, Längen und Darsteller haben, aber das Konzept „Film“ als solches hat keinen bestimmten Regisseur, keine bestimmte Dauer oder keinen bestimmten Darsteller. Und obwohl ein Film ein Kunstwerk ist, und ein Kunstwerk normalerweise einen Urheber hat, hat das Konzept „Film“ selber keinen Urheber – nur bestimmte „Instanzen“ dieses Konzeptes haben einen.Dieser Unterschied ist der Grund, warum es in Wikidata zwei Eigenschaften für „ist“ gibt : instance of (P31) und subclass of (P279). „Vom Winde verweht“ ist eine bestimmte Instanz der Klasse „Film“; die Klasse „Film“ ist eine Unterklasse (spezifischere Klasse; Spezialisierung) der mehr allgemeinen Klasse „Kunstwerk“.Um den Unterschied besser zu verstehen, kannst du zwei verschiedene Formulierungen ausprobieren: „ist ein“ und „ist eine Art von“. Wenn „ist eine Art von“ funktioniert (z.B. ein Film „ist eine Art von“ Kunstwerk), weist das darauf hin, dass du über eine Unterklasse redest – eine Spezialisierung einer größeren Klasse, und du solltest subclass of (P279) verwenden. Wenn „ist eine Art von“ nicht funktioniert (z.B. ergibt der Satz „‚Vom Winde verweht‘ ist eine Art von Film“ wenig Sinn), zeigt das an, dass du über eine bestimmte Instanz redest. Hier solltest du instance of (P31) verwenden.Was bedeutet das für uns, wenn wir SPARQL-Abfragen schreiben? Wenn wir „alle Kunstwerke“ suchen wollen, genügt es nicht, alle Datenobjekte, die unmittelbare Instanzen von „Kunstwerk“ sind, zu suchen: SELECT ?kunstwerk ?kunstwerkLabel
+WHERE
+{
+  ?kunstwerk wdt:P31 wd:Q838948. # Instanz von Kunstwerk
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Diese Abfrage ergibt zurzeit (Oktober 2016) 2815 Ergebnisse. Doch natürlich gibt es viel mehr Kunstwerke! Das Problem ist, dass die Abfrage Objekte wie „Vom Winde verweht“ nicht findet. Das Objekt ist eine Instanz von „Film“, nicht aber von „Kunstwerk“. „Film“ ist eine Unterklasse von „Kunstwerk“, aber wir müssen SPARQL sagen, dass das bei der Suche berücksichtigt werden muss.Eine mögliche Lösung hierfür ist die []-Syntax, von der wir gerade sprachen: Vom Winde verweht ist eine Instanz einer bestimmten Unterklasse von „Kunstwerk“. (Versuche diese Abfrage zu schreiben, als Übung!) Aber das verursacht immer noch Probleme: Wir verwenden nun keine Objekte mehr, die eine unmittelbare Instanz von „Kunstwerk“ sind. Objekte, die eine Instanz von Unterklassen von anderen Unterklassen sind, entgehen uns: So ist z.B. Schneewittchen und die sieben Zwerge ein Zeichentrickfilm, was ein Film ist, was ein Kunstwerk ist. In diesem Fall müssen zwei „Unterklasse von“-Aussagen folgen - aber es könnten auch drei, vier, fünf, oder beliebig mehr sein. Die Lösung: ?objekt wdt:P31/wdt:P279* ?klasse. Dies heißt, dass es eine \"Instanz von\" und dann eine beliebige Anzahl von \"Unterklassen von\" Aussagen zwischen dem Datenobjekt und der Klasse. SELECT ?kunstwerk ?kunstwerkLabel
+WHERE
+{
+  ?kunstwerk wdt:P31/wdt:P279* wd:Q838948. # Instanz von einer beliebigen Unterklasse von Kunstwerk
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (Ich empfehle, diese Abfrage nicht auszuführen. WDQS kann damit (gerade so) umgehen, aber dein Browser könnte beim Versuch abstürzen, die Ergebnisse anzuzeigen, weil die Liste extrem lang ist.)Jetzt weißt du, wie man alle Kunstwerke suchen kann, oder alle Gebäude, oder alle menschlichen Siedlungen: verwende den magischen Aufruf wdt:P31/wdt:P279*, zusammen mit der passenden Klasse. Dies verwendet einige SPARQL-Merkmale die ich noch nicht erklärt habe, aber mal ganz ehrlich, dies ist fast der einzige relevante Gebrauch von diesen Merkmalen, also du \"brauchst\" nicht zu verstehen wie sie funktionieren um WDQS wirksam zu benutzen. Falls du es wissen möchtest: ich erkläre es etwas später, aber du kannst auch einfach den nächsten Abschnitt überspringen und dir wdt:P31/wdt:P279* merken oder es von hier aus kopieren und einfügen, wenn du es benötigst. Eigenschaftspfade Eigenschaftspfade sind eine Möglichkeit, einen Pfad von Eigenschaften zwischen zwei Objekten in sehr kurzer Form auszudrücken. Der einfachste Pfad ist eine einzige Eigenschaft, also ein gewöhnliches Tripel: ?item wdt:P31 ?class. Du kannst Pfadelemente mit einen Schrägstrich (/) hinzufügen. ?item wdt:P31/wdt:P279/wdt:P279 ?class. Dies entspricht einer der folgenden Varianten: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Übung: Schreibe die obige \"Enkelkinder von Bach\"-Abfrage mit dieser Syntax.Ein Sternchen (*) nach einem Pfad-Element bedeutet \"keines oder mehr von diesem Element\". ?item wdt:P31/wdt:P279* ?class.
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">means:</span>
+?item wdt:P31 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or ...</span> Wenn keine anderen Elemente in dem Pfad sind, bedeutet ?a irgendwas* ?b, dass ?b auch einfach nur direkt ?a sein kann, ohne Pfadelemente zwischen den beiden. Ein + ist ähnlich wie ein *, bedeutet aber \"mindestens eines von diesem Element\". Die folgende Abfrage findet alle Abkömmlinge von Bach: SELECT ?abkoemmling ?abkoemmlingLabel
+WHERE
+{
+  wd:Q1339 wdt:P40+ ?abkoemmling.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Wenn wir ein Sternchen statt des Plus verwendet hätten, würde die Abfrage auch Bach selbst enthalten.Ein Fragezeichen (?) ist ganz ähnlich wie das Sternchen oder das Plus, bedeutet aber \"keines oder genau eines dieses Elements\".Wenn man Pfadelemente mit einem Pipe-Symbol (|) statt des Schrägstrichs trennt, bedeutet dies \"entweder – oder\". Das heißt: der Pfad muss eine dieser Eigenschaften enthalten, es dürfen aber nicht beide gleichzeitig vorkommen. Ein Entweder-Oder-Pfad hat immer die Länge 1.Man kann Pfadelemente auch mit runden Klammern (()) gruppieren, und all diese Syntaxelemente frei kombinieren: /|*+?. Das bedeutet, dass folgendes auch eine Möglichkeit ist, alle Nachkommen von Bach zu finden: SELECT ?abkoemmling ?abkoemmlingLabel
+WHERE
+{
+  ?abkoemmling (wdt:P22|wdt:P25)+ wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Statt der Eigenschaft \"Kind\", mit der wir von Bach zu seinen Nachkommen gehen, verwenden wir die Eigenschaften \"Vater\" und \"Mutter\", um von den Nachkommen zu Bach zu finden. Der Pfad kann zwei Mütter und einen Vater enthalten, oder vier Väter, oder Vater – Mutter – Mutter – Vater oder jede beliebige andere Kombination (außer natürlich, dass Bach selbst immer ein Vater ist und keine Mutter). Qualifikatoren (Zuerst die gute Nachricht: In diesem Abschnitt wird keine neue SPARQL-Syntax eingeführt – juhu! Also zurücklehnen und genießen, das wird doch ein Kinderspiel, oder?)Bisher haben wir nur einfache Aussagen behandelt: Subjekt, Eigenschaft, Objekt. Aber Wikidata-Aussagen sind mehr: Sie können auch Qualifikatoren und Referenzen enthalten. Zum Beispiel hat die Mona Lisa (Q12418) drei made from material (P186)-Aussagen: oil paint (Q296955), das Hauptmaterial; poplar wood (Q291034), mit dem Qualifikator applies to part (P518)painting support (Q861259) – das ist das Material, auf dem sie gemalt wurde; und wood (Q287), mit den Qualifikatoren applies to part (P518)stretcher (Q1737943) und start time (P580) 1951 – das ist ein Teil, der später hinzugefügt wurde. Wenn wir alle Gemälde mit ihrer Farbschicht finden wollen, also made from material (P186)-Aussagen mit einem Qualifikator applies to part (P518)painting support (Q861259) , wie stellen wir das an? Das ist mehr Information, als wir in einem einfachen Tripel ausdrücken können.Die Antwort ist: mehr Tripel! (Faustregel: Wikidatas Lösung für fast alles ist \"mehr davon\", und die passende WQDS-Regel ist \"mehr Tripel\". Referenzen, Werte mit Einheiten, Geokoordinaten usw., die wir hier alle nicht behandeln, funktionieren genauso.) Bisher haben wir das Präfix wdt: für unsere Tripel genommen, welches direkt auf das Objekt der Aussage verweist. Aber es gibt noch ein anderes Präfix: p:; dieses verweist nicht auf das Objekt, sondern auf einen \"Aussagenknoten\". Dieser Knoten ist dann wiederum das Subjekt weiterer Tripel: Das Präfix ps: (für property statement = Eigenschaftsaussage) verweist auf das Aussageobjekt, das Präfix pq: (property qualifier = Eigenschaftsqualifikator) auf Qualifikatoren und prov:wasDerivedFrom verweist auf Referenzknoten (welche wir hier erst einmal weglassen).Das war viel abstrakter Text. Hier ein konkretes Beispiel für die Mona Lisa: wd:Q12418 p:P186 ?statement1.    # Mona Lisa: material used: ?statement1
+?statement1 ps:P186 wd:Q296955.  # value: oil paint
+
+wd:Q12418 p:P186 ?statement2.    # Mona Lisa: material used: ?statement2
+?statement2 ps:P186 wd:Q291034.  # value: poplar wood
+?statement2 pq:P518 wd:Q861259.  # qualifier: applies to part: painting surface
+
+wd:Q12418 p:P186 ?statement3.    # Mona Lisa: material used: ?statement3
+?statement3 ps:P186 wd:Q287.     # value: wood
+?statement3 pq:P518 wd:Q1737943. # qualifier: applies to part: stretcher bar
+?statement3 pq:P580 1951.        # qualifier: start time: 1951 (pseudo-syntax) Wir können das deutlich abkürzen mit der []-Syntax, welche die Variable ?statement ersetzt: wd:Q12418 p:P186 [ ps:P186 wd:Q296955 ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q291034;
+            pq:P518 wd:Q861259
+          ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q287;
+            pq:P518 wd:Q1737943;
+            pq:P580 1951
+          ]. Kannst du mit diesem Wissen eine Abfrage für alle Gemälde mit ihrer Farbschicht schreiben?Hier meine Lösung: SELECT ?gemaelde ?gemaeldeLabel ?material ?materialLabel
+WHERE
+{
+  ?gemaelde wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?material; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Erst begrenzen wir ?painting auf alle Instanzen von painting (Q3305213) oder deren Unterklassen. Anschließend ziehen wir das Material aus dem Aussagenknoten p:P186, wobei wir die Aussagen auf diejenigen begrenzen, die einen Qualifikator applies to part (P518)painting support (Q861259) besitzen. ORDER und LIMIT Wir kehren nun zurück zu unserer geplanten Vorstellung weiterer SPARQL-Features.Bislang hatten wir nur Abfragen, bei denen wir an allen Ergebnissen interessiert waren. Oft jedoch interessieren uns nur Ergebnisse mit extremen Ausprägungen, zum Beispiel die ältesten, jüngsten, frühesten, spätesten, bevölkerungsreichsten usw. Diesen Abfragen ist gemein, dass die Ergebnisse in eine Rangfolge gebracht werden, und wir dann nur die obersten Ergebnisse dieser Rangfolge betrachten wollen.Dies erreichen wir mit zwei Schlüsselwörtern, die wir hinter dem WHERE {}-Block platzieren (hinter den geschweiften Klammern, nicht dazwischen!): ORDER BY und LIMIT.ORDER BY irgendwas sortiert die Ergebnisse nach irgendwas. Dabei kann irgendwas ein beliebiget Ausdruck sein – bislang kennen wir nur Variablen (?irgendwas) als Ausdrücke, aber es folgen später noch weitere. Dieser Ausdruck kann auch mit ASC() oder DESC() ergänzt werden, um die Ergebnisse aufsteigend (englisch ascending) bzw. absteigend (englisch descending) zu sortieren. (Ohne diese Angabe wird immer aufsteigend sortiert; daher ist ASC(irgendwas) gleichwertig zu irgendwas.)LIMIT anzahl schneidet die Ergebnisliste nach anzahl Ergebnissen ab; count ist dabei eine beliebige natürliche Zahl. LIMIT 10 zum Beispiel begrenzt das Ergebnis auf 10 Elemente. LIMIT 1 gibt nur das allererste Element aus.(Man kann LIMIT auch ohne ORDER BY verwenden. In diesem Fall ist die Gesamtergbnismenge aber nicht sortiert und damit das Ergebnis der Limitierung willkürlich. Das kann in Ordnung sein, wenn man einfach nur einige Ergebnisse haben möchte, egal welche. In jedem Fall kann LIMIT die Abfrage enorm beschleunigen, weil WDQS die Suche beendet, sobald das Limit erreicht wurde.)Zeit für eine Übung! Versuche eine Abfrage über die zehn bevölkerungsreichsten Länder der Erde zu schreiben. (Ein Land ist sovereign state (Q3624078) und die Eigenschaft für die Bevölkerungszahl P:P1082.) Du kannst zuerst nach den Ländern mit ihrer Bevölkerungszahl suchen und dann mit ORDER BY und LIMIT ergänzen.Hier meine Lösung: SELECT ?land ?landLabel ?einwohnerzahl
+WHERE
+{
+  ?land wdt:P31/wdt:P279* wd:Q3624078;
+           wdt:P1082 ?einwohnerzahl.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?population)
+LIMIT 10
+ Try it! Beachte, dass wir die Rangfolge absteigend (DESC) setzen müssen, sodass die höchsten Zahlen zuerst kommen. Übung Jetzt haben wir einige Grundlagen gelegt – Zeit für ein paar Übungen. (Eilige können diese überspringen.) Bücher von Arthur Conan Doyle Schreibe eine Abfrage, die alle Bücher von Arthur Conan Doyle ausgibt. Tipp Die relevanten Objekte und Eigenschaften sind Arthur Conan Doyle (Q35610) und author (P50). Beispiellösung SELECT ?buch ?buchLabel
+WHERE
+{
+  ?buch wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Chemische Elemente Schreibe eine Abfrage, die alle chemischen Elemente mit ihrem Elementsymbol und ihrer Ordnungszahl in der Reihenfolge der Ordnungszahl ausgibt. Tipp Die relevanten Objekte und Eigenschaften sind chemical element (Q11344) sowie element symbol (P246) und atomic number (P1086). Beispiellösung SELECT ?element ?elementLabel ?symbol ?ordnungszahl
+WHERE
+{
+  ?element wdt:P31 wd:Q11344;
+           wdt:P246 ?symbol;
+           wdt:P1086 ?ordnungszahl.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?ordnungszahl
+ Try it!  Flüsse, die in den Mississippi fließen Schreibe eine Abfrage, die alle Flüsse ausgibt, die direkt in den Mississippi fließen. (Hauptschwierigkeit ist es, die richtige Eigenschaft zu finden…) Tipp Die relevanten Objekte und Eigenschaften sind: Mississippi River (Q1497), mouth of the watercourse (P403). Beispiellösung SELECT ?fluss ?flussLabel
+WHERE
+{
+  ?fluss wdt:P403 wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Flüsse, die in den Mississippi fließen II Schreibe eine Abfrage, die alle Flüsse ausgibt, die direkt oder indirekt in den Mississippi fließen. Tipp Diese Abfrage ist nahezu identisch mit der vorherigen. Der Unterschied liegt darin, dass du diese Mal einen Pfad statt eines Tripels benötigst. (Überspringe diese Aufgabe, wenn du den Abschnitt über Pfade übersprungen hast.) Beispiellösung SELECT ?fluss ?flussLabel
+WHERE
+{
+  ?fluss wdt:P403+ wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! OPTIONAL Bei den obigen Aufgaben hatten wir eine Abfrage für alle Bücher von Sir Arthur Conan Doyle: SELECT ?book ?bookLabel
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Das ist jedoch etwas langweilig. Es gibt so viele mögliche Daten über Bücher und wir zeigen nur die Bezeichnung? Lass uns versuchen, eine Abfrage zu erstellen, die auch title (P1476), illustrator (P110), publisher (P123) und publication date (P577) enthält.Ein erster Versuch könnte so aussehen: SELECT ?buch ?titel ?illustratorLabel ?verlagLabel ?veröffentlicht
+WHERE
+{
+  ?buch wdt:P50 wd:Q35610;
+        wdt:P1476 ?titel;
+        wdt:P110 ?illustrator;
+        wdt:P123 ?verlag;
+        wdt:P577 ?veröffentlicht.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Führe die Abfrage aus. Während ich dies schreibe, gibt es nur zwei Ergebnisse – ein bisschen mager! Warum ist das so? Wir haben zuvor über 100 Bücher gefunden!Der Grund ist, dass ein mögliches Ergebnis (ein Buch), um in diese Abfrage zu fallen, alle angegebenen Eigenschaften haben muss: Es muss einen Titel, einen Illustrator, einen Verlag und ein Veröffentlichungsdatum haben. Wenn es einige dieser Eigenschaften, jedoch nicht alle hat, erfüllt es nicht die Abfrage. Und das ist nicht das, was wir in diesem Fall möchten: Wir wollen primär eine Liste aller Bücher – wenn weitere Daten verfügbar sind, möchten wir diese mit einbeziehen, wir wollen unsere Ergebnisse jedoch nicht darauf beschränken.Die Lösung ist, WDQS zu sagen, dass diese Tripel optional sind: SELECT ?buch ?titel ?illustratorLabel ?verlagLabel ?veröffentlicht
+WHERE
+{
+  ?buch wdt:P50 wd:Q35610.
+  OPTIONAL { ?buch wdt:P1476 ?titel. }
+  OPTIONAL { ?buch wdt:P110  ?illustrator. }
+  OPTIONAL { ?buch wdt:P123  ?verlag. }
+  OPTIONAL { ?buch wdt:P577  ?veröffentlicht. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Diese gibt uns zusätzliche Variablen (?titel, ?verlag etc.), wenn die angegebene Aussage existiert, wenn die Aussage hingegen nicht existiert, wird das Ergebnis nicht verworfen – die Variable wird einfach nicht gesetzt.Beachte: Es ist sehr wichtig, hier getrennte OPTIONAL-Klauseln zu verwenden. Wenn du alle Tripel in eine Klausel setzt, wie hier – SELECT <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">?book ?title ?illustratorLabel ?publisherLabel ?published</span>
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  OPTIONAL {
+    ?book wdt:P1476 ?title;
+          wdt:P110 ?illustrator;
+          wdt:P123 ?publisher;
+          wdt:P577 ?published.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! – wirst du feststellen, dass die meisten Ergebnisse keine zusätzlichen Informationen enthalten. Dies liegt daran, dass eine optionale Klausel mit mehreren Tripeln nur dann zutrifft, wenn alle Tripel erfüllt werden. Das bedeutet: Wenn ein Buch einen Titel, einen Illustrator, einen Verlag und ein Veröffentlichungsdatum hat, dann trifft die optionale Klausel zu und die Werte werden den entsprechenden Variablen zugeordnet. Wenn ein Buch jedoch zum Beispiel einen Titel, jedoch keinen Illustrator hat, trifft die gesamte optionale Klausel nicht zu und obwohl das Ergebnis nicht verworfen wird, bleiben alle vier Variablen leer. Ausdrücke, FILTER und BIND Dieser Abschnitt könnte etwas weniger organisiert wirken, als die anderen, da er ein weites Feld mit unterschiedlichen Themen abdeckt. Das Basiskonzept besteht darin, dass wir etwas mit Werten machen wollen, die wir bisher nur ausgewählt und wahllos zurückgegeben haben. Ausdrücke sind Möglichkeiten, diese Operationen für Werte auszudrücken. Es gibt unterschiedliche Arten von Ausdrücken und du kannst viele Dinge mit ihnen tun – lass uns zunächst jedoch mit den Grundlagen beginnen: Datentypen. Datentypen Jeder Wert in SPARQL hat einen Typ, der dir sagt, um welche Art von Wert es sich handelt und was du mit ihm machen kannst. Die wichtigsten Typen sind: Datenobjekt, wie wd:Q42 für Douglas Adams (Q42). Boolesche, mit den zwei möglichen Werten true und false. Boolesche Werte werden nicht in Aussagen gespeichert, viele Ausdrücke geben jedoch einen booleschen Wert aus, z. B. 2 < 3 (true) oder \"a\" = \"b\" (false). String, ein Stück Text. String-Literale werden in Zollzeichen gesetzt. Monolingualer Text, ein String mit angehängtem Sprachkürzel. In einem Literal kannst du die Sprachkürzel nach dem String mit einem @-Zeichen angeben, z. B. \"Douglas Adams\"@en. Nummern, entweder ganze Zahlen (1) oder Dezimalzahlen (1,23). Datum. Datums-Literale können können durch Hinzufügen von ^^xsd:dateTime (Groß- und Kleinschreibung beachten – ^^xsd:datetime funktioniert nicht!) zu einer ISO 8601-Datumszeichenfolge hinzugefügt werden: \"2012-10-29\"^^xsd:dateTime.  Operatoren Die üblichen mathematischen Operatoren sind verfügbar: +, -, *, / zum Addieren, Subtrahieren, Multiplizieren und Dividieren von Zahlen, <, >, =, <=, >= um sie miteinander zu vergleichen. Der Ungleichheitstest ≠ wird mit != geschrieben. Vergleiche sind auch für andere Typen definiert; zum Beispiel ist \"abc\" < \"abd\" (lexikalischer Vergleich) ebenso wahr, wie \"2016-01-01\"^^xsd:dateTime > \"2015-12-31\"^^xsd:dateTime und wd:Q4653 != wd:Q283111. Boolesche Bedingungen können mit && (logisches und: a && b ist wahr, wenn a und b wahr sind) und || (logisches oder: a || b ist wahr, wenn entweder a oder b (oder beide) wahr sind) kombiniert werden. FILTER Info Als gelegentlich schnellere Alternative zu FILTER kannst du dir auch MINUS ansehen, siehe Beispiel.FILTER(bedingung). ist eine Klausel, die du in deine SPARQL-Abfrage einsetzen kannst, um die Ergebnisse zu filtern. Innerhalb der Klammern kannst du jeden booleschen Ausdruck angeben und nur die Ergebnisse, bei denen als Ergebnis des Ausdrucks true angegeben wird, werden verwendet.Zum Beispiel müssen wir für eine Liste aller Menschen, die 2015 geboren wurden zunächst eine Liste aller Menschen mit ihrem Geburtsdatum erhalten – SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+} – und dann so filtern, dass als Ergebnis nur diejenigen angezeigt werden, bei denen das Geburtsjahr das Jahr 2015 ist. Es gibt zwei Wege, dies zu tun: das Jahr mit der Funktion YEAR aus dem Datum extrahieren und zu testen, ob es das Jahr 2015 ist – FILTER(YEAR(?dob) = 2015). – oder prüfe, dass das Datum zwischen dem 1. Januar 2015 (inklusive) und dem 1. Januar 2016 (exklusive) liegt: FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime). Ich würde sagen, dass ersteres einfacher ist, es zeigt sich jedoch, dass zweiteres wesentlich schneller ist, weshalb wir das nutzen. SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+ Try it! Eine weitere mögliche Verwendung von FILTER bezieht sich auf Bezeichnungen. Der Bezeichnungs-Service ist sehr nützlich, wenn du dir nur die Bezeichnungen einer Variable ansehen möchtest. Wenn du jedoch etwas mit der Bezeichnung machen möchtest – zum Beispiel: prüfen, ob es mit “Mr. ” anfängt – wirst du herausfinden, dass es nicht funktioniert: SELECT ?human ?humanLabel
+WHERE
+{
+  ?human wdt:P31 wd:Q15632617.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  #This FILTER does not work!
+  FILTER(STRSTARTS(?humanLabel, \"Mr. \")).
+}
+ Try it! Diese Abfrage findet alle Untereinheiten von fictional human (Q15632617) und prüft, ob ihre Bezeichnung mit \"Mr. \" beginnt (STRSTARTS und CONTAINS). Der Grund, warum dies nicht funktioniert, ist, dass der Bezeichnungs-Service seine Variablen erst sehr spät in die Abfrage gibt; an dem Punkt, an dem wir versuchen, nach ?humanLabel zu filtern, hat der Bezeichnungs-Service die Variable noch nicht erstellt.Glücklicherweise ist der Bezeichnungs-Service nicht die einzige Möglichkeit, um an die Bezeichnung eines Objektes zu kommen. Bezeichnungen werden auch als reguläre Tripel mit dem Prädikat rdfs:label gespeichert. Natürlich umfasst dies alle Bezeichnungen und nicht nur englische; wenn wir nur die englischen Bezeichnungen haben wollen, müssen wir nach der Sprache der Bezeichnung filtern: FILTER(LANG(?label) = \"en\"). Die LANG-Funktion gibt die Sprache einer monolingualen Zeichenkette aus und hier wählen wir nur die Bezeichnungen aus, die auf Englisch sind. Die vollständige Abfrage lautet: SELECT ?mensch ?label
+WHERE
+{
+  ?mensch wdt:P31 wd:Q15632617;
+         rdfs:label ?label.
+  FILTER(LANG(?label) = \"[AUTO_LANGUAGE]\").
+  FILTER(STRSTARTS(?label, \"Mr. \")).
+}
+ Try it! Wir erhalten die Bezeichnung mit dem Tripel ?human rdfs:label ?label, begrenzt auf englischsprachige Bezeichnungen und dann überprüft, ob sie mit “Mr. ” beginnen.Man kann FILTER auch mit regulären Ausdrücken nutzen. Im folgenden Beispiel SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"[\\\\.q]\")) 
+}
+ Try it! Wenn die Formateinschränkung für eine ID [A-Za-z][-.0-9A-Za-z]{1,} ist: SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"^[A-Za-z][-.0-9A-Za-z]{1,}$\"))
+}
+ Try it! Es ist möglich, bestimmte Elemente herauszufiltern: FILTER ( ?item not in ( wd:Q4115189,wd:Q13406268,wd:Q15397819 ) ) Es ist möglich, zu filtern und Elemente zu haben, die leer sind: FILTER ( NOT EXISTS { ?item  wdt:P21 [] } )  BIND, BOUND, IF Diese drei Funktionen werden häufig zusammen verwendet, weshalb ich zunächst alle drei erkläre und dann einige Beispiele zeige.Eine BIND(Ausdruck AS ?variable).-Klausel kann genutzt werden, um das Ergebnis eines Ausdrucks einer Variablen zuzuweisen (gewöhnlich eine neue Variable, du kannst aber auch bereits existierende überschreiben).BOUND(?variable) rüft, ob eine Variable an einen Wert gebunden wurde (gibt true oder false aus). Es ist insbesondere für Variablen, die mit einer OPTIONAL-Klausel eingeführt werden sinnvoll.IF(Bedingung,dannAusdruck,anderer Ausdruck) wird als dannAusdruck ausgewertet, wenn Bedingung als true ausgewertet wird, und als andererAusdruck, wenn Bedingung als false ausgewertet wird. Das bedeutet, dass IF(true, \"ja\", \"nein\") als \"ja\" und IF(false, \"groß\", \"schrecklich\") als \"schrecklich\" ausgewertet werden.BIND kann genutzt werden, um Ergebnisse von Berechnungen an eine neue Variable zu binden. Dies kann ein Zwischenergebnis einer größeren Berechnung oder einfach das direkte Ergebnis einer Abfrage sein. Zum Beispiel, um das Alter der Opfer der Todesstrafe zu erhalten: SELECT ?person ?personLabel ?alter
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?geboren;
+          wdt:P570 ?gestorben;
+          wdt:P1196 wd:Q8454.
+  BIND(?gestorben - ?geboren AS ?alterInTagen).
+  BIND(?alterInTagen/365.2425 AS ?alterInJahren).
+  BIND(FLOOR(?alterInJahren) AS ?alter).
+  # oder als ein Ausdruck:
+  #BIND(FLOOR((?gestorben - ?geboren)/365.2425) AS ?alter).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! BIND kann auch genutzt werden, um konstante Werte an Variablen zu binden, um die Lesbarkeit zu verbessern. Zum Beispiel eine Abfrage, die alle weiblichen Priester findet: SELECT ?frau ?frauLabel
+WHERE
+{
+  ?frau wdt:P31 wd:Q5;
+         wdt:P21 wd:Q6581072;
+         wdt:P106 wd:Q42603.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! kann auch so geschrieben werden: SELECT ?frau ?frauLabel
+WHERE
+{
+  BIND(wdt:P31 AS ?unterklasseVon).
+  BIND(wd:Q5 AS ?mensch).
+  BIND(wdt:P21 AS ?geschlecht).
+  BIND(wd:Q6581072 AS ?weiblich).
+  BIND(wdt:P106 AS ?beruf).
+  BIND(wd:Q42603 AS ?priester).
+  ?frau ?unterklasseVon ?mensch;
+         ?geschlecht ?weiblich;
+         ?beruf ?priester.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Der bedeutungsvolle Teil der Abfrage von ?frau bis ?priester. ist jetzt besser lesbar. Jedoch ist der große BIND-Block direkt davor ablenkend, weshalb diese Technik sparsam verwendet werden sollte. (Auf der WDQS-Benutzeroberfläche kannst du auch mit deiner Maus über jeden Satz wie wd:Q123 oder wdt:P123 fahren und die Bezeichnung und Beschreibung des Datensatzes lesen, weshalb ?weiblich nur dann besser lesbar als wd:Q6581072 ist, wenn du die Funktion ignorierst.)IF-Ausdrücke werden häufig zusammen mit Bedingungsausdrücken verwendet, die mit BOUND erstellt wurden. Stelle dir zum Beispiel eine Abfrage vor, die einige Menschen zeigt, von denen du dir jedoch statt der Bezeichnung das pseudonym (P742) anzeigen lassen möchtest, wenn sie eines haben und nur dann die Bezeichnung, wenn kein Pseudonym existiert. Dafür wählst du das Pseudonym als OPTIONAL-Klausel aus (es muss optional sein – du möchtest nicht, dass Ergebnisse verworfen werden, die kein Pseudonym haben) und nutzt dann BIND(IF(BOUND(… um entweder das Pseudonym oder die Bezeichnung auszuwählen. SELECT ?writer ?label
+WHERE
+{
+  # French writer born in the second half of the 18th century
+  ?writer wdt:P31 wd:Q5;
+          wdt:P27 wd:Q142;
+          wdt:P106 wd:Q36180;
+          wdt:P569 ?dob.
+  FILTER(\"1751-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"1801-01-01\"^^xsd:dateTime).
+  # get the English label
+  ?writer rdfs:label ?writerLabel.
+  FILTER(LANG(?writerLabel) = \"en\").
+  # get the pseudonym, if it exists
+  OPTIONAL { ?writer wdt:P742 ?pseudonym. }
+  # bind the pseudonym, or if it doesn’t exist the English label, as ?label
+  BIND(IF(BOUND(?pseudonym),?pseudonym,?writerLabel) AS ?label).
+}
+ Try it! Andere Eigenschaften, die auf diese Art genutzt werden können, sind nickname (P1449), posthumous name (P1786) und taxon common name (P1843) – alles, bei dem eine Art von “Zurückgreifen” Sinn macht.Du kannst auch BOUND mit FILTER kombinieren, um sicherzustellen, dass mindestens einer der OPTIONAL-Blöcke erfüllt wird. Lass uns zum Beispiel alle Astronauten erhalten, die auf dem Mond und Mitglieder von Apollo 13 (Q182252) waren (eng genug, oder?). Die Einschränkung kann nicht als einzelner Eigenschaftspfad ausgedrückt werden, weshalb wir eine OPTIONAL-Klausel für “Mitglied einer Mond-Mission” und eine andere für “Mitglied von Apollo 13” benötigen. Wir wollen jedoch nur die Ergebnisse auswählen, bei denen mindestens eine der Bedingungen wahr ist. SELECT ?astronaut ?astronautLabel
+WHERE
+{
+  ?astronaut wdt:P31 wd:Q5;
+             wdt:P106 wd:Q11631.
+  OPTIONAL {
+    ?astronaut wdt:P450 ?mission.
+    ?mission wdt:P31 wd:Q495307.
+  }
+  OPTIONAL {
+    ?astronaut wdt:P450 wd:Q182252.
+    BIND(wd:Q182252 AS ?mission).
+  }
+  FILTER(BOUND(?mission)).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! COALESCE Die COALESCE-Funktion kann als Abkürzung für das oben genannte Muster zum Zurückgreifen BIND(IF(BOUND(?x), ?x, ?y) AS ?z). verwendet werden: Sie verwendet eine Reihe von Ausdrücken und gibt den ersten aus, der ohne einen Fehler ausgewertet wird. Zum Beispiel das Zurückgreifen beim “Pseudonym” oben BIND(IF(BOUND(?pseudonym),?pseudonym,?autorLabel) AS ?label). kann prägnanter geschrieben werden als """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/de>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

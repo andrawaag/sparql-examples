@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0d827ee58817f40f3d7d981a2c83e274> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?alum ?alumLabel ?award ?awardLabel
+WHERE {
+	{?alum wdt:P69 wd:Q34433 }
+UNION {?college wdt:P31 wd:Q2581649.
+        ?alum wdt:P69 ?college}
+        ?alum wdt:P166 ?award.
+        ?alum wdt:P21 wd:Q6581072 .
+       MINUS { ?alum wdt:P27 wd:Q145 }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ASC(?awardLabel)""";
+  rdfs:comment "Properties: educated at (P69)   , instance of (P31)   , award received (P166)   , sex or gender (P21)   , country of citizenship (P27)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

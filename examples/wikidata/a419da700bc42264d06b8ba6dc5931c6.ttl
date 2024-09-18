@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a419da700bc42264d06b8ba6dc5931c6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:LineChart
+SELECT ?country ?year ?AVGpopulation ?countryLabel WHERE {
+  {
+    SELECT ?country ?year (AVG(?population) AS ?AVGpopulation) WHERE {
+      {
+        SELECT ?country (str(YEAR(?date)) AS ?year) ?population WHERE {
+          ?country wdt:P47 wd:Q183;   # shares border with Germany
+                   p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?population;
+                               pq:P585 ?date.
+        }
+      }
+    }
+    GROUP BY ?country ?year
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-198299548DFAAF3C53640A97D1ACCC3D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-BD713A2B742A986AA53EA0CA59413975,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-2D89802B9BC8823C5500841C0ECE992C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-24698B22AFDC8AA962EDD8055BA0C4B8,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-54E522CF7E00CA2EF6A35557650143E9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-3FBEACF444D198D9B1F825EED2DF21D8,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-8136242468DFFCD61C59A48B244ECB0E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-8A3AE489BE362EF9219B90C367E0C1DF,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112370-281C4D1BCE3ECB68F7970B4B676F6FDA;
+  schema:target <https://query.wikidata.org/sparql/> .

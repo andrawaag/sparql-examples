@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b6d06838fd61fea09e2cc99a341d39e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?name ?birthyear ?image (SAMPLE(?coord) AS ?coord) (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink)
+WHERE {
+   ?person wdt:P3429 ?ee;
+     wdt:P19 ?place;
+     rdfs:label ?name filter (lang(?name) = \"en\").
+   ?place wdt:P625 ?coord
+   OPTIONAL { ?person wdt:P569 ?dob }
+   BIND(CONCAT(\"Born \", STR(YEAR(?dob))) as ?birthyear)
+   OPTIONAL {?person wdt:P18 ?image }
+} GROUP BY ?name ?image ?ee ?birthyear""";
+  rdfs:comment """Contents 1 Semantic Web of Books 1.1 Female historians in the EE born in the 1730s (selects Catharine Macaulay) 1.2 Editions of works by Catharine Macaulay, and their online text 1.3 Digital versions of a work that the Oxford Text Archive has, but a different edition from the Oxford Text Archive 1.4 Biographies in the Plomer Dictionary of Booksellers and Printers 1.5 Types of edition 2 Maps 2.1 Map of birthplaces 3 Wikipedia articles 3.1 EE items that have English Wikipedia articles 3.2 EE items that lack English Wikipedia articles, but have articles in another version of Wikipedia 3.3 EE items with no article in any language version of Wikipedia, with optional links to texts that describe them 4 Depictions 4.1 Image gallery 4.2 EE people without images, including links to searches on the National Portrait Gallery 4.3 Art depicting EE people 5 Organisations 5.1 Organisation membership 5.2 Organisations and the individuals who are members 6 Biographical facts 6.1 Bubble chart of occupations 6.2 EE people not tagged with an occupation in Wikidata 6.3 Causes of death 7 Other identifiers 7.1 UK National Archive IDs 7.2 Project Gutenberg author IDs 7.3 Genealogics.org person IDs 7.4 History of Parliament ID 8 Letters 8.1 Letters sent by EE entities 8.2 Things addressed to EE entities 9 Maintenance queries 9.1 Wikidata entities with EE IDs 10 Early Modern Letters Online 10.1 Years and places of birth and death 10.2 Map of birthplaces 10.3 Organisation membership 10.4 Occupations 10.5 Timeline of members of the French Academy of Sciences 10.6 Publications with Wikipedia articles or on-line text 10.7 Timeline with membership of learned and scientific societies 10.8 Causes of death 10.9 Wikidata entries with more than one EMLO identifier (not counting deprecated identifiers) 10.10 EMLO identifiers to Wikipedia pages 10.11 Which Wikimedia sites have pages about EMLO people? 10.12 Reasonator links for EMLO people 10.13 Non-EMLO identifiers for things with an EMLO Person ID 10.14 Mapping between EMLO Location and Wikidata Semantic Web of Books [edit] Female historians in the EE born in the 1730s (selects Catharine Macaulay) [edit] The following query uses these:Items: female (Q6581072)   , historian (Q201788)   Properties: Electronic Enlightenment ID (P3429)   , sex or gender (P21)   , occupation (P106)   , date of birth (P569)   SELECT ?person ?personLabel ?birthdate WHERE {
+  ?person wdt:P3429 ?ee.
+  ?person wdt:P21 wd:Q6581072.
+  ?person wdt:P106 wd:Q201788.
+  ?person wdt:P569 ?birthdate.
+  FILTER ((YEAR(?birthdate) > 1729) && (YEAR(?birthdate) < 1740))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Editions of works by Catharine Macaulay, and their online text [edit] Note: doesn't capture Wikisource transcriptions or Google Books links via Google Books ID (P675) The following query uses these:Items: Catharine Macaulay (Q538767)   Properties: author (P50)   , edition or translation of (P629)   , title (P1476)   , English Short Title Catalogue ID (P3939)   , publication date (P577)   , edition number (P393)   , full work available at URL (P953)   , number of pages (P1104)   SELECT ?edition ?title ?year ?no ?pages (URI(CONCAT(\"http://estc.bl.uk/\",?estc)) AS ?estc_cit) ?text WHERE {
+?work wdt:P50 wd:Q538767. # work by Macaulay
+?edition wdt:P629 ?work; # edition of work
+ wdt:P1476 ?title; # title of edition
+ wdt:P3939 ?estc; # ESTC Citation number
+ wdt:P577 ?pubdate.
+BIND(YEAR(?pubdate) as ?year) # publication year
+OPTIONAL{ ?edition wdt:P393 ?no } # edition number
+OPTIONAL{ ?edition wdt:P953 ?text } # work available at
+OPTIONAL { ?edition wdt:P1104 ?pages } # no of pages
+} ORDER BY ?year ?no Try it! Digital versions of a work that the Oxford Text Archive has, but a different edition from the Oxford Text Archive [edit] The following query uses these:Properties: edition or translation of (P629)   , full work available at URL (P953)   , publication date (P577)   , title (P1476)   , edition number (P393)   SELECT ?edition2 ?title ?year2 ?text2 ?this_is_no ?ota_has_no WHERE {
+?edition1 wdt:P629 ?work; 
+    wdt:P953 ?text1;
+    wdt:P577 ?pubdate1.
+FILTER CONTAINS(STR(?text1),\"ota.ox.ac.uk\") # OTA scan of work
+BIND(YEAR(?pubdate1) as ?year) # publication year  
+?edition2 wdt:P629 ?work; # edition of work
+    wdt:P953 ?text2;
+    wdt:P1476 ?title;
+    wdt:P577 ?pubdate2.
+FILTER( ?edition1 != ?edition2 ) # non-OTA scan of work
+BIND(YEAR(?pubdate2) as ?year2) # publication year
+#FILTER{ ?year1 > ?year2 }
+OPTIONAL{ ?edition1 wdt:P393 ?ota_has_no } # edition number
+OPTIONAL{ ?edition2 wdt:P393 ?this_is_no }
+} Try it! Biographies in the Plomer Dictionary of Booksellers and Printers [edit] The following query uses these:Items: A Dictionary of the Booksellers and Printers who Were at Work in England, Scotland and Ireland from 1641 to 1667 (Q40901539)   Properties: published in (P1433)   SELECT ?entry ?wslink WHERE {
+  ?entry wdt:P1433 wd:Q40901539. # published in Plomer DBP
+OPTIONAL{ ?wslink schema:about ?entry; schema:isPartOf <https://en.wikisource.org/> }
+} Try it! Types of edition [edit] facsimile (Q194070) diplomatic edition (Q5394558) eclectic edition (Q42793760) annotated edition (Q4769619) Maps [edit] Map of birthplaces [edit] Lots of overlaps due to common birthplaces.. The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , place of birth (P19)   , coordinate location (P625)   , date of birth (P569)   , image (P18)    Features: map (Q24515275)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/ee>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

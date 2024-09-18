@@ -1,0 +1,564 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-443ce04b635714b18d9e1b92faf393bb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Membres Académie des sciences Lyon
+SELECT ?item ?itemLabel ?date_de_naissance ?date_de_mort ?date_de_debut ?date_de_fin
+WHERE 
+{
+#  wdt:\"Membre-de\" wd:\"Académie-sciences...\"
+  ?st ps:P463 wd:Q730513 .
+  ?item p:P463 ?st .
+  ?st a wikibase:BestRank .
+  
+  OPTIONAL { ?item wdt:P569 ?date_de_naissance. }
+  OPTIONAL { ?item wdt:P570 ?date_de_mort. }
+  #qualificatif date_de_debut de la propriete \"membre de / Académie-sciences...\"
+  OPTIONAL { ?st pq:P580 ?date_de_debut. }
+  # qualificatif date_de_fin de la propriete \"membre de / Académie-sciences...\"
+  OPTIONAL { ?st pq:P582 ?date_de_fin. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Music help - personnel that played on a recording 2 Count identifiers with exceptions 3 Interwiki table from mwapi 4 Query of a category on EN WP vs Simple English WP 5 check for missing values 6 Query for novalue on qualifier 7 I would like to query wiki data by numeric twitter ID 8 Listed buildings in Coventry 9 Can you query by twitterID? 10 Query an Exact Instrumentation 11 Property-based neighbourhood graph 12 MWAPI insource 13 All articles on the English WIkipedia about National parks around the world 14 Countries with population - but no result for Greece? 15 Remove duplicates when the subject has several objects that corresponds to one predicate 16 MPs representing Coventry 17 Numeration of rows 18 Number of votes of a given party on an election by municipality 19 How to get all the attributes QID/UID 20 Find the today's featured article or a range (from the start to today for example) 21 Calculating ratios 22 Correcting wikidata list, avoiding country bug 23 Need to select all the coutries in the world, and their GPD 24 Extraction d'un qualificatif lié à une propriété 25 Search for element in subcategories 26 Get LatLng of Administrative territorial entity if available 27 RfQ: enwikisource interwiki to ruwiki / ruwikisource 28 Distribution of alma mater of elected members by legislature 29 Item ID in label, but only sometimes 30 Specific description and now P31/P279 set 31 Trying to query whether new data has been created in WikiData for a particular subject. 32 List of people from a state 33 Count of female artists with articles in the Portuguese Wikipedia 34 Grammatical featue 35 Using wikibase:around and also return the aggregate count of statements for each returned item 36 If recursive 37 Subway stations that aren't subway stations Music help - personnel that played on a recording TIA for any help! I saw on the Wikiproject Music page that it's possible to \"Use performer (P175) to list all the performers with instrument (P1303) as a qualifier to say which instrument each performer played on that recording.\" I'd be interested in either performers with instruments on a recording or a release. But I haven't been able to find an example query showing how to do this nor have I been able to construct one myself.Using the Beatles as an example, I am guessing I want to look at a track and not a song. I see I can get the composer and producer as properties, and I can return the band as performer, but have had no luck in my attempts to get the personnel roles. But I'm also not confident how to know if the entities will even have roles. I've tried with a few different tracks & releases but don't know if it's my query or the entities I'm looking at. Both? Any help much appreciated.Query: # personnel and instruments played on a recording 
+SELECT ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+wd:Q60712461 wdt:P175 ?statement .
+?statement ps:wd:Q5 ?performer .
+?statement pq:P1303 ?instrument .
+  
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+} @Nikoladelikatesla: So a couple of things to say about your version. If you want to reach for ps: and pq: values, you generally start with a p:P175, not a wdt:P175. And then the ?performer statement ... would just be ps:P175. That they're a human is neither here nor there. Here's a working query. It's actually written pretty much in reverse order, since the scarcest values are instruments used as qualifiers to performer. There are > 460k uses of P175, so queries involving this property will probably have to have some other conditions to decrease the result set, such as country, or genre, or whatever. # personnel and instruments played on a recording 
+SELECT ?item ?itemLabel ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+?statement pq:P1303 ?instrument .
+?statement ps:P175 ?performer .
+?item p:P175 ?statement .
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! --Tagishsimon (talk) 19:56, 1 April 2021 (UTC) Thank you very much Tagishsimon! This is exactly it. I'm cleary very hazy on the qualifier stuff, need to spend some more time studying it. Appreciate the fast response. -- Nikoladelikatesla 20:07, 1 April 2021 (UTC) @Nikoladelikatesla: This section of the WDQS tutorial is quite good on qualifiers; and the datamodel for an item tries to convey how data is strung together with predicates. (Start at the item bubble; wdt: takes you to a simple value, but is otherwise a dead end. p: takes you to a statement which allows you to look at ps:, pq:, prov:wasDerivedFrom (which leads to pr: ) and other good stuff. --Tagishsimon (talk) 20:17, 1 April 2021 (UTC) Count identifiers with exceptions Hi all! Starting from the following banal query SELECT ?n WHERE { wd:Q11922067 wikibase:identifiers ?n . }
+ Try it! I would like to ask you if the two following improvements are possible: obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers only once (i.e. counting P8034 one time instead of three times, P227 one time instead of two times etc.) obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers except one or more specific properties, e.g. excluding all the values of P214 and P1871 from count Thank you very much! --Epìdosis 07:23, 1 April 2021 (UTC) Items used: Philumenus (Q11922067)   SELECT (COUNT(DISTINCT ?wdt) as ?count) ?n 
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  wd:Q11922067 ?wdt [] .
+  wd:Q11922067 wikibase:identifiers ?n .
+}
+GROUP BY ?n Try it! Items used: Philumenus (Q11922067)   Properties used: VIAF ID (P214)   , CERL Thesaurus ID (P1871)   SELECT (COUNT(*) as ?count) ?n 
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  FILTER( ?wdt != wdt:P214 )
+  FILTER( ?wdt != wdt:P1871 )
+  wd:Q11922067 ?wdt [] .
+  wd:Q11922067 wikibase:identifiers ?n .
+}
+GROUP BY ?n Try it!--- Jura 07:54, 1 April 2021 (UTC)  Here is another proposal for the second query: SELECT (COUNT(DISTINCT(?wdt)) as ?count)
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  wd:Q11922067 ?wdt [] .
+  FILTER( ?wdt != wdt:P214 )
+  FILTER( ?wdt != wdt:P1871 )
+}
+ Try it! --Larske (talk) 14:29, 1 April 2021 (UTC) Oh, I don't quite see the difference, but, if one or the other statement had preferred rank, the following would be needed: SELECT (COUNT(*) as ?count) ?n
+WHERE
+{
+  ?prop wikibase:propertyType wikibase:ExternalId.
+  ?prop wikibase:claim ?p .
+  FILTER( ?prop != wd:P214 )
+  FILTER( ?prop != wd:P1871 )
+  wd:Q11922067 ?p ?st.
+  ?st wikibase:rank ?goodrank .
+  VALUES ?goodrank { wikibase:NormalRank wikibase:PreferredRank }
+  wd:Q11922067 wikibase:identifiers ?n.
+}
+GROUP BY ?n
+ Try it! --- Jura 14:58, 1 April 2021 (UTC)@Jura1: Both of your query versions with filtering out VIAF ID (P214) and CERL Thesaurus ID (P1871) give the result \"?count = 17\" and \"?n = 27\". My query version gives the result \"?count = 14\". That is the difference. It seems we interprete the expectations from Epìdosis differently. \"only once\" is just stated in item 1 above, but it is my interpretation that \"only once\" is valid also for item 2.Below is a figure showing my interpretation of \"only once\" and the basis for the result \"?count = 14\". It also shows where the result \"?count = 17\" comes from. Number of properties (of which not removed by filter) Property Value Number of values (of which not removed by filter) Comment 1 (0) VIAF ID (P214) xx 1 (0) 1 property with 8 values removed by filter xx 2 (0) xx 3 (0) xx 4 (0) xx 5 (0) xx 6 (0) xx 7 (0) xx 8 (0) 2 (1) ISNI (P213) xx 9 (1) 3 (2) Vatican Library VcBA ID (P8034) xx 10 (2) xx 11 (3) xx 12 (4) 4 (3) NORAF ID (P1015) xx 13 (5) 5 (4) GND ID (P227) xx 14 (6) xx 15 (7) 6 (5) Library of Congress authority ID (P244) xx 16 (8) 7 (6) RERO ID (obsolete) (P3065) xx 17 (9) 8 (7) IdRef ID (P269) xx 18 (10) 9 (8) WorldCat Identities ID (superseded) (P7859) xx 19 (11) 10 (9) American Academy in Rome ID (P9097) xx 20 (12) 11 (9) CERL Thesaurus ID (P1871) xx 21 (12) 1 property with 2 values removed by filter xx 22 (12) 12 (10) DLL Catalog author ID (P8122) xx 23 (13) 13 (11) Freebase ID (P646) xx 24 (14) 14 (12) PHI Latin Texts author ID (P6941) xx 25 (15) 15 (13) Pinakes author ID (P6831) xx 26 (16) 16 (14) SHARE Catalogue author ID (P3987) xx 27 (17) I see no need to test for rank \"goodrank\" to get the result \"?count = 14\", directClaim will take care of excluding any properties where all values have a \"deprecated rank\". But yes, to get the result \"?count = 17\" you have to filter for the \"goodranks\" in order to include all \"normal values\" and exclude any \"deprecated values\" in case there are any property with values of more than one rank. --Larske (talk) 07:20, 2 April 2021 (UTC) Interwiki table from mwapi Is there are a way to retrieve https://meta.wikimedia.org/w/api.php?action=query&meta=siteinfo&siprop=interwikimap&sifilteriw=local from Query Service? It's the same as m:Special:Interwiki. This didn't get me past acronym:. It's based on one of Dipsacus fullonum's (Wikidata:Request_a_query/Archive/2021/01#Get_wikis_statistics_from_a_query). It would be helpful if mw:API:Siteinfo#Sample_code (and similar) included Wikidata Query Service. Alternatively, external links from m:Interwiki map would get some of the data: https://meta.wikimedia.org/w/api.php?action=query&prop=extlinks&titles=Interwiki%20map&ellimit=500 --- Jura 11:45, 3 April 2021 (UTC) Query of a category on EN WP vs Simple English WP Greetings from the Simple English WP, where I'm assisting an eager new editor who's keen to share esoteric knowledge. Here's the query: Of the 36 pages in the w:Category:Meitei people, which also exist (i.e. linked via Wikidata items) in the Simple English WP? I'm trying to populate that newly created category in the SEWP but have only found bio pages for \"primordial gods and goddesses\"...! Thank you for your kind help. -- Deborahjay (talk) 13:39, 3 April 2021 (UTC) @Deborahjay: Only one, if my query works as I think it should. SELECT distinct ?item ?itemLabel ?WP_EN_name ?simple_article ?simple_sitelink where
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Meitei people\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?WP_EN_name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    } 
+  filter(bound(?item))
+  OPTIONAL { ?simple_article schema:about ?item ;
+  schema:isPartOf <https://simple.wikipedia.org/> ; 
+  schema:name ?simple_sitelink . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+ Try it! --Tagishsimon (talk) 13:56, 3 April 2021 (UTC) @Tagishsimon: Your findings are consistent with what I've seen of the topic in that WP - including that I'd neglected to link a newly created category to its Wikidata item (now done). Furthermore - the product is helpful for quick-click access (via the WD item number) to three dozen sketchy and neglected WD items to which I can fairly quickly slap on at least a description in English. So we improve. Your facilitating is much appreciated! -- Deborahjay (talk) 14:24, 3 April 2021 (UTC) check for missing values I have connected Swedish runeinscriptions to the page they are mentioned on in some scanned books and would like now to check if I have connected all runeinscriptions ... All the runeinscriptions has a number see sort column and all the books are part of Upplands runinskrifter (Q106007110)Question how to check with SPARQL if all runeinscriptions are connected U 1 - U 1181 and number is missing Scandinavian Runic-text Database ID (P1261) contains the number Upplands runinskrifter (Q106007110) all books are part of this serie SELECT distinct ?signum ?sort ?item ?itemLabel ?citationLabel ?Litteraturbanken WHERE {
+  ?item wdt:P1261 ?signum.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER(STRSTARTS(?signum, \"U \"))
+  BIND(STRAFTER(?signum, \"U \") AS ?sort)
+  ?item p:P1343 ?LitteraturbankenP;
+    ?Litt ?Litt_value.
+  ?Litt_value prov:wasDerivedFrom ?reference.
+  ?reference pr:P248 ?citation;
+    pr:P5123 ?litturl.
+  ?reference pr:P248 ?partof.
+  ?partof wdt:P361 wd:Q106007110  # Books in serie Q106007110
+  BIND(URI(CONCAT(\"https://litteraturbanken.se/forfattare/\", ?litturl)) AS ?Litteraturbanken)
+#  FILTER(xsd:integer(?sort) > 921)
+}
+ORDER BY (xsd:integer(?sort))
+ Try it! Looks like U781 and U 782 is the same inscription i.e. it will be the same object in Wikidata... - Salgo60 (talk) 08:11, 4 April 2021 (UTC) Properties used: KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   , Scandinavian Runic-text Database ID (P1261)   SELECT ?missing_rune ?nv
+WHERE
+{
+    [] wdt:P5176 ?i ; wdt:P1181 ?nv .
+    FILTER( ?nv > 0 && ?nv < 1190 )
+    BIND( CONCAT(\"U \",?i) as ?missing_rune)
+    FILTER NOT EXISTS { [] ps:P1261 ?missing_rune }
+} 
+ORDER BY ?nv Try it! --- Jura 09:22, 4 April 2021 (UTC) Query for novalue on qualifier How do I query for the follows (P155) qualifier at Q104733670#P179? It seems to be missing at SELECT *
+{
+	wd:Q104733670 p:P179 ?st . 
+    ?st ?a ?b 
+}
+ Try it!--- Jura 12:47, 5 April 2021 (UTC)Not sure how you integrate it into your query, but wd:Q104733670 p:P179 [a wdno:P155]. finds it. --Tagishsimon (talk) 13:14, 5 April 2021 (UTC) Oh, it's there at rdf:type. Should get some coffee. Thanks. --- Jura 13:21, 5 April 2021 (UTC) I would like to query wiki data by numeric twitter ID Everytime I query by the ptag P6552 the query will not return a value. In addition when I try and display that tag its always blank returning Does this help? P6552 is used as a qualifier, and hence must be approached as such. SELECT ?item ?itemLabel ?ID ?ID_no
+WHERE 
+{
+  ?item p:P2002 ?stat. 
+  ?stat ps:P2002 ?ID.
+  ?stat pq:P6552 ?ID_no.      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} limit 10
+ Try it! --Tagishsimon (talk) 18:53, 5 April 2021 (UTC) Listed buildings in Coventry Please can we have a list of listed buildings in Coventry, England, at grades I and II* (i.e. heritage designation (P1435)=Grade I listed building (Q15700818) or Category:Grade II* listed buildings (Q8497541)), with no en.Wikipedia article? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 13:36, 6 April 2021 (UTC) @Pigsonthewing: There may be issues with how we define \"in Coventry\". This looks at P131 & P276. We could alternatively use a bounding box or circle based on coordinates. SELECT DISTINCT ?item ?itemLabel ?coord
+WHERE 
+{
+  VALUES ?type {wd:Q15700818 wd:Q8497541}
+  ?item wdt:P1435 ?type.
+  {?item wdt:P131* wd:Q20986417 .}
+  UNION
+  {?item wdt:P276 wd:Q6225 . }
+  OPTIONAL {?item wdt:P625 ?coord . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 13:46, 6 April 2021 (UTC) @Tagishsimon: Thank you. I was thinking of P131, but either will do. But did you miss with no en.Wikipedia article? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 14:02, 6 April 2021 (UTC) @Tagishsimon: Yes. Coventry definition issue drove it out of my head. Small brain. SELECT DISTINCT ?item ?itemLabel ?coord
+WHERE 
+{
+  VALUES ?type {wd:Q15700818 wd:Q8497541}
+  ?item wdt:P1435 ?type.
+  {?item wdt:P131* wd:Q20986417 .}
+  UNION
+  {?item wdt:P276 wd:Q6225 . }
+  OPTIONAL {?item wdt:P625 ?coord . }
+  FILTER NOT EXISTS { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 14:05, 6 April 2021 (UTC) @Tagishsimon: Helpful, as ever. Thanks again. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:20, 6 April 2021 (UTC) Can you query by twitterID? Can you query by twitterID? yep : select ?item  {
+  ?item wdt:P2002 \"Neilyoung\"
+}
+ Try it! author TomT0m / talk page 15:23, 6 April 2021 (UTC) There's also a tool to do that, I wrote a blog post about it. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:19, 6 April 2021 (UTC) Query an Exact Instrumentation I’m attempting to construct a query that will return musical works with an exact instrumental medium, with no more or no fewer instruments than specified. For instance, a very simple query element like the following will pull up every item that has the instruments queried using instrumentation (P870), in this case violin and piano.SELECT DISTINCT ?item ?itemLabel WHERE { ?item wdt:P870 wd:Q8355 ; #instrumentation violin
+       wdt:P870 wd:Q5994. #instrumentation piano
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } } LIMIT 200However, this query will also pull all situations where those instruments are named in larger ensembles. I think that basically I’d need to use a search like this then FILTER or MINUS out any items with instrumentation other the ones I’m interested in, but I'm not sure how to construct it. A further wrinkle is that data providers frequently use a qualifier with a Quantity data type (most normally quantity (P1114) but perhaps also something like number of participants (P1132) to specify the number of instruments or participants. Practice is slightly mixed but this is most commonly supplied only when more than one is required. So there would be a need for a query to be able to specify the presence or absence of this quantifier and the value contained therein, and for instance be able to search for solo piano music only, or for music for two pianos only. (Examples: Violin Sonata No. 2 (Q2352641) / Piano Quintet (Q3414614) / Sonata for Two Pianos and Percussion (Q831870) / En blanc et noir (Q3053508) )Possible? Thanks in advance! --Jsoenyun (talk) 00:27, 6 April 2021 (UTC) @Jsoenyun: Something like this. I've commented out a line which if uncommented will exclude items having a violin, and restricted the query to the four items you specified, using VALUES {}. hth SELECT ?item ?itemLabel (sum(?number) as ?count)
+WHERE 
+{
+  VALUES ?item {wd:Q831870 wd:Q3414614 wd:Q2352641 wd:Q3053508 }
+  ?item p:P870 ?stat.
+  ?stat ps:P870 ?instrument .
+  OPTIONAL {?stat pq:P1132 ?no1.}
+  OPTIONAL {?stat pq:P1114 ?no2.}
+  BIND(COALESCE(?no2,?no1,1) as ?number)
+#  FILTER NOT EXISTS {?item wdt:P870 wd:Q8355}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?itemLabel
+ Try it! --Tagishsimon (talk) 01:40, 6 April 2021 (UTC) @tagishsimon: Thanks very much for your help. There are definitely some useful strategies in your response. I think my request embedded several possibilities and ended up being a little confusing, partly with my inclusion of examples that expressed some of what you'll find in Wikidata, not just the items I'd like to discover. To return to my first query, would there be a way to filter out all examples of instruments other than the one(s) being requested, rather than excluding them by name? Your creation of the ?count value was interesting and I started to use that to filter out all items whose ?count was to filter the sum of the number of instruments being queried (2, here). Of course, that led to many false drops since quantities are usually not specified when the number is 1 (e.g. Piano Sextet (Q7190143) comes up with a quantity of 2, only because 2 violas in the ensemble are quantified, while the other instruments assume \"1\"). But I feel that an answer is near... @Jsoenyun: I've added some more conditions, which (I hope) take us towards being able to 1) count only selected instruments 2) exclude selected instruments from the count 3) exclude entirely music having certain instruments and 4) count all instruments only where a specified instrument is present. Probably needs some testing, and all of the conditions probably don;t play nicely with all of the rest. Items in the VALUES statement do not need comma separators; iirc items in the FILTER ?instrument clause do need comma separators. Not yet v.sure where you're going with ?count ... ?number seems to be the variable to use to include/exclude instruments by reference to the number of that instrument used. SELECT ?item ?itemLabel (sum(?number) as ?count)
+WHERE 
+{
+#  VALUES ?instrument {wd:Q5994} # count only the number of pianos
+  VALUES ?item {wd:Q831870 wd:Q3414614 wd:Q2352641 wd:Q3053508 }
+  ?item p:P870 ?stat.
+  ?stat ps:P870 ?instrument .
+#  FILTER (?instrument NOT IN (wd:Q8355)) # exclude violins from the count
+  OPTIONAL {?stat pq:P1132 ?no1.}
+  OPTIONAL {?stat pq:P1114 ?no2.}
+  BIND(COALESCE(?no2,?no1,1) as ?number)
+#  FILTER NOT EXISTS {?item wdt:P870 wd:Q8355} # exclude music having a violin
+#  FILTER EXISTS {?item wdt:P870 wd:Q8355} # include music only is it has a violin
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?itemLabel
+ Try it! --Tagishsimon (talk) 10:45, 6 April 2021 (UTC) @tagishsimon: Thanks again for your help! I looked closer at what you've done and I'm thinking we're closer to a final query. Originally I was looking to want the total number of instrumentation statements as much as wanting to be able to specify exact instrumentation, but I realize even more now that the total could be powerful tool to ensure that the size of the ensemble syncs with the number of individual instruments being asked for. In the end it would hopefully lead to a way to look for, for instance, exactly one violin and exactly one piano and nothing else, with the \"nothing else\" being confirmed by the inferred ensemble size of 2. I made a small modification and attempted to filter to violin and piano only, with a ensemble size of 2. Attempts to quantify the group ran into problems, so I'm sure I'm missing something obvious. If all goes well the result from my sample should be only q|Q2352641Violin Sonata No. 2 (Q2352641) SELECT ?item ?itemLabel (sum(?number) as ?count)
+WHERE 
+{
+  VALUES ?item {wd:Q831870 wd:Q3414614 wd:Q2352641 wd:Q3053508 }
+  ?item p:P870 ?stat.
+#  ?stat ps:P870 ?instrument.
+  OPTIONAL {?stat pq:P1132 ?no1.}
+  OPTIONAL {?stat pq:P1114 ?no2.}
+  BIND(COALESCE(?no2,?no1,1) as ?number)
+  FILTER EXISTS {?item wdt:P870 wd:Q8355, wd:Q5994} # include music having violin and piano
+#  FILTER : NEED ADDITIONAL FILTER TO LIMIT RESULTS TO 2 TOTAL INSTRUMENTS IN THE ENSEMBLE  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} group by ?item ?itemLabel
+ Try it! I didn't get further with this yet, with a final improvement being to be able to quantify the number of specific instruments as well as ensemble size, e.g. 2 violins and 1 piano, versus 1 violin and 2 pianos. That would be additionally linking the statement to a number in its own qualifier. (I don't know if there are things to find in Wikidata with the above combinations, but this is the basic search strategy that I'd like to enable.)--Jsoenyun (talk) 00:47, 7 April 2021 (UTC) Property-based neighbourhood graph I've been trying to create a neighbourhood graph that takes the items that use the property P9318 and shows how the returned items are connected, but so far all I've gotten are disconnected items randomly floating around a screen. I'd like it to illustrate WMFI's outreach article for This Month in Glam. Thanks for any and all help! -Yupik (talk) 10:07, 6 April 2021 (UTC)@Yupik: Something like that ?#defaultView:Graph
+select distinct ?item ?item2 ?itemLabel
+{
+  ?item wdt:P9318 [] .
+  ?item2 wdt:P9318 [] filter (?item != ?item2)
+  ?item ?prop ?item2 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! or do you want the properties, also ? author TomT0m / talk page 11:15, 6 April 2021 (UTC) @TomT0m: That's exactly what I was thinking of, thanks! BTW your query is quite elegant :) -Yupik (talk) 06:31, 7 April 2021 (UTC) MWAPI insource Hello,After a short discussion on bistrot in French, I try to write this query :Find all the wikidata items with archives at (P485)Departmental archives of Yvelines (Q2860507) and who use the Infobox Biographie2 on his Wikipedia in French.I have be inspired by this query.could you help me to finalise this query? SELECT * WHERE {
+  ?item wdt:P485 wd:Q2860507.
+  ?link schema:about ?category; schema:isPartOf <https://fr.wikipedia.org/>; schema:name ?title .
+  SERVICE wikibase:mwapi {
+	 bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"fr.wikipedia.org\" .
+     bd:serviceParam insource: [[:Template:Infobox Biographie2]]
+    # out
+    ?subcat wikibase:apiOutput mwapi:title  .
+    ?ns wikibase:apiOutput \"@ns\" .
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+}
+ Try it! Thanks in advance! --2le2im-bdc (talk) 15:55, 22 March 2021 (UTC) @2le2im-bdc: I think it might be something like this: SELECT * WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+	bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam wikibase:endpoint \"fr.wikipedia.org\" .
+    bd:serviceParam mwapi:gsrsearch \"insource:Infobox Biographie2\".
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" . 
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+  ?item wdt:P485 wd:Q2860507.
+  ?link schema:about ?item; schema:isPartOf <https://fr.wikipedia.org/>; schema:name ?title .
+}
+ Try it! --Tagishsimon (talk) 21:42, 25 March 2021 (UTC) Thanks a lot @Tagishsimon:! But something go wrong. Indeed, we want to catch the same result of this query through Petscan --2le2im-bdc (talk) 08:10, 27 March 2021 (UTC) @2le2im-bdc: Agreed. Cannot see why. MWAPI should return a list of ?item(s), ?item wdt:P485 wd:Q2860507. should ensure they have that value. I must be missing something, but I do not see what. --Tagishsimon (talk) 09:17, 27 March 2021 (UTC) @2le2im-bdc: This may be better . Two differences: 1) it asks for the DISTINCT set of items. The large number of rows in the borked query arise out of duplication (the basis of which I still don't understand, and which is unexpected to me); and 2) it looks for \"insource:Biographie2\" ... the previous MWAPI was returning reselts which merely had \"insource:Infobox\". It does not match the Petscan, but afaik that is because MWAPI is limited to returning 10k results. SELECT DISTINCT * WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+	bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam wikibase:endpoint \"fr.wikipedia.org\" .
+    bd:serviceParam mwapi:gsrsearch \"insource:Biographie2\".
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" . 
+    ?item wikibase:apiOutputItem mwapi:item .
+  }
+  ?item wdt:P485 wd:Q2860507.
+  ?link schema:about ?item; schema:isPartOf <https://fr.wikipedia.org/>; schema:name ?title .
+}
+ Try it! --Tagishsimon (talk) 03:28, 28 March 2021 (UTC) Thanks a lot @Tagishsimon:!--2le2im-bdc (talk) 18:59, 7 April 2021 (UTC) All articles on the English WIkipedia about National parks around the world If possible please help me create a query that would show all national parks around the world that have an article on the English WIkipedia. Thanks. ויקיג'אנקי (talk) 14:23, 7 April 2021 (UTC) SELECT ?item ?itemLabel ?country ?countyLabel ?sitelink ?article
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q46169.
+  ?item wdt:P17 ?country.
+  ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by ?countyLabel ?itemLabel
+ Try it! --Tagishsimon (talk) 11:45, 8 April 2021 (UTC) Countries with population - but no result for Greece? Greece is a country. And Greece item also has an item population. Why Greece is not found then? #Länder nach Einwohnerzahl
+# defaultView:BubbleChart
+SELECT DISTINCT ?countryLabel ?population
+{
+  ?country wdt:P31 wd:Q6256 ;
+           wdt:P1082 ?population .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+GROUP BY ?population ?countryLabel
+ORDER BY DESC(?population)
+ Try it! Because sovereign state (Q3624078) is set as the preferred and only truthy P31 value for Greece (Q41) and so a wdt: predicate query will not see the the wd:Q6256 value. Try p:P31/ps:P31 instead. --Tagishsimon (talk) 11:40, 8 April 2021 (UTC) Hello Tagishsimon, I changed country item of greece also to preferred, like in all other countries. In fact sovereign state (Q3624078) is a better definition than country (Q6256). (eg Denmark and Kingdom of Denmark, etc) Bouzinac 💬●✒️●💛 05:57, 9 April 2021 (UTC) Remove duplicates when the subject has several objects that corresponds to one predicate HelloI'm trying to obtain a list of all schools that are an \"Institut d'études politiques\" (a french school type)I wrote the following query : SELECT ?item ?itemLabel 
+WHERE 
+{
+ ?item wdt:P31/wdt:P279* wd:Q5341295.
+ ?item rdfs:label ?itemLabel.
+ filter contains(?itemLabel,\"Institut d'études politiques\"). 
+  
+FILTER(LANG(?itemLabel) = \"fr\").
+
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ Try it! It looks for the sentence \"Institut d'études politiques\" in the label of the school.It also asks for an \"instance of\" every subclass of \"educational organization\".In theory the label thing should be sufficient but it's is too big for wikidata so I had to add this second condition.My issue is : there are duplicates because some of the schools are referenced as several \"instance of\" \"educational organization\". For example: some schools are referenced as a Public school AND a University AND an educational institution etc.My question is : how can I remove the duplicates ? – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). In the above, using SELECT DISTINCT instead of SELECT is sufficient. --- Jura 11:37, 10 April 2021 (UTC) MPs representing Coventry With similar geographical scope to my query above, please could we have a list of all MPS for constituencies in Coventry (en:Category:Parliamentary constituencies in Coventry may help, but determining them programmatically rather than as a hard-coded list would make the query more transferable), with en.Wikipedia articles if they have them? @tagishsimon:, FYI. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 13:47, 9 April 2021 (UTC) @Pigsonthewing: Basic query; can be embellished. SELECT DISTINCT ?item ?itemLabel ?constituency ?constituencyLabel ?constituencyDescription ?sitelink ?article {
+  VALUES ?constituency {wd:Q60576091 wd:Q3335749 wd:Q5179039 wd:Q3335775 wd:Q1075422 wd:Q5179085 
+                        wd:Q56185582 wd:Q5179125 wd:Q5179113 wd:Q5179104 wd:Q5179114 wd:Q42967186 }
+  ?item p:P39 ?positionStatement . 
+  ?positionStatement pq:P768 ?constituency . 
+  ?positionStatement ps:P39 [wdt:P279* wd:Q486839] . 
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! --Tagishsimon (talk) 14:30, 9 April 2021 (UTC) It's rather a slow query. Possible there's a speed improvement to be made. Maybe later. --Tagishsimon (talk) 14:39, 9 April 2021 (UTC) This is better by far. SELECT DISTINCT ?item ?itemLabel ?constituency ?constituencyLabel ?constituencyDescription ?sitelink ?article {
+  VALUES ?constituency {wd:Q60576091 wd:Q3335749 wd:Q5179039 wd:Q3335775 wd:Q1075422 wd:Q5179085 
+                        wd:Q56185582 wd:Q5179125 wd:Q5179113 wd:Q5179104 wd:Q5179114 wd:Q42967186 }
+  ?item p:P39 ?positionStatement .
+  ?positionStatement pq:P768 ?constituency . 
+  ?positionStatement ps:P39 ?position. 
+  ?position wdt:P279* wd:Q486839 . hint:Prior hint:gearing \"forward\".
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! --Tagishsimon (talk) 14:44, 9 April 2021 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘@Tagishsimon: You went for the list approach, then? Nonetheless, very useful, thank you. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 15:23, 9 April 2021 (UTC) @Pigsonthewing: yes. Four ways, maybe to do this. 1) try to use coordinates to identify the constituencies ... not well supported by the data; 2) links joining the set of Coventry constituencies together, in some way ... again seems unsupported by the data; 3) list method; 3) use MWAPI category search - but risk that there are constituencies missing articles (three in this case), hence not in the category to be found, hence no MPs for. Open to suggestions, but I don't see data to support another approach. SELECT DISTINCT ?item ?itemLabel ?constituency ?constituencyLabel ?constituencyDescription ?sitelink ?article with { select ?constituency where {
+    hint:Query hint:optimizer \"None\".
+    SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Parliamentary constituencies in Coventry\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     ?constituency wikibase:apiOutputItem mwapi:item.
+    }
+  filter(bound(?constituency))
+  } } as %i WHERE
+{
+  INCLUDE %i
+  ?positionStatement pq:P768 ?constituency . 
+  ?item p:P39 ?positionStatement .
+  ?positionStatement ps:P39 ?position. 
+  ?position wdt:P279* wd:Q486839 . hint:Prior hint:gearing \"forward\".
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! --Tagishsimon (talk) 17:06, 9 April 2021 (UTC) ┌────────────────────────────────────────────────────────────────────────────────────────────────────┘@Tagishsimon: Thanks. I'm not sure how we'd model the \"genealogy\" mentioned in this infobox. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 18:14, 9 April 2021 (UTC) @Tagishsimon, Pigsonthewing: In principle modelling the genealogy is easy with replaces/replaced by, but this can get to some slightly unexpected results when you have a constituency that straddles boundaries or picks up bits from a lot of different seats during a reorganisation - eg Brigg and Goole is in both North Lincolnshire and East Yorkshire, so has \"parents\" in both, and if you follow that chain all the way back it might get a bit odd. (It's one of those things that I started tinkering with and promptly realised was more complicated than I thought!). Would probably work OK for the Coventry seats, though. I'll hack that up just now and we can see what it looks like using a \"follow the chain\" approach. In terms of data coverage: we have person-seat links from 1886 onwards (definitely), 1820-1886 (mostly, but not hand-corrected) plus everyone who sat 1386-1421, 1509-1629. Outside those periods the constituency data is currently less reliable, and mostly missing for the eighteenth century. Andrew Gray (talk) 20:12, 10 April 2021 (UTC) Here's a version based on \"replaced by\", after I think patching up all the relevant items - SELECT DISTINCT ?item ?itemLabel ?constituency ?constituencyLabel ?constituencyDescription ?sitelink ?article {
+  ?constituency wdt:P1365* wd:Q60576091 . 
+  ?item p:P39 ?positionStatement .
+  ?positionStatement pq:P768 ?constituency . 
+  ?positionStatement ps:P39 ?position. 
+  ?position wdt:P279* wd:Q486839 . hint:Prior hint:gearing \"forward\".
+  OPTIONAL { ?article schema:about ?item ;
+  schema:isPartOf <https://en.wikipedia.org/> ; 
+  schema:name ?sitelink .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! Gets the same 97 lines. You could also patch the two approaches together if there were multiple \"source\" constituencies - eg for London you'd not be able to just start with the medieval London seat, you'd have to do a lost of post-Reform seats and work from there. I should also add there is in theory an option five - look for items which are \"in\" Coventry using located in the administrative territorial entity (P131) - but this is a bit challenging given that the administrative areas involved have varied a lot over time, and I don't know how comprehensively linked all those are. Andrew Gray (talk) 20:59, 10 April 2021 (UTC) @Andrew Gray: A named after (P138) chain leading back to the town might be a useful way to go (and less period-dependent), if all the data were in. Jheald (talk) 21:37, 10 April 2021 (UTC) Numeration of rows Hi all! Given a random query, e.g. SELECT DISTINCT ?item ?itemLabel
+{
+  ?item wdt:P9178 ?id . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?itemLabel
+ Try it! is there a way to add a column containing a simple numeration of the rows of the results? 1, 2, 3, 4 etc. Thank you as always, --Epìdosis 07:55, 11 April 2021 (UTC) @Epìdosis: There is. In this example, based on (text) ?id2 > ?id ... presumably you could play with that conditions if you wanted the numeration to follow a different pattern. However it times out if there are too many rows; works for 300, does not work for 3000. (This query is, as all good query answers are, based on a Dipsacus fullonum response from 10 March 2021.) SELECT ?item ?itemLabel ?id (COUNT(?thing) + 1 AS ?row)
+WITH
+{
+  SELECT ?item ?id
+  WHERE
+  {
+     ?item wdt:P9178 ?id . 
+
+  } limit 300
+}
+AS %people
+WHERE
+{
+  INCLUDE %people
+  {
+    SELECT (?id AS ?id2)
+    WHERE
+    {
+      INCLUDE %people
+    }
+  }
+  BIND (IF(?id2 > ?id, true, 1/0) AS ?thing)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?item ?itemLabel ?id 
+ORDER BY DESC(?id)
+ Try it! --Tagishsimon (talk) 12:02, 11 April 2021 (UTC) The \"Compare: rank within related names\" at https://www.wikidata.org/wiki/Talk:Q7521081?lang=en (also mentioned there) sorts first and then ranks (i.e. adds row/line numbers). --- Jura 14:00, 11 April 2021 (UTC) Number of votes of a given party on an election by municipality Hello! I want to have the votes of a given party on an election by municipality. I'm quite stuck with the statements. Let's see if someone can help me: SELECT ?election ?electionLabel ?place ?placeLabel ?party WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?party ps:P1111 [wdt:P726 wd:Q85843184].
+}
+ Try it! Thanks! -Theklan (talk) 09:29, 13 April 2021 (UTC) @Theklan: This sort of direction. SELECT ?election ?electionLabel ?place ?placeLabel ?party ?partyLabel ?votes WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  VALUES ?party {wd:Q85843184}
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?election p:P726 ?stat . 
+  ?stat ps:P726 ?party .
+  ?stat pq:P1111 ?votes .
+  }
+ Try it! --Tagishsimon (talk) 10:13, 13 April 2021 (UTC) @Tagishsimon: Thanks! -Theklan (talk) 10:20, 13 April 2021 (UTC) Ok, it works great, but it's quite counter-intuitive for me. I wanted to represent the sum of two parties, and I can show both in the results easily, but I can't sum ?party1 and ?party2 in this way.. SELECT ?election ?electionLabel ?place ?placeLabel ?party ?partyLabel ?votes WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?election p:P726 ?stat . 
+  VALUES ?party {wd:Q85843184 wd:Q15630787}.
+  ?stat ps:P726 ?party .
+  ?stat pq:P1111 ?votes .
+  }
+ Try it! @Theklan: Presuming you want two distinct sums, then this. SELECT ?party ?partyLabel (sum(?votes_) as ?votes)  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?election p:P726 ?stat . 
+  VALUES ?party {wd:Q85843184 wd:Q15630787}.
+  ?stat ps:P726 ?party .
+  ?stat pq:P1111 ?votes_ .  
+  } group by ?party ?partyLabel
+ Try it! And for a single figure summing all votes, this: SELECT  (sum(?votes_) as ?votes)  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?election p:P726 ?stat . 
+  VALUES ?party {wd:Q85843184 wd:Q15630787}.
+  ?stat ps:P726 ?party .
+  ?stat pq:P1111 ?votes_ .  
+  }
+ Try it! --Tagishsimon (talk) 12:34, 13 April 2021 (UTC) @Tagishsimon: Actually, I want the sum of two (or more) parties by ?place. There is the problem, it seems. -Theklan (talk) 14:50, 13 April 2021 (UTC) @Theklan: As I understand it, so long as you can group your target sets together, (sum()) will do the counting; so here are the combined votes for the two parties in any ?place in which at least one of them stood. SELECT ?place ?placeLabel (sum(?votes_) as ?votes)  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?election wdt:P361 wd:Q30594119.
+  ?election wdt:P1001 ?place.
+  ?election p:P726 ?stat . 
+  VALUES ?party {wd:Q85843184 wd:Q15630787}.
+  ?stat ps:P726 ?party .
+  ?stat pq:P1111 ?votes_ .  
+  } group by ?place ?placeLabel
+ Try it! --Tagishsimon (talk) 15:47, 13 April 2021 (UTC) How to get all the attributes QID/UID Hello, I want to get all the linked attributes of any QID- for example In given query the property spouse is giving reham khan. I instead want to get Q16225960 which is wikidata id of reham khan SELECT ?prop_id ?prop_label ?prop_val WHERE { VALUES (?company) {
+   (wd:Q155164)
+ }
+ ?company ?prop_id ?company_item.
+ ?wd wikibase:directClaim ?prop_id.
+ ?wd rdfs:label ?prop_label.
+ OPTIONAL {
+   ?company_item rdfs:label ?prop_val.
+   FILTER((LANG(?prop_val)) = \"en\")
+ }
+ BIND(COALESCE(?prop_val, ?companyItem) AS ?prop_val)
+ FILTER((LANG(?prop_label)) = \"en\") } SELECT ?prop_id ?prop_label ?company_item ?prop_val WHERE {
+
+ VALUES (?company) {
+   (wd:Q155164)
+ }
+ ?company ?prop_id ?company_item.
+ ?wd wikibase:directClaim ?prop_id.
+ ?wd rdfs:label ?prop_label.
+ OPTIONAL {
+   ?company_item rdfs:label ?prop_val.
+   FILTER((LANG(?prop_val)) = \"en\")
+ }
+ BIND(COALESCE(?prop_val, ?companyItem) AS ?prop_val)
+ FILTER((LANG(?prop_label)) = \"en\")
+
+}
+ Try it! --Tagishsimon (talk) 13:55, 14 April 2021 (UTC) Find the today's featured article or a range (from the start to today for example) Hi, I'm creating a script to extract the number of different gender outlinks and make a statistic, but I need a way to get the Q of today's (or a given day or period of time) featured article. If possible, in all wikipedias. But the latter could be solvable with pywikibot, which I'm using.My query is this. \"\"\"SELECT ?gender ?genderLabel (count(distinct ?person) as ?number) 
+    WHERE
+    {
+      ?person ?transcluded wd:qualifier.
+      ?person wdt:P31 wd:Q5.
+      ?person wdt:P21 ?gender.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?gender rdfs:label ?genderLabel.}
+    }
+    GROUP BY  ?gender ?genderLabel \"\"\"
+ Try it! So I'm looking for a way to replace \"qualifier\" with the qualifier of a featured article.I thought of filtering with templates, but each wikipedia uses a different template, so it's not suited for my project.Thank you in advance,--Destokado (talk) 15:18, 7 April 2021 (UTC) I don't think this is possible from WDQS. It has no clue about whether & when featured articles were 'Today's FA', nor can I see a way of using MWAPI to get that information. --Tagishsimon (talk) 11:42, 8 April 2021 (UTC) @Tagishsimon I've changed my approach, instead of the featured article, I tried with the whole main page. The thing is, when I try to get the transcluded articles of the Q5296, It always yields 0 rows. Moreover, is there a way to indicate which language edition I want to query? Thank you --Destokado (talk) 20:48, 13 April 2021 (UTC) PS: Sorry if tagging is not appropiate, I'm quite new to WM @Destokado: I don't think Wikimedia main page (Q5296) helps at all. In essence that item provides the main page URL for wikipedias, but does not provide a means by which any understanding of their content can be gleaned. There is no transcluded article, but just a URL which says 'there's a main page here'. The SPARQL incantations for sitelinks of an ?item are along the lines of ?article schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?sitelink . \"so it's possible to identify the language wikipedia using the schema:isPartOf predicate. --Tagishsimon (talk) 23:36, 13 April 2021 (UTC)Thank you, @Tagishsimon: I've taken your advice and I changed my approach again. I'm going to explain it just in case it may be helpful for other devs. I query the lang wiki for the pagelinks of a given pageID (the page_id of the Main Page of the language, previously stored on a file). Then, (the most expensive operation) using pywikibot, I get the Q of each page returned by pagelinks. Then, I put those Q in the VALUES of the next query and compute the genders occurrences like this: SELECT ?genderLabel (COUNT(DISTINCT ?person) AS ?number) WHERE {
+  VALUES ?person {
+    wd:Q5593
+    wd:Q23548
+    wd:Q5577
+  }
+  ?person wdt:P31 wd:Q5;
+    wdt:P21 ?gender.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?gender rdfs:label ?genderLabel.
+  }
+}
+GROUP BY ?gender ?genderLabel
+ Try it! So, Is there a way to do the same thing I'm doing but getting rid of having to use pywikibot (super slow) to get the Q of the items? I wonder if I can search in WDQS for the Q of the items entering either the page_id or the page_title and the language code Thank you so much,--Destokado (talk) 12:06, 15 April 2021 (UTC) Calculating ratios I'm looking to calculate (and ideally visualise) the ratio of anon:non-anon reviewers for each journal in the WikiJournal user group. I've managed to get the counts (below), but I'm looking for the ratio for each journal. SELECT ?reviewer ?reviewerLabel (COUNT(?article) AS ?count) WHERE {
+  # Fetch data
+  ?WikiJournal wdt:P123 wd:Q28953974 .         # journals in WJ user group
+  ?article wdt:P1433 ?WikiJournal.             # articles in journal
+  ?article p:P4032 [ps:P4032 ?reviewer].       # reviewers for each article
+  
+  # Fetch lables
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".}
+}
+GROUP BY ?reviewer ?reviewerLabel
+ORDER BY DESC (?count)
+ Try it! Any ideas on calculating the ratios? T.Shafee(evo&evo) (talk) 01:59, 15 April 2021 (UTC) @Evolution and evolvability: This sort of thing, perhaps. SELECT (sum(?anon) as ?anoncount) (sum(?named) as ?namedcount) (?anoncount / (?anoncount + ?namedcount) as ?ratio) WHERE {
+  # Fetch data
+  ?WikiJournal wdt:P123 wd:Q28953974 .         # journals in WJ user group
+  ?article wdt:P1433 ?WikiJournal.             # articles in journal
+  ?article p:P4032 [ps:P4032 ?reviewer].       # reviewers for each article
+  bind(if(?reviewer=wd:Q4233718,1,0) as ?anon)
+  bind(if(?reviewer=wd:Q4233718,0,1) as ?named)
+}
+ Try it! --Tagishsimon (talk) 02:14, 15 April 2021 (UTC) @Tagishsimon: Nice solution! Exactly what I was looking to calculate. Any ideas on how to get the labels working when faceting? Example: SELECT ?WikiJournal (sum(?anon) as ?anoncount) (sum(?named) as ?namedcount) (?anoncount / (?anoncount + ?namedcount) as ?ratio) WHERE {
+  # Fetch data
+  ?WikiJournal wdt:P123 wd:Q28953974 .         # journals in WJ user group
+  ?article wdt:P1433 ?WikiJournal.             # articles in journal
+  ?article p:P4032 [ps:P4032 ?reviewer].       # reviewers for each article
+  bind(if(?reviewer=wd:Q4233718,1,0) as ?anon)
+  bind(if(?reviewer=wd:Q4233718,0,1) as ?named)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+GROUP BY ?WikiJournal
+ Try it! --T.Shafee(evo&evo) (talk) 05:42, 15 April 2021 (UTC) @Evolution and evolvability: I've pared the ratio back to 2dp, fwiw. It is possible, btw, to have just the ratio if you do not want the ?anon and ?named counts - (floor(sum(?anon) / (sum(?anon) + sum(?named))*100)/100 as ?ratio). SELECT ?WikiJournal ?WikiJournalLabel (sum(?anon) as ?anoncount) (sum(?named) as ?namedcount) (floor(?anoncount / (?anoncount + ?namedcount)*100)/100 as ?ratio) WHERE {
+  # Fetch data
+  ?WikiJournal wdt:P123 wd:Q28953974 .         # journals in WJ user group
+  ?article wdt:P1433 ?WikiJournal.             # articles in journal
+  ?article p:P4032 [ps:P4032 ?reviewer].       # reviewers for each article
+  bind(if(?reviewer=wd:Q4233718,1,0) as ?anon)
+  bind(if(?reviewer=wd:Q4233718,0,1) as ?named)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+GROUP BY ?WikiJournal ?WikiJournalLabel
+ Try it! --Tagishsimon (talk) 07:18, 15 April 2021 (UTC) @Tagishsimon: That's the badger! Thanks. I've also adapted for a yearly count https://w.wiki/3Bvb. T.Shafee(evo&evo) (talk) 12:16, 15 April 2021 (UTC) Correcting wikidata list, avoiding country bug Hey! This is not really a query request, but rather Listeria bot specific formatting question (but may be a query request as well). I'm trying to fix an existing list Wikidata:WikiProject Music/Lists/Instance of music genre. At first it was giving an error \"Killed by OS for overloading memory\". I've tried to fix that by replacing country columns extraction (country (P17), country of origin (P495)) to just labels extract instead, as been said here. It worked, but not really - the countries disappeared from the list. Is it possible to bring them back somehow?Also there's another issue with the formatting of external links. I'm trying to export parameters/links to external sites (=Rate Your Music genre ID (P9173)), but such links are displayed with wrong spacing, like [https://rateyourmusic.com/genre/Punk Rock/ Punk Rock]. Is it possible to fix that? Solidest (talk) 17:07, 10 April 2021 (UTC) @Solidest: Fixed now – the problem was that the line that gets the label was missing. Jon Harald Søby (talk) 13:52, 16 April 2021 (UTC) Thank you! Solidest (talk) 14:05, 16 April 2021 (UTC) Need to select all the coutries in the world, and their GPD Hello, I am pretty new to Wikidata, and UI am running an problem : I want to get all the coutries, in the world, their population, their life expectancy, their HDI, their continent, and their GPD. It is ok for the populations, for the HDIs, the life expectancies, but I cannot get GPDs, because the GPD is not directly on the page of the country, but in another page that is \"economy of [country]\", but I don't know how to get the data that is located there :/. Maybe if someone could help? :DThank you !(What I've tried, actually returns nothing) SELECT ?item ?itemLabel ?population ?hdi ?lifeExpectancy ?continentLabel ?economyStatement ?gpd WHERE {
+ ?item wdt:P31 wd:Q6256 .
+ ?item wdt:P1082 ?population .
+ ?item wdt:P1081 ?hdi .
+ ?item wdt:P30 ?continent .
+ ?item wdt:P2250 ?lifeExpectancy .
+ ?item p:P8744 ?economyStatement .
+ 
+ ?economyStatement wd:Q1379783 ?gpd .
+ 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+ } ORDER BY DESC(?hdi) @TokiiWalkie: See also https://www.w3.org/TR/sparql11-property-paths/ SELECT ?item ?itemLabel ?population ?hdi ?lifeExpectancy ?continentLabel ?GDP WHERE {
+ ?item wdt:P31 wd:Q6256 .
+ ?item wdt:P1082 ?population .
+ ?item wdt:P1081 ?hdi .
+ ?item wdt:P30 ?continent .
+ ?item wdt:P2250 ?lifeExpectancy .
+ ?item wdt:P8744/wdt:P2131 ?GDP .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+ } ORDER BY DESC(?hdi)
+ Try it! --Tagishsimon (talk) 16:24, 16 April 2021 (UTC) I advise to use sovereign state (Q3624078) instead. --Infovarius (talk) 16:32, 17 April 2021 (UTC) Extraction d'un qualificatif lié à une propriété Bonjour, j'essaie d'extraire la liste des membres de l'Académie des sciences de Lyon, avec leur dates d'admission et de fin. La requête ci-dessous me sort des colonnes date_de_debut et date_de_fin vides ! Ou est mon erreur ? Merci pour toute réponse ou aide. #Membres Académie des sciences Lyon
+SELECT ?item ?itemLabel ?date_de_naissance ?date_de_mort ?date_de_debut ?date_de_fin
+WHERE {
+#  wdt:\"Membre-de\" wd:\"Académie-sciences...\"
+  ?item wdt:P463 wd:Q730513 .
+  OPTIONAL { ?item wdt:P569 ?date_de_naissance. }
+  OPTIONAL { ?item wdt:P570 ?date_de_mort. }
+# il faudrait que cela sorte le qualificatif date_de_debut de la propriete \"membre de / Académie-sciences...\"
+  OPTIONAL { ?item wdt:P463/wdt:P580 ?date_de_debut. }
+# il faudrait que cela sorte le qualificatif date_de_fin de la propriete \"membre de / Académie-sciences...\"
+  OPTIONAL { ?item wdt:P463/wdt:P582 ?date_de_fin. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it!--Gnrc (talk) 19:52, 18 April 2021 (UTC)ça donne la date de début et fin sur l'élément Q730513 (ou un autre lié avec P463). Au lieu d'utiliser wdt:, il faut passer par p:P463 et ps:P463: Items used: Académie des sciences, belles-lettres et arts de Lyon (Q730513)   Properties used: date of birth (P569)   , date of death (P570)   , member of (P463)   , start time (P580)   , end time (P582)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

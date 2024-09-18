@@ -1,0 +1,354 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b2615682badd5b266c47380c96d9262e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+select distinct ?paper_author ?paper_authorLabel ?cited_paper_author ?cited_paper_authorLabel where {
+  ?paper wdt:P1325 ?resource . 
+  ?paper wdt:P50 ?paper_author .
+  filter ( strstarts(str(?resource), \"https://openfmri.org/\") || strstarts(str(?resource), \"http://neurosynth.org/\") || strstarts(str(?resource), \"http://neurovault.org/\") )
+  ?paper wdt:P2860 ?cited_paper .
+  # ?cited_paper wdt:P1325 ?resource_for_cited .
+  # filter ( strstarts(str(?resource_for_cited), \"https://openfmri.org/\") || strstarts(str(?resource_for_cited), \"http://neurosynth.org/\") || strstarts(str(?resource_for_cited), \"http://neurovault.org/\") )
+  ?cited_paper wdt:P50 ?cited_paper_author .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""";
+  rdfs:comment """For: https://query.wikidata.orgStatus: https://searchdata.wmflabs.org/wdqs/ User:Fnielsen/SPARQL/Danish politics Contents 1 Creative works 1.1 Creative works with geo locations 1.2 Literary works with citation for reference to place of action 1.3 Narrative location around the center of France 1.4 Residence of authors from Denmark 2 Neuroinformatics 2.1 Ventricular-brain ratios 2.2 Papers with external data 2.3 Patients and those they are treated by 3 Wiki research 3.1 The full monty 3.2 Wikidata research 3.3 Works mentioning Wikidata properties 3.4 Danish Wikipedia research 3.4.1 Python with SPARQL query 3.4.2 Result 4 \"Awesome\" people born on Wikidata birthday 5 Companies 5.1 Russian branch 6 Graphs 6.1 Road connections 6.2 A.P. Møller group ownership 6.3 Scientific co-authors 6.4 Neuroinformatics co-citation author network 6.5 Author cocitation network 6.6 Board members for Danish organizations 6.7 Controlling and ownerships in Denmark 7 Scientometrics 7.1 Most cited Dane 7.2 Most cited with a SoundCloud ID 7.3 Most self-citing author 7.4 Author affiliated with DTU Compute with most works in Wikidata 7.5 Most cited work from DTU Compute-affiliated author based on recorded citations in Wikidata Creative works [edit] Creative works with geo locations [edit] PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+
+SELECT ?work ?workLabel ?location ?locationLabel ?geo  ?short_isbn ?long_isbn WHERE {	
+   ?work wdt:P31/wdt:P279* wd:Q386724 .  # work
+   ?work wdt:P840 ?location .            # location
+   ?location wdt:P625 ?geo .             # Geo coordinates
+   ?location wdt:P17 wd:Q35 .            # Location in Denmark
+   OPTIONAL {?work wdt:P957 ?short_isbn } 
+   OPTIONAL {?work wdt:P212 ?long_isbn } 
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" . } 
+} Literary works with citation for reference to place of action [edit] #defaultView:Map
+prefix pr: <http://www.wikidata.org/prop/reference/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?workLabel ?authorLabel ?locationLabel ?geo ?citat WHERE {
+  { ?work (wdt:P31/wdt:P279*) wd:Q7725634 } union { ?work wdt:P31 wd:Q571 }
+  ?work wdt:P50 ?author .
+  ?work p:P840 ?location_statement .
+  ?location_statement v:P840 ?location .
+  ?location wdt:P17 wd:Q35 .
+  ?location wdt:P625 ?geo . 
+  OPTIONAL {
+    ?location_statement prov:wasDerivedFrom ?ref .
+    ?ref pr:P1683 ?citat .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" . }
+}
+ Try it! Narrative location around the center of France [edit] PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX hint: <http://www.bigdata.com/queryHints#>
+
+SELECT ?place ?placeLabel 
+       ?workLabel ?geo 
+WHERE {
+  hint:Query hint:optimizer \"Runtime\" .
+  
+  wd:Q670930 wdt:P625 ?qgeo . 
+  SERVICE wikibase:around { 
+    ?place wdt:P625 ?geo . 
+    bd:serviceParam
+      wikibase:center ?qgeo ; 
+      wikibase:radius \"500\" . 
+  } 
+  ?work wdt:P840 ?place .
+  { ?work wdt:P31/wdt:P279* wd:Q7725634 . } union { ?work wdt:P31 wd:Q571 . }
+  SERVICE wikibase:label {
+    bd:serviceParam 
+      wikibase:language \"en,fr\" . } }
+ Try it! Residence of authors from Denmark [edit] #defaultView:Map
+select ?place_label ?place ?geo (?author_label as ?layer) ?author where {
+  ?author wdt:P27 wd:Q35 . 
+  ?work wdt:P50 ?author . 
+  ?author wdt:P551 ?place .
+  ?place wdt:P625 ?geo .
+  ?author rdfs:label ?author_label .  filter (lang(?author_label) = 'da')
+  ?place rdfs:label ?place_label . filter (lang(?place_label) = 'da')
+}
+ Try it! Neuroinformatics [edit] Ventricular-brain ratios [edit] prefix pr: <http://www.wikidata.org/prop/reference/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?value ?year ?referenced ?referencedLabel WHERE {	
+   wd:Q17141282 p:P1181 ?value_statement .
+   ?value_statement v:P1181 ?value .
+   ?value_statement prov:wasDerivedFrom ?ref .
+   ?ref pr:P248 ?referenced .
+   ?referenced wdt:P577 ?year .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} Short link: preview.tinyurl.com/ncny58y Papers with external data [edit] PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+select * where {
+  ?paper wdt:P31 wd:Q13442814 .
+  ?paper rdfs:label ?title filter (lang(?title) = 'en') .
+  ?paper wdt:P1325 ?resource .
+} limit 10
+ Try it! Patients and those they are treated by [edit] select ?patient ?patientLabel ?treater ?treaterLabel ?medical_condition ?medical_conditionLabel where {
+  ?patient wdt:P3205 ?treater .
+  optional { ?patient wdt:P1050 ?medical_condition . }
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"da\" .
+   } 
+}
+ Try it! Wiki research [edit] The full monty [edit] # Wikipedia research et al.
+select ?paper ?paper_label ?class_labels ?authors ?venueLabel ?topics ?date ?full_text
+where {
+  {
+    select
+      ?paper ?paper_label 
+      (group_concat(distinct ?classes_label; separator=\", \") as ?class_labels)
+      (group_concat(distinct ?author_label; separator=\", \") as ?authors)
+      (sample(?published_ins) as ?venue)
+      (group_concat(distinct ?topic_label; separator=\", \") as ?topics)
+      (min(?dates_of_publication) as ?date)
+      (sample(?full_texts) as ?full_text)
+    where {
+      { ?paper wdt:P921 wd:Q52 } # Wikipedia
+      union { ?paper wdt:P921 wd:Q195951 } # reliability
+      union { ?paper wdt:P921 wd:Q870337 } # academic studies about Wikipedia
+      union { ?paper wdt:P921 wd:Q23038345 } # Wikipedian
+      union { ?paper wdt:P921 ?wiki . ?wiki wdt:P31 wd:Q10876391 } # Language-version Wikipedia
+      union { ?paper wdt:P921 wd:Q2013 }  # Wikidata
+      union { ?paper wdt:P921 wd:Q17002416 }  # gender bias on Wikipedia
+      
+      optional {
+        ?paper rdfs:label ?paper_label .
+        filter (lang(?paper_label) = \"en\")
+      }
+      
+      optional {
+        ?paper wdt:P31 ?classes .
+        ?classes rdfs:label ?classes_label .
+        filter (lang(?classes_label) = \"en\")
+      }
+      
+      { ?paper wdt:P921 ?topic . }
+      optional { ?topic rdfs:label ?topic_label . filter (lang(?topic_label) = \"en\") } 
+    
+      optional {
+        ?paper wdt:P50 ?author .
+        ?author rdfs:label ?author_label .
+        filter (lang(?author_label) = \"en\")
+      }
+      
+      optional { ?paper wdt:P1433 ?published_ins }
+      optional { ?paper wdt:P577 ?dates_of_publication }
+      optional { ?paper wdt:P953 ?full_texts }
+      
+    } group by ?paper ?paper_label
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }        
+} order by desc(?date)
+ Try it! Wikidata research [edit] select ?work ?workLabel where {
+  ?work wdt:P921 wd:Q2013 .
+  SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"da\" .
+   } 
+  }
+ Try it! Works mentioning Wikidata properties [edit] select ?work ?workLabel ?property ?propertyLabel where {
+	?work wdt:P3176 ?property
+    service wikibase:label { bd:serviceParam wikibase:language \"da\" . } 
+}
+ Try it! Danish Wikipedia research [edit] Python with SPARQL query [edit] #!/usr/bin/env python
+
+import pandas as pd
+import sparql
+
+service = sparql.Service('https://query.wikidata.org/sparql', method=\"GET\")
+
+statement = \"\"\"
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+
+SELECT ?author ?authorLabel ?work ?workLabel ?journal ?journalLabel ?doi ?date WHERE {	
+  ?danishAuthor wdt:P27 wd:Q35 .        
+  ?work   wdt:P50 ?danishAuthor .
+  ?work   wdt:P31/wdt:P279* wd:Q17538129 .
+  ?work   wdt:P921 wd:Q52 .
+  ?work   wdt:P50 ?author .
+
+  OPTIONAL { ?work wdt:P356 ?doi . }
+  OPTIONAL { ?work wdt:P577 ?date . }
+  OPTIONAL { ?work wdt:P1433 ?journal . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" . } 
+} 
+\"\"\"
+
+result = service.query(statement)
+df = pd.DataFrame(result.fetchall(), columns=result.variables)
+
+columns = df.columns
+for column in columns:
+    elements = []
+    for element in df[column]:
+        if type(element) == sparql.IRI or type(element) == sparql.Literal:
+            elements.append(element.value)
+        else:
+            elements.append(element)
+    df[column] = elements
+
+def merge(df, column):
+    if column == 'doi':
+        return \", \".join(set(\"[http://dx.doi.org/%s %s]\" % (doi, doi) for doi in df.doi if doi is not None))
+    else:
+        column_label = column + 'Label'
+        if column_label in df.columns:
+            elements = []
+            for uri, label in zip(df[column].values, df[column_label].values):
+                elements.append(\"[[%s|%s]]\" % (uri[31:], unicode(label)))
+            return \", \".join(set(elements))
+        else:
+            return \", \".join(set(unicode(element) for element in df[column].values))   
+
+grouped = df.groupby('work')
+uris = grouped.groups.keys()
+columns = ['author', 'work', 'journal', 'date', 'doi']
+collected = pd.DataFrame(index=uris, columns=columns)
+for uri in grouped.groups:
+    for column in columns:
+        collected.ix[uri, column] = merge(grouped.get_group(uri), column)
+collected.index = [element[31:] for element in collected.index]
+
+pd.set_option('display.max_colwidth', -1)
+html = collected.to_html(index_names=False)
+html = html.replace('border=\"1\" class=\"dataframe\"', 'class=\"wikitable sortable\"')
+html = html.replace('<thead>', '').replace('</thead>', '').replace('<tbody>', '').replace('</tbody>', '')
+print(html) Result [edit] Gives the following: author work journal date doi Q21174060 Tønnes Bekker-Nielsen Historie på Wikipedia Noter 2011-03-01T00:00:00Z Q21172296 Morten Rask The reach and richness of Wikipedia: Is Wikinomics only for rich countries? First Monday 2008-06-01T00:00:00Z Q21172284 Finn Årup Nielsen Scientific citations in Wikipedia First Monday 2007-08-01T00:00:00Z Q21172700 Michael Andreas Etter, Finn Årup Nielsen Collective remembering of organizations: Co-construction of organizational pasts in Wikipedia Corporate Communications 2015-10-05T00:00:00Z 10.1108/CCIJ-09-2014-0059 \"Awesome\" people born on Wikidata birthday [edit] PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?human ?humanLabel (count(*) as ?count) WHERE {
+  ?human wdt:P31 wd:Q5 ;
+  	 wdt:P569 ?date .
+  ?thing wdt:P138 ?human .
+  
+  FILTER (
+    datatype(?date) = xsd:dateTime &&
+    month(?date) = 10 &&
+    day(?date) = 29
+    )
+  
+  SERVICE wikibase:label {  bd:serviceParam wikibase:language \"en,de,da,no,fr,sv\" . }
+  }
+GROUP BY ?human ?humanLabel
+ORDER BY DESC(?count)
+ Try it! Companies [edit] Russian branch [edit] select ?branch ?okved1 ?okvd2 ?branchLabel where {
+  { ?branch wdt:P3246 ?okvd2 . }
+  union { ?branch wdt:P3243 ?okved1 . }
+  service wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  }
+}
+order by ?code
+ Try it! Graphs [edit] Road connections [edit] #defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+select ?road ?roadLabel ?image ?connected_road ?connected_roadLabel where {
+  service gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
+                gas:in wd:Q3429049, wd:Q12325236;   	   
+                gas:traversalDirection \"Undirected\" ;
+                gas:out ?connected_road ;
+                gas:out1 ?depth ;
+                gas:out2 ?road ;
+                gas:linkType wdt:P2789 ;
+                gas:maxIterations 7;
+                gas:maxVisited 200 .
+  }
+  ?road wdt:P2789 ?connected_road .
+  OPTIONAL {?road wdt:P18 ?image } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}
+ Try it! A.P. Møller group ownership [edit] #defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+select 
+  ?owner ?ownerLabel ?owned ?ownedLabel
+where {
+  { 
+    select
+      ?owner1 ?owned1
+    where {
+      service gas:service {
+        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
+                gas:in wd:Q12300043, wd:Q861295 ;           	   
+                gas:traversalDirection \"Undirected\" ;
+                gas:out ?owned1 ;
+                gas:out1 ?depth ;
+                gas:out2 ?owner1 ;
+                gas:linkType wdt:P1830 ;
+                gas:maxIterations 5;
+                gas:maxVisited 200 .
+      }
+    }
+  }
+  ?owner wdt:P1830 ?owned .
+  filter (?owner = ?owner1  || ?owner = ?owned1 || ?owned = ?owner1 || ?owned = ?owned1)  
+ 
+  service wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+} Scientific co-authors [edit] #defaultView:Graph
+SELECT ?author1 ?author1Label ?author2 ?author2Label WHERE {
+  ?work wdt:P50 ?author1 .
+  ?work wdt:P50 ?author2 .
+  ?work wdt:P31 wd:Q13442814 .
+  filter (?author1 != ?author2)
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    # ?item rdfs:label ?itemLabel.
+  }
+}
+LIMIT 100
+ Try it! Egocentric graph Neuroinformatics co-citation author network [edit] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

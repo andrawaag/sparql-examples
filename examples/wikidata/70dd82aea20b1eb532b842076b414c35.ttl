@@ -1,0 +1,159 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-70dd82aea20b1eb532b842076b414c35> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map{\"hide\": [ \"?geoLocation\", \"?layer\", \"?count\" ], \"markercluster\": true}
+select distinct ?count ?countryLabel ?country (concat(str(?count), ' folders') as ?folderCount) ?pm20Category ?geoLocation ?layer
+where {
+  # get countries, folder counts and one coordinate value
+  { 
+    select ?country (count(?item) as ?count) (sample(?coords) as ?geoLocation)
+    where {
+      ?item wdt:P31 wd:Q91257459 ;
+            wdt:P1269 ?country .
+      
+      # set default coordinates for items like \"world\"
+      bind(\"Point(-25 0)\"^^geo:wktLiteral as ?defaultCoords)
+      optional {
+        ?country wdt:P625 ?geoCoords .
+      }
+      bind(coalesce(?geoCoords, ?defaultCoords) as ?coords)
+    }
+    group by ?country
+  }
+  
+  # construct URI for country page access
+  ?country p:P8483 ?statement .
+  ?statement ps:P8483 ?geoCode ;
+             pq:P4390 wd:Q39893449 .
+  bind(uri(concat('https://pm20.zbw.eu/category/geo/s/', ?geoCode)) as ?pm20Category)
+  
+  # create map layer
+  bind(if(?count < 3, \"1 - 2 folders\",
+          if(?count < 51, \"3 - 50 folders\", \"more than 50 folders\")) as ?layer)
+                
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?layer""";
+  rdfs:comment """Home Data Structure Data Sources Use Cases Tools & Tasks Statistics Contents 1 All PM20 folders currently linked to Wikidata, by type 2 Queries for person folders 2.1 Map of economists in PM20 by place of birth 2.2 Gender bias in the PM20 persons archives 2.3 Participants of expeditions 2.4 Heads of state 3 Queries for PM20 subject categories 3.1 All subject categories 4 Queries for PM20 \"country\" categories 4.1 All geo codes 5 Queries for PM20 country/subject folders 5.1 Subject folders map 5.2 Subject folders for Japan 5.3 Alle Länder/Sach-Mappen (in German) 5.4 Folder and document count per top category 5.5 Folder and document count per geographicl category 5.6 Folder count per country distribution 5.7 \"Real-world\" items linking to PM20 subject folders 6 Queries for companies/organizations 6.1 Map of PM20 companies by headquarters location 6.2 Company folders by NACE-Code 6.3 Folder count per country 6.4 Statistics: total count of items linked to PM20 company folders 6.5 Wikidata property values sourced from PM20 company folders 6.6 List of all PM20 companies (folders and microfilm sections) 7 Queries on comodities and wares 7.1 Ware image grid (w/ links to PM20 folders) 8 Fulltext search for any type of PM20 folder All PM20 folders currently linked to Wikidata, by type [edit] Queried from the Wikidata SPARQL endpoint: Organization/company folders (co) Person folders (pe) General subject folders (sh) Ware folders (wa) Queries for person folders [edit] Map of economists in PM20 by place of birth [edit] per Wikidata query: #defaultView:Map{\"hide\":\"?geo\"}
+select ?image ?item ?itemLabel ?pobLabel ?viewer ?geo
+where {
+  # occupation: economist
+  ?item wdt:P106 wd:Q188094 ;
+        # with PM20 id
+        wdt:P4293 ?pm20Id ;
+        # with place of birth
+        wdt:P19 ?pob .
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # geo coordinates for pob
+  ?pob wdt:P625 ?geo .
+  # optional image
+  optional { ?item wdt:P18 ?image . }
+  # viewer link
+  bind(uri(concat('https://pm20.zbw.eu/dfgview/', ?pm20Id)) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}
+ Try it! Gender bias in the PM20 persons archives [edit] Gender assignment from Wikidata (empty gender labels mean: unknown) select (count(?item) as ?count) ?gender ?genderLabel
+where {
+  # persons
+  ?item wdt:P31 wd:Q5 ;
+        # with PM20 id
+        wdt:P4293 ?pm20Id .
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # get gender (if available)
+  optional { ?item wdt:P21 ?gender . }
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de\". }
+}
+group by ?gender ?genderLabel
+ Try it! Participants of expeditions [edit] per Wikidata query: select distinct ?item ?itemLabel ?pm20 ?viewer ?workCount
+where {
+  # all research expeditions
+  ##?expedition wdt:P31 wd:Q366301 .
+  # alternatively: all expeditions of any type
+  ?expedition p:P31/ps:P31/wdt:P279* wd:Q2401485 .
+  ?item wdt:P1344 ?expedition ;
+        # with PM20 id
+        wdt:P4293 ?pm20Id .
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # optional image
+  optional { ?item wdt:P18 ?image . }
+  # PM20 Link
+  bind(uri(concat('http://purl.org/pressemappe20/folder/', ?pm20Id)) as ?pm20)
+  # viewer link
+  bind(substr(?pm20Id, 4, 4) as ?numStub)
+  bind(substr(?pm20Id, 4, 6) as ?num)
+  bind(uri(concat('http://dfg-viewer.de/show/?tx_dlf[id]=http://zbw.eu/beta/pm20mets/', ?numStub, 'xx/', ?num, '.xml')) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en, de, fr, es, nl, pl, ru\". }
+}
+order by desc (?workCount)
+ Try it! Heads of state [edit] per Wikidata query. The base set is derived from a federated query to the PM20 endpoint, because the \"field of activity\" property is up to now not completely migrated to Wikidata. PREFIX schema: <http://schema.org/>
+PREFIX zbwext: <http://zbw.eu/namespaces/zbw-extensions/>
+#
+select distinct ?item ?itemLabel ?pm20 ?viewer ?workCount
+where {
+  # get the basic set of persons with \"field of activity\"
+  # \"Staatsoberhaupt\" from PM20 endpoint
+  service <http://zbw.eu/beta/sparql/pm20/query> {
+    ?pm20 zbwext:activity/schema:about \"Head of state\"@en .
+    bind(strafter(str(?pm20), 'http://purl.org/pressemappe20/folder/') as ?pm20Id)
+  }
+  ?item wdt:P4293 ?pm20Id .
+  #
+  # restrict to items with online accessible articles
+  ?item p:P4293/pq:P5592 ?workCount .
+  filter(?workCount > 0)
+  # viewer link
+  bind(substr(?pm20Id, 4, 4) as ?numStub)
+  bind(substr(?pm20Id, 4, 6) as ?num)
+  bind(uri(concat('http://dfg-viewer.de/show/?tx_dlf[id]=http://zbw.eu/beta/pm20mets/', ?numStub, 'xx/', ?num, '.xml')) as ?viewer)
+  # add labels
+  service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE], en, de, fr, es, nl, pl, ru\" . }
+}
+order by ?itemLabel
+ Try it! The federated query currently takes 15-20 seconds. If, for some purposes, this is too much, it can be accelerated to a fraction of this by putting the IDs resulting from the \"service\" statement into a \"values\" clause. Queries for PM20 subject categories [edit] All subject categories [edit] The following query uses these:Items: PM20 subject category (Q92707903)   Properties: instance of (P31)   , PM20 subject code (P8484)   , series ordinal (P1545)   select distinct ?item ?subjectCode ?itemLabel ?pm20Category
+where {
+  ?item wdt:P31 wd:Q92707903 ;
+        wdt:P8484 ?subjectCode .
+
+  # extend for sorting
+  ?item p:P8484 ?statement .
+  ?statement ps:P8484 ?subjectCode ;
+             pq:P1545 ?sortCode .
+  
+  # construct URI for category page access
+  bind(uri(concat('https://pm20.zbw.eu/category/subject/s/', ?subjectCode)) as ?pm20Category)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by  ?sortCode Try it! Queries for PM20 \"country\" categories [edit] All geo codes [edit] The following query uses these:Properties: PM20 geo code (P8483)   , series ordinal (P1545)   select distinct ?geoCode ?item ?itemLabel ?pm20Category
+where {
+  ?item wdt:P8483 ?geoCode .
+
+  # extend for sorting
+  ?item p:P8483 ?statement .
+  ?statement ps:P8483 ?geoCode ;
+             pq:P1545 ?sortCode .
+  
+  # construct URI for category page access
+  bind(uri(concat('https://pm20.zbw.eu/category/geo/s/', ?geoCode)) as ?pm20Category)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+order by ?sortCode Try it! Queries for PM20 country/subject folders [edit] Subject folders map [edit] The following query uses these:Items: PM20 country/subject folder (Q91257459)   , exact match (Q39893449)   Properties: instance of (P31)   , facet of (P1269)   , coordinate location (P625)   , PM20 geo code (P8483)   , mapping relation type (P4390)    Features: map (Q24515275)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

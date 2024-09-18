@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c968acd616c91498268e893e6c4e6316> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#Authority control properties usage for painters
+# Make a list of the most used authority control properties for people for painters
+SELECT ?propertyLabel ?propertyDescription ?count WHERE { 
+	{
+		select ?propertyclaim (COUNT(*) AS ?count) where {
+			?item wdt:P106 wd:Q1028181 . 
+			?item wdt:P31 wd:Q5 .
+			?item ?propertyclaim [] .
+		} group by ?propertyclaim 
+	}
+	?property wikibase:propertyType wikibase:ExternalId .
+	?property wdt:P31 wd:Q19595382 .
+	?property wikibase:claim ?propertyclaim .
+	SERVICE wikibase:label {            # ... include the labels
+		bd:serviceParam wikibase:language \"en\" .
+	}
+} ORDER BY DESC (?count)
+LIMIT 100""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Multichill/Archives/2016/December>,
+    <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Biographical_Identifiers>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec125207-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec125207-1876F174D30C7BEE9486EDD39BD48258;
+  schema:target <https://query.wikidata.org/sparql/> .

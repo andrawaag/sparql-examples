@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05bdfc929c42343530ba75293e648333> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT (COUNT(DISTINCT(?person)) AS ?countPerson)
+WHERE {
+  { # non-zero number of children matches
+    ?person wdt:P1971 ?numOfChildren .
+    {SELECT ?person (COUNT(?child) AS ?numOfChildrenComputed)
+    WHERE {
+      ?person wdt:P40 ?child 
+    }
+    GROUP BY ?person}
+    FILTER (?numOfChildren = ?numOfChildrenComputed)
+  }
+  UNION
+  { # zero number of children matches
+    ?person wdt:P1971 \"0\"^^xsd:decimal .
+    FILTER NOT EXISTS { ?person wdt:P40 ?child }
+  }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-77C1C63EAE18BE999B2A5FC9DEBF6F35, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-7E893FD82C6F35AC96B1B80007AAE6DF,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-C419746E16D244EE593B638C7E2E7DF8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-1433FEB160343F54812BDC9C7EB26FC2,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-8271D0C11CF1139C99608D25E80CB900, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-C8D2AA881405C9DB452A1AC86094BBF2,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-26173849C420B94998526C946F520A44, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-3B7AB04D7CF4AD4A710A9867B6D387EE,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-9B2FAEBDB51A12E1F0BB72FFB5A162F0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-2E7046AD8E6DF37B184EBCAA8F00D9D1,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-E4BE7CFE0FE77B61F0ECB7F39FE26EE6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-76823228BEF85C241BBC0D67E93D73D5;
+  schema:target <https://query.wikidata.org/sparql/> .

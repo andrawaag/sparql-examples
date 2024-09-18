@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-86b9ab53c6a4f27b7ecae91fe1623855> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#title:Selected objects from the Khalili Collections
+#defaultView:Map{\"hide\": [\"?coords\", \"?layer\"]}
+SELECT ?item ?itemLabel ?image ?coords ?layer ?where WHERE {
+?coll wdt:P361 wd:Q63160499. # all Khalili Collections
+?i wdt:P195 ?coll; wdt:P18 ?image ; wdt:P1071 ?place; wdt:P973 ?item . ?place wdt:P625 ?coords.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". ?i rdfs:label ?itemLabel. ?coll rdfs:label ?layer .?place rdfs:label ?where }
+}""";
+  rdfs:comment """Contents 1 Overview queries 1.1 Graph visualisation of the entire Khalili data set 1.2 All items in Khalili Collections, including images, ordered by collection and inventory number 1.3 100 most interesting Khalili Collections objects from Hajj and Islamic Art collections 2 Maps 2.1 Colour-coded global map of Khalili objects with images on Commons 2.2 Map of Enamels of the World collection 2.3 Map of the Islamic Art collection 3 Timelines 3.1 Timeline of Enamels of the World with images on Commons 3.2 Timeline of KC Japanese Art with images on Commons 3.3 Timeline of some coins in the Khalili Collections 3.4 Timeline of some Qurans in the Khalili Collection of Islamic Art 3.5 Timeline of Islamic metalwork 3.6 Islamic art from 650 to 1250 3.7 Timeline of Fatamid, Umayyad and Abbasid Caliphs 4 Historical connections 4.1 People (including mythical/legendary) connected to multiple objects in the Collections 4.2 Objects related in some way to Shah Jahan 4.2.1 Image gallery version of above 4.2.2 Graphical version of above, for a different person 4.3 Objects in Khalili Collections related to Abdulmecid I (graphical version) 4.4 Objects in Khalili Collections related to Abbas II (graphical version) 4.5 Individuals connected (somehow) to objects in multiple Khalili Collections 4.6 Literary works of which Khalili has an exemplar 4.7 Patrons (for whom the object was commissioned or dedicated) 4.8 Parts of the Nurse's Quran and their collections 4.9 Items from the Abbasid Caliphate in collections 4.10 Objects in the Khalili Collections whose main text is in Naskh script 5 Depictions 5.1 Things depicted in art works of the Khalili Collections (sample images for each item) 5.2 Same but with links to the Khalili Collections web site 5.3 Paintings 5.4 Things depicted in art works of the Khalili Collections (all depictions of things that have an image) 5.5 Things depicted in multiple Khalili Collections 5.6 Entity index for the Khalili Collections web site 5.7 Depictions of the Kaaba in the Khalili Collection of Hajj and the Arts of Pilgrimage 5.8 Depictions of lions in the Khalili Collections 5.9 Depictions of elephants in the Khalili Collections 5.10 Depictions of eagles in the Khalili Collections 5.11 Depictions of irises (the flower) in the Khalili Collections 5.12 Art works in the Khalili Collections that do not yet have a depiction statement 5.13 Things depicted in the Jami' al-Tawarikh of Rashid al-Din 5.14 Graph version of above query 5.15 Depictions in the Khalili Falnamah 5.16 Paintings in the Shahnamah of Shah Alam II 5.17 Paintings in the Shahnamah of Prince Murad Bakhsh 6 Translations 6.1 Translations of Wikipedia articles related to the Khalili Collections partnership (most recent first) 6.2 Recently edited articles relevant to the Khalili Collections partnership and their sizes 6.3 Non-English labels for Khalili Collections items 6.4 Terms relating to the two Islamic Art collections that lack Arabic labels 6.5 Translated labels that have not been added to objects with the same English name 7 Data quality 7.1 Count of items and statements about KC objects 7.2 Percentage completeness for some properties 7.3 Objects without an inception date 7.4 KC items with no images in Commons, but more than a century old 7.5 Unreferenced statements about Khalili Collections objects 7.6 ArtUK IDs (reconciled to existing records) 7.7 ArtUK IDs (not reconciled to existing records) 8 Cultural diversity 8.1 Ratifications of the Convention on the Protection and Promotion of the Diversity of Cultural Expressions Overview queries [edit] Graph visualisation of the entire Khalili data set [edit] SELECT ?item1 ?image ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel
+WITH { SELECT ?item1 WHERE {
+?item1 wdt:P195?/wdt:P361? wd:Q63160499
+} } AS %item1
+WITH {SELECT (?item1 AS ?item2) WHERE {INCLUDE %item1} } AS %item2
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.
+?item1 ?prop ?item2.
+?edge wikibase:directClaim ?prop ; a wikibase:Property
+OPTIONAL {?item1 wdt:P18 ?image}
+OPTIONAL {?item2 wdt:P18 ?image2}
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! All items in Khalili Collections, including images, ordered by collection and inventory number [edit] The following query uses these:Items: Khalili Collections (Q63160499)   Properties: collection (P195)   , part of (P361)   , inventory number (P217)   , image (P18)   SELECT ?i ?iLabel ?collLabel ?inv ?image WHERE {
+?i wdt:P195 ?coll.
+  ?coll wdt:P361? wd:Q63160499.
+  OPTIONAL {?i wdt:P217 ?inv}
+  OPTIONAL {?i wdt:P18 ?image}
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?collLabel ?inv Try it! 100 most interesting Khalili Collections objects from Hajj and Islamic Art collections [edit] #title:100 most interesting Khalili Collections Islamic objects
+SELECT ?item ?itemLabel (SAMPLE(?typeLabel) AS ?what) ?itemDescription ?image ?s WHERE {
+  VALUES ?coll {wd:Q66455355 wd:Q66458773} # Islamic Art and Hajj collection
+  ?item wdt:P195 ?coll
+  FILTER (?item NOT IN (wd:Q3114572, wd:Q109341408, wd:Q2997010, wd:Q108543136, wd:Q107663626) ).# Exclude objects in multiple collections
+  ?item wdt:P18 ?image.
+  ?item wdt:P31 ?type.
+  ?item wikibase:statements ?s
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ar,[AUTO_LANGUAGE],en\".
+  ?type rdfs:label ?typeLabel. ?item rdfs:label ?itemLabel. ?item schema:description ?itemDescription }
+} GROUP BY ?item ?itemLabel ?itemDescription ?image ?s
+ORDER BY DESC(?s)
+LIMIT 100
+ 100 most interesting Khalili Collections Islamic objects Maps [edit] Colour-coded global map of Khalili objects with images on Commons [edit] The following query uses these:Items: Khalili Collections (Q63160499)   Properties: part of (P361)   , collection (P195)   , image (P18)   , location of creation (P1071)   , described at URL (P973)   , coordinate location (P625)    Features: map (Q24515275)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

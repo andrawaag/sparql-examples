@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bbb861a3f43d56cc8e04f337544e34eb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT  ?item ?title ?subject ?subjectLabel ?doi
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"\\\"california\\\" haswbstatement:P31=Q13442814\".
+      ?item wikibase:apiOutputItem mwapi:title.
+    }
+  }
+} AS %mwapi
+WHERE {
+  INCLUDE %mwapi
+  ?item wdt:P1476 ?title;
+        wdt:P356 ?doi.
+  FILTER CONTAINS(LCASE(?title), \"california\").
+  FILTER STRSTARTS(?doi,'10.1785')
+  OPTIONAL { ?item wdt:P921 ?subject. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

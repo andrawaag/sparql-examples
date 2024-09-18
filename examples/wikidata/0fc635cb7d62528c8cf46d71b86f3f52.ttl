@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0fc635cb7d62528c8cf46d71b86f3f52> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX target: <http://www.wikidata.org/entity/L654892>
+
+#defaultView:Graph
+SELECT DISTINCT
+  ?lexeme1 ?lexeme1Label ?lexeme1Image
+  ?lexeme2 ?lexeme2Label ?lexeme2Image
+{
+  hint:Query hint:optimizer \"None\".
+  {
+    target: (wdt:P5238| wdt:P5191)+ | (^wdt:P5238 | ^wdt:P5191)+ ?lexeme1 , ?lexeme2 . 
+    ?lexeme1 wdt:P5238 | wdt:P5191 ?lexeme2 .
+  }
+  UNION
+  {
+    BIND(target: AS ?lexeme1)
+    target: wdt:P5238 | wdt:P5191 ?lexeme2 .
+  }
+  UNION
+  {
+    BIND(target: AS ?lexeme2)
+    ?lexeme1 wdt:P5238 | wdt:P5191 target: .
+  }
+  OPTIONAL { ?lexeme1 ontolex:sense / wdt:P5137? / wdt:P18 ?lexeme1Image }
+  OPTIONAL { ?lexeme2 ontolex:sense / wdt:P5137? / wdt:P18 ?lexeme2Image }
+  ?lexeme1 wikibase:lemma ?lexeme1Label .
+  ?lexeme2 wikibase:lemma ?lexeme2Label .
+}
+LIMIT 500""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

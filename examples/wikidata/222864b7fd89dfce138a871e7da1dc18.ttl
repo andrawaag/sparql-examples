@@ -1,0 +1,771 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-222864b7fd89dfce138a871e7da1dc18> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?asteroid ?asteroidLabel ?date WHERE {
+  ?asteroid wdt:P31 wd:Q3863;
+            wdt:P575 ?date.
+  
+  BIND(YEAR(?date) AS ?year)
+  BIND(MONTH(?date) AS ?month)
+  BIND(DAY(?date) AS ?day)
+  
+  FILTER((?month = 10)||(?month = 11))
+  FILTER(IF((?month = 10),(?day > 22)&&(?day <= 31), IF((?month = 11),(?day > 1)&&(?day <= 23), ?day = 1))).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+ORDER BY ?year""";
+  rdfs:comment """Babel user information bg-N За този потребител българският език e роден. en-2 This user has intermediate knowledge of English. zh-1 这位用户的中文达到初级水平。 Users by language Contents 1 Wikidata list-based gallery 2 Wikidata query 2.1 Peoples born between Oct 23 1900 and Nov 22 1900 2.2 Peoples born on Oct 31 1980 2.3 Age of peoples born between Jan 1 1900 and Dec 31 1910 2.4 Occupation of people born between Oct 23 1900 and Nov 22 1900 2.5 Physicist born on Oct 31 2.6 UK Politicians born on Friday the 13th 2.7 People married on Christmas Day 2.8 Person with missing profession 2.9 Most gender-imbalanced occupations (P106) in Bulgarian Wikipedia 2.10 People whose birth place is Plovdiv 2.11 People died in 2019 2.12 Bulgarian authors in the public domain in Plovdiv 2.13 Most frequently variants of given names Nikola 2.14 Fictional physicists 2.15 Caves in Bulgaria 2.16 Caves around the world 2.17 Caves in Bulgaria on several languages and commons category 2.18 Caves in Bulgaria without wikipedia page 2.19 Caves with description in different languages 2.20 Caves without country 2.21 Caves without coordinates and with more than 2 pages in wikipedia 2.22 Caves by country 2.23 Caves with more than one coordinates 2.24 Caves with label on bulgarian but without length 2.25 Caves with page on bulgarian but without length 2.26 Museums with most paintings 2.27 Museums in Bulgaria 2.28 Map of places with population 0 (zero) 2.29 Churches in Plovdiv 2.30 Human settlements in Bulgaria 2.31 Summits in Bulgaria 2.32 Distribution of craters on astronomical bodies 2.33 Movies by year 2.34 Animated movies by year in Bulgaria 2.35 Movies in 1990 2.36 Number of Academy Awards recipients wrt. gender 2.37 Properties with a missing label or description in Bulgarian language 2.38 Bulgarian people with labels on Bulgarian but without labels on English 2.39 Items that have labels in Bulgarian 2.40 Most used properties for asteroid 2.41 Articles without the property instance of (P31) 2.42 Asteroids without MP identifier 2.43 Duplicated MP identifier on asteroids 2.44 Asteroids on multiple languages 2.45 Books without Bulgarian description 2.46 Looking for items where category saved in sitelink to Commons does not match P373 2.47 Journal statistics 2.48 Time of discovery of asteroids 2.49 Area chart - distribution vs years of programming languages 2.50 BubbleChart: Gender Balance in BulgarianWiki Articles 2.51 Bar Chart: Popular Bulgarian surnames 2.52 Dead people with a Project Gutenberg ID but no English Wikisource profile, whose main language is English 2.53 Most frequent occupations (P106) without a label in Bulgarian language 2.54 Most frequent values in occupation (P106) without female form of label (P2521) in Bulgaria 2.55 Museums without country 2.56 Things that stars, galaxies, star clusters and nebulae are named after 2.57 Things that planets and their moons are named after 2.58 Things that spacecraft are named after 2.59 Map of universities in Bulgaria 2.60 Count of peoples 2.61 Women born in Bulgaria without an article in Bulgarian 2.62 Cities in Africa by country 3 Other Wikidata list-based gallery [edit] As per Wikidata:Database reports/birthday today: Manually update chart WDQS | PetScan | TABernacle | Find images | Recent changes Peter Shilton (1949-09-18) Leicester Shabana Azmi (1950-09-18) Azamgarh Ben Carson (1951-09-18) Detroit Steven Pinker (1954-09-18) Montreal Joshua Angrist (1960-09-18) Columbus Jada Pinkett Smith (1971-09-18) Baltimore Lance Armstrong (1971-09-18) Plano Anna Netrebko (1971-09-18) Krasnodar End of automatically generated list.  Wikidata query [edit] Peoples born between Oct 23 1900 and Nov 22 1900 [edit] PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?person ?personLabel ?personDescription ?birth ?death ?age ?occupationLabel ?sex_or_genderLabel WHERE {
+  ?person wdt:P31 wd:Q5.
+  ?person wdt:P569 ?birth.
+  ?person wdt:P570 ?death.
+  ?person wdt:P21 ?sex_or_gender.
+  ?person wdt:P106 ?occupation.
+  BIND((YEAR(?death)) - (YEAR(?birth)) AS ?age)
+  FILTER((?age > 10) && (?age < 100))
+  FILTER((?birth > \"1900-10-22\"^^xsd:dateTime) && (?birth < \"1900-11-23\"^^xsd:dateTime))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Peoples born on Oct 31 1980 [edit] SELECT ?person ?personLabel ?birth ?death ?occupationLabel WHERE{
+  ?person wdt:P31 wd:Q5.
+  ?person wdt:P106 ?occupation.
+  ?person wdt:P569 ?birth.
+  
+  OPTIONAL {?person wdt:P570 ?death.}
+  
+  FILTER(\"1980-10-31\"^^xsd:dateTime = ?birth).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Age of peoples born between Jan 1 1900 and Dec 31 1910 [edit] #defaultView:BarChart
+SELECT ?age (COUNT(?age) AS ?count) WHERE{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?birth;
+          wdt:P570 ?death.
+  
+  FILTER((\"1900-01-01\"^^xsd:dateTime <= ?birth) && (?birth < \"1910-12-31\"^^xsd:dateTime)).
+  
+  BIND((YEAR(?death)) - (YEAR(?birth)) AS ?age)
+  FILTER((?age > 10) && (?age < 100))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+GROUP BY ?age
+ORDER BY ?age
+ Try it! Occupation of people born between Oct 23 1900 and Nov 22 1900 [edit] SELECT ?occupation ?occupationLabel (COUNT(?occupation) AS ?count) WHERE{
+  ?person wdt:P31 wd:Q5;
+          wdt:P106 ?occupation;
+          wdt:P569 ?birth.
+  
+  OPTIONAL {?person wdt:P570 ?death.}
+  
+  FILTER((\"1900-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1900-11-23\"^^xsd:dateTime)).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+GROUP BY ?occupation ?occupationLabel
+ORDER BY DESC(?count)
+ Try it! SELECT ?occupation ?occupationLabel (COUNT(?occupation) AS ?count) WHERE{
+  ?person wdt:P31 wd:Q5;
+          wdt:P106 ?occupation;
+          wdt:P569 ?birth.
+  
+  FILTER(
+         ((\"1900-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1900-11-23\"^^xsd:dateTime)) ||
+         ((\"1901-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1901-11-23\"^^xsd:dateTime)) ||
+         ((\"1902-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1902-11-23\"^^xsd:dateTime)) ||
+         ((\"1903-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1903-11-23\"^^xsd:dateTime)) ||
+         ((\"1904-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1904-11-23\"^^xsd:dateTime)) ||
+         ((\"1905-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1905-11-23\"^^xsd:dateTime)) ||
+         ((\"1906-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1906-11-23\"^^xsd:dateTime)) ||
+         ((\"1907-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1907-11-23\"^^xsd:dateTime)) || 
+         ((\"1908-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1908-11-23\"^^xsd:dateTime)) ||
+         ((\"1909-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1909-11-23\"^^xsd:dateTime)) ||
+         ((\"1910-10-22\"^^xsd:dateTime <= ?birth) && (?birth < \"1910-11-23\"^^xsd:dateTime))).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+GROUP BY ?occupation ?occupationLabel
+ORDER BY DESC(?count) Physicist born on Oct 31 [edit] SELECT ?person ?personLabel ?birth ?death ?age WHERE {
+  ?person wdt:P31 wd:Q5.
+  ?person wdt:P106 wd:Q169470.
+  ?person wdt:P569 ?birth.
+  
+  OPTIONAL {?person wdt:P570 ?death.}
+  
+  FILTER((DATATYPE(?birth)) = xsd:dateTime)
+  FILTER((MONTH(?birth)) = 10 )
+  FILTER((DAY(?birth)) = 31 )
+  
+  BIND((YEAR(?death)) - (YEAR(?birth)) AS ?age)
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+ }
+ Try it! UK Politicians born on Friday the 13th [edit] SELECT ?item ?itemLabel ?dob WHERE {
+ ?item wdt:P31 wd:Q5.
+ ?item wdt:P27 wd:Q145.
+ ?item wdt:P106 wd:Q82955.
+ ?item wdt:P569 ?dob.
+# day of week algorithm from https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week#Disparate_variation
+ BIND(YEAR(?dob) AS ?year)
+ BIND(MONTH(?dob) AS ?month)
+ BIND(DAY(?dob) AS ?day)
+ BIND(FLOOR(?year / 100) AS ?century)
+ BIND(REPLACE( STR(?year), \"^..\", \"\") AS ?yy)
+ BIND( IF (?month <= 2, xsd:integer(?yy) - 1, xsd:integer(?yy)) AS ?yyx)
+ BIND( IF (?month <= 2, ?month + 10, ?month - 2) AS ?mm)
+ BIND( ?day + FLOOR(2.6 * ?mm - 0.2) + ?yyx + FLOOR(?yyx / 4) + FLOOR(?century / 4) - 2 * ?century AS ?a)
+ BIND( ?a - FLOOR(?a / 7) * 7 AS ?mod7)
+ # mod7: 0 = Sunday... 6 = Saturday
+ FILTER(?day = 13 && ?mod7 = 5)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! People married on Christmas Day [edit] SELECT ?item ?itemLabel ?dom
+WHERE
+{
+ ?item wdt:P31 wd:Q5.
+ ?item p:P26 [          # date of marriage is the start time (P580) qualifier to spouse (P26)
+   pq:P580 ?dom
+ ]
+ FILTER (DAY(?dom) = 25 && MONTH(?dom) = 12)
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?dom
+ Try it! Person with missing profession [edit] SELECT ?item ?itemLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P27 wd:Q31.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+  FILTER(EXISTS {
+     ?item schema:description ?itemdesc.
+     FILTER(LANG(?itemdesc) = \"[AUTO_LANGUAGE]\") 
+  })
+  MINUS { ?item wdt:P106 [] }
+}
+ORDER BY ?itemLabel
+ Try it! Most gender-imbalanced occupations (P106) in Bulgarian Wikipedia [edit] # most ender-imbalanced occupations in odia wikipedia 
+SELECT ?occupation ?occupationLabel ?women ?men WITH {
+  SELECT ?occupation (SUM(?woman) AS ?women) (SUM(?man) AS ?men) WHERE {
+    #BIND(wd:Q668 AS ?country). # substitute country of your choice here (remove the Q668, hit Ctrl+Space and start typing the country name, select the right one from the suggestions with the arrow keys and insert it with Enter)
+    ?person wdt:P31 wd:Q5;.
+    #?person wdt:P27 ?country. # remove this to search world-wide – results in query timeout unless you reduce the dataset in some other fashion
+     ?person p:P106/ps:P106 ?occupation.
+?article schema:about ?person . ?article schema:isPartOf <https://bg.wikipedia.org/> .
+    { ?person wdt:P21 wd:Q6581097. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q2449503. BIND(1 AS ?man). } UNION
+    { ?person wdt:P21 wd:Q6581072. BIND(1 AS ?woman). } UNION
+    { ?person wdt:P21 wd:Q1052281. BIND(1 AS ?woman). }
+    # TODO consider how to count P21: Q48270 (genderqueer) and Q1097630 (intersex)
+  }
+  GROUP BY ?occupation
+} AS %results WHERE {
+  INCLUDE %results. # subquery as optimization: don’t make the label service fetch labels for every ?person in the subquery
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY
+# divide ?variable+1 instead of ?variable to avoid division by zero
+  # (unfortunately, we can’t use ABS(LOG(x/y)) instead of the IF() because SPARQL has no LOG function)
+  DESC(IF(?women > ?men, (?women+1)/(?men+1), (?men+1)/(?women+1)))
+  # if the ratio is the same, show results with more people in total first
+  DESC(?women + ?men)
+ Try it! People whose birth place is Plovdiv [edit] PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+
+#ORDER BY DESC(?sites)
+SELECT ?item ?statements (COUNT(DISTINCT ?sitelink) AS ?sites) ?itemLabel ?pic ?birth ?pobLabel ?VIAF ?IMDb WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  BIND(xsd:integer(STRAFTER(STR(?item), \"Q\")) AS ?qid)
+  ?item wikibase:statements ?statements.
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }
+  ?item wdt:P31 wd:Q5.
+  { ?item wdt:P19 wd:Q459. }
+  UNION
+  {
+    ?item wdt:P19 ?pob.
+    ?pob wdt:P131* wd:Q459.
+  }
+  OPTIONAL { ?item wdt:P569 ?birth. }
+  OPTIONAL { ?item wdt:P19 ?pob. }
+  OPTIONAL { ?item wdt:P18 ?pic. }
+  OPTIONAL { ?item wdt:P214 ?VIAF. }
+  OPTIONAL { ?item wdt:P345 ?IMDb. }
+}
+GROUP BY ?item ?statements ?itemLabel ?pic ?birth ?pobLabel ?VIAF ?IMDb
+ORDER BY ?birth
+ Try it! People died in 2019 [edit] PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# Odia people (whose spoken/written language is Odia) died in 2019
+SELECT ?item ?itemLabel ?itemDescription ?dod ?dob ?age WHERE {
+  ?item wdt:P570 ?dod.
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P1412 wd:Q7918.
+  OPTIONAL {
+    ?item wdt:P569 ?dob.
+    BIND((2017 - (YEAR(?dob))) + 1 AS ?age)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER((?dod >= \"2019-01-01T00:00:00Z\"^^xsd:dateTime) && (?dod <= \"2019-12-31T00:00:00Z\"^^xsd:dateTime))
+}
+ORDER BY DESC(?age)
+ Try it! Bulgarian authors in the public domain in Plovdiv [edit] PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?statements (COUNT(DISTINCT ?sitelink) AS ?wmprojects) ?itemLabel ?genderLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR = \", \") AS ?occupations) ?death WHERE {
+  VALUES (?occupation) {
+    (wd:Q482980)
+    (wd:Q36180)
+    (wd:Q6625963)
+    (wd:Q49757)
+    (wd:Q11774202)
+    (wd:Q214917)
+    (wd:Q753110)
+    (wd:Q488205)
+    (wd:Q4964182)
+    (wd:Q18939491)
+    (wd:Q1028181)
+    (wd:Q28389)
+    (wd:Q1930187)
+    (wd:Q201788)
+    (wd:Q3658608)
+  }
+  ?item wdt:P31 wd:Q5.
+  { ?item wdt:P19 wd:Q459. }
+  UNION
+  {
+    ?item wdt:P19 ?pob.
+    ?pob wdt:P131* wd:Q459.
+  }
+  UNION
+  { ?item wdt:P103 wd:Q7918. }
+  UNION
+  { ?item wdt:P1412 wd:Q7918. }
+  ?item wdt:P21 ?gender.
+  ?item wdt:P106 ?occupation.
+  ?item wdt:P570 ?death.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+    ?item rdfs:label ?itemLabel.
+    ?gender rdfs:label ?genderLabel.
+    ?occupation rdfs:label ?occupationLabel.
+  }
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }
+  BIND(xsd:integer(STRAFTER(STR(?item), \"Q\")) AS ?qid)
+  ?item wikibase:statements ?statements.
+  FILTER((YEAR(?death)) < 1959)
+}
+GROUP BY ?item ?statements ?itemLabel ?genderLabel ?death
+ORDER BY DESC(?death)
+ Try it! Most frequently variants of given names Nikola [edit] #Most frequently variants of given names Nikola
+
+   #  Query to find the most-frequently represented
+   #  variants of the male given name ?tgt_name
+   #  when ?tgt_name = Q2958359
+   #  Query generated by [[Template:NameVariantStatsM]]
+
+SELECT distinct ?name ?nameLabel ?nameDescription ?string ?count WHERE {
+  hint:Query hint:optimizer \"None\" . 
+  {
+    SELECT distinct ?name ?string (COUNT(DISTINCT ?a) AS ?count) WHERE {
+       { 
+         SELECT DISTINCT ?name ?string WHERE {
+            {?name wdt:P460* wd:Q15501913 } UNION { wd:Q15501913 wdt:P460* ?name} .
+            ?name wdt:P31 wd:Q12308941 .
+         ?name wdt:P1705 ?string.
+         }
+       } .
+       ?a wdt:P735 ?name .
+       ?a wdt:P31 wd:Q5 .
+    } GROUP BY ?name ?string
+  } . 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"bg,en\" .
+  }
+}
+# HAVING (?count > 1)
+ORDER BY DESC(?count) ?itemLabel
+ Try it! Fictional physicists [edit] SELECT distinct ?item ?label ?desc ?samplework ?workLabel ?authorLabel ?_image WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q15632617.
+  ?item wdt:P106/wdt:P279* wd:Q169470 .
+  OPTIONAL {?item schema:description ?desc FILTER( LANG( ?desc ) = 'bg' ) .}
+  OPTIONAL {
+    SELECT ?item (count(*) as ?ct) (SAMPLE(?work) as ?samplework)
+    WHERE { OPTIONAL { ?item wdt:P1441 ?work .} 
+          }
+    GROUP BY ?item
+   }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"bg\",\"en\" . 
+    ?item rdfs:label ?label .
+    ?samplework rdfs:label ?workLabel.
+    ?author rdfs:label ?authorLabel.
+  }
+  OPTIONAL { ?item wdt:P18 ?_image .} 
+  OPTIONAL { ?item wdt:P170 ?author .} 
+}
+ Try it! Caves in Bulgaria [edit] SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coords ?image ?date ?length ?temperature ?vertical_depth ?elevation_above_sea_level ?Commons_category WHERE {
+  ?item wdt:P31 wd:Q35509.
+  ?item wdt:P17 wd:Q219.
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P575 ?date. }
+  OPTIONAL { ?item wdt:P625 ?coords. }
+  OPTIONAL { ?item wdt:P2076 ?temperature. }
+  OPTIONAL { ?item wdt:P4511 ?vertical_depth. }
+  OPTIONAL { ?item wdt:P2044 ?elevation_above_sea_level. }
+  OPTIONAL { ?item wdt:P2043 ?length. }
+  OPTIONAL { ?item wdt:P373 ?Commons_category. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg, en\". }
+}
+ORDER BY ?itemLabel
+ Try it! Caves around the world [edit] SELECT DISTINCT ?item ?itemLabel ?coordinate_location ?image ?countryLabel WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  OPTIONAL { ?item wdt:P625 ?coordinate_location. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  MINUS { ?item wdt:P576 _:b1. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, bg\". }
+}
+ORDER BY ?itemLabel
+ Try it! Caves in Bulgaria on several languages and commons category [edit] SELECT DISTINCT ?item ?itemDescription ?LabelEN ?LabelBG ?LabelRO ?page_titleBG ?Commons_category WHERE {
+  ?item wdt:P31 wd:Q35509.
+  ?item wdt:P17 wd:Q219.
+  ?article schema:about ?item ; schema:isPartOf <https://bg.wikipedia.org/> ;  schema:name ?page_titleBG .
+  ?item rdfs:label ?LabelEN filter (lang(?LabelEN) = \"en\") .
+  ?item rdfs:label ?LabelBG filter (lang(?LabelBG) = \"bg\") .
+  ?item rdfs:label ?LabelRO filter (lang(?LabelRO) = \"ro\") .
+  OPTIONAL { ?item wdt:P373 ?Commons_category. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg, en\". }
+}
+ORDER BY ?itemLabel
+ Try it! Caves in Bulgaria without wikipedia page [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?itemLabel ?page_titleBG WHERE {
+  ?item wdt:P31 wd:Q35509.
+  ?item wdt:P17 wd:Q219.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\". }
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage \"bg\".
+    ?sitelink schema:isPartOf <https://bg.wikipedia.org/>.
+    ?sitelink schema:name ?page_titleBG.
+  }
+  FILTER(!BOUND(?sitelink))
+}
+ Try it! Caves with description in different languages [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?itemLabel ?descEN ?descBG ?descPL ?descRU ?descUK ?descMK ?descCS ?descSR ?descSL ?descLA ?descES ?descEO ?descRO ?descIT ?descFR ?descPT ?descJA ?descZH ?descKO ?descVI ?descDE ?descNO ?descFI ?descNL ?descSV WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  OPTIONAL {?item schema:description ?descEN FILTER( LANG( ?descEN ) = 'en' ) .}
+  OPTIONAL {?item schema:description ?descBG FILTER( LANG( ?descBG ) = 'bg' ) .}
+  OPTIONAL {?item schema:description ?descPL FILTER( LANG( ?descPL ) = 'pl' ) .}
+  OPTIONAL {?item schema:description ?descRU FILTER( LANG( ?descRU ) = 'ru' ) .}
+  OPTIONAL {?item schema:description ?descUK FILTER( LANG( ?descUK ) = 'uk' ) .}
+  OPTIONAL {?item schema:description ?descMK FILTER( LANG( ?descMK ) = 'mk' ) .}
+  OPTIONAL {?item schema:description ?descCS FILTER( LANG( ?descCS ) = 'cs' ) .}
+  OPTIONAL {?item schema:description ?descSR FILTER( LANG( ?descSR ) = 'sr' ) .}
+  OPTIONAL {?item schema:description ?descSL FILTER( LANG( ?descSL ) = 'sl' ) .} 
+  OPTIONAL {?item schema:description ?descLA FILTER( LANG( ?descLA ) = 'la' ) .}  
+  OPTIONAL {?item schema:description ?descES FILTER( LANG( ?descES ) = 'es' ) .}
+  OPTIONAL {?item schema:description ?descEO FILTER( LANG( ?descEO ) = 'eo' ) .}
+  OPTIONAL {?item schema:description ?descRO FILTER( LANG( ?descRO ) = 'ro' ) .}
+  OPTIONAL {?item schema:description ?descIT FILTER( LANG( ?descIT ) = 'it' ) .}
+  OPTIONAL {?item schema:description ?descFR FILTER( LANG( ?descFR ) = 'fr' ) .}
+  OPTIONAL {?item schema:description ?descPT FILTER( LANG( ?descPT ) = 'pt' ) .} 
+  OPTIONAL {?item schema:description ?descJA FILTER( LANG( ?descJA ) = 'ja' ) .}
+  OPTIONAL {?item schema:description ?descZH FILTER( LANG( ?descZH ) = 'zh' ) .}
+  OPTIONAL {?item schema:description ?descKO FILTER( LANG( ?descKO ) = 'ko' ) .}
+  OPTIONAL {?item schema:description ?descVI FILTER( LANG( ?descVI ) = 'vi' ) .}
+  OPTIONAL {?item schema:description ?descDE FILTER( LANG( ?descDE ) = 'de' ) .}
+  OPTIONAL {?item schema:description ?descNO FILTER( LANG( ?descNO ) = 'no' ) .}
+  OPTIONAL {?item schema:description ?descFI FILTER( LANG( ?descFI ) = 'fi' ) .}
+  OPTIONAL {?item schema:description ?descNL FILTER( LANG( ?descNL ) = 'nl' ) .}
+  OPTIONAL {?item schema:description ?descSV FILTER( LANG( ?descSV ) = 'sv' ) .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?itemLabel
+ Try it! PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?itemLabel ?descEN ?descBG ?descRU ?descSV ?descES ?descEO ?descFR ?descJA ?descZH ?descDE WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  ?item wdt:P17 wd:Q219.
+  OPTIONAL {?item schema:description ?descEN. FILTER((LANG(?descEN)) = \"en\") }
+  OPTIONAL {?item schema:description ?descBG. FILTER((LANG(?descBG)) = \"bg\") }
+  OPTIONAL {?item schema:description ?descRU. FILTER((LANG(?descRU)) = \"ru\") }
+  OPTIONAL {?item schema:description ?descSV. FILTER((LANG(?descSV)) = 'sv') }
+  OPTIONAL {?item schema:description ?descES. FILTER((LANG(?descES)) = \"es\") }
+  OPTIONAL {?item schema:description ?descEO. FILTER((LANG(?descEO)) = \"eo\") }
+  OPTIONAL {?item schema:description ?descFR. FILTER((LANG(?descFR)) = \"fr\") }
+  OPTIONAL {?item schema:description ?descJA. FILTER((LANG(?descJA)) = \"ja\") }
+  OPTIONAL {?item schema:description ?descZH. FILTER((LANG(?descZH)) = \"zh\") }
+  OPTIONAL {?item schema:description ?descDE. FILTER((LANG(?descDE)) = \"de\") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?itemLabel
+ Try it! Caves without country [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?statements ?sitelinks ?itemLabel ?itemDescription ?coordinate_location ?image  WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  ?item wikibase:statements ?statements.
+  ?item wikibase:sitelinks ?sitelinks.
+  MINUS { ?item wdt:P17 _:b1. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, bg\". }
+  OPTIONAL { ?item wdt:P625 ?coordinate_location. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+}
+ORDER BY ?statements
+ Try it! Caves without coordinates and with more than 2 pages in wikipedia [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?statements ?sitelinks ?itemLabel ?itemDescription WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  ?item wikibase:statements ?statements.
+  ?item wikibase:sitelinks ?sitelinks.
+  MINUS { ?item wdt:P625 _:b1. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, bg\". }
+  FILTER (?sitelinks>=1)
+}
+ORDER BY ?sitelinks
+ Try it! Caves by country [edit] SELECT ?country ?countryLabel ?cnt WHERE {
+  {
+    SELECT distinct ?country (COUNT(distinct ?item) AS ?cnt) WHERE {
+      ?item (wdt:P31/wdt:P279*) wd:Q35509.
+      ?item wdt:P17 ?country.
+    } GROUP BY ?country
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg,en\". }
+}
+ORDER BY DESC(?cnt)
+ Try it! Caves with more than one coordinates [edit] SELECT ?item ?itemLabel ?itemDescription ?count WHERE{
+  {
+    SELECT ?item (COUNT(DISTINCT ?coordinate_location) AS ?count) WHERE {
+      ?item wdt:P31/wdt:P279* wd:Q35509.
+      ?item wdt:P625 ?coordinate_location.
+      FILTER NOT EXISTS { ?coordinate_location wdt:P576 ?end }
+    }
+    GROUP BY ?item
+  }
+  FILTER ( ?count > 1 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en, bg\". }
+}
+ORDER BY DESC(?count) ?itemLabel
+ Try it! Caves with label on bulgarian but without length [edit] SELECT DISTINCT ?item ?LabelBG ?DescriptionBG WHERE {
+  ?item wdt:P31 wd:Q35509.
+
+  ?item rdfs:label ?LabelBG FILTER(LANG(?LabelBG) = \"bg\").
+  MINUS { ?item wdt:P2043 _:b1. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?LabelBG
+ Try it! Caves with page on bulgarian but without length [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q35509.
+  
+  {?sitelink schema:about ?item. ?sitelink schema:inLanguage \"bg\"} 
+  MINUS { ?item wdt:P2043 _:b1. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\". }
+}
+ Try it! Museums with most paintings [edit] SELECT ?location ?locationLabel (COUNT(?item) AS ?count ) WHERE {
+  ?item wdt:P276 ?location.
+  ?item wdt:P31 wd:Q3305213.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\" }
+}
+GROUP BY ?location ?locationLabel
+ORDER BY DESC(?count)
+LIMIT 10
+ Try it! Museums in Bulgaria [edit] #defaultView:Map
+SELECT ?museum ?museumLabel ?museumDescription ?coordinate_location ?located_in_the_administrative_territorial_entityLabel ?page_titleBG ?image WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg,en\". }
+  ?museum (wdt:P31/wdt:P279*) wd:Q33506.
+  ?museum wdt:P17 wd:Q219.
+  OPTIONAL { ?museum wdt:P625 ?coordinate_location. }
+  OPTIONAL { ?museum wdt:P131 ?located_in_the_administrative_territorial_entity. }
+  OPTIONAL { ?museum wdt:P18 ?image. }
+}
+ORDER BY ?museumLabel
+ Try it! Map of places with population 0 (zero) [edit] #defaultView:Map
+SELECT ?place ?placeLabel ?coordinates ?layer WHERE {
+  ?place wdt:P1082 0.
+  OPTIONAL { ?place wdt:P17 ?country. }
+  OPTIONAL { ?place wdt:P625 ?coordinates. }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?place rdfs:label ?placeLabel.
+    ?country rdfs:label ?layer.
+  }
+}
+ Try it! Churches in Plovdiv [edit] #defaultView:Map
+SELECT DISTINCT ?loc ?coor ?locLabel WHERE {
+  ?loc (wdt:P31/wdt:P279*) wd:Q16970.
+  ?loc (wdt:P131/wdt:P131*) wd:Q459.
+  OPTIONAL { ?loc wdt:P625 ?coor. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\". }
+}
+ Try it! Human settlements in Bulgaria [edit] #human settlement , grouped into map layers by population
+#defaultView:Map
+SELECT DISTINCT ?city ?cityLabel (SAMPLE(?location) AS ?location) (MAX(?population) AS ?population) (SAMPLE(?layer) AS ?layer)
+WHERE
+{
+  ?city wdt:P31/wdt:P279* wd:Q486972;
+        wdt:P17 wd:Q219;
+        wdt:P625 ?location;
+        wdt:P1082 ?population.
+  FILTER(?population >= 0).
+  BIND(
+    IF(?population < 10, \"<10\",
+    IF(?population < 100, \"10-100\",
+    IF(?population < 1000, \"100-1000\",
+    IF(?population < 10000, \"1000-10000\",
+    IF(?population < 100000, \"10000-100000\",
+    \">1000000\")))))
+    AS ?layer).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\". }
+}
+GROUP BY ?city ?cityLabel
+ Try it! Summits in Bulgaria [edit] #defaultView:ImageGrid
+SELECT ?subj ?label ?coord ?elev ?picture WHERE{
+  	?subj wdt:P2044 ?elev .
+  	?subj wdt:P625 ?coord .
+  	?subj wdt:P17 wd:Q219 .
+  	?subj wdt:P31 wd:Q207326 .
+  	?subj wdt:P18 ?picture .
+
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\" . ?subj rdfs:label ?label } 
+}
+ Try it! Distribution of craters on astronomical bodies [edit] # Distribution of craters on astronomical bodies
+SELECT distinct ?planet ?planetLabel (COUNT(distinct ?crater) AS ?cnt)
+WHERE {
+  ?crater wdt:P31 wd:Q3240715 ;
+  		  wdt:P376 ?planet .
+  #FILTER(?planet)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\" }
+} 
+GROUP BY ?planet ?planetLabel 
+ORDER BY DESC(?cnt)
+ Try it! Movies by year [edit] SELECT ?year (count(?item) as ?cnt)  WHERE{
+  ?item wdt:P31/wdt:P279* wd:Q11424 .
+  ?item wdt:P577 ?publicationdate .
+  BIND(str(year(?publicationdate)) as ?year)
+  FILTER(bound(?year))
+}
+GROUP BY ?year 
+ORDER BY ?year
+ Try it! Animated movies by year in Bulgaria [edit] SELECT ?year (COUNT(?item) AS ?cnt) WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q202866.
+  ?item wdt:P577 ?publicationdate.
+  ?item wdt:P495 wd:Q219.
+  BIND(STR(YEAR(?publicationdate)) AS ?year)
+  FILTER(BOUND(?year))
+}
+GROUP BY ?year
+ORDER BY ?year
+ Try it! Movies in 1990 [edit] SELECT DISTINCT ?item ?itemLabel ?name ?typeLabel ?year ?countryLabel ?valLabel WHERE {
+  ?item (wdt:P31/wdt:P279*) wd:Q11424.
+  ?item wdt:P577 ?publicationdate.
+  OPTIONAL { ?item wdt:P793 ?val .}
+  OPTIONAL { ?item wdt:P1476 ?name .}
+  OPTIONAL { ?item wdt:P495 ?country .}
+  ?item wdt:P31 ?type .
+  BIND(STR(YEAR(?publicationdate)) AS ?year)
+  FILTER(?year = \"1990\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\" }
+} order BY ?valLabel
+ Try it! Number of Academy Awards recipients wrt. gender [edit] SELECT ?count ?gender ?genderLabel 
+WITH {
+  SELECT (COUNT(DISTINCT ?recipient) AS ?count) ?gender WHERE {
+    ?recipient wdt:P166 wd:Q19020 . 
+    ?recipient wdt:P21 ?gender . 
+  } 
+  GROUP BY ?gender
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+} 
+ ORDER BY DESC(?count)
+ Try it! Properties with a missing label or description in Bulgarian language [edit] SELECT ?property ?propertyLabel ?propertyDescription ?datatype ?missingLbl ?missingDesc WHERE {
+  ?property wikibase:propertyType ?datatype .
+  OPTIONAL { ?property rdfs:label ?missingLbl . FILTER(LANG(?missingLbl) = 'bg') }
+  OPTIONAL { ?property schema:description ?missingDesc . FILTER(LANG(?missingDesc) = 'bg') }
+  FILTER(!BOUND(?missingLbl)|| !BOUND(?missingDesc)) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! Bulgarian people with labels on Bulgarian but without labels on English [edit] SELECT DISTINCT ?item ?LabelBG ?DescriptionBG ?LabelEN ?DescriptionEN WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P27 wd:Q219.
+  OPTIONAL {?item rdfs:label ?LabelEN FILTER(LANG(?LabelEN) = \"en\")}.
+  FILTER(!BOUND(?LabelEN)).
+  OPTIONAL {?item schema:description ?DescriptionEN FILTER(LANG(?DescriptionEN) = \"en\")}.
+  ?item rdfs:label ?LabelBG FILTER(LANG(?LabelBG) = \"bg\").
+  OPTIONAL {?item schema:description ?DescriptionBG FILTER(LANG(?DescriptionBG) = \"bg\")}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?LabelBG
+ Try it! Items that have labels in Bulgarian [edit] SELECT ?item ?itemLabel ?odialabel WHERE {
+  {
+    SELECT ?item WHERE { ?item wdt:P106 wd:Q169470. }
+  }
+  OPTIONAL {
+    ?item rdfs:label ?label.
+    BIND(STR(?label) AS ?odialabel)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER(REGEX(LANG(?label), \"^bg\"))
+  FILTER(BOUND(?label))
+}
+GROUP BY ?item ?itemLabel ?odialabel
+ORDER BY ?item
+ Try it! Most used properties for asteroid [edit] SELECT ?property ?propertyLabel ?count ?avg WITH {
+  SELECT ?property (COUNT(DISTINCT ?item) AS ?count) (COUNT(DISTINCT ?statement)/COUNT(DISTINCT ?item) AS ?avg) WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q3863;
+          ?p ?statement.
+    ?property a wikibase:Property;
+              wikibase:claim ?p.
+  }
+  GROUP BY ?property
+  ORDER BY DESC(?count)
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY DESC(?count)
+ Try it! Articles without the property instance of (P31) [edit] PREFIX schema: <http://schema.org/>
+
+#items without instance of and subclass of
+SELECT ?item ?statements (COUNT(DISTINCT ?sitelink) AS ?sites) ?itemLabel ?itemDescription ?itemAliases WHERE {
+  ?wikilink schema:about ?item.
+  ?wikilink schema:isPartOf <https://bg.wikipedia.org/>.
+  ?item wikibase:sitelinks _:b4.
+  MINUS { ?item (wdt:P31|wdt:P279) _:b5. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],bg,en\". }
+  ?item wikibase:statements ?statements.
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }
+}
+GROUP BY ?item ?statements ?sites ?itemLabel ?itemDescription ?itemAliases
+ORDER BY ?sites
+ Try it! PREFIX schema: <http://schema.org/>
+
+#items without instance of and subclass of
+SELECT ?item ?statements (COUNT(DISTINCT ?sitelink) AS ?sites) ?itemLabel WHERE {
+  ?wikilink schema:about ?item.
+  ?wikilink schema:isPartOf <https://bg.wikipedia.org/>.
+  ?item wikibase:sitelinks _:b4.
+  MINUS { ?item (wdt:P31|wdt:P279) _:b5. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"bg\". }
+  ?item wikibase:statements ?statements.
+  OPTIONAL {
+    ?sitelink schema:about ?item.
+    ?sitelink schema:inLanguage ?lang.
+  }
+}
+GROUP BY ?item ?statements ?itemLabel
+HAVING (?sites = 1)
+ORDER BY ?sites Asteroids without MP identifier [edit] PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?statements ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q3863.
+  ?wikilink schema:about ?item.
+  { ?wikilink schema:isPartOf <https://en.wikisource.org/>. }
+  UNION
+  { ?wikilink schema:isPartOf <https://en.wikipedia.org/>. }
+  ?item wikibase:statements ?statements.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER(NOT EXISTS { ?item wdt:P5736 ?viaf. })
+  FILTER(NOT EXISTS { ?item rdf:type wdno:P5736. })
+}
+ORDER BY DESC(?statements)
+ Try it! PREFIX wdno: <http://www.wikidata.org/prop/novalue/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q3863.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  FILTER(NOT EXISTS { ?item wdt:P5736 ?viaf. })
+  FILTER(NOT EXISTS { ?item rdf:type wdno:P5736. })
+}ORDER BY ?itemLabel
+ Try it! Duplicated MP identifier on asteroids [edit] SELECT * WHERE {
+  {
+    SELECT ?id (COUNT(?obj) AS ?count) (GROUP_CONCAT(?obj; SEPARATOR = \" , \") AS ?items) WHERE { ?obj wdt:P5736 ?id. }
+    GROUP BY ?id
+  }
+  FILTER(?count > 1)
+}ORDER BY ?id
+ Try it! Asteroids on multiple languages [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?itemLabel ?page_titleEN ?page_titleES ?page_titleEO ?page_titleFR ?page_titleRO ?Minor_Planet_Center_body_ID WHERE {
+  ?item wdt:P31 wd:Q3863.
+  OPTIONAL {?item wdt:P5736 ?Minor_Planet_Center_body_ID.}
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:inLanguage \"en\".
+    ?article schema:isPartOf <https://en.wikipedia.org/>.
+    ?article schema:name ?page_titleEN.
+  }
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:inLanguage \"es\".
+    ?article schema:isPartOf <https://es.wikipedia.org/>.
+    ?article schema:name ?page_titleES.
+  }
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:inLanguage \"eo\".
+    ?article schema:isPartOf <https://eo.wikipedia.org/>.
+    ?article schema:name ?page_titleEO.
+  }
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:inLanguage \"fr\".
+    ?article schema:isPartOf <https://fr.wikipedia.org/>.
+    ?article schema:name ?page_titleFR.
+  }
+  OPTIONAL {
+    ?article schema:about ?item.
+    ?article schema:inLanguage \"ro\".
+    ?article schema:isPartOf <https://ro.wikipedia.org/>.
+    ?article schema:name ?page_titleRO.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?Minor_Planet_Center_body_ID
+ Try it! Books without Bulgarian description [edit] PREFIX schema: <http://schema.org/>
+
+SELECT ?item ?itemLabel ?desc WHERE {
+  ?item wdt:P31 wd:Q571 .
+  
+  FILTER NOT EXISTS { ?item schema:description ?desc filter (lang(?namePropertyBG) = \"bg\") . }
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],bg,en\". }
+}
+ Try it! Looking for items where category saved in sitelink to Commons does not match P373 [edit] SELECT ?item ?commonsCategory ?commonsSitelink ?category WHERE {
+  ?item wdt:P373 ?commonsCategory . 
+  ?commonsSitelink schema:about ?item; schema:isPartOf <https://commons.wikimedia.org/>; schema:name ?sitelink_label .
+  FILTER(STRSTARTS(STR(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\")) . # sitelink to a category
+  BIND(str(substr(?sitelink_label,10)) as ?category) . # strip \"Category:\" part
+  FILTER( false = (?category = ?commonsCategory) )
+} LIMIT 10
+ Try it! Journal statistics [edit] #defaultView:BubbleChart
+select ?published_inLabel (count(?item) as ?count) where {
+  ?item wdt:P31 wd:Q13442814 . ?item wdt:P1325 ?resource . 
+  filter strstarts(str(?resource), \"http://neurosynth.org/studies/\")
+  ?item wdt:P1433 ?published_in .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  } group by ?published_in ?published_inLabel
+order by desc(?count)
+ Try it! Time of discovery of asteroids [edit] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Vislupus>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

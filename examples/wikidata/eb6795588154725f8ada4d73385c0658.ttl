@@ -1,0 +1,597 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-eb6795588154725f8ada4d73385c0658> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Optionen 3 Map 3.1 Optiounen 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Bam 8 Timeline 8.1 Optiounen 9 Dimensiounen 10 Graph 11 Zousätzlech Informatiounen 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Resultater eroflueden 11.6 Default View 11.7 Result view options 11.8 Titel 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Ausprobéieren Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Beschreiwung * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. After running a query, you can choose with the \"Display\" button which result view you want to display. Depending on your query and the data type, some of the views will be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type.Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try OutShows the result data as a grid with images.Every grid item has a big picture and opens the gallery when clicking on it.Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Քարտեզ 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Ծառ 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Ֆորմատացում 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents ༡ Table (default) ༢ Image Grid ༢.༡ Options ༣ Map ༣.༡ Options ༤ Line, Bar, Scatter and Area Chart ༥ Bubble Chart ༦ Tree Map ༧ Tree ༨ Timeline ༨.༡ Options ༩ Dimensions ༡༠ Graph ༡༡ Additional Information ༡༡.༡ RDF Data Type Mapping ༡༡.༢ Formatting ༡༡.༣ Mobile / Responsive ༡༡.༤ Embed Mode ༡༡.༥ Download results ༡༡.༦ Default View ༡༡.༧ Result view options ༡༡.༨ Title ༡༡.༩ List of WDQS tags ༡༡.༡༠ Auto language ༡༡.༡༡ Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 表（默認） 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 折線圖，棒形圖，散點圖同埋面積圖 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates 表（默認） Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It Гэтая старонка апісвае інтэрфэйс WDQS і дапаможа зразумець розныя магчымасьці паказу вынікаў у службе запытаў SPARQL.The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Табліца (дапомна) 2 Сетка выяваў 2.1 Можнасьці 3 Мапа 3.1 Можнасьці 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Дрэва 8 Графік 8.1 Можнасьці 9 Вымярэньні 10 Граф 11 Дадатковая інфармацыя 11.1 RDF Data Type Mapping 11.2 Фарматаваньне 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Вынікі спампоўваньня 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Табліца (дапомна) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Табліца вынікаў Табліца вынікаў на малых экранах з павернутымі слупкамі  Сетка выяваў Сетка выяваў Паспрабаваць Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Зьменная Тып зьвестак Mapping Description * Commons Media Grid Item Image columns will create a grid item. Шэрагі без выяваў будуць прапушчаныя. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  此页面有助于了解可能显示在SPARQL查询服务上的结果。 查询示例页面有很多值得尝试的例子！ Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. 运行一笔查询后，可以选择“显示”来选择要显示的结果视图。视图根据查询和数据类型而有所不同。 Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 表格（默认） 2 图片格子 2.1 选项 2.2 地图 2.3 选项 3 折线图、条形图、散点图和面积图 4 Bubble Chart 5 Tree Map 6 樹 7 Timeline 7.1 选项 8 Dimensions 9 Graph 10 Additional Information 10.1 RDF Data Type Mapping 10.2 Formatting 10.3 Mobile / Responsive 10.4 Embed Mode 10.5 Download results 10.6 Default View 10.7 Result view options 10.8 Title 10.9 List of WDQS tags 10.10 Auto language 10.11 Auto coordinates 表格（默认） 将结果显示为一个表格。这是默认的视图，可显示每一种数据类型。 Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns  图片格子 Image Grid 试用 Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. 变量 数据类型 呈现为 描述 * 共享资源媒体文件 单元格 Image columns will create a grid item. 不含图像的行将被忽略。 It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  הדף הזה יסייע לך להבין את מגוון האפשרויות להצגת תוצאות בשירות התשאול ב־SPARQL. דף התשאול לדוגמה מכיל המון דוגמאות טובות שאפשר לנסות! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. לאחר הרצת שאילתה, אפשר לבחור באמצעות כפתור ה„תצוגה” איזו תצוגת תוצאות תופיע. בהתאם לשאילתה שלך ולסוג הנתונים, חלק מהתצוגות תהיינה זמינות. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 טבלה (ברירת מחדל) 2 רשת תמונות 2.1 אפשרויות 3 מפה 3.1 אפשרויות 4 Line, Bar, Scatter and Area Chart 5 תרשים בועות 6 מפת עץ 7 עץ 7.1 ציר זמן 7.2 אפשרויות 8 ממדים 9 תרשים 10 מידע נוסף 10.1 מיפוי סוג נתוני RDF 10.2 עיצוב 10.3 Mobile / Responsive 10.4 Embed Mode 10.5 Download results 10.6 Default View 10.7 Result view options 10.8 Title 10.9 List of WDQS tags 10.10 Auto language 10.11 Auto coordinates טבלה (ברירת מחדל) מציג את התוצאות כטבלה. זאת תצוגת ברירת המחדל לתוצאות והיא יכולה להציג כל סוג של נתונים.תמפה כל משתנה מפסוקית הבחירה (select) של SPARQL לעמודה מסודרת בטבלה. טבלת תוצאות טבלת תוצאות במסכים קטנים עם עמודות הפוכות.  רשת תמונות רשת תמונות התנסותמציג את נתוני התוצאות כרשת עם תמונות.לכל פריט ברשת יש תמונה גדולה והגלריה נפתחת בלחיצה עליו.תוכן של פריט הוא נתוני שורה מסודרים משתנה סוג נתונים מיפוי תיאור * מדיה של ויקישיתוף פריט ברשת עמודות תונות תיצורנה פריט ברשת. שורות שלא מכילות תמונות לא תופענה.אפשר, למרות זאת, לכלול שורות ללא תמונות בתוצאות על ידי שינוי ה־SPARQL כך שיכלול תמונת ברירת מחדל אם משתנה התמונה לא תחום: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  Bu sayfa, sonuçları SPARQL sorgu hizmetinde görüntülemek için çeşitli olasılıkları anlamanıza yardımcı olur. Sorgu örneği sayfası, deneyebileceğiniz birçok iyi örnek içeriyor! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. Bir sorguyu çalıştırdıktan sonra görüntülemek istediğiniz sonuç görünümünü \"Göster\" düğmesiyle seçebilirsiniz. Sorgunuza ve veri türüne bağlı olarak görünümlerin bazıları kullanılabilir. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Tablo (varsayılan) 2 Görüntü Izgarası 2.1 Seçenekler 3 Harita 3.1 Seçenekler 4 Çizgi, Çubuk, Dağılım ve Alan Grafiği 5 Kabarcık grafiği 6 Ağaç Haritası 7 Ağaç 8 Zaman çizelgesi 8.1 Seçenekler 9 Boyutlar 10 Grafik 11 Ek bilgi 11.1 RDF Veri Türü Eşleme 11.2 Biçimlendirme 11.3 Mobil / Esnek 11.4 Gömme Modu 11.5 İndirme sonuçları 11.6 Varsayılan Görünüm 11.7 Sonuç görünümü seçenekleri 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Otomatik koordinatlar Tablo (varsayılan) Sonuç verilerini tablo olarak gösterir. Sonuçlar için varsayılan görünümdür ve her veri türünü görüntüleyebilir.Her değişkeni SPARQL seç cümleciğiyle biçimlendirilmiş bir tablo sütununa eşleyecektir. Tablo Sonucu Döndürülmüş sütunlarla küçük ekranlarda Tablo Sonucu  Görüntü Izgarası Görüntü Izgarası Dene!Sonuç verilerini görüntülerle birlikte bir ızgara olarak gösterir.Her ızgara ögesinin büyük bir resmi vardır ve üzerine tıkladığınızda galeriyi açar.Bir öge, biçimlendirilmiş satır verisidir. Değişken Veri tipi Eşleşme Açıklama * Commons Medya Izgara Ögesi Görüntü sütunları bir ızgara ögesi oluşturur. Resim içermeyen satırlar dikkate alınmaz. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Agordoj 3 Mapo 3.1 Agordoj 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Arbo 8 Timeline 8.1 Agordoj 9 Dimensions 10 Grafo 11 Plia Informo 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  Denne sider skal hjælp dig forstå de forskellige muligheder for at vise resultat i SPARQL-spørgsmåltjenesten. Siden query example page indeholder mange gode eksempler, som du kan afprøve! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. Efter at du har kørt en søgning, kan du på \"visningsknappen\" vælge, hvordan du vil have at resultaterne skal vises. Forskellige visningsmuligheder er tilgængelige afhængig af hvilke datatyper du har fået kaldt. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Tabel (standard) 2 Image Grid 2.1 Options 3 Kort 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Boblediagram 6 Tree Map 7 Træ 8 Tidslinje 8.1 Options 9 Dimensioner 10 Graf 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Tabel (standard) Viser resultaterne som en tabel. Det er 'standardvisningen for at vise resultater og kan vise alle datatyper. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variabel Datatype Mapping Beskrivelse * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Silakan coba Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Табела (подразумевано) 2 Мозаик 2.1 Опције 3 Мапа 3.1 Опције 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Табела (подразумевано) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Резултати табеле Table Result on small screens with flipped columns  Мозаик Image Grid Испробај Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Променљива Врста податка Мапирање Опис * датотека са Оставе Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  Aquesta pàgina t'ajuda a entendre les diverses possibilitats de mostrar resultats en el servei de consulta SPARQL. La pàgina d'exemples de consultes conté molts bons exemples que pots provar! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. Després d'executar una consulta, pots escollir amb el botó \"Pantalla\" quins resultats vols veure. Depenent de la consulta i el tipus de dada, algunes de les vistes estaran disponibles. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Taula (per defecte) 2 Graella d'Imatge 2.1 Opcions 3 Mapa 3.1 Opcions 4 Gràfics de Línia, Barra, Escampall i Àrea 5 Gràfic de Bombolla 6 Mapa d'Arbre 7 Arbre 8 Línia de temps 8.1 Opcions 9 Dimensions 10 Graf 11 Informació Addicional 11.1 Mapatge de Tipus de Dada RDF 11.2 Format 11.3 Mòbil / Responsiu 11.4 Mode Incrustat 11.5 Descàrrega de resultats 11.6 Vista per Defecte 11.7 Opcions de vista del Resultat 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Taula (per defecte) Mostra els resultats com a taula. És la vista per defecte per resultats i pot mostrar tots els tipus de dada.Mapa cada variable de la consulta SPARQL a una columna formatada de taula. Taula Resultat Taula Resultat en pantalles petites amb columnes voltejades  Graella d'Imatge Graella d'Imatge Prova-hoMostra les dades resultants com a graella amb imatges.Cada element de la graella té una fotografia gran i obre la galeria quan es prem damunt d'ella.El contingut de l'element són les dades formatades de fila. Variable Tipus de Dada Mapatge Descripció * Commons Media Element de Graella Les columnes d'imatge crearan un element de graella. Les files que no continguin cap imatge seran ignorades. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Opcje 3 Mapa 3.1 Opcje 4 Line, Bar, Scatter and Area Chart 5 Wykres bąbelkowy 6 Tree Map 7 Drzewo 8 Timeline 8.1 Opcje 9 Dimensions 10 Wykres 11 Dodatkowe informacje 11.1 RDF Data Type Mapping 11.2 Formatowanie 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Zmienna Typ danych Mapowanie Opis * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. Die Abfragebeispielseite enthält viele gute Beispiele, die du ausprobieren kannst! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Tabelle (Standard) 2 Image Grid 2.1 Optionen 3 Karte 3.1 Optionen 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Weitere Informationen 11.1 RDF-Datentypen-Mapping 11.2 Formatierung 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Ergebnisse herunterladen 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Tabelle (Standard) Zeigt die Ergebnisse als Tabelle an. Das ist die Standardansicht für Ergebnisse und kann jeden Datentyp anzeigen. Will map every variable from the SPARQL select clause to a formatted table column. Ergebnistabelle Ergebnistabelle auf kleinen Bildschirmen, mit vertauschten Spalten Image Grid Image Grid AusprobierenZeigt die Ergebnisdaten als Gitter mit Bildern an.Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Datentyp Mapping Beschreibung * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  هذه الصفحة تساعدك على فهم الاحتمالات المختلفة لعرض النتائج على خدمة الاستعلام سباركل. صفحة أمثلة الاستعلامات تحتوي على العديد من الأمثلة الجيدة التي يمكنك أن تجربها! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. بعد تشغيل الاستعلام، يمكنك الاختيار باستخدام زر \"العرض\" الذي يؤدي إلى عرض ما تريد عرضه، اعتمادًا على طلبك ونوع البيانات، بعض الآراء سوف تكون متاحة. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents ١ الجدول (افتراضي) ٢ شبكة من الصور ٢.١ خيارات ٣ خريطة ٣.١ خيارات ٤ مخطط خطي، شريطي، مبعثر، منطقة ٥ مخطط فقاعي ٦ شجرة خريطة ٧ شجرة ٨ الجدول الزمني ٨.١ خيارات ٩ الأبعاد ١٠ الرسم البياني ١١ معلومات إضافية ١١.١ تعيين نوع البيانات RDF ١١.٢ تنسيق ١١.٣ محمول / متجاوب ١١.٤ الوضع تضمين ١١.٥ تحميل النتائج ١١.٦ معاينة افتراضية ١١.٧ خيارات عرض النتائج ١١.٨ Title ١١.٩ List of WDQS tags ١١.١٠ Auto language ١١.١١ الإحداثيات التلقائية الجدول (افتراضي) يظهر نتائج البيانات كما في الجدول.هذا هو العرض الافتراضي من أجل تحقيق النتائج ويمكن عرض كل أنواع البيانات.سيتم تعيين كل متغير من شرط اختيار سباركل إلى عمود جدول منسق. نتائج الجدول نتائج الجدول على الشاشات الصغيرة مع الأعمدة المعكوسة  شبكة من الصور شبكة من الصور جرِّبيظهر نتائج البيانات كشبكة مع الصور.كل بند شبكة لديه صورة كبيرة ويفتح المعرض عند النقر عليه.محتويات عنصر هي بيانات الصف المنسق. متغير نوع البيانات رسم الخرائط وصف * وسائط كومنز شبكة بنود أعمدة الصور ستنشئ شبكة بنود. الصفوف التي لا تحتوي على صورة سيتم تجاهل. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try Out Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Μεταβλητή Τύπος Δεδομένων Mapping Περιγραφή * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  このページはSPARQLクエリサービスの結果表示について、利用者にどんな選択肢があるか理解する手助けになります。 クエリのサンプルページには自分で試せる良いサンプルが多数あります！ Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. クエリ実行後、結果の表示方法を「表示」ボタンで選択できます。クエリやデータ型に応じて、いくつかの表示方法が利用できます。 Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 表 (デフォルト) 2 画像グリッド 2.1 オプション 3 地図 3.1 オプション 4 グラフの種類：折れ線、棒、分布、面 5 バブルチャート 6 ツリーマップ 7 木構造 8 タイムライン 8.1 オプション 9 次元 10 グラフ 11 追加情報 11.1 RDF データ型のマッピング 11.2 フォーマットする 11.3 モバイル / レスポンシブ 11.4 埋め込みモード 11.5 結果のダウンロード 11.6 デフォルトのビュー 11.7 結果のビューの選択肢 11.8 タイトル 11.9 List of WDQS tags 11.10 言語の自動設定 11.11 座標の自動設定 表 (デフォルト) 結果データを表として表示します。これは結果表示のデフォルトのビューで、あらゆるデータ型を表示できます。SPARQLセレクト句の全ての変数を定型表のカラムにマッピングします。 表形式の結果 小さな画面でのカラムを入れ替えた表形式の結果  画像グリッド 画像グリッド 試す結果データを画像グリッドとして表示。グリッド項目ごとに大きな画像があり、クリックすると画像ギャラリーが開きます。コンテンツの項目は表形式の行データです。 変数 データ型 マッピング 説明 * コモンズのメディア グリッド項目 画像カラムはグリッド項目を生成します。 画像のない行は無視されます。 It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  Questa pagina aiuta a comprendere le varie possibilità di visualizzazione dei risultati su Servizio query SPARQL. La pagina degli esempi di query contiene molti buoni esempi che puoi provare! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. Dopo l'esecuzione di una query, puoi scegliere mediante il pulsante \"Aspetto\" quale vista utilizzare per mostrare il risultato. Le viste disponibili dipendono dalla query e dal tipo di dati. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formattazione 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Mostra i dati in forma tabellare. È la \"vista di default\" per i risultati e può mostrare tutti i tipi di dati.Mapperà ogni variabile dalla clausola select SPARQL a una colonna della tabella formattata. Risultato tabellare Risultato tabellare su schermo piccolo con le colonne invertite Image Grid Image Grid ProvaloMostra i dati come una griglia con immagini.Ogni elemento della griglia ha una grande immagine e quando si clicca sopra si apre la galleria. Contents an item is the formatted row data. Variabile Tipo di dato Mapping Descrizione * File multimediale su Commons Elemento della griglia Image columns will create a grid item. Le righe che non contengono immagini saranno ignorate. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Opciones 3 Mapa 3.1 Opciones 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Opciones 9 Dimensiones 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Móvil / Responsivo 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type. Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Pruébalo Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Variable Tipo de dato Mapping Descripción * Commons Media Grid Item Image columns will create a grid item. Las filas que no contengan ninguna imagen serán ignoradas. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It  Эта страница помогает вам понять разнообразные возможности отображения результатов в сервисе запросов SPARQL. Страница примеров запросов содержит много хороших примеров, которые вы можете попробовать! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Таблица (по умолчанию) 2 Image Grid 2.1 Опции 3 Карта 3.1 Опции 4 Line, Bar, Scatter and Area Chart 5 Пузырьковая диаграмма 6 Tree Map 7 Дерево 8 Timeline 8.1 Опции 9 Dimensions 10 Граф 11 Дополнительная информация 11.1 RDF Data Type Mapping 11.2 Форматирование 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Скачать результаты 11.6 Вид по умолчанию 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Таблица (по умолчанию) Показывает данные результат в виде таблицы. Это — вид по умолчанию для результатов и может отображать любой тип данных. Will map every variable from the SPARQL select clause to a formatted table column. Табличный результат Table Result on small screens with flipped columns Image Grid Image Grid Попробовать Shows the result data as a grid with images. Every grid item has a big picture and opens the gallery when clicking on it. Contents an item is the formatted row data. Переменная Тип данных Mapping Описание * медиафайл с Викисклада Grid Item Image columns will create a grid item. Ряда, не содержащие изображений, будут проигнорированы. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It Ця сторінка описує інтерфейс WDQS і допомагає зрозуміти різні можливості відображення результатів службою запитів SPARQL. Сторінка прикладів запитів містить багато хороших прикладів, які можна спробувати! Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. після виконання запиту ви можете вибрати у форматах \"Показати\", який вигляд результату ви хочете відобразити. Залежно від вашого запиту та типу даних деякі вигляди можуть бути недоступні. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Таблиця (стандарт) 2 Сітка зображень 2.1 Опції 3 Мапа 3.1 Опції 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Дерево 8 Часова шкала 8.1 Опції 9 Виміри 10 Graph 11 Додаткова інформація 11.1 RDF Data Type Mapping 11.2 Форматування 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Завантаження результатів 11.6 Вигляд за замовчуванням 11.7 Параметри подання результатів 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Таблиця (стандарт) Показує дані результаті у вигляді таблиці. Це вигляд за замовчуванням для результатів і може відображати всі типи даних.Буде зіставляти кожну змінну з розділу select запиту SPARQL з форматованим стовпцем таблиці. Таблиця результатів Таблиця результатів на малих екранах із розвернутими стовпцями  Сітка зображень Сітка зображень ВипробуватиПоказує результати у вигляді сітки зображень.Кожен елемент сітки має велике зображення і відкриває галерею при натисканні на нього. Contents an item is the formatted row data. Змінна Тип Картографія Опис * Файл Вікісховища Елемент сітки Image columns will create a grid item. Рядки, які не містять зображення, ігноруватимуться. It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try!Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) Shows the result data as a table. It is the default view for results and can display every data type.Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid Image Grid Try OutShows the result data as a grid with images.Every grid item has a big picture and opens the gallery when clicking on it.Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored.It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tooltips when hovering SPARQL code WDQS result display selection Link to show script in WDQS results window after a Try It This page describes the WDQS interface and helps you to understand the various possibilities to display results on SPARQL query service. The query example page contains many good examples you can try!Open the WDQS interface and then: select your language in of the upper tool bar. write a valid SPARQL code in the text area. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). then click on blue button Execute query of the sidebar to launch the request. Red square is lit in the sidebar while the command executes. after running a query, you can choose in the \"Display\" formats which result view you want to display. Depending on your query and the data type, some of the views will not be available. Source example # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Note: You can also run directly a hardcoded request via the TryIt links of this page. When it brings you directly to the result display you can always return to the source script unsing the link at the bottom of the interface. Contents 1 Table (default) 2 Image Grid 2.1 Options 3 Map 3.1 Options 4 Line, Bar, Scatter and Area Chart 5 Bubble Chart 6 Tree Map 7 Tree 8 Timeline 8.1 Options 9 Dimensions 10 Graph 11 Additional Information 11.1 RDF Data Type Mapping 11.2 Formatting 11.3 Mobile / Responsive 11.4 Embed Mode 11.5 Download results 11.6 Default View 11.7 Result view options 11.8 Title 11.9 List of WDQS tags 11.10 Auto language 11.11 Auto coordinates Table (default) [edit] Shows the result data as a table. It is the default view for results and can display every data type.Will map every variable from the SPARQL select clause to a formatted table column. Table Result Table Result on small screens with flipped columns Image Grid [edit] Image Grid Try OutShows the result data as a grid with images.Every grid item has a big picture and opens the gallery when clicking on it.Contents an item is the formatted row data. Variable Data Type Mapping Description * Commons Media Grid Item Image columns will create a grid item. Rows containing no image will be ignored.It’s nonetheless possible to include no image rows in the result by modifying the sparql by including a default image in case the image variable is not bound: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/lb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/en-gb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/bo>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/yue>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/be-tarask>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/he>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/eo>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/da>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/id>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/sr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/ca>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/ar>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/el>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/it>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-214B9ACCB8625CA2D4C0F8C6F4253407, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-E60F8FA58A7E46B681B610B809A3B24F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-4D5664392779E5765017D9F3AEAF2A5D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-7370B53D261D987A4C55691B806CC527,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-DCDCCB700C94D03F12C96359535A1694, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-7370D3D8E43384710144ABE12CA7E14F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-C2E4C66D2033E925475534DE7F08D3AF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-7AB5F449E8A80D4F557F3211C8545BAB,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-70E99D3A5956B790467FDB2BAA091C4A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-A4AD6547A80158A69CFB9E54A8B0070A,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-ED3352A0BE29C5C3D2ACC32DB9AC52B4, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-01827C8FC11E2F4150838FC79CAB912F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-673F4547A9B445EC3EC2BFBA1DEDD5E4, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-A5B5810234AD6D3B9B3CCC54EEEE2BDC,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-87A6BCAEFD8480037BDB662CE84E60AC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-A952AEC69E4E0F45EAC6168EA8D16104,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-1F50889F5A7ACCDF1A1C88FCD68E0844, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-9F5D534D1E13CAF92C72C1683CD83B83,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-FD63E34E962589C558DF123B5A0EF9D0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-529B8F3F07E2A88C57531DA258F16DF9,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-914FA436010796A6F41F86E6B330C0CF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-409290340145056272311214293F27FD,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115319-1A8F5BCD9A6C500F14AE308898B619DD;
+  schema:target <https://query.wikidata.org/sparql/> .

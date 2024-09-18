@@ -1,0 +1,413 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5a3a26f2dfdd11fe708bd3c924cafbfc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?item ?locatedLabel WHERE {
+  ?item wdt:P31 wd:Q486972;
+    wdt:P17 wd:Q38;
+    wdt:P131 ?located.
+  ?located wdt:P31 wd:Q747074.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER((LANG(?itemdesc)) = \"it\")
+  })
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Chemical compounds 2 Farthest north 3 comparing a string without comparing languages 4 Split a query output into two or more lists 5 List of Nigerian LGBT articles on any Wikipedia in need of translation or pictures 6 List an P31 value with a specific reference 7 QUERY TO DOWNLOAD ALL MEMBERS OF PARLIAMENTS 8 Items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476) 9 P1013:Q4167410 to P1013:Q24005632 10 First query got timeout 11 Number of generations 12 Noob looks for help 13 A Wikidata list of the articles every Wikipedia should have 14 P81 qualifiers for P197 not matching P81 statement 15 Getting the unit of a quantity 16 Russian paintings that exist on ruwiki but not on frwiki 17 Alphabetical and numberical sorting 18 Location of admin_centre of relation 19 Human settlement in Italy without description in Italian language 20 Swedish Outdoor gyms with most viewed videos on youtube 21 English creative works that have an \"has edition\" but that edition doesn't have \"edition of\" 22 Values with specific unit 23 List people born in a region and dead in nazi camps 24 Wikidata listing query 25 Eye color 26 Matching \"depicts\" wikidata item describing a file in commons with the wikidata item 27 Females billionaires 28 YouTubers who don't have an image Chemical compounds I was wanting a query for a list of chemical compounds (Q11173) that I could use in this image finding tool: https://fist.toolforge.org/wdfist/ But it causes 10% duplicates, because it fails to recognise chemical structure (P117) diagrams as images.So instance of Q11173 Without P117??? Niterurea (talk) 18:59, 2 July 2021 (UTC) @Niterurea: There's somewhere north of 1 million of them; for that reason, no labels b/c timeout. --Tagishsimon (talk) 19:07, 2 July 2021 (UTC) SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q11173 .
+  FILTER NOT EXISTS {?item wdt:P117 [] . }
+#  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 19:07, 2 July 2021 (UTC) ThanksNiterurea (talk) 19:28, 2 July 2021 (UTC) Farthest north Hello, how to query, say, the city of a continent that is the farthest north ? Farthest West, East, etc ? Bouzinac 💬●✒️●💛 19:37, 2 July 2021 (UTC) @Bouzinac: Maybe something like this? #title: The northernmost city in Africa
+SELECT ?x ?xLabel ?latitude ?longitude  WITH {
+
+# select all the cities in a continent
+SELECT ?x WHERE {
+  ?x wdt:P31/wdt:P279* wd:Q515 . # x is a type of city (big city, city state etc)
+  ?x wdt:P17 ?country .
+  ?country wdt:P30 wd:Q15 .  # <== put the continent here
+  MINUS { ?country wdt:P31 wd:Q3024240 } # current countries only
+} } AS %cities
+
+# get each city's latitude/longitude
+# sort depending on east/west or north/south
+# select the first one
+WHERE {
+  INCLUDE %cities
+  ?x p:P625 [
+    psv:P625 [
+    wikibase:geoLatitude ?latitude ; 
+    wikibase:geoLongitude ?longitude ;
+      ]
+    ]          
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}     
+ORDER BY DESC (?latitude)      # ASC for southernmost; DESC for northernmost
+#ORDER BY ASC (?longitude)      # ASC for westernmost; DESC for easternmost
+LIMIT 1
+ The northernmost city in Africa Piecesofuk (talk) 14:52, 3 July 2021 (UTC)comparing a string without comparing languages SELECT ?stmt WHERE {
+  wd:Q5252917 p:P1476 ?stmt.
+  ?stmt ps:P1476 \"Tomorrow Is Yesterday\"@en.
+}
+ Try it! This tells me if Tomorrow Is Yesterday (Q5252917) has the English title \"Tomorrow Is Yesterday\". But I don't care for the language. I want to find any identical string. Just removing the @en suffix, won't yield any results. --Shisma (talk) 07:45, 4 July 2021 (UTC)I've found the answer myself: SELECT ?stmt WHERE {
+  wd:Q5252917 p:P1476 ?stmt.
+  ?stmt ps:P1476 ?vl.
+  FILTER (str(?vl) = \"Tomorrow Is Yesterday\")
+}
+ Try it! --Shisma (talk) 08:45, 4 July 2021 (UTC) congrats! Sometimes it helps to spell out the question to find the answer. --- Jura 13:18, 4 July 2021 (UTC) Split a query output into two or more lists Hi:We use this query to generate eswiki anexes: SELECT DISTINCT ?item ?cod_IAPH WHERE {
+  ?item (wdt:P131*) wd:Q82142;
+    wdt:P8425 ?cod_IAPH.
+  ?item wdt:P1435 wd:Q23712. } For technical limitations we need to limit the number of the listed elements to some number.I would like to split this query in two: the first, say, 500 elements and the second query listing the next 500 elements.Any help?--Olea (talk) 18:44, 4 July 2021 (UTC)You need to sort it by some value and then you can use offset and limit, e.g. Items used: Province of Granada (Q82142)   , Bien de Interés Cultural (Q23712)   Properties used: located in the administrative territorial entity (P131)   , IAPH code (P8425)   , heritage designation (P1435)   SELECT DISTINCT ?item ?cod_IAPH 
+WHERE 
+{
+  ?item (wdt:P131*) wd:Q82142;
+    wdt:P8425 ?cod_IAPH.
+  ?item wdt:P1435 wd:Q23712. 
+}
+ORDER BY ?cod_IAPH
+OFFSET 500 LIMIT 500 Try it! --- Jura 18:53, 4 July 2021 (UTC) @Jura1: Thanks! Olea (talk) 16:49, 5 July 2021 (UTC) List of Nigerian LGBT articles on any Wikipedia in need of translation or pictures Hello,Can anyone pls help with a query list of Nigerian LGBT+ articles that exists on any version of the Wikipedia and also needing images. Thanks Hadassahlove (talk) 18:46, 7 July 2021 (UTC) WD doesn't classify articles so as to indicate whether they are LGBT+ articles, nor does it know whether an article needs an image. I don't think this query is going to happen. --Tagishsimon (talk) 21:14, 7 July 2021 (UTC) List an P31 value with a specific reference Hi:I need a list (the reason is to later remove these wrong instances I made) of elements with P31 = Q4989906 value AND using an specific reference P248 = Q5917182. Thanks in advance :) --Olea (talk) 19:43, 10 July 2021 (UTC) @Olea: This: SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item p:P31 [ps:P31 wd:Q4989906; prov:wasDerivedFrom/pr:P248 wd:Q5917182]. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 19:47, 10 July 2021 (UTC) @Tagishsimon: awesome! Thanks! -- Olea (talk) 20:10, 10 July 2021 (UTC) QUERY TO DOWNLOAD ALL MEMBERS OF PARLIAMENTS I am downloading the metadata of members of the Spanish Parliament. I need the following metadata:NAMES, BIRTHDATES, BIRTHPLACES, GENDERTo download this metadata I do this:`Select ?term ?member ?memberLabel ?dateBirth ?dateBirthLabel ?placeBirth ?placeBirthLabel ?sex ?sexLabel Where { # Get all CD members
+ ?member wdt:P39 wd:Q18171345;
+         wdt:P569 ?dateBirth;
+         wdt:P19 ?placeBirth;
+         wdt:P21 ?sex.
+service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
+ } But now I need to add the fact that members of parliament work in different terms (legislatures), which begin and end at different dates. In each legislature, they may belong to different political parties. Maybe the easiest is to download all members of parliament for a particular legislature \"X\" (beginning at a particular date, and ending at a particular date), In this legislature the member of parliament belongs to a political party. But I am totally INCAPABLE of doing this.Could anybody help?Best--Mcptrad (talk) 20:38, 10 July 2021 (UTC) @Mcptrad: In essence, you're asking about how to get at statement qualifiers, and the answer is somewhat like this. (I've also made lots of stuff optional, since you may not have DoB and PoB, for instance. Nor am I familiar with Spanish political seat P39 statements, so some of my choices more reflect the UK way of doing things, but yuo can see the pattern & can adjust it to suit Spain.) See also https://wdqs-tutorial.toolforge.org/index.php/category/simple-queries/qualifiers/ You'll get multiple rows for a single individual who has multiple qualifying P39 statements, so there's another job, possibly, of aggregating the data. But one thing at once. Select ?member ?memberLabel ?dateBirth ?placeBirthLabel ?sexLabel ?electoral_districtLabel ?start ?end ?parliamentary_groupLabel ?parliamentary_termLabel Where {
+  ?member p:P39 ?stat . 
+  ?stat ps:P39 wd:Q18171345.
+  OPTIONAL {?stat pq:P580 ?start . }
+  OPTIONAL {?stat pq:P582 ?end . }
+  OPTIONAL {?stat pq:P768 ?electoral_district . }
+  OPTIONAL {?stat pq:P4100 ?parliamentary_group . }
+  OPTIONAL {?stat pq:P2937 ?parliamentary_term . }
+  OPTIONAL {?member wdt:P569 ?dateBirth. }
+  OPTIONAL {?member wdt:P19 ?placeBirth. }
+  OPTIONAL {?member wdt:P21 ?sex. }
+service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es\". }
+ }
+ Try it! --Tagishsimon (talk) 21:26, 10 July 2021 (UTC) Items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476) There are quite a few items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476). I'm not sure what is causing this. That's a problem far from my skills to resolve. I have followed the DOI of these items and added the journal article's title to the item's label and title, but there are so many. I'm not even sure one couldn't create yet another item with that DOI using SourceMD (resulting in another item to fix). Example, Q58391055 is such an item.Can someone create a list for me that has the QID and the DOI (as a link, preferably) for those items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476), I can create a table to generate a correction through QuickStatement.If anyone can prevent this from continuing to happen, it would be nice to think there's a list that I can correct and it won't continue to add new items without a title. Thank you, Trilotat (talk) 01:53, 4 July 2021 (UTC) https://www.wikidata.org/w/index.php?search=10.1023&fulltext=1&ns0=1 finds some .. Q57554778 has a title-statement, but that doesn't really help. Looks like some cleanup is needed. --- Jura 13:16, 4 July 2021 (UTC) BTW, you could also try starting out from published in (P1433): Items used: Climatic Change (Q5133623)   Properties used: published in (P1433)   , title (P1476)   , DOI (P356)   SELECT ?item ?itemLabel ?itemDescription ?doi
+WHERE
+{
+	?item wdt:P1433 wd:Q5133623 . 
+    FILTER NOT EXISTS { ?item wdt:P1476 [] } 
+    OPTIONAL { ?item wdt:P356 ?doi }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! --- Jura 13:16, 4 July 2021 (UTC) @Jura1: Thank you! Hey, did you provide an example of items in that specific journal as an example? It works for me, but I was hoping for ALL journals. If you limited to items that are scholarly articles, that might limit some. Did you limit to a specific journal because otherwise it times out? Thanks again, I can address these pretty quickly now so thank you so much. Trilotat (talk) 16:05, 4 July 2021 (UTC) @Jura1: A follow-up... This is working better than expected! I have been able to update a few hundred items very quickly working through your list. I then went on to find other journals published by SpringerLink plugged into your query. Thanks so much. I'll keep looking for examples and then chasing down others published in that journal. Trilotat (talk) 17:20, 4 July 2021 (UTC) For the query, I used that journal as it was in your sample. Apparently \"10.1023\" could be any Springer publication. The below is probably closer to your question: Properties used: DOI (P356)   , title (P1476)   , instance of (P31)   SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
+WHERE
+{
+  BIND ( \"10.1023/A\" as ?search_string )
+  hint:Query hint:optimizer \"None\".  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch ?search_string .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .
+  }
+  FILTER( BOUND(?item) )
+  ?item wdt:P356 ?doi 
+  FILTER ( CONTAINS(?doi, ?search_string) )
+  FILTER NOT EXISTS { ?item wdt:P1476 [] }   
+  OPTIONAL { ?item wdt:P31 ?instance_of }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Try it!--- Jura 18:11, 4 July 2021 (UTC) :@Jura1: even better!! Thank you, Trilotat (talk) 04:46, 6 July 2021 (UTC) @Jura1: I've completed this update. Truth is, though, every time I run this, it seems to add previously unseen items to repair. After a few days and running it again and again, I just ran it and got NO results. I wonder how many will be on it the next time. The new items don't seem to have changed. Thanks again. Trilotat (talk) 18:30, 8 July 2021 (UTC)  SELECT (COUNT(*) as ?count) 
+WHERE
+{
+  BIND ( \"10.1023/A\" as ?search_string )
+  hint:Query hint:optimizer \"None\".  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch ?search_string .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .
+  }
+} Try it! @Trilotat: it's because the mwapi search is limited to 10000 entries (which aren't always the same). These are then filtered. If you can improve the search results returned, you might get more to fix. BIND ( \"10.1023/A -haswbstatement:P1476\" as ?search_string ) wouldn't work as P1476 isn't available with haswbstatement. --- Jura 09:53, 11 July 2021 (UTC) P1013:Q4167410 to P1013:Q24005632 How would I change criterion used (P1013):Wikimedia disambiguation page (Q4167410) to criterion used (P1013):descriptive page and disambiguation page have to be in different items (Q24005632) ?First, \"criterion used\" is only used as a qualifier I think. How would I search for all P1013 qualifiers with value Q4167410? https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial#Qualifiers didn't really help. --User000name (talk) 01:49, 11 July 2021 (UTC)haswbstatement:\"P1013=Q4167410\" at https://www.wikidata.org/wiki/Special:Search?search=haswbstatement%3A%22P1013%3DQ4167410%22&fulltext=Search+for+%27Q2151613%27&fulltext=Search&ns0=1&ns120=1 didn't work. Other than \"haswbstatement\" is there something like \"haswbqualifier\"? --User000name (talk) 01:57, 11 July 2021 (UTC) @User000name: SELECT DISTINCT ?item ?itemLabel ?property
+WHERE 
+{
+  ?stat pq:P1013 wd:Q4167410.
+  ?item ?predicate ?stat .
+  ?property wikibase:claim ?predicate.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 09:05, 11 July 2021 (UTC) First query got timeout Hello everyone, I am trying to setup my first query, looking for a list of Italian enterprises with their inception date. After studying a bit I prepared thisSELECT ?item ?itemLabel ?itemDescription ?yy WHERE { ?item wdt:P571 ?yy .
+   ?item wdt:P31* wd:Q6881511 .
+   ?item wdt:P17* wd:Q38
+         
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\". } }LIMIT 10But as result it comes with a timeout error. Is there something wrong with this?thank you very much in advance for your support! I've amended your P31* to P31/P279*, since I think you're looking for anything in a particular class tree, & that's the conventional way to query for that. I've added a hint to speed that part of the query - see Wikidata:SPARQL query service/query optimization for some documentation. And P17* changed to P17, since there isn't a P17 chain of items associated with Italy - qualifying company items will have a P17 of Italy, fullstop; they won't have a value which itself has a P17=Italy statement. hth. SELECT ?item ?itemLabel ?itemDescription ?yy WHERE {
+   ?item wdt:P31/wdt:P279* wd:Q6881511 .
+   hint:Prior hint:gearing \"forward\".
+   ?item wdt:P571 ?yy .
+   ?item wdt:P17 wd:Q38         
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\". }
+}
+ Try it! --Tagishsimon (talk) 12:58, 12 July 2021 (UTC) Number of generations Hi, How can we get the items having the longuest lineage (child (P40) chain) ? Simon Villeneuve (talk) 13:03, 13 July 2021 (UTC) I don't think Wikidata:WikiProject_Genealogy has a report for that yet, but it might not be possible. Maybe you can find it be picking one of the persons (or their parents) on Wikidata:WikiProject_Genealogy/numbers/descendants and counting number of generations. --- Jura 14:11, 13 July 2021 (UTC) SELECT (MAX(?depth) as ?max_generations) (SAMPLE(?item) as ?descendant)
+WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q3044 ;
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 100 ;
+                gas:linkType wdt:P40 .
+  }
+}
+ Try it! Finds a descendant in the 42nd(?) generation of the usual suspect. He does have known parents though. --- Jura 14:19, 13 July 2021 (UTC) God! The only thing I understand in this query is wd:Q3044 and wdt:P40. Simon Villeneuve (talk) 14:26, 13 July 2021 (UTC) Items used: Elizabeth II (Q9682)   Properties used: child (P40)   SELECT ?item ?itemLabel ?depth 
+WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q9682 ;
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 100 ;
+                gas:linkType wdt:P40 .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?depth Try it!without MAX() and SAMPLE(), it might be easier to understand. --- Jura 14:29, 13 July 2021 (UTC) The usual suspect been beaten by about 3 times right ? Simon Villeneuve (talk) 14:32, 13 July 2021 (UTC) Maybe. Items used: Charlemagne (Q3044)   Properties used: father (P22)   SELECT ?item ?itemLabel ?depth 
+WHERE
+{
+  SERVICE gas:service {
+    gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.SSSP\" ;
+                gas:in wd:Q3044 ;
+                gas:traversalDirection \"Forward\" ;
+                gas:out ?item ;
+                gas:out1 ?depth ;
+                gas:maxIterations 100 ;
+                gas:linkType wdt:P22 .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?depth) Try it!The above finds P22 of Q3044. --- Jura 14:44, 13 July 2021 (UTC)@Simon Villeneuve: The GAS service is explained, somewhat, here. --Tagishsimon (talk) 15:53, 13 July 2021 (UTC) Noob looks for help Hello, I'm looking for the full list of Italian Ministers by gender and with date of position start and - eventually - position end as values.Tried by myself like that:SELECT DISTINCT ?item ?itemLabel ?start ?end ?gender WHERE { ?item wdt:P39/wdt:P279* wd:Q3858501 . optional { ?item wdt:P580 ?start. ?item wdt:P582 ?end .
+          ?item wdt:P21 ?gender
+        }  
+ 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" . } } ORDER BY ?itemLabelI got the list but start/end/gender are blank :/Can someone help me? This sort of thing ... see also https://wdqs-tutorial.toolforge.org/index.php/category/simple-queries/qualifiers/ : Select ?member ?memberLabel ?office ?officeLabel ?dateBirth ?placeBirthLabel ?sexLabel  ?start ?end Where {
+  ?member p:P39 ?stat . 
+  ?stat ps:P39/wdt:P279* wd:Q3858501 .
+  ?stat ps:P39 ?office .  
+  OPTIONAL {?stat pq:P580 ?start . }
+  OPTIONAL {?stat pq:P582 ?end . }
+  OPTIONAL {?member wdt:P569 ?dateBirth. }
+  OPTIONAL {?member wdt:P19 ?placeBirth. }
+  OPTIONAL {?member wdt:P21 ?sex. }
+service wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],it\". }
+ }
+ Try it! --Tagishsimon (talk) 16:00, 14 July 2021 (UTC) A Wikidata list of the articles every Wikipedia should have I'd like to automate this list of the 1,000 most important articles all Wikipedias should have. Here's my borrowed / failed attempt on cywiki! Can someone tell me where I'm going wrong, please? 'I'd also like a column with number of bytes, and sectiond for under 10k bytes, 10-20k bytes and >20k bytes. Llywelyn2000 (talk) 13:16, 15 July 2021 (UTC) @Llywelyn2000: P5008 not P972; changed in your Listeria. And I've removed most of the select - in general, Listeria just needs the ?item. Wikidata (on which the report is based) has no clue about article sizes, so that part of the query is not happening. Lastly I've tried to add a label column to page, but that's not appearing. /Might/ be a cache issue, or my incompetence. Who knows. --Tagishsimon (talk) 15:10, 15 July 2021 (UTC) I get the impression Listeria is temporarily kaput. --Tagishsimon (talk) 16:23, 15 July 2021 (UTC) Ah. Yes and no. Since Listeria was rewritten in Rust, it's had a bug wherein if a v.large item is returned as part of the results, it errors with \"Killed by OS for overloading memory.\" This is happening to this query, since some of the items found by the query are, indeed, huge. (see, for instance, this recent short thread on EN wiki's WP:WiR.) --Tagishsimon (talk) 21:06, 15 July 2021 (UTC) @Tagishsimon, Magnus Manske: many thanks for your help, Tagishsimon! I'll try and develop the code further, here to include the article name, but like you, I'm getting the Killed by OS for overloading memory. It's a pity, as most editors / Wikipedias don't realise the potential of this tool as a 'See also' query + return. I'll resort to an external db of info and copy and paste into WP as a table. All language WP could have a list of wanted articles, and which articles on their wiki are stubs (under 10k bytes) etc. A table isn't as good as doing it on the fly, but there we are! We are where we are! Thanks again! Llywelyn2000 (talk) 09:28, 16 July 2021 (UTC) P81 qualifiers for P197 not matching P81 statement Hello, I'd like a query checking any subway/tramway station whose connecting line (P81) statements does not match P81 qualifyers for their adjacent station (P197) , excluding connecting line (P81) being MINUS {?station wdt:P5817 ?interdit.
+   VALUES ?interdit { 
+     wd:Q811683
+     wd:Q63065035 
+     wd:Q12377751
+     wd:Q55653430
+     wd:Q30108381
+     wd:Q55570340
+     wd:Q11639308
+   }
+ } Bouzinac 💬●✒️●💛 09:58, 16 July 2021 (UTC) Getting the unit of a quantity Hi, I have the following query: SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
+WITH {
+  SELECT ?statement WHERE { 
+	  ?statement prov:wasDerivedFrom/pr:P248 wd:Q105645500 .
+  }
+  LIMIT 2000
+} AS %statements 
+WITH {
+  SELECT ?item ?property ?value ?unit
+  WHERE {
+    INCLUDE %statements
+    ?item ?p ?statement .
+    ?property wikibase:claim ?p . 
+    ?statement ?a ?value .
+    ?item ?b ?value .         
+    OPTIONAL { ?value wikibase:quantityUnit/wikibase:unit ?unit}
+  }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
+} 
+ORDER BY DESC(?itemLabel)
+ Try it! I can see in the JSON of Q758 that the unit should be http://www.wikidata.org/entity/Q104907187 or http://www.wikidata.org/entity/Q55726194 but I'm referring to it wrongly. Can someone help? Carlinmack (talk) 14:02, 16 July 2021 (UTC) @Carlinmack: The quantityUnit hangs off a psv: statement value, so you need to find the appropriate psv: and its statement value, something like this: SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?unit ?unitLabel
+WITH {
+  SELECT ?statement WHERE { 
+	  ?statement prov:wasDerivedFrom/pr:P248 wd:Q105645500 .
+  }
+  LIMIT 2000
+} AS %statements 
+WITH {
+  SELECT ?item ?property ?value ?unit
+  WHERE {
+    INCLUDE %statements
+    ?item ?p ?statement .
+    ?property wikibase:claim ?p . 
+    ?statement ?a ?value .
+    ?item ?b ?value .  
+    OPTIONAL {?statement ?psv_statement_predicate ?psv_statement .
+    ?statement_predicate_property wikibase:statementValue ?psv_statement_predicate.
+    ?psv_statement wikibase:quantityUnit ?unit}
+  }
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . } 
+} 
+ORDER BY DESC(?itemLabel)
+ Try it! --Tagishsimon (talk) 15:49, 16 July 2021 (UTC) If in doubt, always worth looking to see how things are arranged: select ?item ?statement ?ppp ?qqq ?xxx ?yyy where
+{
+  VALUES ?item {wd:Q758}
+  ?item p:P2710 ?statement. 
+  ?statement ?ppp ?qqq . 
+  ?qqq ?xxx ?yyy.  }
+ Try it! Thanks x2, both really helpful to know about. The psv thing is tricky! — Carlinmack (talk) 16:35, 16 July 2021 (UTC) Russian paintings that exist on ruwiki but not on frwiki Hi,I would like to get a wikitable that contains: Title (painting) Image (painting) (from commons/enwiki or russian wiki) Painter's name (check if he is russian) If exist : Date (painting) If exist : Genre (painting) If exist : Movement (painting) If exist : French description (name of the painting) If meet featured article in russia : yes, else : no Russian_label (ru title page name) By exist I mean, if the Q's element is NOT nullFilters / sort : Filter : painting doesn't exist on frwiki but does on ru wiki Sort by title, date My draft isn't working, I hope somebody can help! SELECT * WHERE {
+  ?item wdt:P31 wd:Q3305213.
+  ?image wdt:P18 wd:Q565.
+  OPTIONAL{?titre wdt:P136 ?genre .}
+  OPTIONAL{?titre wdt:P170 ?créateur .}
+  OPTIONAL{?titre wdt:P571 ?date .}
+  OPTIONAL{?titre wdt:P135 ?mouvement .}  
+  OPTIONAL{?sitelink schema:isPartOf <https://ru.wikipedia.org/>;
+     schema:about ?item;
+     wikibase:badge wd:Q17437796 . # Featured Article
+  hint:Prior hint:runFirst true.}
+  FILTER NOT EXISTS 
+  {
+    ?sitelink2 schema:isPartOf <https://fr.wikipedia.org/>;
+     schema:about ?item.
+   } 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ru\" } .
+} ORDER BY ?title ?date Thanks, LD (talk) 23:58, 16 July 2021 (UTC) @LD: ?image wdt:P18 wd:Q565. was always going to fail. P18 holds the image name for a Commons image; not a QId. Beyond that, all of the subjects needed to be ?item, not ?titre ... I think if the P18 clause had not failed, the ?titre clauses would have led to a timeout. Here's a revised version which is probably nearer your intention, although whether you are wanting to sort by the RU article name (?article) or the RU item label (?itemLabel) is not clear. Also, the query is requiring there to be a P18 image on wikidata ... it has no way of seeing whether there is a Commons or RU-wiki image on the RU article. SELECT ?item ?itemLabel ?badgeLabel ?genreLabel ?créateurLabel ?mouvementLabel ?date ?article ?sitelink ?image WHERE {
+  ?item wdt:P31 wd:Q3305213.
+  ?article schema:about ?item ;
+  schema:isPartOf <https://ru.wikipedia.org/> ; 
+  schema:name ?sitelink .
+  FILTER NOT EXISTS  {
+    ?sitelink2 schema:isPartOf <https://fr.wikipedia.org/>;
+     schema:about ?item. }   
+  OPTIONAL {?sitelink wikibase:badge ?badge . } # Featured Article 
+  ?item wdt:P18 ?image . 
+  OPTIONAL {?item wdt:P136 ?genre .}
+  OPTIONAL {?item wdt:P170 ?créateur .}
+  OPTIONAL {?item wdt:P571 ?date .}
+  OPTIONAL {?item wdt:P135 ?mouvement .}  
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru,[AUTO_LANGUAGE]\" } .
+} ORDER BY ?itemLabel ?date
+ Try it! --Tagishsimon (talk) 06:58, 17 July 2021 (UTC) Alphabetical and numberical sorting I have this query: SELECT ?item ?itemLabel ?population ?normalizedarea ?hustota ?date
+WHERE
+{
+    ?item p:P31 ?neco .
+    ?neco ps:P31 wd:Q75338598 .
+    ?item wdt:P17 wd:Q213 . 
+    ?item wdt:P1082 ?population.
+    MINUS { ?neco pq:P582 ?dummy0 }  
+    ?item p:P2046 [ psn:P2046 [ wikibase:quantityAmount ?normalizedSuperficie; wikibase:quantityUnit ?normalizedUnit ] ] .
+    ?item p:P2046 [ psv:P2046 [ wikibase:quantityAmount ?originalSuperficie; wikibase:quantityUnit ?originalUnit ] ] .
+    OPTIONAL {  
+    ?item p:P6 ?star .
+    ?star a wikibase:BestRank .
+    ?star pq:P580 ?date 
+    MINUS { ?star pq:P582 [] } } .
+    BIND(?normalizedSuperficie/1000000 AS ?normalizedarea) .
+    BIND(?population / ?normalizedarea AS ?hustota ) .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" }
+}
+ORDER BY ?itemLabel
+ Try it! The result is sorted by itemLabel, thus Praha 1 is followed by Praha 10, then Prague 2 by Praha 20 etc. Is there a way to sort Praha 1, then Praha 2-9, then Praha 10 etc.? Also unrelated, is there a way to limit decimal places for ?hustota? --Jklamo (talk) 10:15, 17 July 2021 (UTC) @Jklamo: Use the function ROUND() to round. In the following query I have rounded to three decimals. Also the output is sorted the characters in the label that are numbers. REPLACE() removes all non-digits and xsd:integer converts to an integer. SELECT ?item ?itemLabel ?population ?normalizedarea (ROUND(?hustota*1000)/1000 AS ?hustota_rounded) ?date
+WHERE
+{
+    ?item p:P31 ?neco .
+    ?neco ps:P31 wd:Q75338598 .
+    ?item wdt:P17 wd:Q213 . 
+    ?item wdt:P1082 ?population.
+    MINUS { ?neco pq:P582 ?dummy0 }  
+    ?item p:P2046 [ psn:P2046 [ wikibase:quantityAmount ?normalizedSuperficie; wikibase:quantityUnit ?normalizedUnit ] ] .
+    ?item p:P2046 [ psv:P2046 [ wikibase:quantityAmount ?originalSuperficie; wikibase:quantityUnit ?originalUnit ] ] .
+    OPTIONAL {  
+    ?item p:P6 ?star .
+    ?star a wikibase:BestRank .
+    ?star pq:P580 ?date 
+    MINUS { ?star pq:P582 [] } } .
+    BIND(?normalizedSuperficie/1000000 AS ?normalizedarea) .
+    BIND(?population / ?normalizedarea AS ?hustota ) .
+    ?item rdfs:label ?itemlabel . FILTER(LANG(?itemlabel)='cs')
+    BIND(xsd:integer(REPLACE(?itemlabel,'\\\\D','')) AS ?numeric_part)
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" }
+}
+ORDER BY ?numeric_part
+ Try it! --Larske (talk) 10:59, 17 July 2021 (UTC) Thanks! --Jklamo (talk) 11:20, 17 July 2021 (UTC) Location of admin_centre of relation I have written the following query for osm id of sub districts and its capitals. #Get osm id for mandal(sub district) and its admin_centre
+PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+PREFIX osmm: <https://www.openstreetmap.org/meta/>
+SELECT DISTINCT ?item ?itemLabel ?capitalLabel ?osmid  ?osmadm  WHERE {
+  ?item (wdt:P131*) wd:Q15390;
+    (wdt:P31/(wdt:P279*)) wd:Q817477;
+    wdt:P36 ?capital.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://sophox.org/sparql> {
+
+  ?osmid  osmt:wikidata ?item;
+          osmm:has ?osmadm;
+          ?osmadm \"admin_centre\".
+  }
+
+}
+ORDER BY ?item
+ Try it! I need help to modify the query to obtain the location of admin_centre. --Arjunaraoc (talk) 06:02, 18 July 2021 (UTC) @Arjunaraoc: Not my area; and thanks for the question - how to put together a query linking OSM & WD has been on my mind recently. You've provided what looks like a solution; I'm presuming I can use this as a general check for which items have pointers from OSM. I offer the following; a probe of whatever lies beneath ?osmadm. Whether or not <https://www.openstreetmap.org/relation/10164997> is what you were looking for, in relation to a test case, Podili mandal (Q11103722) ... who knows. #Get osm id for mandal(sub district) and its admin_centre
+PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+PREFIX osmm: <https://www.openstreetmap.org/meta/>
+SELECT DISTINCT ?item ?itemLabel ?capitalLabel ?osmid  ?osmadm ?ppp ?qqq  WHERE {
+  VALUES ?item {wd:Q11103722}
+  ?item (wdt:P131*) wd:Q15390;
+    (wdt:P31/(wdt:P279*)) wd:Q817477;
+    wdt:P36 ?capital.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://sophox.org/sparql> {
+
+  ?osmid  osmt:wikidata ?item;
+          osmm:has ?osmadm;
+          ?osmadm \"admin_centre\".
+    ?ppp ?qqq ?osmadm.
+  }
+}
+ORDER BY ?item
+ Try it! --Tagishsimon (talk) 09:32, 18 July 2021 (UTC) @Tagishsimon, Thanks for your response. I realized that there is some problem with data, as I created a query which worked during Nov 2019. Please see https://github.com/Sophox/sophox/issues/28 for more info. Arjunaraoc (talk) 15:50, 18 July 2021 (UTC) @Tagishsimon,For more sophox prefixes that you may need, check this --Arjunaraoc (talk) 15:54, 18 July 2021 (UTC) Thanks Arjunaraoc. I played a bit this morning, looking at UK mountain items in OSM, but I'm finding quite a lot of nodes that seem to fit the Sophox rules (at least 1 tag, no nonASCII characters), have valid WD tags, but don't show up as having them in my query. Whether that's b/c OSM data in Sophox is 22 days old, or some other cause, I'm not sure. #title:Are UK mountain items in OpenStreetMap, with a URL to assist in adding missing QIds to OSM
+PREFIX osmt: <https://wiki.openstreetmap.org/wiki/Key:>
+SELECT DISTINCT ?item ?itemLabel ?osmid ?OSMLINK WHERE { 
+  ?item wdt:P31 wd:Q8502;
+        wdt:P17 wd:Q145.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,cy,de,fr,nl,es,sv\". }
+  OPTIONAL { 
+    SERVICE <https://sophox.org/sparql> {
+      ?osmid  osmt:wikidata ?item.
+      }
+    }
+  OPTIONAL { 
+    ?item p:P625/psv:P625/wikibase:geoLatitude ?lat ;
+          p:P625/psv:P625/wikibase:geoLongitude ?long. 
+    BIND(IRI(CONCAT(\"https://www.openstreetmap.org/?mlat=\",str(?lat),\"&mlon=\",str(?long),\"&zoom=11\")) as ?OSMLINK)
+  }
+}
+ORDER BY ?itemLabel
+ Are UK mountain items in OpenStreetMap, with a URL to assist in adding missing QIds to OSM --Tagishsimon (talk) 17:16, 18 July 2021 (UTC) The sophox data being old and also being incomplete could be an issue. Till that it sorted out, it is better not to rely on Sophox. I mad a overpass-turbo query that might be of help. Arjunaraoc (talk) 03:59, 20 July 2021 (UTC) Human settlement in Italy without description in Italian language Dear fellows, I wrote this query to extract Human settlement in Italy without description in Italian language having Italian comune as P131. Items used: human settlement (Q486972)   , Italy (Q38)   , commune of Italy (Q747074)   Properties used: instance of (P31)   , country (P17)   , located in the administrative territorial entity (P131)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

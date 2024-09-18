@@ -1,0 +1,106 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-890f22d94b8794929d8e4a8db6bb7390> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT (SAMPLE(?bridge) AS ?bridge) (SAMPLE(?bridgeLabel) AS ?bridgeLabel)
+       (SAMPLE(?watercourse) AS ?watercourse) (SAMPLE(?watercourseLabel) AS ?watercourseLabel)
+       (SAMPLE(?loc) AS ?loc) (SAMPLE(?pic) AS ?pic)
+       (CONCAT(SAMPLE(?sKey),\": \",STR(YEAR(SAMPLE(?s)))) AS ?start)
+       (CONCAT(SAMPLE(?eKey),\": \",STR(YEAR(SAMPLE(?e)))) AS ?end)
+       (SAMPLE(?article) AS ?article) (IF(BOUND(?article),CONCAT(?bridgeLabel,\" in Wikipedia\"),1/0) AS ?articleLabel)
+WHERE {
+  {
+    SELECT ?bridge ?watercourse WHERE {
+      ?bridge wdt:P31/wdt:P279* wd:Q12280; wdt:P177 ?watercourse.
+      ?watercourse wdt:P31/wdt:P279* wd:Q355304.
+      # the following actually yields a perf penalty atm
+      #?bridge wdt:P17 wd:Q183.
+      #OPTIONAL { ?bridge wdt:P17 ?country. }. FILTER(!BOUND(?country) || ?country = wd:Q183).
+    }
+  }
+
+  # wd:Q1202, wd:Q183 work as well atm and take progressively more time to complete
+  ?bridge (p:P131|ps:P131)+ wd:Q24186.
+
+  OPTIONAL { ?bridge wdt:P625 ?loc. }.
+  OPTIONAL { ?bridge wdt:P18 ?pic. }.
+  OPTIONAL { ?bridge wdt:P571 ?s. }.
+  OPTIONAL { ?bridge wdt:P576 ?e. }.
+
+  OPTIONAL {
+    ?article schema:about ?bridge.
+    FILTER (IF(EXISTS {?article schema:inLanguage \"[AUTO_LANGUAGE]\".},
+               SUBSTR(str(?article), 1, 25) = \"https://[AUTO_LANGUAGE].wikipedia.org/\",
+               IF(EXISTS {?article schema:inLanguage \"en\".},
+                  SUBSTR(str(?article), 1, 25) = \"https://en.wikipedia.org/\",
+                  SUBSTR(str(?article), 1, 25) = \"https://de.wikipedia.org/\"
+               )
+            )).
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,de\".
+    ?bridge rdfs:label ?bridgeLabel.
+    ?watercourse rdfs:label ?watercourseLabel.
+    wd:P571 rdfs:label ?sKey.
+    wd:P576 rdfs:label ?eKey.
+  }
+}
+GROUP BY ?bridge ?watercourse""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en-gb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/vec>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/id>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/be-tarask>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ro>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/he>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/pt-br>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/si>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eo>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/da>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ar>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ko>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ms>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lt>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ca>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/it>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-44EB69E202DD4F9D97CCDB340F00ABF8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-ED87553A8D0744DB246C27C9BF29A07E,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-674ECE9D5846D6BD1BF69D8A9719F9E1, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-FBDD6F6B9DEFBCD8CA5DAB556FC19A9D,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-41E2D7993D7A04623A5296EBCB2C3F31, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-06C8DF8C6176A3999C08439ED721D6AD,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-37432756AD508ABF680FF63539B6E995, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-E91A42B159CCCE11D90ECBB57ABCB841,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-A501EF0BE03AD5984C08366FB8D6F710, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-00A52182AD178DB429FD0AC19C54096B,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-EB1D240552F9D8F8EB3BE869246B1E52, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-3B5C1581FA86667A68463DC81890FABD,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-B150DCFC877C79AD6BFCDB8020FA4AD3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-CAC0275998C9BEB31B973A11D34AB1C8,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-6C3476623165A2BDB9FBB3BF7E1D95FB, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-D2C4E3ED8F86F813A5A458D7B0057351,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-D793D12AB15E24A6F62A955FBADF17FD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-004C93FBD1D2BF6D4AD9DB92527091FB,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-41DCCD05AD77B5EDBD1B58EA702FB46D, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-38173F0A06E07C82F788A865CCB80A14,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-D8FE26694882D5E0DEC25AE5C2A8A679, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-A997DE05CBBAE0A8BAEEEA7EFA255430,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-460B7E038293A8BDE18B860E8C79A396, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-3614622E5229BBEA5E4B46D20BF238D0,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-C3077751B6919B4D2EAE6352615B7A57, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-76DEA67703D589398C5C7B07A21AE090,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-227D2E6BD10523EDA5E3472EF479C6C0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-E64061429582E07D10B6D17B64BF7562,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-CBB3B337A6B2934956B92FD9F9380DEB, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-BE75F83106C9A0899A58A9106711C94B,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-33E9CFFAA71D14198B8985420530E212, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115661-FA2EFC1A9C2C22EACB2E92609ABAE84E;
+  schema:target <https://query.wikidata.org/sparql/> .

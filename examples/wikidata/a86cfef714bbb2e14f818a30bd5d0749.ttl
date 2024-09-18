@@ -1,0 +1,414 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a86cfef714bbb2e14f818a30bd5d0749> a sh:SPARQLExecutable;
+  rdfs:comment """Screenshot of the WDQS query editor, which allows queries to be modified and then executed. A page for interesting or illustrative queries. It also discusses how queries can be shown on wiki pages, including either the full code of the query or a templated link.For absolute beginners we recommend first watching the in-depth video tutorial by WMF, before they continue reading this page, as this will help with avoiding common pitfalls and get started. Contents 1 Understanding SPARQL 1.1 Spouses of Madonna 1.2 A minimalist query 1.3 US presidents and their spouses 1.4 US presidents and their spouses, in date order 1.5 Alternative query, via United States of America (Q30) and head of government (P6) 2 Optionality and alternatives 2.1 Optional requirements 2.2 Combining alternatives 2.3 Filtering a particular variable for desired values 2.4 Excluding subsets 3 Querying a class tree 3.1 Properties registered as properties for this type (P1963) for a class or its super-classes 4 Counting and ranking 4.1 Counting 4.2 Ranking 4.3 More examples 5 Adding labels for properties 5.1 Identifiers found most often on items with Art UK artist ID (P1367) 6 Working with qualifiers 6.1 All properties using the specified qualifier with specified value 6.2 Most used qualifiers for a given property 6.3 Properties a qualifier is most commonly applied to 6.4 Most common property + value combinations a qualifier is applied to 6.5 Most frequent values for a given qualifier 6.6 Most used qualifiers in general 6.7 Statements without a specific qualifier for a given property 6.8 Statements without any qualifier for a given property 6.9 Most used qualifier values for a particular statement and qualifier combination 7 Working with references 7.1 Statements without a reference for a particular property 7.2 Properties most often applied to references 7.3 Cactaceae taxa with names referenced to be stated in (P248) either of two books 7.4 Number of references to Le Figaro 7.5 References to Le Figaro website 8 Working with sitelinks 8.1 Countries that have sitelinks to en-wiki 8.2 Countries that have a Featured Article on Russian Wikipedia 8.3 Numbers of sitelinks for items with Art UK artist ID (P1367) for each language 9 Working with dates 9.1 Count of people with place of burial (P119) = Père Lachaise Cemetery (Q311), broken out by year 9.2 People buried at Père Lachaise, born on this day 9.3 Male Americans born after 1875 and before 1930, that have a day-specific date of death, but only a year-specific date of birth. 9.4 People born on this day, generally 9.5 Individuals with the same value for a given property, who appear to share the same day-specific dates of birth and death. 10 Working with coordinates 10.1 Query to find latitudes and longitudes for places in Paris 10.2 Maximum and minimum latitudes and longitudes for places in Paris 10.3 Places within 1 km of the Arc de Triomphe (Q64436) 10.4 Places within 0.01 degrees latitude and longitude of the Arc de Triomphe (Q64436) 10.5 Places between Arc de Triomphe (Q64436) and Louvre Museum (Q19675) 10.6 Distance between Berlin (Q64) and New York (Q1384) 11 Working with first names 11.1 Queries to find most common variants of a particular first name 11.2 Query to find individuals with similar first names and matching dates of birth and death 12 Federation: working with external data sources 13 Templated SPARQL queries, and links from wikipages 13.1 Showing only query links 13.2 Templated queries 13.3 Code on wikipages 13.4 Templates to help build queries : Partial queries 14 Query by natural language 14.1 Missing labels for a target language 14.2 Missing description for a target language 15 Full-text search 16 Resources Understanding SPARQL [edit] Spouses of Madonna [edit] Below is a SPARQL query to return a list of the spouses of the singer Madonna (Q1744): SELECT ?spouse ?spouseLabel WHERE {
+   wd:Q1744 wdt:P26 ?spouse.
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+   }
+}
+ Try it! Clicking the link above will load the query into the query editor, where it can be modified and executed (and modified again and executed again, and again and again, etc, the more you want to experiment with it). Try it now.How does this work? What is going on here?The key to understanding the query above is the line wd:Q1744 wdt:P26 ?spouse. SPARQL views the entire database (and any other database that can be queried alongside it) as being completely composed of triples, of the form ?subject  ?predicate  ?object Everything in a SPARQL database is cast into triples of this form.The query above is therefore asking SPARQL to return a ?spouse (and a label for it) for every triple of the form wd:Q1744 wdt:P26 ?spouse, where wd:Q1744 stands for the Wikidata entity Madonna (Q1744), and wdt:P26 is a representation of the Wikidata property spouse (P26). Using the query editor it is now easy to change P26 to other properties, and Q1744 to other items, to try a multitude of other combinations.(All the ever-present ? symbols in SPARQL, eg before ?subject or ?spouse, can be quite off-putting to start with, but are simply SPARQL's way of indicating a variable – similar to the $ before a variable like $count in some other programming languages. In fact $ can also be used for variables in SPARQL instead of ?, but ? is more common.) A minimalist query [edit] So what sort of statements are in the database? Very nearly the next most minimal query it is possible to write in SPARQL has the form SELECT * WHERE {
+  ?subject ?pred1 ?obj1 .
+  ?subject ?pred2 ?obj2
+} This asks the service to return all sets of all the variables * in the query for which there is a triple ?subject ?pred1 ?obj1 in the system, and also a triple ?subject ?pred2 ?obj2 for the same ?subject. The dot . expresses the conjunction between the two.As a concrete example of the form above, suggested by Bob DuCharme on Twitter, we can run the query SELECT * WHERE {
+  ?s ?label \"The Rolling Stones\"@en .
+  ?s ?p ?o
+} View and run this query (Follow the link to view the query in the query editor, then hit the 'Run' button to run it.)This query can be understood as asking for all sets of all the variables * in the query, ie ?s, ?label, ?p and ?o, for any triple in the system ?s ?p ?o that relates to any subject ?s connected by any predicate ?label to any English-language text string \"The Rolling Stones\".Examining the output, it is apparent that it has returned all triples relating to The Rolling Stones (Q11036) (a rock band), The Rolling Stones (Q591855) (an album) and The Rolling Stones (Q1754491) (an EP), which are each connected by a predicate identified as rdfs:label to the string \"The Rolling Stones\" in English. US presidents and their spouses [edit] It is all very well to be able to look up all the statements that can be related to a particular string, but more usually we would like to be able to ask questions relating to specific items and properties.Next, then, here is a query involving some actual Wikidata properties and items. The following is a query to return a list of married U.S. presidents and their spouses: SELECT ?pres ?presLabel ?spouse ?spouseLabel WHERE {
+   ?pres wdt:P31 wd:Q5 .
+   ?pres wdt:P39 wd:Q11696 .
+   ?pres wdt:P26 ?spouse .
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+   }
+ }
+ Try it! The most noticeable new feature in the above (further accentuated by the syntax highlighting) is the presence of features like wdt:P39 wd:Q11696.Here wdt:P39 represents a simplified manifestation of the position held (P39) Wikidata property.In line with the SPARQL model of everything as a triple, the wdt: namespace contains manifestations of properties as simple predicates that can directly connect an item to a value. (Other more complicated potential aspects of statements involving properties will be considered in due course). In this case, therefore, the line ?pres wdt:P39 wd:Q11696 expresses a requirement that, for a value of ?pres to be acceptable, there must be a triple in the database that connects it, via this simplified version of the property \"position held\", to the value wd:Q11696, which represents the wikidata item for the office of President of the United States (Q11696).In SPARQL, particular elements may only be specified in a query if they can be formally identified with a unique Internationalized resource identifier (IRI) starting http://.... In practice, it is convenient to separate the full IRI of the element into two parts: a namespace, that groups together similar sorts of elements, together with a short identifier specific to that namespace. We have already encountered such an element previously, rdfs:label, an element with a meaning defined by the World Wide Web Consortium that connects another element to an appropriate label string describing it in a particular language. Here label is the short identifier, while rdfs: is shorthand for the namespace <http://www.w3.org/2000/01/rdf-schema#>, where information about label is defined.For the simplest queries, the RDF representation of Wikidata used for the SPARQL service makes use of two key namespaces: wd:, which is where items live, and wdt: for elements that serve as a simplified representation of properties, directly connecting items and values. The 't' in wdt: stands for \"truthy\". Such triples, using the wdt: representation of the property, are not created for all statements, but for only statements that have the highest rank for the property on that item and are not deprecated. While not being guaranteed to be true, they are intended to summarise Wikidata's best current understanding of the truth.Finally, the wikibase: namespace is used for various connector, definition, and utility elements used to help define the whole structure. In this case wikibase:label, with the syntax shown, is a special macro that looks up a label in a choice of fallback languages for any variable ending in \"Label\" in the SELECT statement that has a corresponding counterpart without the suffix \"Label\" that has a well-defined value.Armed with this information, the rest of the query can now be understood in detail. Similar to the line ?pres wdt:P39 wd:Q11696 already discussed, the line ?pres wdt:P26 ?spouse requires that any acceptable value of ?pres must appear in a truthy triple connecting it, via the representation of spouse (P26), to a value for a spouse.Additionally ?pres wdt:P31 wd:Q5 requires that ?pres must also be an instance of (P31) human (Q5). This final condition might appear tautological or superfluous; but in fact it is an important requirement to specify, because a simple query seeking only position held (P39) President of the United States (Q11696), such as this one (try it!), also returns a number of individuals such as Gonzo the Mechanical Bastard (Q3545001), that are instance of (P31) fictional human (Q15632617) or other types of fictional character (Q95074). Restriction to human (Q5) is therefore not to be overlooked. US presidents and their spouses, in date order [edit] What if we want to put the presidents into date order? The simply \"truthy\" representation of properties like position held (P39) does not give access to qualifiers like start time (P580).Instead, the query can be achieved as follows, by using connectors which live in three further namespaces: p: – which contains representations of properties such as p:P39, that link an item (or, more technically, an entity) to a statement; ps: – which contains representations of properties such as ps:P39, that link a statement to a value; and pq: – which contains representations, such as pq:P580, of properties being used as qualifiers, that connect a statement to a qualifier value. SELECT ?pres ?presLabel ?spouse ?spouseLabel WHERE {
+   ?pres wdt:P31 wd:Q5 .
+
+   ?pres p:P39 ?position_held_statement .
+   ?position_held_statement ps:P39 wd:Q11696 .
+   ?position_held_statement pq:P580 ?start .
+
+   ?pres wdt:P26 ?spouse .
+
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+   }
+
+ } ORDER BY ?start
+ Try it! Replacing the previous ?pres wdt:P39 wd:Q11696 with the three lines in the middle of the query thus requires that ?pres is connected by the p: version of position held (P39) to a statement that has a value President of the United States (Q11696) and is also connected to a start date value by the pq: qualifier version of start time (P580).The ORDER BY ?start clause directs that the SELECT results are to be ordered in increasing order of this start date. The descending reverse order could instead be specified by changing this to ORDER BY DESC(?start).A guide to the full triples model (RDF model) for Wikibase can be found here, including a full list of all the different namespaces of connections (predicates) available, and the required PREFIXes needed to declare them (here). Both of these are also linked to directly from the query editor page. Alternative query, via United States of America (Q30) and head of government (P6) [edit] An alternative approach to obtaining the U.S. presidents would be to start from the item United States of America (Q30) and the property head of government (P6). In SPARQL terms, this translates into looking for occurrences of the triple wd:Q30 wdt:P6 ?pres rather than ?pres wdt:P39 wd:Q11696This is easy enough to implement. But perhaps surprisingly running the query only returns two results, with the values for Joe and Jill Biden and for Joe and Neilia Hunter Biden, but includes none of the other presidents and their wives.The reason for this is that the \"truthy\" wdt: properties return only triples that correspond to the best ranked statements for the particular property. Examining the item United States of America (Q30), it can be seen that whereas all the other values have normal status, the value Joe Biden (Q6279) is marked as having preferred status for United States of America (Q30) head of government (P6) (being the current holder of the office).A full list of all of the historical holders of the office can instead be gained using the p: namespace version of the property, i.e. p:P6, to connect to the full statements. Adaptation of the query above to implement this is left as an exercise for the reader, which can then be compared to the code in the example of the Wikibase SPARQL examples page. Optionality and alternatives [edit] Optional requirements [edit] The queries above list U.S. Presidents with their spouses (who are required to exist). But what if we would like to include any U.S. Presidents who had no spouse? This can be achieved by placing the keyword OPTIONAL { ... } around the relationships which are to be optional.It is also necessary to provide a different mechanism to explicitly supply a ?spouse_label, as the wikibase:label service fails if the underlying variable has no value. The label can instead be supplied by adding the line?spouse rdfs:label ?spouse_label filter (lang(?spouse_label) = \"en\"). The resulting query-text can be viewed and executed as this query. Combining alternatives [edit] Under construction – UNION biblical character (Q12405827)s including ones with no books under construction at User:Jheald/sparql/Bible_characters – currently times out Filtering a particular variable for desired values [edit] Conditions on a single variable (or a relationship between variables) can be specified using FILTER ( ... ) with a condition resolving to true or false. SPARQL has various functions for operating on and comparing numbers, strings, and general elements. Excluding subsets [edit] SPARQL has three different idioms for excluding subsets: OPTIONAL { ... ?x ... } FILTER(!bound(?x)), FILTER NOT EXISTS { ... } MINUS { ... } Currently, in almost all circumstances, Blazegraph resolves all of these to the same query plan. The following query uses these:Items: scholarly article (Q13442814)   Properties: instance of (P31)   #  Elasticsearch is being used only during the call to the wikibase:mwapi SERVICE.
+#  Everything happening outside this call is handled by Blazegraph, such as MINUS.
+SELECT ?item ?itemLabel WHERE {
+ SERVICE wikibase:mwapi {
+   bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+   wikibase:api \"EntitySearch\";
+   mwapi:search \"front matter\";  # Search for things named \"front matter\"
+   mwapi:language \"en\".
+   ?item wikibase:apiOutputItem mwapi:item.
+ }
+ MINUS {
+    ?item wdt:P31 wd:Q13442814 . # but MINUS any of those things that are instances of scholarly article
+ }
+ SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\".}
+} Try it! Querying a class tree [edit]So-called \"path\" queries give a shorthand for specifying a chain of predicates of indefinite length through which a subject can be connected to an object. For example?item wdt:P31/wdt:P279* ?top_classspecifies that an item should be an instance of (P31) the top class or any of the classes in its subclass tree.The / indicates successive steps in a chain of properties, while * indicates that a property must appear zero or more times. Along the same lines + can be used similarly to indicate a property that must occur at least once, and brackets ( and ) can be used for grouping.For example: Properties registered as properties for this type (P1963) for a class or its super-classes [edit] This query is templated with template {{PropertyForThisType}}, for example {{PropertyForThisType|Q875538}} for the class public university (Q875538). It finds properties marked using P1963 as being relevant to the class, either for the class itself, or for one of the super-classes in its tree. The following query uses these:Items: public university (Q875538)   Properties: subclass of (P279)   , properties for this type (P1963)   # Query to find, for a given starting class ?tree0 (in this case Q875538),
+  # what properties are registered as normally applying
+  # to it, or to a super-class of it
+  # Query generated by [[Template:PropertyForThisType]]
+
+SELECT ?class ?classname ?property ?propertyname WHERE {
+  ?tree0 (wdt:P279)* ?class .
+  BIND (wd:Q875538 AS ?tree0)
+  ?class wdt:P1963 ?property .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+    ?class rdfs:label ?classname .
+    ?property rdfs:label ?propertyname .
+  }
+} Try it! The query thus returns properties like rector (P1075) which (according to the P1963 statement) are directly associated with the class public university (Q875538), but also coordinate location (P625) which are associated with its super-class geographic location (Q2221906)The results can be compared with the results of the related properties tool, which shows how often particular properties actually occur for items in the class. (Broken – Feb 2017). Counting and ranking [edit] Counting [edit] Simple count of items that have a certain property (OSM relation ID): #Count all items with a property
+SELECT (COUNT (DISTINCT ?item) AS ?count)
+WHERE
+{
+  ?item wdt:P402 ?value .
+  # change P402 to another property
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! The query below counts the number of items who are (truthily) marked as spouses of Madonna: SELECT (COUNT (DISTINCT ?spouse) AS ?count) WHERE {
+   ?spouse wdt:P26 wd:Q1744 .
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+   }
+}
+ Try it! Note that the brackets ( and ) around the (COUNT DISTINCT(?spouse) AS ?count) are required, as is the naming of a variable to contain the count.It is generally a good idea to indicate what is being counted, e.g., DISTINCT(?spouse), although it is also possible to use (COUNT (*) AS ?count) to count all combinations of variables in scope in the SELECT block.Leaving out the keyword DISTINCT, i.e., just (COUNT(?spouse) AS ?count), will count the number of combinations of variables which include a value for the variable ?spouse, which may lead to somewhat unexpected results in less simple queries. Ranking [edit] Using GROUP BY ?variable directive, or GROUP BY ?var1 ?var2, at the end of the SELECT block, together with a COUNT statement, can be used to give grouped counts for particular variables. These can then be ordered using the ORDER BY directive, e.g., ORDER BY DESC(?count), as in the following examples.Note that when using a GROUP BY directive, only variables specified in the GROUP BY clause may appear in the corresponding SELECT statement, plus aggregates like COUNT based on the grouped combinations. Query to find the most common values for property prop in items of class class. eg query, to find the top 200 most common values of genre (P136) in items of class painting (Q3305213) (Query templated as Template:TopList). The same, but examining the whole subclass tree. eg query, to find the most common values of genre (P136) in items of class painting (Q3305213) including subclasses, sub-sub-classes, etc. Achieved by changing wdt:P31 in the original query to wdt:P31/wdt:P279*, as discussed above. (Query templated as Template:TopListDeep) Currently there seem to be performance issues combining a path query with BIND. Wherever possible therefore, path expressions should be made as explicit as possible, and BIND should be avoided in connection with them – not even used to write constants. This has been raised with Blazegraph as issue BLZG-1543. The same, but examining the immediate class and one of level of subclasses. eg query, to find the most common values of genre (P136) in items of class painting (Q3305213) and its direct immediate subclasses only. Achieved by changing ?a wdt:P31 ?class in the original to {?a wdt:P31 ?class} UNION {?a wdt:P31/wdt:P279 ?class} Can be quicker and give a more focussed solution set than the full path query. (Query templated as Template:TopListDepth2). The original query, but returning only examples with more than a set number of hits (e.g., 50) e.g., query, to find the most common values of genre (P136) in painting (Q3305213) items, that have more than 50 occurrences Achieved by adding HAVING (?count > 50) after the GROUPing directive. This is sometimes worthwhile to speed up searches which would otherwise return a very large number of returns with very low counts. Using the value 1, i.e., HAVING (?count > 1), can also be useful, to select duplicated values only. (Query templated as Template:TopList2). More examples [edit] Query to find the classes of items most often connected by a property prop eg most connected classes for genre (P136) For some more examples see Wikidata:Project_chat/Archive/2015/09#Which_classes_of_items_do_properties_most_often_connect_together.3F (Query templated as Template:MostConnectedClasses) Query to return the properties most often connecting to a given class of items eg properties most often connecting to Wikimedia disambiguation page (Q4167410) (Query templated as Template:InboundPropertiesToClass) Query to find the properties most often connecting to point to a given entity eg query for properties pointing the most to mort pour la France (Q3324507) SELECT ?property ?count
+WHERE {
+  SELECT ?property (COUNT(?item) AS ?count)
+  WHERE {
+    ?item ?statement wd:Q3324507 . # items pointing to Q3324507 through a statement
+    ?property wikibase:statementProperty ?statement . # property used for that statement
+  } GROUP BY ?property # count usage for each property pointing to that entity
+} ORDER BY DESC(?count) # show in descending order of uses
+ Try it! Useful to spot \"outlying\" properties that don't match common use for linking to a specific entity, if common use isn't decided yet. More specific than the query to find the properties most often connecting to a given class of items. Query to return the items in a given class that are the most frequent targets of a given property. eg most connected-to items in class Wikimedia disambiguation page (Q4167410) that are the target of property given name (P735) (Query templated as Template:MostConnectedToInstances) Query to find the most populated classes in a given subclass tree, together with their associated subclass at first level. The items can also be required to satisfy an additional property and value. eg query for subclasses of painting (Q3305213) eg subclasses of work (Q386724) containing items with country (P17): United Kingdom (Q145) (Query templated as Template:TopSubclassesDeep) Adding labels for properties [edit] SERVICE wikibase:label only supplies labels for entities in the wd: namepace. How then to provide labels for properties in the wdt: namespace?This can be done by adding the assertion line ?prop wikibase:directClaim ?p into the query – the special predicate wikibase:directClaim connects the wd: namespace entity for the property to its wdt: namespace representation.(It is usually also necessary to turn off the built-in query optimizer with the line hint:Query hint:optimizer \"None\", otherwise the query engine can find the above assertion with only 2000 results an overly seductive place to start building its result set out from, which means that statements may need to be quite carefully hand-ordered – as discussed further on the query optimization page).Examples can be found below, in addition to the example presented already for finding the properties most often connecting to a given class of items. Identifiers found most often on items with Art UK artist ID (P1367) [edit] The following query uses these:Items: Wikidata property for an identifier (Q19847637)   , Wikidata property for authority control for people (Q19595382)   Properties: Art UK artist ID (P1367)   , instance of (P31)   SELECT ?prop ?propLabel ?count WHERE {
+    {
+        SELECT ?prop (COUNT(DISTINCT ?item) AS ?count) WHERE {
+           
+           hint:Query hint:optimizer \"None\" .
+           ?item wdt:P1367 ?yp_id .
+           ?item ?p ?id .
+           ?prop wikibase:directClaim ?p .
+           {?prop wdt:P31 wd:Q19847637}  # Wikidata property representing a unique identifier
+             UNION
+           {?prop wdt:P31 wd:Q19595382}  # Wikidata property for authority control for people
+           
+          
+        }  GROUP BY ?prop
+    }
+           
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+    }
+
+} ORDER BY DESC (?count) Try it! The results are restricted to identifiers by requiring that the properties returned satisfy instance of (P31) Wikidata property for an identifier (Q19847637) or Wikidata property for authority control for people (Q19595382). Working with qualifiers [edit] As already touched on, assertions involving qualifiers can be built into queries by using versions of properties that link to statements, rather than the wdt: versions which link to \"truthy\" values. the p: namespace representation of a property, for example p:P39 for position held (P39), connects a subject to a statement. From a statement then the pq: representation of the qualifier property, for example pq:P580 for start time (P580), connects the statement to the qualifier value. In addition to the example above for US presidents and their spouses, in date order, which used the pq:P580 qualifier for the date their period in office began, here are some further examples involving qualifiers: All properties using the specified qualifier with specified value [edit] For searching all properties using qualifier reason for deprecated rank (P2241)link rot (Q1193907) , we may use: SELECT ?item ?itemLabel ?property ?value WHERE {
+  ?item ?property ?value.
+  ?value pq:P2241 wd:Q1193907.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} LIMIT 200
+ Try it! Most used qualifiers for a given property [edit] eg most common qualifiers for property award received (P166) with value Commander of the Legion of Honour (Q10855212) (Query templated as Template:quals for prop)Here we do not know which qualifier may appear on the statement, so the line ?statement ?pq_qual ?pq_obj . is used to match any triple with the statement as subject.The following line ?qual wikibase:qualifier ?pq_qual . restricts this to predicates ?pq_qual in the pq: namespace, because these (and only these) are connected to the fundamental entities for properties in the wd: namespace by the wikibase:qualifier connector. Properties a qualifier is most commonly applied to [edit] This page is outdated. e.g. for of (P642) SELECT ?property ?propertyLabel (COUNT(DISTINCT ?statement) AS ?count) WHERE {
+     hint:Query hint:optimizer \"None\" .
+     ?statement pq:P642 ?qualifier_value .
+  
+     ?statement ?ps ?value .
+     ?property wikibase:statementProperty ?ps .
+                                     
+     SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+     }                  
+}  GROUP BY ?property ?propertyLabel
+ORDER BY DESC(?count)
+ Try it! Most common property + value combinations a qualifier is applied to [edit] This page is outdated. SELECT (COUNT(DISTINCT ?statement) AS ?count) ?property ?propertyLabel ?valueLabel  WHERE {
+     hint:Query hint:optimizer \"None\" .
+     ?statement pq:P642 [] .
+
+     ?statement ?ps ?value .
+     ?property wikibase:statementProperty ?ps .
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?property ?propertyLabel ?value ?valueLabel
+ORDER BY DESC(?count)
+ Try it! Most frequent values for a given qualifier [edit] eg most common values for qualifier reason for deprecated rank (P2241) (Query templated as Template:qual values)Also, a query to give a full list of the statements qualified by reason for deprecated rank (P2241)(Query templated as Template:qualified statements) Most used qualifiers in general [edit] This page is outdated. tinyurl.com/h3ygjps/pv8vexs (One probably would want to exclude the counts for qualifiers used on is a list of (P360) statements: tinyurl.com/qekm959. But trying to do this exclusion all in one query appears to time out: tinyurl.com/pe338b9) Statements without a specific qualifier for a given property [edit] For example, statements for published in (P1433) = A Compendium of Irish Biography (Q19020593) without a page(s) (P304) qualifier SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item p:P1433 ?statement .         # Items with P1433
+  ?statement ps:P1433 wd:Q19020593 . # ... with statement: published in Q19020593
+  FILTER NOT EXISTS {                # ... filtering out
+       ?statement pq:P304 [] .       # ... statements that have a P304 qualifier
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Statements without any qualifier for a given property [edit] For example, statements for award received (P166) = Commander of the Legion of Honour (Q10855212) without any qualifiers SELECT ?item ?itemLabel ?itemDescription WHERE {
+
+   ?item p:P166 ?award_statement .
+   ?award_statement ps:P166 wd:Q10855212 .  # Commander of the Legion of Honour
+   FILTER NOT EXISTS {
+        ?award_statement ?pq_pred ?pq_obj . # a triple involving the award statement ...
+        ?prop wikibase:qualifier ?pq_pred . # ... with a predicate ?pq_pred that is a qualifier
+   }
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Most used qualifier values for a particular statement and qualifier combination [edit] This page is outdated. For example, most used ?y in \"?x instance of (P31) ?y-of (P642)-?q\" (where of (P642) qualifies the ?y used in instance of (P31), for example with ?y=group (Q16887380), we have group-of) tinyurl.com/hdrj7bh Working with references [edit] See also: b:SPARQL/WIKIDATA Qualifiers, References and Ranks Statement nodes are connected by the prov:wasDerivedFrom predicate to reference nodes.Reference nodes are in turn connected to values by representations of properties in the pr: namespace – for example pr:P248 for stated in (P248) or pr:P854 for the property reference URL (P854). Statements without a reference for a particular property [edit] For example, statements of award received (P166) = Commander of the Legion of Honour (Q10855212) without any references SELECT ?item ?itemLabel WHERE {
+
+   ?item p:P166 ?award_statement .
+   ?award_statement ps:P166 wd:Q10855212 .  # Commander of the Legion of Honour
+   FILTER NOT EXISTS {
+        ?award_statement prov:wasDerivedFrom ?ref
+   }
+
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\"
+   }
+}
+ Try it! Properties most often applied to references [edit] This page is outdated. SELECT ?prop ?propLabel ?count WHERE {
+    {
+        SELECT ?prop (COUNT(?ref) AS ?count) WHERE {
+
+           ?prop wikibase:reference ?pr_pred .     # the reference-specific form of a property
+           ?ref ?pr_pred ?pr_obj .                 # to be found in any triple (any such triples will apply to references)
+        }  GROUP BY ?pr_pred ?prop
+    }
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\"
+    }
+
+} ORDER BY DESC (?count)
+ Try it! Cactaceae taxa with names referenced to be stated in (P248) either of two books [edit] SELECT ?a ?aLabel ?taxo_1 ?taxo_2 ?bLabel WHERE {
+  
+   ?a wdt:P171* wd:Q14560 .   #  Cactaceae
+   ?a wdt:P171 ?b .           #  parent taxon
+  
+   {
+     SELECT DISTINCT ?a WHERE {
+        { ?a p:P225/prov:wasDerivedFrom/pr:P248 wd:Q13520496 }
+        UNION
+        { ?a p:P225/prov:wasDerivedFrom/pr:P248 wd:Q10695694 }
+     }
+   }
+  
+  OPTIONAL {
+     ?a p:P225 ?taxo_stmt .
+     ?taxo_stmt ps:P225 ?taxo_1 .    # taxonomic name
+     ?taxo_stmt prov:wasDerivedFrom ?ref .
+     ?ref pr:P248 wd:Q13520496 .   # Das große Kakteen-Lexikon
+  }
+  
+  OPTIONAL {
+     ?a p:P225  ?taxo_stmt2 .
+     ?taxo_stmt2 ps:P225 ?taxo_2 .   # taxonomic name
+     ?taxo_stmt2 prov:wasDerivedFrom ?ref2 .
+     ?ref2 pr:P248 wd:Q10695694 .   # New Cactus Lexicon
+  }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?aLabel
+ Try it! Number of references to Le Figaro [edit] A quick query to count how many statement-attributions there are that a statement has a reference that the statement was stated in (P248) Le Figaro (Q216047) with a particular date. SELECT (count(?ref) as ?mentions) WHERE {
+  ?statement prov:wasDerivedFrom ?ref .
+  ?ref pr:P248 wd:Q216047 .
+  ?ref pr:P577 ?date .
+}
+ Try it! (Note that the actual number of statements may be smaller than this, as sometimes the same statement may be referenced by two different editions of the newspaper; the number of references may also be smaller, as sometimes the same reference may be used to support more than one statement. The query can be changed to return these by changing COUNT(?ref) or COUNT(*), which here are equivalent, to COUNT(DISTINCT ?ref) or COUNT(DISTINCT ?statement) References to Le Figaro website [edit] This page is outdated. And a query to return all the references that are to a URL which includes 'lefigaro.fr' SELECT ?ref ?refURL WHERE {
+  ?ref pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL),'lefigaro.fr')) .
+} LIMIT 200
+ Try it! This version adds the item, property and value of the statement referenced: SELECT ?statement ?subjectLabel ?subject ?propertyLabel ?property ?objectLabel ?object ?refURL WHERE {
+  hint:Query hint:optimizer \"None\" .
+  ?ref pr:P854 ?refURL
+  FILTER (CONTAINS(str(?refURL),'lefigaro.fr')) .
+  ?statement prov:wasDerivedFrom ?ref .
+  ?subject ?p ?statement .
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! Working with sitelinks [edit] Countries that have sitelinks to en-wiki [edit] SELECT ?country ?countryLabel ?article WHERE {
+
+    ?country wdt:P31 wd:Q3624078 . # sovereign state
+    ?article schema:about ?country .
+    ?article schema:isPartOf <https://en.wikipedia.org/>.
+
+    SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\"
+    }
+}
+ Try it! More details can be found in the Wikidata RDF documentation. Countries that have a Featured Article on Russian Wikipedia [edit] The following query uses these:Items: country (Q6256)   , featured article badge (Q17437796)   Properties: instance of (P31)   SELECT ?sitelink ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q6256.
+  ?sitelink schema:isPartOf <https://ru.wikipedia.org/>;
+     schema:about ?item;
+     wikibase:badge wd:Q17437796 . # Sitelink is badged as a Featured Article
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}  ORDER BY ?itemLabel Try it! Numbers of sitelinks for items with Art UK artist ID (P1367) for each language [edit] SELECT ?lang (COUNT(DISTINCT ?item) AS ?count) WHERE {
+
+  ?item wdt:P1367 ?yp_id .     # BBC 'Your paintings' artist identifier
+  ?article schema:about ?item .
+  FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") .
+  ?article schema:inLanguage ?lang .
+
+} GROUP BY ?lang
+ORDER BY DESC (?count)
+ Try it! Working with dates [edit] Count of people with place of burial (P119) = Père Lachaise Cemetery (Q311), broken out by year [edit] # Query to count burials recorded for Père-Lachaise cemetery by year
+SELECT ?year (COUNT (DISTINCT ?a) AS ?count) WHERE {
+   ?a wdt:P119 wd:Q311 .    # buried at Père-Lachaise cemetery
+   ?a wdt:P570 ?date .
+   BIND(year(?date) AS ?year)
+} GROUP BY ?year
+ORDER BY ?year
+ Try it! Dates that are the direct values of properties (ie dates that are the objects of the wdt: form of the property, also objects of the ps:, pr: and pq: forms) have the built-in datatype xsd:dateTime.The built-in functions year(), month(), day(), hours(), minutes() and seconds() can be used to extract particular parts of the date. People buried at Père Lachaise, born on this day [edit] See User:Pyb/Test4#On_this_day This query makes use of the special function now() which returns the current date and time, allowing eg FILTER (month(?date) = month(now())), to filter dates for the same month as the current one. Male Americans born after 1875 and before 1930, that have a day-specific date of death, but only a year-specific date of birth. [edit] # Query to find male Americans born after 1875 and before 1930
+# with day-specific date of death, but only year-specific date of birth
+SELECT ?a ?aLabel ?birth_date ?death_date WHERE {
+   ?a wdt:P27 wd:Q30 .
+   ?a wdt:P21 wd:Q6581097 .
+   ?a p:P569/psv:P569 ?birth_date_node .
+   ?birth_date_node wikibase:timePrecision \"9\"^^xsd:integer .
+   ?a p:P570/psv:P570 ?death_date_node .
+   ?death_date_node wikibase:timePrecision \"11\"^^xsd:integer .
+   ?birth_date_node wikibase:timeValue ?birth_date .
+   ?death_date_node wikibase:timeValue ?death_date .
+   FILTER (year(?birth_date) > 1875) .
+   FILTER (year(?birth_date) < 1930)
+
+   SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"en\" .
+      }
+}
+ORDER BY ?birth_date ?aLabel
+ Try it! Aspects of date information beyond a simple value, such as the relevant calendar for the date, and its precision, are represented in a full date node, described here in the detailed specification of how Wikidata is represented as RDF triples. These detailed date nodes are linked to from statements about dates by representations of properties in the psv: namespace, and from qualifiers with date values by representations in the pqv: namespace.The requirement ?date_node wikibase:timePrecision ?n can be used with a particular value of ?n to find dates with a particular level of precision. People born on this day, generally [edit] SELECT ?subject ?subjectLabel ?subjectDescription (year(?date) as ?year) WHERE {
+  
+   ?subject p:P569/psv:P569 ?date_node . # node for date of birth
+   ?date_node wikibase:timePrecision \"11\"^^xsd:integer . # date precision = day
+   ?date_node wikibase:timeValue ?date .
+   FILTER (day(?date) = day(now())) .  # day of birth date is day of current date
+   FILTER (month(?date) = month(now())) . # month of birth date is month of current date
+  
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?date
+LIMIT 100
+ Try it! For very general searches for births and deaths on a particular day/month, the query above starts with ?date_node wikibase:timePrecision \"11\"^^xsd:integer, to find day-specific dates, of which there are currently 169,902, and then filters that for a specific day and month, rather than starting from items with a date of birth (P569) (currently 1,985,638) Individuals with the same value for a given property, who appear to share the same day-specific dates of birth and death. [edit] eg query for cases where country of citizenship (P27) is France (Q142)) See Wikidata:WikiProject_Data_cleaning/matched_birth_and_death_days for some results. (Query templated as Template:MatchingBirthDeath) See also the query in the names section below, for individuals with matching dates who have similar first names. Working with coordinates [edit] Query to find latitudes and longitudes for places in Paris [edit] SELECT ?a ?aLabel ?lat ?long WHERE {
+  ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+  ?a p:P625 ?statement . # coordinate-location statement
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?lat .
+  ?coordinate_node wikibase:geoLongitude ?long .
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! Note that a path query wdt:P131+ with the additional + sign has been used for located in the administrative territorial entity (P131), to match not just items recorded as being in Paris, but also in any of its arrondissements (districts). Maximum and minimum latitudes and longitudes for places in Paris [edit] A variant query would be to find the maximum and minimum latitudes and longitudes for places said to be in the administrative territorial entity of Paris, and having only one set of co-ordinates registered: # Query to return latitudes and longitudes for places in Paris
+
+SELECT (COUNT(?a) AS ?count) (MIN(?lat) AS ?min_lat) (MIN(?long) AS ?min_long) (MAX(?lat) AS ?max_lat) (MAX(?long) AS ?max_long)  WHERE {
+  ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+
+  ?a p:P625 ?statement . # coordinate-location statement
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?lat .
+  ?coordinate_node wikibase:geoLongitude ?long .
+
+  {
+    SELECT ?a (COUNT(?a) AS ?count_stmt) WHERE {
+      ?a wdt:P131+ wd:Q90 .
+      ?a p:P625 ?statement
+    } GROUP BY ?a HAVING (?count_stmt < 2)
+  }
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! (Note that this query is very vulnerable to errors/outliers. If strange results are obtained, it may be worth looking at the list places in ascending/descending order of latitude/longitude. Alternatively, more robust estimates might be obtained by extracting eg the first percentile). Places within 1 km of the Arc de Triomphe (Q64436) [edit] SELECT ?place ?placeLabel ?location WHERE
+{
+  wd:Q64436 wdt:P625 ?arcLoc .
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?arcLoc .
+      bd:serviceParam wikibase:radius \"1\" .
+  }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! Places within 0.01 degrees latitude and longitude of the Arc de Triomphe (Q64436) [edit] SELECT ?a ?aLabel ?lat ?long WHERE {
+  ?a wdt:P131+ wd:Q90 .  # administrative territorial entity = Paris
+  ?a p:P625 ?statement . # coordinate-location statement
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?lat .
+  ?coordinate_node wikibase:geoLongitude ?long .
+
+  FILTER (ABS(?lat - 48.8738) < 0.01)
+  FILTER (ABS(?long - 2.2950) < 0.01)
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+} ORDER BY DESC(?lat)
+ Try it! (Note that at the latitude of Paris, ±0.01° longitude is about 50% further again than ±0.01° latitude)This query executed in about 1.5 seconds. An equivalent query without separately specifying that the item should be located in Paris isn't executed within the time limits. The similar query in the above section using SERVICE wikibase:around { } executed in 0.5 seconds. Places between Arc de Triomphe (Q64436) and Louvre Museum (Q19675) [edit] #defaultView:Map
+SELECT ?place ?placeLabel ?location WHERE {
+  wd:Q64436 wdt:P625 ?Wloc .
+  wd:Q19675 wdt:P625 ?Eloc .
+  SERVICE wikibase:box {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:cornerWest ?Wloc .
+      bd:serviceParam wikibase:cornerEast ?Eloc .
+    }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Coordinates may be specified directly: #defaultView:Map
+SELECT ?place ?placeLabel ?location WHERE {
+  SERVICE wikibase:box {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:cornerWest \"Point(2.295 48.8738)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:cornerEast \"Point(2.33575 48.861088888)\"^^geo:wktLiteral .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Distance between Berlin (Q64) and New York (Q1384) [edit] SELECT * WHERE {
+  wd:Q64 wdt:P625 ?berlinLoc .
+  wd:Q1384 wdt:P625 ?newyorkLoc
+  BIND(geof:distance(?berlinLoc, ?newyorkLoc) as ?dist)
+}
+ Try it! Working with first names [edit] Wikidata has different items for different language variations of first names. To allow for all variants of a particular first name, a search needs to include a path condition to encompass all names said to be the same as (P460) the name of interest. Queries to find most common variants of a particular first name [edit] eg query to find most common variants of the name Alice (Q650689) that are instance of (P31) female given name (Q11879590) eg query to find most common variants of the name Peter (Q2793400) that are not instance of (P31) male given name (Q12308941) (Queries templated as Template:NameVariantStatsF, Template:NameVariantStatsM, Template:NameVariantStatsNotF, Template:NameVariantStatsNotM) Query to find individuals with similar first names and matching dates of birth and death [edit] eg query for dates of matches with given name (P735) Charles (Q2958359) or similar (Query templated as Template:MatchingBirthDeathName) Federation: working with external data sources [edit] This page is outdated. The SPARQL service can also include data retrieved from a limited number of external sources.For example, the following query tries to find a value for TOID (P3120) from the UK Ordnance Survey for items that have a GSS code (2011) (P836) but no TOID (P3120): SELECT ?item ?itemLabel ?gss ?os_toid WHERE {
+        ?item p:P836 ?gss_stmt .
+    ?gss_stmt ps:P836 ?gss .
+    FILTER NOT EXISTS { ?gss_stmt pq:P582 [] } .
+    FILTER NOT EXISTS { ?item wdt:P3120 [] } .
+  
+    SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql> {
+      ?os_toid <http://data.ordnancesurvey.co.uk/ontology/admingeo/gssCode> ?gss
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! This is achieved by the section SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql> {
+    ...
+} which tells WDQS to submit a query to the SPARQL service (\"endpoint\") provided by the Ordnance Survey at the above URL.The OS SPARQL service uses the same SPARQL query language as WDQS, but the triples in its database have a different vocabulary of subjects, predicates and objects – described on its website, and/or on pages for particular items.Of relevance for this query, the OS database contains triples connecting OS TOIDs and GSS values of the form """@en,
+    """The SPARQL service can also include data retrieved from a limited number of external sources.For example, the following query tries to find a value for TOID (P3120) from the UK Ordnance Survey for items that have a GSS code (2011) (P836) but no TOID (P3120): SELECT ?item ?itemLabel ?gss ?os_toid WHERE {
+  	?item p:P836 ?gss_stmt .
+    ?gss_stmt ps:P836 ?gss .
+    FILTER NOT EXISTS { ?gss_stmt pq:P582 [] } .
+    FILTER NOT EXISTS { ?item wdt:P3120 [] } .
+  
+    SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql> {
+      ?os_toid <http://data.ordnancesurvey.co.uk/ontology/admingeo/gssCode> ?gss
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! This is achieved by the section SERVICE <http://data.ordnancesurvey.co.uk/datasets/os-linked-data/apis/sparql> { 
+    ... 
+} which tells WDQS to submit a query to the SPARQL service (\"endpoint\") provided by the Ordnance Survey at the above URL.The OS SPARQL service uses the same SPARQL query language as WDQS, but the triples in its database have a different vocabulary of subjects, predicates and objects -- described on its website, and/or on pages for particular items.Of relevance for this query, the OS database contains triples connecting OS TOIDs and GSS values of the form """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Federated_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126113-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126113-9ED4D3E1A6477C0EC6E227D7E2F101B9;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,202 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ab22dfa78eace5237a3fedcadaeef26> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?electionLabel ?candidateLabel ?candidate WHERE {
+  ?candidate wdt:P726 ?election.
+  ?election wdt:P361 wd:Q640715.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fi\". } 
+ }""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Wikisites without that label 2 Females with male given names 3 Duplicate items 4 Only one specific value 5 In en.wiki Category:Libraries_by_region but not having a 6 Comment causes server error 7 GeoJSON 8 Works named for living persons 9 Queries related to time of item and property creation 10 Featured Wikipedia Articles 11 Why isn't bubblechart showing? 12 How to get unspecified list of qualifiers? 13 P27 = Q801 and born before 1948 14 Demonym of a country(P1549) for a particular language 15 A query that lists all the articles in a specific language whose WD items have less than 10 statements 16 Women educated at or employed by an educational institute within a country 17 Search for with subclass depth, first image and return labels in all languages 18 Items with a specific property 19 Labels '\"`UNIQ--postMath-00000001-QINU`\"' Sitelink 20 Alias = label 21 External Identifiers used for Companies 22 controlling the use of different from (P1889) 23 Time zone locations on map 24 Listeria - how to show interlanguage links 25 Finding property values with the same string in them 26 schema:name 27 Items with P106 but no Q5 in catalan wikipedia 28 Male tennis players without an ATP ID 29 Аward winners for Listeria 30 Select for Day of Birth 31 Time zones and locations 32 Qualifier value not fetching Wikisites without that label Is it possible to create a list with all items that have a page in a specific language, but not a label in that language on Wikidata? Like Dream School (Q16992050), it has a page in nl, but no label in nl. Q.Zanden questions? 22:18, 31 January 2017 (UTC) This is an example for Romansh Wikipedia (Q3026819): SELECT ?item WHERE {
+  ?article schema:about ?item ;
+  schema:isPartOf <https://rm.wikipedia.org/> .
+  OPTIONAL { ?item rdfs:label ?title . FILTER(lang(?title)=\"rm\") } .
+  FILTER(!BOUND(?title))
+}
+ Try it! For bigger projects like nlwiki the query times out. --Pasleim (talk) 14:26, 1 February 2017 (UTC) @Pasleim, Thank you! Does the query also time out when you set a limit? Q.Zanden questions? 14:33, 1 February 2017 (UTC) Females with male given names Might I request a report showing items with an en.wiki article, in which the gender is female but the given name is a male given name sex or gender (P21) = female (Q6581072), value for given name (P735) is an instance of male given name (Q12308941). thanks --Tagishsimon (talk) 00:49, 1 February 2017 (UTC) SELECT ?item ?itemLabel ?name ?nameLabel
+WHERE
+{
+	?article 	schema:about ?item ;
+			schema:isPartOf <https://en.wikipedia.org/> .
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wdt:P735 ?name .
+  ?name wdt:P31 wd:Q12308941
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+LIMIT 200
+ Try it!--ԱշոտՏՆՂ (talk) 10:49, 1 February 2017 (UTC)Maybe this can be useful as well: #defaultView:ImageGrid
+SELECT ?item ?itemLabel ?name ?nameLabel ?image
+WHERE
+{
+	?article 	schema:about ?item ;
+			schema:isPartOf <https://en.wikipedia.org/> .
+  ?item wdt:P21 wd:Q6581072 .
+  ?item wdt:P735 ?name .
+  ?name wdt:P31 wd:Q12308941
+  OPTIONAL {?item wdt:P18 ?image }      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+LIMIT 200
+ Try it! --Jklamo (talk) 17:08, 1 February 2017 (UTC)  Thank you both. I realised I was actually after women labelled as men - in my correction below, is there a standard means of getting the link to en.wiki to look less hideous? (Images helped, but I've excluded them from this example ... meanwhile gendered given name turns out to be a very poor proxy for gender!) --Tagishsimon (talk) 01:56, 2 February 2017 (UTC) SELECT ?item ?itemLabel ?article 
+WHERE
+{
+	?article 	schema:about ?item ;
+			schema:isPartOf <https://en.wikipedia.org/> .
+  ?item wdt:P21 wd:Q6581097 .
+  ?item wdt:P735 ?name .
+  ?name wdt:P31 wd:Q11879590
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+order by ?itemLabel
+ Try it! Duplicate items Is it possible to create a list with items that have the same aliasses, labels (and descriptions) as another item in at least 3 languages? Q.Zanden questions? 13:34, 3 February 2017 (UTC) Only one specific value Hi, is there any query that can show items which have only one value for a given property? For example, I want all items with P31:Q5 and P31 has no other Qxxs.--ԱշոտՏՆՂ (talk) 09:30, 4 February 2017 (UTC) A simple solution would be: SELECT ?item {
+  {
+    SELECT ?item (COUNT(?item) AS ?cnt) {
+      ?item p:P106 [ ps:P106 wd:Q42973 ] .
+      ?item p:P106 ?valueStatement .
+    } GROUP BY ?item
+  }
+  FILTER(?cnt = 1)
+}
+ Try it! It does not work for P31:Q5 due to timeouts, so I chose P106:Q42973 here. —MisterSynergy (talk) 09:42, 4 February 2017 (UTC) Thank you very much, MisterSynergy.--ԱշոտՏՆՂ (talk) 09:51, 4 February 2017 (UTC) In en.wiki Category:Libraries_by_region but not having a Hey All, I am looking to try to do a query either on Query Service or Petscan (or another tool if their is a better one), where I get a list of all the articles in the enwiki Category:Libraries by region, that doesn't contain a class or subclass of \"Library\" in the instance of. I have tried a half dozen different uses of Petscan, but it doesn't appear to be working. Can anyone help? Sadads (talk) 15:50, 4 February 2017 (UTC) Sure. But it is probably not very helpful due to flaws in the enwiki category tree. We could try to optimize this query a bit, but it would be useful to know what your task exactly looks like. But I think it will never become a clean set of just libraries without P31/P279*:Q7075 as requested by you. Petscan is indeed the best tool for such queries, since it combines data from Wikidata with categorization of a Wikipedia. The query service does not have any information about Wikipedia categorization. You can also use Petscan to add claims in a batch (after you’ve authorized Widar). Regards, —MisterSynergy (talk) 16:42, 4 February 2017 (UTC) @MisterSynergy: Yeah, I wasn't sure how to configure Petscan to do subclassess, but that SPARQL model is super useful gives me a really good way to work from it. Definitely not doing batch edits: I want to do some work cleaning up the category tree on enwiki, and want to see if I can find any more libraries than the 5000 or so we have identified so far per https://tools.wmflabs.org/sqid/#/view?id=Q7075 . It seems like we are way under represented, and the subclasses are way under utilized, even if we consider the information on articles on enwiki. Thanks for the help, and I will see what I can do from here, Sadads (talk) 19:37, 4 February 2017 (UTC) Comment causes server error A unfortunately quite long query I am writing begins to raise a \"Server error\" and I don't know why …If I run the following query as is the server error appears. If I delete line 73 that is commented out anyway it runs … :-(Any hints why it behaves so strangely or simplifications of the code are very welcome!!(You'll have to copypaste the code, the link does not seem to work since I had to use <nowiki>-tags.) SELECT
+  (CONCAT(
+  \"{{Artwork\"
+  ,\"\\n|artist=\", IF(BOUND(?artistList), ?artistList, \"\")
+  ,\"\\n|title=\"
+    , IF(BOUND(?titleDe),(CONCAT(\"{{de|\", ?titleDe, \"}}\")), \"\")
+    , IF(BOUND(?titleEn),(CONCAT(\"{{en|\", ?titleEn, \"}}\")), \"\")
+    , IF(BOUND(?titleEs),(CONCAT(\"{{es|\", ?titleEs, \"}}\")), \"\")
+    , IF(BOUND(?titleFr),(CONCAT(\"{{fr|\", ?titleFr, \"}}\")), \"\")
+  ,\"\\n|date=\", IF(BOUND(?inceptionStr), ?inceptionStr, \"\")
+  ,\"\\n|medium=\", ?materialList
+  ,\"\\n}}\"
+  ) as ?outputStr)
+  ?templateArtwork
+#  ?inceptionStr
+WHERE
+{{
+  SELECT
+  ?item
+  ?titleDe
+  ?titleEn
+  ?titleEs
+  ?titleFr
+  ?inception
+  ?inceptionStr
+  (GROUP_CONCAT(?artistI; separator=\"; \") AS ?artistList)
+  (GROUP_CONCAT(?materialLabel; separator=\"; \") AS ?materialList)
+  WHERE
+  {
+    {
+    # PUT THE SEARCH QUERY HERE:
+    {?item wdt:P217 \"CE1131\"} UNION
+    {?item wdt:P170 wd:Q313163} . # should give 11 results
+    }
+    
+    # artist=
+    OPTIONAL { ?item wdt:P170 ?artist . ?artist rdfs:label ?artistLabel . FILTER(lang(?artistLabel)=\"en\") } .
+    OPTIONAL { ?artist wdt:P1472 ?creatorPage } .
+    BIND(IF(BOUND(?creatorPage),(CONCAT(\"{{Creator:\", STR(?creatorPage), \"}}\")), ?artistLabel) as ?artistI)
+
+    # date=
+    # TODO: precision &gt; 9, &lt;6 not yet implemented
+  	OPTIONAL { ?item wdt:P571 ?inception .
+               ?item p:P571 ?inceptionStatement .
+               ?inceptionStatement psv:P571/wikibase:timePrecision ?inceptionPrecision .
+               OPTIONAL { ?inceptionStatement pq:P1480 ?sourcingCircumstance . }
+               BIND(CONCAT(
+                 \"{{Complex date\"
+                 , \" |date1=\", CONCAT(STR(YEAR(?inception))
+                 , \" |precision1=\",
+                   IF(?inceptionPrecision = 9, \"year\",
+                     IF(?inceptionPrecision = 8, \"decade\",
+                       IF(?inceptionPrecision = 7, \"century\",
+                         IF(?inceptionPrecision = 6, \"millennium\",
+                           \"PRECISION &lt;6 IS NOT YET IMPLEMENTED!\"))))
+                 , IF(BOUND(?sourcingCircumstance) && ?sourcingCircumstance = wd:Q5727902, \" |adj1=ca\", \"\")
+                 , \"}}\"
+                 )) as ?inceptionStr)
+             } .
+
+    # title=
+    OPTIONAL { ?item rdfs:label ?titleDe . FILTER(lang(?titleDe)=\"de\") } .
+    OPTIONAL { ?item rdfs:label ?titleEn . FILTER(lang(?titleEn)=\"en\") } .
+    OPTIONAL { ?item rdfs:label ?titleEs . FILTER(lang(?titleEs)=\"es\") } .
+    OPTIONAL { ?item rdfs:label ?titleFr . FILTER(lang(?titleFr)=\"fr\") } .
+
+    # medium=
+    OPTIONAL { ?item wdt:P186 ?material . ?material rdfs:label ?materialLabel . FILTER(lang(?materialLabel)=\"en\") } .
+
+    # institution=
+    OPTIONAL { ?item wdt:P195 ?institution . ?institution rdfs:label ?institutionLabel . FILTER(lang(?institutionLabel)=\"en\") } .
+    OPTIONAL { ?institution wdt:P1612 ?institutionPage } .
+####    BIND(IF(BOUND(?institutionPage),(CONCAT(\"{{Institution:\", STR(?institutionPage), \"}}\")), ?institutionLabel) as ?institutionI)
+  }
+  GROUP BY
+  ?item
+  ?titleDe
+  ?titleEn
+  ?titleEs
+  ?titleFr
+  ?inception
+  ?inceptionStr
+  ORDER BY ?item
+  }
+#	?item wdt:P170 wd:Q313163 . # NO NEED FOR THIS!
+	SERVICE wikibase:label {bd:serviceParam wikibase:language \"en,de,es,fr\" .
+                            ?artist rdfs:label ?artistLabel .
+                           }
+}
+ Try it! Thanks, --Marsupium (talk) 20:00, 30 January 2017 (UTC) @Marsupium: Your query is just (a little) to long. Shorting it by a bit, eg. by deleting some comments or maybe white space, will make it work again. Related tasks: T112151, T125299. Cheers, Hoo man (talk) 14:58, 31 January 2017 (UTC) Ah, okay! Thanks a lot! --Marsupium (talk) 10:43, 5 February 2017 (UTC) GeoJSON Hey. Just created a map of terror attacks in Jerusalem and I was wondering if I could download this map as GeoJSON in order to use it in mw:Help:Extension:Kartographer--Mikey641 (talk) 13:20, 8 February 2017 (UTC) I'm not aware of such a function but it might not even necessary to do the detour via GeoJSON. The Kartographer extension can be fed directly with a SPARQL query (e.g. mw:Help:Extension:Kartographer#GeoShapes via Wikidata Query) but I don't know how it works in detail. --Pasleim (talk) 13:19, 10 February 2017 (UTC) Works named for living persons Especially films which were devoted to living persons (i.e. published when a person was still living). Can I have a list of it? --Infovarius (talk) 16:43, 8 February 2017 (UTC) SELECT DISTINCT ?item ?itemLabel ?denoted ?denotedLabel  WHERE{
+  ?item wdt:P31/wdt:P279* wd:Q11424;
+        (wdt:P921|wdt:P138) ?denoted;
+        wdt:P577 ?published.
+  ?denoted wdt:P31 wd:Q5;
+         wdt:P569 ?birth.
+  OPTIONAL{
+    ?denoted wdt:P570 ?death .
+  }
+  FILTER(?death > ?published || !bound(?death))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }         
+}
+ Try it! --Pasleim (talk) 13:05, 10 February 2017 (UTC) Queries related to time of item and property creation Hi, We are discussing a new photo challenge for best photographs for \"undocumented\" places, or places with Wikidata item but no images on Commons. One of the requirements we would like to have is that those will be new images are for existing items. One query we would need to flag potential images that do not meet the challenge requirements, would be a query to capture the date of item creation and the dates of Commons category (P373) and image (P18) creation (if present). Do we have a way to do such queries in SPARQL or is it something we would need quarry for? --Jarekt (talk) 14:35, 6 February 2017 (UTC) Information about an item history is not available by the query service, so you have quarry. --Pasleim (talk) 13:11, 10 February 2017 (UTC) Thank you I will try to figure it out in SQL. --Jarekt (talk) 14:30, 14 February 2017 (UTC) Featured Wikipedia Articles I'm wondering if you can send me a SPARQL code which gives me a list of featured wikipedia articles in one language, that do not exist on another language (for example feature enwiki with no existence in frwiki) of the same category (e.g. mathematics). That would be awesome and appreciated. --Sky xe (talk) 22:48, 12 February 2017 (UTC) Not possible with SPARQL since it doesn't have access to wiki categories. But you can use SPARQL queries in PetScan. Matěj Suchánek (talk) 16:17, 13 February 2017 (UTC) PetScan WikiProject based query [1] (0 results). --Jklamo (talk) 18:13, 13 February 2017 (UTC) Would it be possible to list all items with a certain badge in xyzwiki? That could help to identify missing or misplaced badges for a certain wiki. -- Innocent bystander (talk) 18:53, 13 February 2017 (UTC) SELECT ?item ?itemLabel ?article WHERE {
+  ?item ^schema:about ?article .
+  ?article wikibase:badge wd:Q17437796; schema:isPartOf <https://fr.wikipedia.org/> .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+limit 100
+ Try it! --Edgars2007 (talk) 08:40, 14 February 2017 (UTC) Thanks for the answers. I used PetScan before to find missing articles of certain categories, but I still don't know how to make my output only includes featured or good articles (badge), that's why I thought it might be possible using SPARQL directly. I have got a code from the wiki data presentation of Asaf Bartov which gives featured articles of African Women on enwiki with no corresponding articles on the frwiki. What is needed now, is just a modification to do it with categories (if possible). I posted the code on my user page: [2] --Sky xe (talk) 00:44, 14 February 2017 (UTC) Something like this. --Edgars2007 (talk) 08:50, 14 February 2017 (UTC) really awesome. That is what I wanted. Thank you Edgars --Sky xe (talk) 05:17, 15 February 2017 (UTC) Why isn't bubblechart showing? Hello, I have this query to show gender balance in Basque Wikipedia biography articles. But I can't get it to show BubbleChart visualization. Could someone explain me why? #Euskarazko Wikipediako biografien genero oreka
+
+PREFIX schema: <http://schema.org/>
+
+SELECT ?gender (count(distinct?human) as ?number)
+WHERE
+{
+	?human wdt:P31 wd:Q5
+	; wdt:P21 ?gender.
+    ?wikilink schema:about ?human.
+    ?wikilink schema:isPartOf <https://eu.wikipedia.org/>.
+}
+GROUP BY ?gender
+LIMIT 6
+ Try it! Thanks. -Theklan (talk) 20:43, 15 February 2017 (UTC) This one works (changed ?gender -> ?genderLabel): #defaultView:BubbleChart
+#Euskarazko Wikipediako biografien genero oreka
+SELECT ?genderLabel (count(distinct?human) as ?number)
+WHERE
+{
+	?human wdt:P31 wd:Q5
+	; wdt:P21 ?gender.
+    ?wikilink schema:about ?human.
+    ?wikilink schema:isPartOf <https://eu.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu\" }
+}
+GROUP BY ?genderLabel
+LIMIT 6
+ Try it! --Edgars2007 (talk) 15:22, 16 February 2017 (UTC) @Edgars2007: Great! I tried exactly that and it gave an error . -Theklan (talk) 19:48, 16 February 2017 (UTC) Hi, i am trying to do a query which would give qualifiers from under the some properties from some items. How to get unspecified list of qualifiers? Example would be return all candidates for some election and return property candidate (P726) with all it's qualifiers. (Example item: Mikko Ekorre (Q16171493) and candidate (P726)) """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127796-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

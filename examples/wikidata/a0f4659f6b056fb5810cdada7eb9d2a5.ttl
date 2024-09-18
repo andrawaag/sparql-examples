@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a0f4659f6b056fb5810cdada7eb9d2a5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?person ?personLabel ?personDescription ?occupation
+  WHERE {
+  { ?person wdt:P19 wd:Q23482 } UNION { ?person wdt:P20 wd:Q23482 }.
+  ?person wdt:P21 wd:Q6581072 .
+  MINUS { ?sitelink schema:isPartOf <https://fr.wikipedia.org/> ;
+     schema:about ?person . }
+  OPTIONAL {?person wdt:P106 ?occupation }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr\" } .
+}""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-05-13>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Atelier_2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122633-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122633-C486E2334C029CDA52CD5B81ECC58DE8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122633-A9797713B5B6DBFDD41804490DBE8522;
+  schema:target <https://query.wikidata.org/sparql/> .

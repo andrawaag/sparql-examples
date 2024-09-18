@@ -1,0 +1,69 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-64ba8bb453bb2884bffb4e13ed521d00> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select ?item {
+  ?item wdt:P734/wdt:P527* wd:Q4877609 .
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of scientists by field filtered by living people 2 Query every instance of river, and the statements of the instances is also needed 3 List of Common movies between 2 actors 4 way to search for surnames in labels? 5 \"OR\" query: show me all (coal OR water) power plants (optional: which are or were in service) 6 Getting the first property value (if multiple) 7 Czech cities - query optimization 8 Missing Infoboxes 9 Public library branches in Georgia 10 Items described by a book, with pagenumber from the qualifier 11 Line graph of visitors per year for all GPLS library sytems 12 Query inception dates for photographs 13 Administrative tree for french communes 14 string match queries 15 Military airbases showdown between North and South Korea 16 Head of state, current and past, of all states 17 P569 returns 1.1.yyyy if the person has only year date 18 Douglas Adams (Q42) not found 19 List of protected areas using IDs inherited from Q55978235 20 \"Subclass of\" in a statement node 21 Municipalities with most shared borders 22 Query for extracting articles with some conditions 23 Search to discover new items, not edited by a particular editor 24 Querying item with optional images and some info about the image 25 Demographics of Current Members of US Congress 26 Average age 27 Top Living Famous People Who Were Born Or Lived In Specific U.S. State 28 Football players born within 100 km of a specific city 29 How to select an additional value or a qualifier of a property 30 Korean women scientists who have articles on Korean Wikipedia but not on English 31 Pages in Category X on pl wiki which exist on en wiki but don't have the Category:Y 32 Gender breakdown of organizations (that are \"part of\" bigger organizations)? 33 Query request 34 Doubts about a query to obtain disambiguations 35 multiple querrys in one 36 Televisions series, the demonym of their country of origin, their genre 37 Alumni Oxonienses 38 Time between two dates with the format \"X years, X months, X days\" 39 Excluding imprecise dates from the results 40 Select all relations with labels (and also knowns) and subject values also with labels for a specific subject 41 Query timing out with a long VALUES list 42 Query that lists instances of 43 Query optimization - getting and ordering elevation in metres 44 Mwapi usage 45 The websites of acting US senators 46 Add column related to living people to Wikidata:WikiProject Properties/Wikidata properties that may violate privacy 47 Same birth/death date 48 Query in SPARQL - extraction from description 49 Result view table (flipped) 50 Find all periodicals older than a certain age 51 SPARQL 52 Most common classes 53 Artists with unknown dod but properties with end/start time qualifiers to detect life signs 54 Finding a US President's Father, GrandFather, Great-GrandFather and so on... 55 Dates precision around JesusChristus 56 How can I get all subclasses, sub-subclasses, sub-sub-subclasses etc. of an entity 57 How can I specify the number of \"degrees\" of recursion by the * operator? 58 Italian comune without anybody born or dead 59 Asking for entity creation timestamp 60 Objects at border, but only assigned to one of the countries 61 Get all Information about Food as RDF 62 List all first level administrative divisions by country and their respective iso 63 Select Distinctly All The Properties That Have Actually Been Applied To A Set of Entities 64 Stars above 300 solar radius 65 A set of cat breeds along with the cats that benlong to 66 Release year of the video games List of scientists by field filtered by living people Hi everyone.I need a list of scientists by field, filtered to show only living people, sex and field, if it is possible. Thanks a lot in advance!Best regards. – The preceding unsigned comment was added by Hiperterminal (talk • contribs) at 30 april 2020 at 13.50‎ (UTC). @Hiperterminal: I am not sure if I understood the request correctly, but I made this query. Tell if you meant something else. SELECT ?occupation ?occupationLabel ?count ?males ?females
+WITH
+{
+  SELECT ?occupation (COUNT(?item) AS ?count) (SUM(?male) AS ?males) (SUM(?female) AS ?females)
+  WHERE
+  {
+    ?item wdt:P31 wd:Q5. # item is human
+    ?item wdt:P106 ?occupation.
+    ?occupation wdt:P279* wd:Q901. # occupation is subclass of scientist
+    OPTIONAL { ?item wdt:P570 ?date_of_death. }
+    FILTER (! BOUND(?date_of_death)) # No date of death meaning only living people
+    OPTIONAL { ?item wdt:P21 ?gender. }
+    BIND (IF (?gender = wd:Q6581097, 1, 0) AS ?male)
+    BIND (IF (?gender = wd:Q6581072, 1, 0) AS ?female)
+  }
+  GROUP BY ?occupation
+} AS %query
+WHERE
+{
+  INCLUDE %query
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) @Hiperterminal: Here is another variant using field of work (P101) rather than occupation (P106) for \"field\": SELECT ?field ?fieldLabel ?number_of_scientists ?of_which_males ?of_which_females ?of_which_others WITH {
+SELECT ?field (COUNT(?scientist) AS ?number_of_scientists) (SUM(?males) AS ?of_which_males) (SUM(?females) AS ?of_which_females) (SUM(?others) AS ?of_which_others) {
+  ?scientist wdt:P31 wd:Q5 .
+  ?scientist wdt:P106/wdt:P279* wd:Q901 .
+  ?scientist wdt:P101 ?field .
+  ?scientist wdt:P21 ?gender .
+  BIND(IF(?gender=wd:Q6581097,1,0) AS ?males)
+  BIND(IF(?gender=wd:Q6581072,1,0) AS ?females)
+  BIND(IF(?gender!=wd:Q6581097 && ?gender!=wd:Q6581072,1,0) AS ?others)
+  FILTER NOT EXISTS { ?scientist wdt:P570 [] }
+}
+GROUP BY ?field
+} AS %i WHERE {
+  include %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,es,it,pl,hu,ru,ko,az,hy,nb,fi,be,et,tg,he\". } 
+}          
+ORDER BY DESC(?number_of_scientists) ?fieldLabel
+ Try it! Note that in both queries a single person may be counted more than once if the person have multiple occupation (P106). Both queries give \"the number of scientists\" per occupation (P106) or field of work (P101) rather than a \"list of individual scientist\". The number of scientist in total is too big to make a list of individuals for all groups, but if you limit the selection to one or a few fields, it can be achieved without a timeout. Here is an example query listing the individual scientists sorted per field of work (P101) and sex or gender (P21) for the two field of work (P101) ecology (Q7150) and gender studies (Q1662673). To get a list for other field of work (P101), please change the VALUES clause of the query: SELECT DISTINCT ?fieldLabel ?genderLabel ?scientistLabel {
+  VALUES ?field { wd:Q7150 wd:Q1662673  }   # list of P101 for the selection
+  ?scientist wdt:P31 wd:Q5; wdt:P106/wdt:P279* wd:Q901; wdt:P21 ?gender; wdt:P101 ?field .
+  FILTER NOT EXISTS { ?scientist wdt:P570 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,es,it,pl,hu,ru,ko,az,hy,nb,fi,be,et,tg,he\". } 
+}          
+ORDER BY ?fieldLabel ?genderLabel ?scientistLabel
+ Try it! --Larske (talk) 01:19, 2 May 2020 (UTC) @Dipsacus fullonum: @Larske: Thank you so much!! --Hiperterminal (talk) 13:12, 2 May 2020 (UTC) Query every instance of river, and the statements of the instances is also needed I want to query all the label of the instances of river, and the statements of every single river are need (i.e., the label of Predicate, Object). Moreover, I don't want the system to return the Identifiers.How to query and get the correct results? It would be no problem in itself to write that query, but I wont because it is certain to timeout. There are 397,685 items that are instance of river, even without including instance of subclasses of river. So there would be millions and millions of results if it was possible to run the query. Big rivers like e.g. Danube (Q1653) has 159 labels and over 300 statements after removing the external identifiers. --Dipsacus fullonum (talk) 09:04, 1 May 2020 (UTC) List of Common movies between 2 actors I would like to get the list of movies in which Brad Pitt and Leonardo DiCaprio appear together.Thank you for your help. SELECT ?movie ?movieLabel
+{
+  ?movie wdt:P31/wdt:P279* wd:Q11424. # movie
+  ?movie wdt:P161 wd:Q35332. # cast member: Brad Pitt
+  ?movie wdt:P161 wd:Q38111. # cast member: Leonardo DiCaprio
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 09:30, 2 May 2020 (UTC) way to search for surnames in labels? Because not every person has a family name (P734) statement, if I want to find everyone with one surname I have to search in labels. The basic query which I found for the purpose is (using the name Beaupre as example):SELECT ?item ?itemLabel WHERE { ?item wdt:P31 wd:Q5 . ?item rdfs:label ?itemLabel . FILTER(CONTAINS (?itemLabel, \"Beaupre\")) }This works but can only do it without timing out if I specify a very restricted set of items to search, such as everything with a certain external identifier; male (Q6581097) is still much too broad. Is there a way of searching all Q5 whatsoever? also, how would you write the string search to only find your match at the end of the label? Levana Taylor (talk) 13:34, 1 May 2020 (UTC) @Levana Taylor: To take the last question first: You can use the function STRENDS instead of CONTAINS to match at end of the label only. However there is no way of searching all labels of persons using the Query Service. There are millions of persons with even more millions of labels, so it is impossible to search all in 60 seconds (the limit for timeout) without restricting the set of items as you describe. You will have to use some other tools (I don't know any which can be used here but they could exit without me knowing them) or analyze a Wikidata database dump. --Dipsacus fullonum (talk) 14:44, 1 May 2020 (UTC) @Levana Taylor: I thought of a way to do almost do it: You can use Wikidata's MediaWiki API to search labels in a specific language, and do that from SPARQL code. Please wait while I make a query for that. --Dipsacus fullonum (talk) 15:00, 1 May 2020 (UTC) You still can use family name (P734) Items used: Beaupre (Q4877609)   Properties used: family name (P734)   , has part(s) (P527)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

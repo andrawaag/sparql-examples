@@ -1,0 +1,557 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c40fb782667e8053451c4e63b493b467> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Images on Wikimedia Commons
+# Run this from WCQS - https://commons-query.wikimedia.org/
+PREFIX commons: <http://commons.wikimedia.org/wiki/Special:FilePath/>
+PREFIX sdc: <https://commons.wikimedia.org/entity/>
+
+SELECT ?title ?entity ?file ?file2
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" ;
+      wikibase:api \"Generator\" ;
+      wikibase:limit 500 ;
+      mwapi:gcmtitle \"Category:Exoplanets\" ;
+      mwapi:generator \"categorymembers\" ;
+      mwapi:gcmtype \"file\" ;
+      mwapi:gcmlimit \"max\" ;
+      mwapi:prop \"info|pageprops\" .
+    ?title wikibase:apiOutput mwapi:title .
+    ?pageid wikibase:apiOutput mwapi:pageid .
+  }
+  BIND (URI(CONCAT(STR(sdc:), 'M', ?pageid)) AS ?entity)
+  OPTIONAL { ?entity schema:url ?file . } # Some images don't have structured data associated with them
+  BIND(URI(CONCAT(STR(commons:), ENCODE_FOR_URI(SUBSTR(?title, 6)))) AS ?file2)
+}""";
+  rdfs:comment """Contents 1 Wikidata lister 1.1 Norske skip av nyere dato 1.2 Recently deceased 1.3 Smittede av Covid-19 over tid i Norge 1.4 Oslo metro 1.5 List of routes for network 'AtB' on the OSM Planet endpoint 1.6 Map of railways in Trondheim, Norway on the OSM Planet endpoint 2 Wikidata lister for vedlikehold 2.1 Norske skip som mangler oversettelse av hoved-etikett 2.2 WD entiteter med duplikater av IMO nummer 2.3 Utvalg av entiteter uten P31 'tilfelle av' og P279 'underklasse av' 2.4 Redundant classifications 2.5 Spørring for å finne båtomtaler på Skipsrevyen eller Maritimt Magasin. 2.6 Buildings that are not a part of a bounding box covering the mainland of a country 3 Wikidata søk 3.1 Entiteter for utvalgte sider på norsk Wikipedia 3.2 Find objects/values with an exact value in different variants of a language 3.3 Articles around a central location - here Trondheim city square (Q15693034). 3.4 Case-insensitive search for scientific articles by DOI number 3.5 Utsagn på Wikidata med referanse fra dn.no 3.6 Statements that have claims, qualifiers or references that point to a certain item 3.7 Any statements or qualifiers relating to a specific point in time 3.8 Norske skip med tittel som starter på 'MS' 3.9 Engelske etiketter som inneholder ordet 'Oslo' 3.10 Six degrees of Bush, using the ALP service which is fast 3.11 Six degrees of Bush, portable but slow version 3.12 Relations of typographers in Venice 3.13 Elaborate MWAPI example - UK passenger ships 3.14 Images on Wikimedia Commons 4 Wikidata diverse 4.1 Et Wikidata kasus 4.2 Normalized mass of RMS Titanic with optional reference 4.3 Federated and sequential query with correlation 4.4 Federation with correlation - Get \"depicts\" for Commons images 4.5 Well-distributed random subset, portable version 4.6 Well-distributed random sample with Blazegraph 4.7 Slicing with Blazegraph 4.8 Fast Range Counts 4.9 Values service Wikidata lister [edit] Norske skip av nyere dato [edit] # Norske skip bygget i 1990 eller senere
+PREFIX sdir: <https://www.sdir.no/skipssok/#/?q=>
+PREFIX martr: <https://www.marinetraffic.com/en/ais/details/ships/imo:>
+PREFIX nais: <https://nais.kystverket.no/aisstream/>
+
+SELECT DISTINCT
+  ?itemLabel (YEAR(?start_) AS ?start) (YEAR(?end_) AS ?end) ?imo ?mmsi ?item 
+  (URI(CONCAT(STR(martr:), ?imo)) AS ?martr)
+  (URI(CONCAT(STR(sdir:), ?imo)) AS ?sdir)
+  (URI(CONCAT(STR(nais:), ?mmsi)) AS ?nais)
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P8047 wd:Q20.
+  OPTIONAL { ?item wdt:P729 ?start_. }
+  OPTIONAL { ?item wdt:P730 ?end_. }
+  OPTIONAL { ?item wdt:P176 ?manufacturer. }
+  OPTIONAL { ?item wdt:P458 ?imo. }
+  OPTIONAL { ?item wdt:P587 ?mmsi. }
+  FILTER (?start_ >= \"1990-01-01\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?start_)
+ Try it! Recently deceased [edit] #Recently deceased
+SELECT
+  ?item ?itemLabel ?itemDescription ?article_no
+  ?cocLabel ?dob ?pobLabel ?dod ?podLabel ?pobuLabel
+WITH {
+  SELECT ?item ?dod
+  WHERE {
+    ?item wdt:P31 wd:Q5;
+      wdt:P570 ?dod.
+
+    BIND(NOW() - \"1920-01-31\"^^xsd:dateTime AS ?mintime)
+    BIND(?dod - \"1920-01-01\"^^xsd:dateTime AS ?dodtime)
+    FILTER(?dod > \"2022-01-01\"^^xsd:dateTime && ?dod < NOW())
+    FILTER(?dodtime > ?mintime)
+  }
+} AS %i
+WHERE {
+  INCLUDE %i
+
+  OPTIONAL {
+    ?article_no schema:about ?item;
+      schema:isPartOf <https://no.wikipedia.org/>.
+  }
+  OPTIONAL { ?item wdt:P569 ?dob. }
+  OPTIONAL { ?item wdt:P27 ?coc. }
+  OPTIONAL { ?item wdt:P19 ?pob. }
+  OPTIONAL { ?item wdt:P20 ?pod. }
+  OPTIONAL { ?item wdt:P119 ?pobu. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ORDER BY DESC(?dod)
+ Try it! Smittede av Covid-19 over tid i Norge [edit] # Smittede av Covid-19 over tid i Norge
+#defaultView:LineChart
+SELECT ?date ?caseNo
+WHERE {
+  VALUES ?truthy { wikibase:NormalRank wikibase:PreferredRank }
+  wd:Q86886544 p:P1603 ?cases .
+  ?cases ps:P1603 ?caseNo;
+    pq:P585 ?date;
+    wikibase:rank ?truthy.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". } 
+}
+ORDER BY DESC (?date)
+ Try it! Oslo metro [edit] # Oslo metro
+#defaultView:Map{\"hide\": [\"?rgb\", \"?coord1\",\"?line\"]}
+SELECT DISTINCT ?station1 ?station1Label ?coord1 ?nowiki ?rgb ?line
+WHERE {
+  ?class wdt:P279* wd:Q928830 .
+  ?station1 p:P31 ?st1inst_st;
+    wdt:P16 wd:Q24492;
+    wdt:P625 ?coord1.
+  ?st1inst_st ps:P31 ?class;
+    a wikibase:BestRank .
+  MINUS { ?st1inst_st pq:P582 [] . }
+  MINUS { ?station1 wdt:P576 [] . }
+  OPTIONAL { ?station1 wdt:P1192/wdt:P465 ?rgb_ . }
+  OPTIONAL {
+    ?station1 wdt:P197 ?station2.
+    ?station1 p:P625 [ ps:P625 []; psv:P625 [ wikibase:geoLongitude ?coord1lon; wikibase:geoLatitude ?coord1lat ] ] .
+    ?station2 p:P625 [ ps:P625 []; psv:P625 [ wikibase:geoLongitude ?coord2lon; wikibase:geoLatitude ?coord2lat ] ] .
+    BIND(CONCAT('LINESTRING (', STR(?coord1lon), ' ', STR(?coord1lat), ',', STR(?coord2lon), ' ', STR(?coord2lat), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) .
+  }
+  OPTIONAL {
+    ?nowiki schema:about ?station1 ;
+      schema:isPartOf <https://no.wikipedia.org/> .
+  }
+  BIND (COALESCE(?rgb_, \"000000\") AS ?rgb)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\" . }
+}
+ Try it! List of routes for network 'AtB' on the OSM Planet endpoint [edit] List of routes for network 'AtB' on the OSM endpoint Map of railways in Trondheim, Norway on the OSM Planet endpoint [edit] Map of railways in Trondheim, Norway Wikidata lister for vedlikehold [edit] Norske skip som mangler oversettelse av hoved-etikett [edit] # Norske skip bygget i 1990 eller senere
+PREFIX sdir: <https://www.sdir.no/skipssok/#/?q=>
+PREFIX martr: <https://www.marinetraffic.com/en/ais/details/ships/imo:>
+PREFIX nais: <https://nais.kystverket.no/aisstream/>
+
+SELECT DISTINCT
+  ?itemLabel (YEAR(?start_) AS ?start) (YEAR(?end_) AS ?end) ?imo ?mmsi ?item 
+  (URI(CONCAT(STR(martr:), ?imo)) AS ?martr)
+  (URI(CONCAT(STR(sdir:), ?imo)) AS ?sdir)
+  (URI(CONCAT(STR(nais:), ?mmsi)) AS ?nais)
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P8047 wd:Q20.
+  OPTIONAL { ?item wdt:P729 ?start_. }
+  OPTIONAL { ?item wdt:P730 ?end_. }
+  OPTIONAL { ?item wdt:P176 ?manufacturer. }
+  OPTIONAL { ?item wdt:P458 ?imo. }
+  OPTIONAL { ?item wdt:P587 ?mmsi. }
+  FILTER (?start_ >= \"1990-01-01\"^^xsd:dateTime)
+  FILTER NOT EXISTS { ?item rdfs:label ?nbLabel. FILTER(LANG(?nbLabel) = \"nb\") }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?start_)
+ Try it! WD entiteter med duplikater av IMO nummer [edit] # WD entiteter med duplikater av IMO nummer
+SELECT
+  ?imonr (COUNT(DISTINCT ?a) AS ?count)
+  (GROUP_CONCAT(DISTINCT ?qid; SEPARATOR=\"; \") AS ?qids)
+WHERE {
+  ?a wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P458 ?imonr.
+  BIND(SUBSTR(STR(?a), 32) AS ?qid)
+}
+GROUP BY ?imonr
+HAVING (?count > 1)
+ORDER BY DESC(?count) ?imonr
+ Try it! Utvalg av entiteter uten P31 'tilfelle av' og P279 'underklasse av' [edit] # Utvalg av entiteter uten P31 'tilfelle av' og P279 'underklasse av'
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?articleURI
+WHERE {
+  #Utvalg
+  ?item wdt:P17 wd:Q20.
+  #Resten av spørringen
+  OPTIONAL { ?inst ^wdt:P31 ?item. }
+  OPTIONAL { ?super ^wdt:P279 ?item. }
+  FILTER(!BOUND(?inst) && !BOUND(?super))
+  OPTIONAL {
+    ?articleURI schema:about ?item;
+      schema:isPartOf <https://no.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
+}
+LIMIT 500
+ Try it! Redundant classifications [edit] # Redundant classifications
+SELECT DISTINCT ?item ?label ?class_a ?label_a ?class_b ?label_b
+WHERE {
+  # Working set: american ships
+  ?item wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P8047 wd:Q30.
+  # Rest of query
+  ?item wdt:P31 ?class_a;
+    wdt:P31 ?class_b.
+  ?class_a wdt:P279+ ?class_b.
+  # Labels
+  ?item rdfs:label ?label_nb. FILTER(LANG(?label_nb) = \"nb\")
+  ?item rdfs:label ?label_en. FILTER(LANG(?label_en) = \"en\")
+  BIND(COALESCE(?label_nb, ?label_en) AS ?label)
+  ?class_a rdfs:label ?label_a_nb. FILTER(LANG(?label_a_nb) = \"nb\")
+  ?class_a rdfs:label ?label_a_en. FILTER(LANG(?label_a_en) = \"en\")
+  BIND(COALESCE(?label_a_nb, ?label_a_en) AS ?label_a)
+  ?class_b rdfs:label ?label_b_nb. FILTER(LANG(?label_b_nb) = \"nb\")
+  ?class_b rdfs:label ?label_b_en. FILTER(LANG(?label_b_en) = \"en\")
+  BIND(COALESCE(?label_b_nb, ?label_b_en) AS ?label_b)
+}
+ Try it! Spørring for å finne båtomtaler på Skipsrevyen eller Maritimt Magasin. [edit] # Spørring for å finne båtomtaler på Skipsrevyen eller Maritimt Magasin.
+SELECT
+  ?item ?itemLabel 
+  (YEAR(?sentry_) AS ?sEntry)
+  ?srid
+  (COALESCE(IF(!BOUND(?srid), URI(CONCAT(?srsfu, ?itemLabel3)), \"\")) AS ?srSearch)
+  #(COALESCE(IF(!BOUND(?srid), URI(CONCAT(?srsfu, ?itemLabel4)), \"\")) AS ?altsrSearch)
+  ?mmid
+  (COALESCE(IF(!BOUND(?mmid), URI(CONCAT(?mmsfu, ?itemLabel3)), \"\")) AS ?mmSearch)
+  #(COALESCE(IF(!BOUND(?mmid), URI(CONCAT(?mmsfu, ?itemLabel4)), \"\")) AS ?altmmSearch)
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31/wdt:P279* wd:Q11446;
+      wdt:P8047 wd:Q20.
+    hint:SubQuery hint:runOnce true .
+  } }
+  OPTIONAL { ?item wdt:P9659 ?srid . }
+  OPTIONAL { ?item wdt:P10355 ?mmid . }
+  OPTIONAL { ?item wdt:P729 ?sentry_ . }
+  FILTER (?sentry_ >= \"1990-00-00\"^^xsd:dateTime)
+
+  wd:P9659 wdt:P4354 ?srsfu_ . BIND(STRBEFORE(?srsfu_, \"$1\") AS ?srsfu)
+  wd:P10355 wdt:P4354 ?mmsfu_ . BIND(STRBEFORE(?mmsfu_, \"$1\") AS ?mmsfu)
+  BIND(REPLACE(?itemLabel, \"«\", \"\") AS ?itemLabel1)
+  BIND(REPLACE(?itemLabel1, \"»\", \"\") AS ?itemLabel2)
+  BIND(ENCODE_FOR_URI(?itemLabel2) AS ?itemLabel3)
+  BIND(ENCODE_FOR_URI(STRAFTER(?itemLabel2, \" \")) AS ?itemLabel4)
+
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"nb,en\" . 
+    ?item rdfs:label ?itemLabel .
+  }
+}
+ Try it! Buildings that are not a part of a bounding box covering the mainland of a country [edit] # Buildings that are not a part of a bounding box covering the mainland of a country
+SELECT ?item ?itemLabel ?coord
+WITH {
+  SELECT *
+  WHERE {
+    VALUES ?country { wd:Q20 } # check that the bounding box only covers the mainland
+    ?country wdt:P1332 ?nmp ;
+      wdt:P1333 ?smp ;
+      wdt:P1334 ?emp ;
+      wdt:P1335 ?wmp .
+  }
+} AS %a
+WITH {
+  SELECT DISTINCT ?item ?coord
+  WHERE {
+    INCLUDE %a
+    ?item wdt:P17 ?country;
+      wdt:P31/wdt:P279* wd:Q811979.
+    ?item wdt:P625 ?coord . hint:Prior hint:rangeSafe true.
+    FILTER(geof:latitude(?coord) > geof:latitude(?nmp) || geof:latitude(?coord) < geof:latitude(?smp) ||
+           geof:longitude(?coord) > geof:longitude(?emp) || geof:longitude(?coord) < geof:longitude(?wmp))
+  }
+  LIMIT 1000
+} AS %b
+WHERE {
+  INCLUDE %b
+  # Try to remove things here to ensure it runs after the named subquery b
+  FILTER NOT EXISTS {
+    ?item wdt:P17 ?country2. FILTER(?country2 != ?country)
+  }
+  MINUS { ?item wdt:P5816 wd:Q19860854. }
+  MINUS { ?item wdt:P576|wdt:P3999 []. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! Wikidata søk [edit] Entiteter for utvalgte sider på norsk Wikipedia [edit] # Entiteter for utvalgte sider på norsk Wikipedia
+SELECT ?item ?itemLabel ?name ?article 
+WHERE {
+  VALUES ?name {
+    \"Keplers lover\"@nb
+    \"Newtons bevegelseslover\"@nb
+    \"Newtons gravitasjonslov\"@nb
+  }
+  ?article schema:name ?name;
+    schema:about ?item; 
+    schema:isPartOf <https://no.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\". }
+}
+ Try it! Find objects/values with an exact value in different variants of a language [edit] # Find objects/values with an exact value in different variants of a language
+SELECT ?s ?p ?o (LANG(?o) AS ?lc)
+WITH { SELECT DISTINCT ?lcs WHERE { 
+    [] wdt:P424 ?lcs . FILTER(SUBSTR(?lcs, 1, 2) = \"zh\")
+} } AS %lcs
+WHERE {
+  INCLUDE %lcs
+  BIND (STRLANG(\"史密森尼学会\", ?lcs) AS ?o)
+  ?s ?p ?o .
+}
+LIMIT 1000
+ Try it! Articles around a central location - here Trondheim city square (Q15693034). [edit] # Articles around a central location - here Trondheim city square (Q15693034).
+#defaultView:Map{\"hide\":[\"?rgb\",\"?layer\",\"?location\"]}
+SELECT
+  ?place ?placeLabel ?location ?article_no ?article_en ?rgb ?layer
+  (ROUND(?dist * 1000) AS ?distance)
+WHERE {
+  wd:Q15693034 wdt:P625 ?centralLoc
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?centralLoc;
+      wikibase:radius \"3\";
+      wikibase:distance ?dist
+  }
+  OPTIONAL {
+    ?article_no schema:about ?place;
+      schema:isPartOf <https://no.wikipedia.org/>
+  }
+  OPTIONAL {
+    ?article_en schema:about ?place;
+      schema:isPartOf <https://en.wikipedia.org/>
+  }
+  FILTER(BOUND(?article_no)|| BOUND(?article_en))
+  BIND (IF(BOUND(?article_en) && BOUND(?article_no),\"00ff00\",IF(BOUND(?article_en),\"ff0000\",IF(BOUND(?article_no),\"0000ff\",\"000000\" ))) as ?rgb)
+  BIND (IF(BOUND(?article_en) && BOUND(?article_no),\"EN & NO\",IF(BOUND(?article_en),\"EN\",IF(BOUND(?article_no),\"NO\",\"NIL\" ))) as ?layer)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb,en\" }
+}
+ORDER BY ?dist
+ Try it! Case-insensitive search for scientific articles by DOI number [edit] # Case-insensitive search for scientific articles by DOI number
+SELECT ?item ?itemLabel ?doival (xsd:dateTime(?timestamp) AS ?displayDate)
+WHERE 
+{
+  VALUES ?doival {
+     \"10.1002/14651858.CD015017.PUB2\"
+     \"10.1002/14651858.CD013600.pub4\"
+  }
+  BIND(CONCAT(\"haswbstatement:P356=\", ?doival) AS ?searchstr)
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+      wikibase:endpoint \"www.wikidata.org\";
+      wikibase:limit \"once\";
+      mwapi:srsearch ?searchstr;
+      mwapi:srprop \"size|wordcount|timestamp\".
+    ?item wikibase:apiOutputItem mwapi:title .
+    ?timestamp wikibase:apiOutput \"@timestamp\" .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Utsagn på Wikidata med referanse fra dn.no [edit] # Utsagn på Wikidata med referanse fra dn.no
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL
+WITH {
+  SELECT DISTINCT ?subject
+  WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"http\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"https\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    }
+  }
+} AS %i
+WHERE {
+  INCLUDE %i .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'dn.no')) .
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! Statements that have claims, qualifiers or references that point to a certain item [edit] # Statements that have claims, qualifiers or references that point to a certain item
+SELECT ?st ?p ?ppLabel ?role
+WITH {
+  SELECT *
+  WHERE {
+    VALUES ?what { wd:Q205537 }
+    { ?s ?p ?what .
+      ?pp wikibase:statementProperty ?p .
+      BIND(?s AS ?st)
+      BIND(\"claim\" AS ?role) }
+    UNION
+    { ?s ?p ?what .
+      ?pp wikibase:qualifier ?p .
+      BIND(?s as ?st)
+      BIND(\"qualifier\" AS ?role) }
+    UNION
+    { ?s ?p ?what .
+      ?pp wikibase:reference ?p .
+      ?st prov:wasDerivedFrom ?s .
+      BIND(\"reference\" AS ?role) }
+  }
+  LIMIT 10000
+} AS %i
+WHERE {
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! Any statements or qualifiers relating to a specific point in time [edit] # Any statements or qualifiers relating to a specific point in time
+SELECT ?st ?itemLabel ?role ?propLabel
+WHERE {
+  {
+    ?st ?sp \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    ?prop wikibase:statementProperty ?sp .
+    BIND(\"claim\" AS ?role)
+  }
+  UNION
+  {
+    ?st ?q \"1941-12-07\"^^xsd:dateTime ;
+      a wikibase:BestRank .
+    ?prop wikibase:qualifier ?q .
+    BIND(\"qualifier\" AS ?role)
+  }
+  ?item ?pred ?st . hint:Prior hint:runLast true .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! Norske skip med tittel som starter på 'MS' [edit] Notis: Ineffektiv måte å søke på (bruk mwapi for store utvalg) # Norske skip med tittel som starter på 'MS'
+SELECT DISTINCT ?item ?itemLabel ?itemDesc ?imonr
+WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q11446;
+    wdt:P8047|wdt:P17 wd:Q20.
+  OPTIONAL { ?item wdt:P458 ?imonr. }
+  ?item rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = \"nb\")
+  FILTER(REGEX(?itemLabel, \"^MS\"))
+  OPTIONAL {
+    ?item schema:description ?itemDesc.
+    FILTER(LANG(?itemDesc) = \"nb\")
+  }
+}
+ORDER BY ?item
+ Try it! Engelske etiketter som inneholder ordet 'Oslo' [edit] # Engelske etiketter som inneholder ordet 'Oslo'
+SELECT ?item ?label
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+      wikibase:api \"Generator\";
+      mwapi:generator \"search\";
+      mwapi:gsrsearch \"inlabel:oslo\";
+      mwapi:gsrlanguage \"en\";
+      mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item rdfs:label ?label. FILTER(LANG(?label)=\"en\")
+  FILTER(CONTAINS(LCASE(?label), \"oslo\"))
+}
+ Try it! Six degrees of Bush, using the ALP service which is fast [edit] # Six degrees of Bush, using the ALP service which is fast.
+#defaultView:Graph
+SELECT ?item ?itemLabel ?edgeLabel ?rgb ?linkTo
+WHERE {
+  SERVICE bd:alp {
+    wd:Q207 ?pred ?item.
+    hint:Prior hint:alp.pathExpr true .
+    FILTER(?pred IN (wdt:P26, wdt:P451, wdt:P22, wdt:P25, wdt:P40))
+    hint:Group hint:alp.lowerBound 1 .
+    hint:Group hint:alp.upperBound 6  .
+    hint:Group hint:alp.bidirectional true .
+  }
+  bind(if(?item = wd:Q207, \"a0a0ff\", \"ffffff\") as ?rgb)
+  ?item ?pred ?linkTo. filter(?pred in (wdt:P26, wdt:P451, wdt:P22, wdt:P25, wdt:P40))
+  ?edge wikibase:directClaim ?pred .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! Six degrees of Bush, portable but slow version [edit] # Six degrees of Bush, portable but slow version.
+#defaultView:Graph
+SELECT ?item ?itemLabel ?linkTo
+WHERE {
+  {
+    SELECT DISTINCT ?item WHERE {
+      VALUES ?source { wd:Q207 }
+      { ?source ( wdt:P26| wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)? ?item. }
+      UNION
+      { ?item ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)?/
+        ( wdt:P26 | wdt:P451 | wdt:P22 | wdt:P25 | wdt:P40)? ?source. }
+    }
+  }
+  # We need to turn off the optimizer so that we get distinct results from the subquery,
+  # otherwise the optimizer will try to do a join with duplicated values.
+  ?item (wdt:P26|wdt:P451|wdt:P22|wdt:P25|wdt:P40) ?linkTo. hint:Group hint:optimizer \"None\".
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! Relations of typographers in Venice [edit] # Relations of typographers in Venice.
+#defaultView:Graph
+select ?person ?personLabel ?linkedPerson ?linkedPersonLabel (?type as ?edgeLabel) {
+  values ?activity { wd:Q175151 wd:Q1229025 wd:Q998550 wd:Q2516866 wd:Q40881196 }
+  ?person wdt:P937 wd:Q641;
+    wdt:P106 ?activity .
+  ?person wdt:P2032|wdt:P570 ?datafine .
+  filter (\"1850-01-01\"^^xsd:dateTime > ?datafine) 
+
+  { ?person wdt:P1327 ?linkedPerson . bind(\"business partner\" as ?type)  } union 
+  { ?person wdt:P22 ?linkedPerson . bind(\"father\" as ?type) } union 
+  { ?person wdt:P23 ?linkedPerson . bind(\"mother\" as ?type)  } union 
+  { ?person wdt:P40 ?linkedPerson . bind(\"son\" as ?type) } union 
+  { ?person wdt:P26 ?linkedPerson . bind(\"partner\" as ?type) }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\" . }
+}
+ Try it! Elaborate MWAPI example - UK passenger ships [edit] # Elaborate MWAPI example - UK passenger ships
+# APIs: Search, Categories, EntitySearch, Generator
+# See also: https://github.com/wikimedia/wikidata-query-deploy/blob/master/mwservices.json
+SELECT
+  ?item ?title ?pageid ?uri (round(?length/1024) AS ?kiB) ?touched
+  ?lastrevid ?ordinal ?user
+WHERE {
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+      wikibase:api \"Generator\" ;
+      wikibase:limit 500 ;
+      mwapi:generator \"categorymembers\" ;
+      mwapi:gcmtitle \"Category:Passenger_ships_of_the_United_Kingdom\" ;
+      mwapi:gcmnamespace \"0\" ;
+      mwapi:gcmlimit \"max\" ;
+      mwapi:prop \"info|pageprops|revisions\" ;
+      mwapi:ppprop \"wikibase_item\" ;
+      mwapi:inprop \"url\" ;
+      mwapi:rvprop \"user\" .
+
+    ?ordinal wikibase:apiOrdinal true.
+
+    ?item wikibase:apiOutputItem mwapi:item.
+    ?title wikibase:apiOutput mwapi:title.
+    ?pageid wikibase:apiOutput mwapi:pageid.
+    ?timestamp wikibase:apiOutput mwapi:timestamp.
+    ?lastrevid wikibase:apiOutput mwapi:lastrevid.
+
+    ?uri wikibase:apiOutputURI \"@fullurl\".
+    ?length_ wikibase:apiOutput \"@length\".
+    ?user wikibase:apiOutput \"revisions/rev/@user\".
+  }
+  BIND(xsd:integer(?length_) AS ?length)
+  BIND(xsd:dateTime(?timestamp) AS ?touched)
+}
+ORDER BY DESC(?length)
+ Try it! Images on Wikimedia Commons [edit] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

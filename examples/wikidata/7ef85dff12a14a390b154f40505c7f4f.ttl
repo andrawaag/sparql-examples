@@ -1,0 +1,296 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7ef85dff12a14a390b154f40505c7f4f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#1772 results (some are not relevant)
+SELECT DISTINCT ?item ?itemLabel 
+WHERE
+{
+  ?item wdt:P31/wdt:P279* wd:Q1656682. 
+  ?item wdt:P17 wd:Q17. 
+  FILTER NOT EXISTS { ?item wdt:P276 [] }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Lighthouses in Sweden with more than one color without qualifier(s) 2 Graffiti artists 3 Check CAS numbers with a SPARQL request 4 Items without aliases 5 Twice-broken lighthouse colour query 6 Item description in specific language 7 Members of Academy of Esperanto (Q202479) with start time (P580) and end time (P582) 8 Born in January of a leap year 9 Getting urls with identifier properties 10 Recursive query to retrieve items located in a Region 11 2002 events in Tokyo 11.1 Query for compete data 11.2 Query for missing locations (events in Japan) 11.3 Query for missing dates (events in Tokyo) 11.4 Maybe some .. 12 Map and Graph at the same time 13 Get label in any language if it's not available in predefined languages 14 Venezuelan people 15 Year above 2100 16 Country of citizenship, where person died before the country existed or was born after the country existed, and other similar statements 17 Date of baptism from significant event (P793) 18 Categories used in english Wikipedia 19 Arbitrary list of items and language labels 20 Time line for the administrative organisations of the USA 21 Area chart of populations compared 22 How to create a clickable URL 23 Query my contributions? 23.1 Reporting on qualifiers irrespective of the property they qualify 24 Statements available at dbpedia, but not at Wikidata 25 Most sitelinks articles 26 How do I get the descriptions for different languages in table columns? 27 Getting Wikipedia articles linked to Wikidata items 28 Boundary polygons for London boroughs 29 Names of town which end with something Lighthouses in Sweden with more than one color without qualifier(s) I have managed to make a query of lighthouses in Sweden by the number of colors (P462), but I want to exclude colors with the qualifier (P518). How do I do that? Simply adding FILTER NOT EXISTS { ?color pq:P518 ?part } does not seems to work. /ℇsquilo 10:27, 1 January 2018 (UTC) This seems to work. There might be a more efficient way to do it, by collapsing ?item wdt:P462 ?colour and OPTIONAL {?item p:P462 ?mem . ?mem ps:P462 ?colour; pq:P518 ?qual . together in some clever way; but in my version the first of these restricts the query to lighthouses with colour, the second enquires about the qualifier ... I've not found a way to test for the absence of the qualifier without including lighthouses with no colour at all, in a single line of code. As normal, I'd like to stress that I really have not got a clue about SPARQL, and you should really consult an expert :) --Tagishsimon (talk) 12:28, 1 January 2018 (UTC) SELECT DISTINCT ?item ?itemLabel ?colour ?colourLabel ?qual WHERE {
+  ?item wdt:P31 wd:Q39715 . #instance of lighthouse
+  ?item wdt:P17 wd:Q34 . #country of Sweden
+  ?item wdt:P462 ?colour . #must have a colour
+  
+  OPTIONAL {?item p:P462 ?mem . #item has a colour
+  ?mem ps:P462 ?colour; pq:P518 ?qual . } # colour has a P518 qualifier
+
+  FILTER(!BOUND(?qual)) # qualifier is null
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,en,fr,nl,de,it,es\". }
+  }
+ Try it! --Tagishsimon (talk) 12:28, 1 January 2018 (UTC) And, presuming it is the count of colours that is important, items with a colour qualifier are excluded from the count in this example. (Amend the query to # FILTER(!BOUND(?qual)) to see the difference.) SELECT ?item ?itemLabel (count(?colour) as ?count) WHERE {
+  ?item wdt:P31 wd:Q39715 . #instance of lighthouse
+  ?item wdt:P17 wd:Q34 . #country of Sweden
+  ?item wdt:P462 ?colour . #must have a colour
+  
+  OPTIONAL {?item p:P462 ?mem . #item has a colour
+  ?mem ps:P462 ?colour2; pq:P518 ?qual . } # colour has a P518 qualifier
+
+  FILTER(!BOUND(?qual)) # qualifier is null
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,en,fr,nl,de,it,es\". }
+
+  }
+group by ?item ?itemLabel
+ Try it! --Tagishsimon (talk) 12:51, 1 January 2018 (UTC) @Tagishsimon: Your second query does not only exclude colors with a P518, is seems to exclude the entire lighthouse, e.g. Q40125473, if any of its colors has a P518. --Larske (talk) 13:08, 1 January 2018 (UTC) Agreed. Ditto the first query. Not yet obvious to me why, but I'll only have time much later today to stat digging into it some more. --Tagishsimon (talk) 14:20, 1 January 2018 (UTC) Note: The language code for Swedish is \"sv\", not \"se\". Here is another approach with the number of colors (both total and excluding P518) rather than the single colors listed. Note that only lighthouses with at least one P462 are included. SELECT ?item ?itemLabel (SUM(?colors) AS ?colors_without_P518) (COUNT(?colorstatement) AS ?all_colors) WHERE
+{
+  ?item wdt:P31 wd:Q39715 .
+  ?item wdt:P17 wd:Q34 .    
+  ?item p:P462 ?colorstatement .
+  OPTIONAL {?colorstatement pq:P518 ?del . }
+  BIND(IF(BOUND(?del),0,1) AS ?colors)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sv,en\". }
+}
+GROUP BY ?item ?itemLabel 
+ORDER BY DESC(?colors_without_P518) ?itemLabel
+ Try it! --Larske (talk) 12:54, 1 January 2018 (UTC) @Esquilo: Looking at the thread title you may want to add the line HAVING (?colors_without_P518>1) just after the GROUP BY... line --Larske (talk) 13:22, 1 January 2018 (UTC) Thank you Tagishsimon and Larske for your answers! The first queries did not exclude lighthouses with only one color, but the last one did exactly what I wanted. /ℇsquilo 14:30, 1 January 2018 (UTC) Graffiti artists Hi, I'm looking for all graffiti sprayers without known identity. So far I used this query to get all graffiti artists (don't know why I get everything in German): SELECT ?Beruf ?offizieller_Name ?BerufLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Beruf wdt:P106 wd:Q15095148.
+  OPTIONAL { ?Beruf wdt:P1448 ?offizieller_Name. }
+  ?Beruf wdt:P31 wd:Q5.
+}
+ Try it! Thanks in advance. You seem to be pretty much there already, if I'm not missing something. No graffiti artist has a official name (P1448) so far as I can see. FILTER (BOUND(?offizieller_Name)) in the example below restricts the result set to those items that have official name (P1448) - i.e. zero rows (and FILTER (!BOUND(?offizieller_Name)) would find the set that have a null official name (P1448). I confess to being uncertain about what the \"official name\" of a graffiti artist would be... SELECT ?Beruf ?offizieller_Name ?BerufLabel WHERE {
+ ?Beruf wdt:P31 wd:Q5.
+ ?Beruf wdt:P106 wd:Q15095148.
+ OPTIONAL { ?Beruf wdt:P1448 ?offizieller_Name. }
+ FILTER (BOUND(?offizieller_Name))
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,nl,de,it,es\". }
+}
+ Try it! --Tagishsimon (talk) 12:43, 1 January 2018 (UTC) Check CAS numbers with a SPARQL request Hello,I would like a SPARQL request for validate the all CAS Number (CAS Registry Number (P231)) in wikidata, without a Python script.With this Python validation script from Github https://github.com/simonengelke/CAS_Validation i have fix CAS numbers who failed.The goal, now, is to have this validation in a request for add this request as a complexe constraint in Property talk:P231. Manu1400 (talk) 14:51, 2 January 2018 (UTC) With PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> we can use the maths operator xsd:float(?value). Manu1400 (talk) 14:59, 2 January 2018 (UTC) This query lists all the items with CAS Registry Number (P231) and the status for \"correct pattern\" and \"correct checksum\". If you only want to see the erroneus ones, activate the filter on line 20. SELECT ?item ?cas ?correct_pattern ?correct_checksum WHERE
+{
+  ?item wdt:P231 ?cas .
+  BIND(REGEX (str(?cas), '^[1-9][0-9]{1,6}-[0-9]{2}-[0-9]$') AS ?correct_pattern )
+  BIND(replace(str(?cas), \"-\",\"\") AS ?c)
+  BIND(STRLEN(?c) AS ?strlen) 
+  BIND(xsd:integer(substr(?c,?strlen,1)) AS ?val )
+  BIND(xsd:integer(substr(?c,?strlen-1,1)) AS ?x1 )
+  BIND(xsd:integer(substr(?c,?strlen-2,1)) AS ?x2 )
+  BIND(xsd:integer(substr(?c,?strlen-3,1)) AS ?x3 )
+  BIND(IF(?strlen>4,xsd:integer(substr(?c,?strlen-4,1)),0) AS ?x4 )
+  BIND(IF(?strlen>5,xsd:integer(substr(?c,?strlen-5,1)),0) AS ?x5 )
+  BIND(IF(?strlen>6,xsd:integer(substr(?c,?strlen-6,1)),0) AS ?x6 )
+  BIND(IF(?strlen>7,xsd:integer(substr(?c,?strlen-7,1)),0) AS ?x7 )
+  BIND(IF(?strlen>8,xsd:integer(substr(?c,?strlen-8,1)),0) AS ?x8 )
+  BIND(IF(?strlen>9,xsd:integer(substr(?c,?strlen-9,1)),0) AS ?x9 )
+  BIND(?x1+?x2*2+?x3*3+?x4*4+?x5*5+?x6*6+?x7*7+?x8*8+?x9*9 AS ?sum0)
+  BIND(?sum0-(xsd:integer(?sum0/10)*10) AS ?sum )
+  BIND(?sum=?val AS ?correct_checksum)
+#  FILTER(!?correct_pattern|| !?correct_checksum)
+}
+ORDER BY ?cas
+ Try it! --Larske (talk) 20:19, 2 January 2018 (UTC) Items without aliases Hello. I'm beginner in sparql, and I've a problem writing a sparql query that get all items without aliases, for a specific language (ar e.g.). I've written this query using quarry, but I don't know how to write it in sparql. Thanks--ASammour (talk) 11:57, 5 January 2018 (UTC) Me too. Still; there are elements in the following that might help: SELECT ?item ?itemLabel ?article ?aliasLabel
+WHERE
+{
+  # wikidata item has a link to ar.wikipedia. 
+  ?article 	schema:about ?item ;
+			schema:isPartOf <https://ar.wikipedia.org/> .
+
+  # wikidata record is a person. If you don't cut down the results set, you'll get a time-out ... that'll probably be your biggest problem
+  ?item wdt:P31 wd:Q5 .
+
+  # If there's an ar. alias, then we'll be wanting that ... 
+  optional {?item skos:altLabel ?alias FILTER (LANG (?alias) = \"ar\")}
+  
+  # Now show only items that have no alias
+  filter(!bound(?alias))
+
+  # Access the label service.
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ar\" }
+}
+LIMIT 200
+ Try it! --Tagishsimon (talk) 17:13, 5 January 2018 (UTC) Twice-broken lighthouse colour query This query has (at least) two faults: it miscounts the number of colours possessed by the lighthouse item; and when the filter is applied, fails to find a lighthouse that has a colour with no P518 qualifier. If anyone would like to explain the query's failings to me, I'd be grateful. I was kinda expecting that the query would find & hence count only combinations of lighthouse-colour-noP518 ... it has other ideas. Thanks --Tagishsimon (talk) 18:05, 5 January 2018 (UTC) SELECT ?item ?itemLabel (count(?colour) as ?count) WHERE {
+  ?item wdt:P31 wd:Q39715 . #instance of lighthouse
+  ?item wdt:P17 wd:Q34 . #country of Sweden
+  ?item wdt:P462 ?colour . #must have a colour
+  
+  OPTIONAL {?item p:P462 ?mem . #item has a colour
+  ?mem ps:P462 ?colour2; pq:P518 ?qual . } # colour has a P518 qualifier
+
+  FILTER(!BOUND(?qual)) # qualifier is null
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"se,en,fr,nl,de,it,es\". }
+
+  values ?value {wd:Q40125473}
+         filter(?item=?value)
+  }
+group by ?item ?itemLabel
+ Try it! @Tagishsimon: When you ask both for ?colour and ?colour2 what you get is the en:Cartesian product of the two sets of colours. There are, for the example lighthous, three colours and the product thus consists of nine (3×3) rows of which three have an unbound ?qual. See the following query: SELECT ?item ?itemLabel ?colourLabel ?colour2Label ?qualLabel WHERE {
+  VALUES ?value {wd:Q40125473} FILTER(?item=?value)
+                  
+ # ?item wdt:P462 ?colour . #compare the results with this line commented and not commented
+
+  ?item p:P462 ?mem . #item has a colour
+  ?mem ps:P462 ?colour2 .
+  OPTIONAL { ?mem pq:P518 ?qual . }  # colour has a P518 qualifier
+# FILTER(!BOUND(?qual)) # qualifier is null
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,sv\". }
+}
+ Try it! So if you uncomment the line with ?colour, you get the nine rows. With this line commented, you just get three rows, i.e. one for each color. And from these three rows only one has an unbound ?qual. And then you can apply the FILTER for !BOUND(?qual) and COUNT to get the number of non-P518 colors. Don't know if that made anything clearer. Maybe someone else can explain better. --Larske (talk) 00:59, 6 January 2018 (UTC) Thank you, @Larske:, much appreciated. I can see the Cartesian product now that you point it out and, by & large, how I got myself into such difficulties. Thanks for taking the time. --Tagishsimon (talk) 01:28, 6 January 2018 (UTC) Item description in specific language How can I get the description of an item in a specific lanugage, say \"de\"? SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" } This does it for the label, but how can I do this with the description? Thanks for your help. --84.187.215.195 01:49, 6 January 2018 (UTC) By the looks of it, something like: ?item schema:description ?d FILTER (LANG (?d) = \"de\") . So, for instance, SELECT ?item ?itemLabel ?d WHERE {
+  
+  ?item wdt:P31 wd:Q1793804.
+  ?item schema:description ?d FILTER (LANG (?d) = \"de\") .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+}
+ Try it! --Tagishsimon (talk) 02:51, 6 January 2018 (UTC) Or just export ?itemDescription in the select clause. Matěj Suchánek (talk) 09:35, 6 January 2018 (UTC) Members of Academy of Esperanto (Q202479) with start time (P580) and end time (P582) I already have the following query which gives a list of members of Academy of Esperanto (Q202479). I would like to add start time (P580) and end time (P582) to this query, but I am not sure how. An example of a person with those qualifiers. SELECT ?item WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P463 wd:Q202479.
+ Try it! Thanks for the help. Robin van der Vliet (talk) (contribs) 14:02, 7 January 2018 (UTC) @Robin van der Vliet:, here it is: SELECT ?item ?start ?end WHERE {
+  ?item wdt:P463 wd:Q202479 ; wdt:P31 wd:Q5.
+  OPTIONAL { ?item p:P463 [ ps:P463 wd:Q202479 ; pq:P580 ?start ] . }
+  OPTIONAL { ?item p:P463 [ ps:P463 wd:Q202479 ; pq:P582 ?end ] . }
+}
+ Try it! I've put two OPTIONAL to give results even when the start time (P580) and end time (P582) is not indicated but you can remove them to only have results when both are indicated. Cdlt, VIGNERON (talk) 14:21, 7 January 2018 (UTC) I noticed that it sometimes shows \"1 January\" when only the year is indicated. Is this changeable so that it only shows the year, when only the year is available? Robin van der Vliet (talk) (contribs) 14:38, 7 January 2018 (UTC) SELECT ?item ?start_time ?end_time WHERE {
+  ?item wdt:P31 wd:Q5;
+        p:P463 ?statement.
+  ?statement ps:P463 wd:Q202479.
+  OPTIONAL { 
+    ?statement pqv:P580 [
+        wikibase:timePrecision ?start_precision;
+        wikibase:timeValue ?start ;
+      ];
+  }
+  OPTIONAL { 
+    ?statement pqv:P582 [
+        wikibase:timePrecision ?end_precision;
+        wikibase:timeValue ?end ;
+      ];
+  }
+  BIND(IF((?start_precision = 9), YEAR(?start), ?start) AS ?start_time)
+  BIND(IF((?end_precision = 9), YEAR(?end), ?end) AS ?end_time)
+}
+ Try it! This will print a year if only a year is available, otherwise it prints the full date. Shinnin (talk) 22:52, 7 January 2018 (UTC) Born in January of a leap year Me again. I'm looking for people born in January of a leap year. Two issues: My (commented out) comparison of the Label for a leap year, with the year of birth, breaks things. I'm fishing out the label for the leap year ?year rdfs:label ?yearname . but that seems to break the ?itemLabel value. What's going on here? SELECT ?item ?itemLabel ?dob ?dobmonth ?dobyear ?strdobyear ?year ?yearname
+WHERE 
+{
+  ?item wdt:P31 wd:Q5. # human
+  ?item wdt:P569 ?dob. # with a DoB
+  ?item wdt:P106 wd:Q82955. # politician - cut down the result set size
+  ?item wdt:P27 wd:Q145. #British - ditto
+  bind(year(?dob) as ?dobyear) # get the year
+  bind(month(?dob) as ?dobmonth) # get the month
+  filter(?dobmonth=1) # Only interested in January births
+  bind(str(?dobyear) as ?strdobyear) # just in case ?dobyear is an int
+        
+#  ?year wdt:P31 wd:Q19828. # year is a leap year
+#  filter(?yearname=?strdobyear) #DoB year is a leap year
+        
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"en\".
+    ?year rdfs:label ?yearname .
+  }
+}
+ Try it!- thanks --Tagishsimon (talk) 12:14, 9 January 2018 (UTC)In such cases it is often advisable to quickly restrict the item set very early, here with a subquery: SELECT ?item ?itemLabel ?dateOfBirth WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P27 wd:Q145; wdt:P106 wd:Q82955; p:P569 []; wdt:P31 wd:Q5 .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?item p:P569/psv:P569 [ wikibase:timeValue ?dateOfBirth; wikibase:timePrecision ?precision ] .
+  FILTER(MONTH(?dateOfBirth) = 1 && ?precision >= 10) .
+  ?leapYear wdt:P31 wd:Q19828; wdt:P585 ?pointInTime .
+  FILTER(YEAR(?dateOfBirth) = YEAR(?pointInTime)) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}
+ Try it! I also added a precision check for the date of birth, since you otherwise see all dates with year-precision (precision=9) as well. —MisterSynergy (talk) 13:01, 9 January 2018 (UTC) Thank you very much, MisterSynergy. Several things learnt from that example; precision I was aware of; would have been the next thing to be tackled. Can I come back to the failed filter(?yearname=?strdobyear) in my example ... I understand & defer to your approach, but I'd still like to know why I failed to establish a relationship between the ?item ?dob and the ?leapyear label. And to know what was going on with ?itemLabel. --Tagishsimon (talk) 14:15, 9 January 2018 (UTC) The label service works differently than you think. Actually, there are two mechanisms to access labels (same for descriptions, not sure about aliases right not): SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' } should be done in the end, and it adds ?…Label and ?…Description variables with English terms (where available) for all item- or property-type variables ?…. You do not have to specify for which variables labels and descriptions should be bound, it just does it for all applicable ones (which is why this is a very expensive operation if large result sets are processed). Important to note: you cannot access these variables inside the queries itself, the ?…Label and ?…Description variables are for output only; thus do it in the end always. The other method is to use ?item rdfs:label ?label, ?item schema:description ?description and ?item skos:altLabel ?alias explicitly for variable ?item only inside the query. Mind that this must not be wrapped into a label service command. It binds pairs of terms in any language available, so a subsequent FILTER(LANG(?label) = 'en') and so on is advisable. Unlike the query service variables, you can access and use these one inside the query. Two more hints to your query: make sure that you always reduce the number of involved items as quick as possible, thus add criterions ordered from most specific to most general. Try to avoid string-based operations if ever possible, they have relatively bad performance. —MisterSynergy (talk) 14:35, 9 January 2018 (UTC) Thank you again, MisterSynergy. I appreciate the time you spent explaining all of the above. Much obliged. --Tagishsimon (talk) 17:41, 9 January 2018 (UTC) Let me add this query from @Fnielsen:, who responded (substantially more competently than I) to a tweet which started this whole January in a leap year business ... Request a Query archives are improved by providing great coding examples from which we can steal later. SELECT
+  (COUNT(?page) AS ?count) ?person ?personLabel
+WITH {
+  SELECT DISTINCT ?person WHERE {
+    hint:Query hint:optimizer \"None\".
+    ?person wdt:P569 ?birthdate .
+    BIND(MONTH(?birthdate) AS ?month)
+    FILTER (?month = 1)
+
+    ?person p:P569/psv:P569 ?timenode .
+    ?timenode wikibase:timePrecision 11 .
+    
+    VALUES ?year { 1964 1968 1972 1976 1980 1984 1988 1992 1996 2004 2008 }
+    BIND(YEAR(?birthdate) AS ?year)
+  }
+  LIMIT 1000
+} AS %persons
+WHERE {
+  INCLUDE %persons
+  ?page schema:about ?person .
+  ?person wdt:P31 wd:Q5 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?person ?personLabel
+ORDER BY DESC(?count)
+ Try it!--Tagishsimon (talk) 18:15, 9 January 2018 (UTC)Getting urls with identifier propertiesFor one of my tools I use this query.SELECT ?item ?image ?creator ?institution ?invnum ?location ?url WHERE {
+        ?item wdt:P31/wdt:P279* wd:Q3305213 .
+        OPTIONAL { ?item wdt:P18 ?image } .
+        OPTIONAL { ?item wdt:P170 ?creator } .
+        OPTIONAL { ?item wdt:P195 ?institution } .
+        OPTIONAL { ?item wdt:P217 ?invnum } .
+        OPTIONAL { ?item wdt:P276 ?location } .
+        OPTIONAL { ?item wdt:P973 ?url } .
+}
+ Try it! Heavy one, but works. Recently a lot of new identifier properties have been created and described at URL (P973) has been removed so I have updated the query: SELECT ?item ?image ?creator ?institution ?invnum ?location ?url ?idurl WHERE {
+        ?item wdt:P31/wdt:P279* wd:Q3305213 .
+        OPTIONAL { ?item wdt:P18 ?image } .
+        OPTIONAL { ?item wdt:P170 ?creator } .
+        OPTIONAL { ?item wdt:P195 ?institution } .
+        OPTIONAL { ?item wdt:P217 ?invnum } .
+        OPTIONAL { ?item wdt:P276 ?location } .
+        OPTIONAL { ?item wdt:P973 ?url } .
+        OPTIONAL { ?item ?identifierproperty ?identifier .
+                   ?property wikibase:directClaim ?identifierproperty .
+                   ?property wikibase:propertyType wikibase:ExternalId .
+                   ?property wdt:P1630 ?formatterurl .
+                   BIND(IRI(REPLACE(?identifier, '^(.+)$', ?formatterurl)) AS ?idurl).
+                    } 
+} LIMIT 100000
+ Try it! This works, but when I remove the LIMIT (or make it higher) it just gets stuck on \"running query\". Any suggestions to improve this query? Multichill (talk) 21:04, 7 January 2018 (UTC) I just updated my bot and the query does work without the limit. Seems to be an interface problem? Any idea what would be causing that? Any suggestions to further improve the performance of this query? Multichill (talk) 22:07, 7 January 2018 (UTC) The \"running query\" stuck is probably some kind of timeout that the GUI was unable to handle for some reason. If you could see network trace (e.g. in developers tools in chrome) that'd say what actually happened. May be some subtle GUI bug. Smalyshev (WMF) (talk) 01:04, 9 January 2018 (UTC) @Smalyshev (WMF): just noticed your reply. Can't reproduce any more. If I run into something like this again, I'll get a stack trace and file a bug in phab. Multichill (talk) 17:40, 13 January 2018 (UTC) I can observe the same behavior for the second query without limit (neverending running query), and this does happen occasionally on my system. The Firefox devtool shows a console error (with red color) ~40 seconds after starting the query: allocation size overflow; send/i/< https://query.wikidata.org/js/vendor.min.1cdb49cf3499e796258e.js:1:80695. If I should have a more detailed look or provide further information from the devtool, please let me know. —MisterSynergy (talk) 17:51, 13 January 2018 (UTC) Recursive query to retrieve items located in a Region I was trying to write a query to get all things/people/... located (or any of its subproperties) in a place (a region named Anoia, in Catalonia). This query returns me the items related to that region (cities, in fact), but not the items related to the cities located in that region. SELECT ?item ?itemLabel ?subPropertiesLabel WHERE {
+  ?subProperties wdt:P1647* wd:P276.
+  ?subProperties wikibase:directClaim ?claim .
+
+  ?item ?claim wd:Q15352 .
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! For example, the same query with the capital city of the region (named Igualada), returns me a very long list of items located (or any of its subproperties) there. SELECT ?item ?itemLabel ?subPropertiesLabel WHERE {
+  ?subProperties wdt:P1647* wd:P276.
+  ?subProperties wikibase:directClaim ?claim .
+  ?item ?claim wd:Q15950 .
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! I would like that the first query return me the items located (or any of its subproperties) in Anoia, and in any of the items located (or any of its subproperties) there too (for instance, those in the second query pasted). In other words, I would like to make the query become 'recursive'. How could I do this? Thanks a lot.--Marcmiquel (talk) 16:05, 11 January 2018 (UTC) Remembering that I have not got a clue what I'm doing, does this get you anywhere? Clearly it does not find everything ... I'm hoping that the * in P131* gives us a recursive sort of located in, and the result set lends some support to this, but...: SELECT ?item ?itemLabel WHERE {
+  {?item wdt:P131* wd:Q15352 .} #places
+  UNION
+ {?item wdt:P19 ?pob.           #people
+  ?pob wdt:P131* wd:Q15352 .} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!--Tagishsimon (talk) 21:41, 13 January 2018 (UTC)2002 events in Tokyo Hi, I am looking for a list of events that took place in the municipality of Tokyo in 2002.--Wolbo (talk) 15:00, 13 January 2018 (UTC) Initial results are not good... SELECT ?item ?itemLabel ?when ?when2 WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1656682. #item is an event or subclass of an event
+  ?item wdt:P131 wd:Q1490.             #located in the administrative territorial entity of Tokyo prefecture
+  ?item wdt:P585 ?when.                #It has a 'point in time' statement
+  BIND(year(?when) as ?when2)          #from which we extract the year
+  filter(?when2=2002)                  #and filter for 2002
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!--Tagishsimon (talk) 20:22, 13 January 2018 (UTC)Query for compete data If the data was complete, something like the following could work (5 results currently): Items used: event (Q1656682)   , Tokyo (Q1490)   Properties used: instance of (P31)   , subclass of (P279)   , location (P276)   , located in the administrative territorial entity (P131)   , point in time (P585)   , start time (P580)   , end time (P582)   SELECT DISTINCT ?item ?itemLabel ?when ?start ?end
+WHERE
+{
+  
+  ?item wdt:P31/wdt:P279* wd:Q1656682 .
+  ?item wdt:P276/wdt:P131* wd:Q1490 .  
+  { ?item wdt:P585 ?when   FILTER(YEAR(?when)=2002) }
+  UNION
+  { ?item wdt:P580 ?start ; wdt:P582 ?end . 
+   FILTER ( ?start < \"2003-00-00T00:00:00Z\"^^xsd:dateTime 
+           && ?end > \"2001-12-32T00:00:00Z\"^^xsd:dateTime )
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Try it! Query for missing locations (events in Japan) If you want to add missing location (P276), try: Items used: event (Q1656682)   , Japan (Q17)   Properties used: instance of (P31)   , subclass of (P279)   , country (P17)   , location (P276)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

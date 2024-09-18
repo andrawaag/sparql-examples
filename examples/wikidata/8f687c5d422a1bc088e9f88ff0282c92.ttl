@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8f687c5d422a1bc088e9f88ff0282c92> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """# Values of \"uses\" used in scholarly articles
+# Demonstrates how to turn off the optimizer and start with the lowest number of edges first.
+#defaultView:BubbleChart
+SELECT ?uses ?usesLabel (count(?item) as ?c)
+WHERE 
+{
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P2283 ?uses. # ~20,000 edges
+  ?item wdt:P31 wd:Q13442814. # ~37M edges
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+group by ?uses ?usesLabel
+order by desc(?c)""";
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-53744C2A1B059B5AE99EEE7278A5F112, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-DBB62DB97C0C56A1709311B15CCFE1A6,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-B74E77F6A3808A5FD3980848957F7C3C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-BA9B0B86DA92A0E731CA82BE54E29906,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-431CFA89D538F1ACA55417B0DBCAA252, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-1172C399E18715F47A05C8477BA7F06F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-FE0A9E1D45B1DDBB10BD1E2E6217D8CC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-71C1DBCCCC69CAA9EC0ECCB8DECDF43F,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112343-B1EB15F2E1467935B1B40358E2277BFC;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,138 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e11c4c1ff0740def5e046921bc9eb7d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+	?writingsystem
+	?writingsystemLabel
+	(COUNT( DISTINCT ?l) as ?ct)
+WHERE
+{
+	wd:Q23 rdfs:label ?label
+	BIND( lang(?label) as ?lang)
+	?l p:P424 [ ps:P424 ?lang ; pq:P794 wd:Q22283033 ] .
+  	?l wdt:P282 ?writingsystem .
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY
+	?writingsystem
+	?writingsystemLabel
+ORDER BY DESC(?ct)""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Items without a label in French but with a linked category which has a label 2 items without P31 3 Members of the Tweede Kamer at some point in time 4 Description different than 5 Get all newspapers in USA 6 Count scripts ? 7 #Number of films by year and genre 8 Item without a page in a specific wiki 9 Notable integers, and for each the list of their classes 10 Help on simple country query 11 start time of a position 12 Born in Europe 13 How to search for all items used as publisher (P123) in any references? 14 Filter for integer values only 15 Query about Israeli nationals who died on 1970 16 Getting info for category Daily Newspaper (Q1110794) 17 Geotagged tajik Wikipedia map? 18 Query for prenames vs gender 19 List of properties with less than 3 statements 20 different items with same VIAF ID (P214) 21 Is it possible to generate a list of Wikivoyage articles sorted by the amount of articles that exists for each destination in all wikivoyage editions? 22 items with multiple genders 23 Threefold Query 24 Redundant subcategories 25 Example with horses/optionals Items without a label in French but with a linked category which has a label Hi all,I would like a SPARQL query which gives items without a label in French but with a linked category which has a label in French.It would be useful to add labels in French.Thank you, Tubezlob (🙋) 14:23, 1 April 2017 (UTC) # Items that don't have a label in French, but there is a main category that has a label in French.
+SELECT ?item ?itemLabel ?_topic_s_main_category ?_topic_s_main_categoryLabelFR WHERE {
+  ?item wdt:P910 ?_topic_s_main_category.
+  ?_topic_s_main_category rdfs:label ?_topic_s_main_categoryLabelFR filter (lang(?_topic_s_main_categoryLabelFR) = \"fr\") .
+  FILTER NOT EXISTS {?item rdfs:label ?itemLabelFR filter (lang(?itemLabelFR) = \"fr\")} .
+  }
+LIMIT 1000
+ Try it! Shinnin (talk) 15:43, 1 April 2017 (UTC) @Shinnin: Many thanks! Tubezlob (🙋) 16:29, 1 April 2017 (UTC) items without P31 How do I run a query with all items without instance of (P31)? --Bigbossfarin (talk) 20:09, 1 April 2017 (UTC) SELECT ?item WHERE {
+  ?item wikibase:sitelinks [] .
+  MINUS { ?item (wdt:P31|wdt:P279) [] } .
+} LIMIT 1000
+ Try it! Explained here. Matěj Suchánek (talk) 20:14, 1 April 2017 (UTC) Thank you! --Bigbossfarin (talk) 20:15, 1 April 2017 (UTC) Members of the Tweede Kamer at some point in time I'm working on member of the House of Representatives of the Netherlands (Q18887908) and I'm trying to make a query to show the members at a point in time. I got the two parts workingPeople where the point in time is between the time they entered and left. SELECT ?item ?itemLabel WHERE {
+  BIND(\"2010-05-00T00:00:00Z\"^^xsd:dateTime AS ?pointintime) .
+  ?item p:P39 ?positionstatement .
+  ?positionstatement ps:P39 wd:Q18887908 .
+  ?positionstatement pq:P580 ?startdate .
+  ?positionstatement pq:P582 ?enddate . 
+  FILTER(?startdate < ?pointintime && ?pointintime < ?enddate )  .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
+  } ORDER BY ?itemLabel
+ Try it! People where the point in time is after they entered and these people are still a member now. SELECT ?item ?itemLabel WHERE {
+  BIND(\"2010-05-00T00:00:00Z\"^^xsd:dateTime AS ?pointintime) .
+  ?item p:P39 ?positionstatement .
+  ?positionstatement ps:P39 wd:Q18887908 .
+  ?positionstatement pq:P580 ?startdate .
+  MINUS { ?positionstatement pq:P582 ?enddate } . 
+  FILTER(?startdate < ?pointintime ).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } 
+  } ORDER BY ?itemLabel
+ Try it! Now I want to combine these two queries (UNION), but that seems to fail. Thank you, Multichill (talk) 21:21, 1 April 2017 (UTC) SELECT DISTINCT ?item ?itemLabel WHERE {
+  {
+    SELECT ?item {
+      BIND(\"2010-05-00T00:00:00Z\"^^xsd:dateTime AS ?pointintime) .
+      ?item p:P39 ?positionstatement .
+      ?positionstatement ps:P39 wd:Q18887908 .
+      ?positionstatement pq:P580 ?startdate .
+      MINUS { ?positionstatement pq:P582 ?enddate } . 
+      FILTER( ?startdate < ?pointintime ) .
+    }
+  } UNION {
+    SELECT ?item WHERE {
+      BIND(\"2010-05-00T00:00:00Z\"^^xsd:dateTime AS ?pointintime) .
+      ?item p:P39 ?positionstatement .
+      ?positionstatement ps:P39 wd:Q18887908 .
+      ?positionstatement pq:P580 ?startdate .
+      ?positionstatement pq:P582 ?enddate . 
+      FILTER( ?startdate < ?pointintime && ?pointintime < ?enddate ) .
+    }
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY ?itemLabel
+ Try it! Matěj Suchánek (talk) 08:14, 2 April 2017 (UTC) @Matěj Suchánek: thanks! I'm pretty sure I tried that and it returned zero results, I must have made a mistake in it somewhere. Do you know a way to only have one bind for ?pointintime ? I did manage to make this one to show progress: Graphs are temporarily unavailable due to technical issues. See Wikidata query.(should be 150) Multichill (talk) 10:45, 2 April 2017 (UTC) I hope this returns the same results: SELECT ?pointintime (COUNT(?item) AS ?count) WHERE {
+  ?month wdt:P31 wd:Q5151 .
+  ?month wdt:P585 ?pointintime  .
+  ?item p:P39 ?positionstatement .
+  ?positionstatement ps:P39 wd:Q18887908 .
+  ?positionstatement pq:P580 ?startdate .
+  FILTER( ?startdate < ?pointintime ) .
+  OPTIONAL { ?positionstatement pq:P582 ?enddate } .
+  FILTER( !BOUND( ?enddate )|| ?pointintime < ?enddate ) .
+} GROUP BY ?pointintime ORDER BY ?pointintime
+ Try it! Matěj Suchánek (talk) 10:55, 2 April 2017 (UTC) Graphs are temporarily unavailable due to technical issues. See Wikidata query.Had to wrap it in a DISTINCT and do some evil wiki trick ({{!}}) to get it to work. Graphs seem to look the same. Multichill (talk) 11:06, 2 April 2017 (UTC) Description different than I need a filter to detect item with description in language different than a specific string. I tried with this query but don't work, any suggestion? SELECT ?item ?itDescrizione
+WHERE
+{
+    ?item wdt:P31 wd:Q4167836 .
+    ?item schema:description ?itDescrizione. FILTER(lang(?itDescrizione)=\"it\").
+    FILTER(?itDescrizione!=\"categoria di un progetto Wikimedia\")
+    #FILTER(false=CONTAINS(?itDescrizione,\"categoria di un progetto Wikimedia\"))
+    #FILTER(?itDescrizione!=STR(\"categoria di un progetto Wikimedia\"))
+    #FILTER(?itDescrizione!=\"categoria di un progetto Wikimedia\"^^xsd:string)
+} LIMIT 100
+ Try it!--ValterVB (talk) 15:36, 2 April 2017 (UTC)You can do more queries on ranges of Qids like this: SELECT ?item ?itDescrizione WITH {
+  SELECT ?item {
+    BIND( 1000000 * 13 AS ?base ) . # change this 0-30
+    ?item wdt:P31 wd:Q4167836 .
+    BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) .
+    FILTER( ?num > ?base + 0 && ?num < ?base + 1000001 ) .
+  }
+} AS %sub WHERE {
+  INCLUDE %sub .
+  ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
+  FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
+}
+ Try it! Matěj Suchánek (talk) 16:43, 2 April 2017 (UTC) SELECT ?item ?itemLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q4167836. 
+  Filter (?itemDescription = \"categoria di un progetto Wikimedia\") 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". } 
+}
+LIMIT 10
+ Try it! Maybe this will work? It gives no matching results, but a bot is adding such descriptions in all latin languages, so that is why there may be no results... Q.Zanden questions? 17:12, 2 April 2017 (UTC) It work, I found some item with error (example), but in some case I have time out. It's possible move ?item wdt:P31 wd:Q4167836 . in the second part of the querty? Maybe can be more efficient. --ValterVB (talk) 17:39, 2 April 2017 (UTC) But that is only a temporary example. That statement is already deleted. But maybe, if you create a test item with instance of (P31) ->Wikimedia category (Q4167836), but without a description... Just to test if the query works. Q.Zanden questions? 17:53, 2 April 2017 (UTC) The query work, I have already fixed some items. --ValterVB (talk) 18:02, 2 April 2017 (UTC) Get all newspapers in USA I would like to collect all newspapers in USA . I have written a query to get newspapers. but its not listing out all available newspapers from wiki.QUERY - version 1: SELECT ?newspaper ?newspaperLabel  ?link WHERE {
+  ?newspaper wdt:P31 wd:Q11032 .
+  ?newspaper wdt:P856 ?link.
+  ?newspaper wdt:P17 wd:Q30.
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+ FILTER(NOT EXISTS { ?newspaper wdt:P576 ?date. })}
+ Try it! Not all the newspaper is falls under major category as newspaper(Instance of newspaper) . some of them are in different categories like daily newspaper , weekly newspaper . Thus i have added those category(actually i should say this as sub-category of newspaper) in the code.QUERY - version 2: SELECT ?newspaper ?newspaperLabel ?link WHERE {
+  {?newspaper wdt:P31 wd:Q1331793} UNION
+  {?newspaper wdt:P31 wd:Q2138556} union  
+  {?newspaper wdt:P31 wd:Q2305295}union  
+  {?newspaper wdt:P31 wd:Q1110794}union  
+  {?newspaper wdt:P31 wd:Q15265344}union  
+  {?newspaper wdt:P31 wd:Q11032}union  
+  {?newspaper wdt:P31 wd:Q1002697}.  
+  ?newspaper wdt:P17 wd:Q30.
+  ?newspaper wdt:P856 ?link. 
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\" . }
+ FILTER(NOT EXISTS { ?newspaper wdt:P576 ?date. })}
+ Try it! Still its not listing out all the newspapers.Though some of them are instance of 'newspaper',Query is not listing out them in result. Example : The Alabama Observer : https://www.wikidata.org/wiki/Q7712961 Query : version 2 is not listed above newspaper even though it is instance of newspaper.Please help me to resolve this problem – The preceding unsigned comment was added by WikiCompBot (talk • contribs). Q7712961 does not have filled country (P17). You may use PetScan (and enwiki category \"Newspapers published in the United States by state\" and its subcategories to fill these gaps in Wikidata. --Jklamo (talk) 08:40, 29 March 2017 (UTC) Thanks a lot dude. Its working fine. One more help. When i try the same query for different countries , its not giving any results.
+   For Ex : Newspapers published in the China by state
+   Any Help Would Be Appreciated!! Why do you use country (P17) in newspapers at all?? I think that country of origin (P495) is more suitable for creative works. --Infovarius (talk) 08:39, 4 April 2017 (UTC) Count scripts ? Items used: George Washington (Q23)   , Q22283033 Properties used: writing system (P282)   , Wikimedia language code (P424)   , P794 """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

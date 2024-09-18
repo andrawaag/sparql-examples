@@ -1,0 +1,192 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-85466568d597724c1ffd86f9ba2ab955> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """#defaultView:Map
+SELECT ?name ?birthyear ?image (SAMPLE(?coord) AS ?coord) (URI(CONCAT(\"http://emlo.bodleian.ox.ac.uk/profile/person/\", ?emlo)) AS ?emlolink)
+WHERE {
+   ?person wdt:P1802 ?emlo;
+     wdt:P19 ?place;
+     rdfs:label ?name filter (lang(?name) = \"en\").
+   ?place wdt:P625 ?coord
+   OPTIONAL { ?person wdt:P569 ?dob }
+   BIND(CONCAT(\"Born \", STR(YEAR(?dob))) as ?birthyear)
+   OPTIONAL {?person wdt:P18 ?image }
+} GROUP BY ?name ?image ?emlo ?birthyear""";
+  rdfs:comment """Contents 1 Semantic Web of Books 1.1 Female historians in the EE born in the 1730s (selects Catharine Macaulay) 1.2 Editions of works by Catharine Macaulay, and their online text 1.3 Digital versions of a work that the Oxford Text Archive has, but a different edition from the Oxford Text Archive 1.4 Biographies in the Plomer Dictionary of Booksellers and Printers 1.5 Types of edition 2 Maps 2.1 Map of birthplaces 3 Wikipedia articles 3.1 EE items that have English Wikipedia articles 3.2 EE items that lack English Wikipedia articles, but have articles in another version of Wikipedia 3.3 EE items with no article in any language version of Wikipedia, with optional links to texts that describe them 4 Depictions 4.1 Image gallery 4.2 EE people without images, including links to searches on the National Portrait Gallery 4.3 Art depicting EE people 5 Organisations 5.1 Organisation membership 5.2 Organisations and the individuals who are members 6 Biographical facts 6.1 Bubble chart of occupations 6.2 EE people not tagged with an occupation in Wikidata 6.3 Causes of death 7 Other identifiers 7.1 UK National Archive IDs 7.2 Project Gutenberg author IDs 7.3 Genealogics.org person IDs 7.4 History of Parliament ID 8 Letters 8.1 Letters sent by EE entities 8.2 Things addressed to EE entities 9 Maintenance queries 9.1 Wikidata entities with EE IDs 10 Early Modern Letters Online 10.1 Years and places of birth and death 10.2 Map of birthplaces 10.3 Organisation membership 10.4 Occupations 10.5 Timeline of members of the French Academy of Sciences 10.6 Publications with Wikipedia articles or on-line text 10.7 Timeline with membership of learned and scientific societies 10.8 Causes of death 10.9 Wikidata entries with more than one EMLO identifier (not counting deprecated identifiers) 10.10 EMLO identifiers to Wikipedia pages 10.11 Which Wikimedia sites have pages about EMLO people? 10.12 Reasonator links for EMLO people 10.13 Non-EMLO identifiers for things with an EMLO Person ID 10.14 Mapping between EMLO Location and Wikidata Semantic Web of Books [edit] Female historians in the EE born in the 1730s (selects Catharine Macaulay) [edit] The following query uses these:Items: female (Q6581072)   , historian (Q201788)   Properties: Electronic Enlightenment ID (P3429)   , sex or gender (P21)   , occupation (P106)   , date of birth (P569)   SELECT ?person ?personLabel ?birthdate WHERE {
+  ?person wdt:P3429 ?ee.
+  ?person wdt:P21 wd:Q6581072.
+  ?person wdt:P106 wd:Q201788.
+  ?person wdt:P569 ?birthdate.
+  FILTER ((YEAR(?birthdate) > 1729) && (YEAR(?birthdate) < 1740))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Editions of works by Catharine Macaulay, and their online text [edit] Note: doesn't capture Wikisource transcriptions or Google Books links via Google Books ID (P675) The following query uses these:Items: Catharine Macaulay (Q538767)   Properties: author (P50)   , edition or translation of (P629)   , title (P1476)   , English Short Title Catalogue ID (P3939)   , publication date (P577)   , edition number (P393)   , full work available at URL (P953)   , number of pages (P1104)   SELECT ?edition ?title ?year ?no ?pages (URI(CONCAT(\"http://estc.bl.uk/\",?estc)) AS ?estc_cit) ?text WHERE {
+?work wdt:P50 wd:Q538767. # work by Macaulay
+?edition wdt:P629 ?work; # edition of work
+ wdt:P1476 ?title; # title of edition
+ wdt:P3939 ?estc; # ESTC Citation number
+ wdt:P577 ?pubdate.
+BIND(YEAR(?pubdate) as ?year) # publication year
+OPTIONAL{ ?edition wdt:P393 ?no } # edition number
+OPTIONAL{ ?edition wdt:P953 ?text } # work available at
+OPTIONAL { ?edition wdt:P1104 ?pages } # no of pages
+} ORDER BY ?year ?no Try it! Digital versions of a work that the Oxford Text Archive has, but a different edition from the Oxford Text Archive [edit] The following query uses these:Properties: edition or translation of (P629)   , full work available at URL (P953)   , publication date (P577)   , title (P1476)   , edition number (P393)   SELECT ?edition2 ?title ?year2 ?text2 ?this_is_no ?ota_has_no WHERE {
+?edition1 wdt:P629 ?work; 
+    wdt:P953 ?text1;
+    wdt:P577 ?pubdate1.
+FILTER CONTAINS(STR(?text1),\"ota.ox.ac.uk\") # OTA scan of work
+BIND(YEAR(?pubdate1) as ?year) # publication year  
+?edition2 wdt:P629 ?work; # edition of work
+    wdt:P953 ?text2;
+    wdt:P1476 ?title;
+    wdt:P577 ?pubdate2.
+FILTER( ?edition1 != ?edition2 ) # non-OTA scan of work
+BIND(YEAR(?pubdate2) as ?year2) # publication year
+#FILTER{ ?year1 > ?year2 }
+OPTIONAL{ ?edition1 wdt:P393 ?ota_has_no } # edition number
+OPTIONAL{ ?edition2 wdt:P393 ?this_is_no }
+} Try it! Biographies in the Plomer Dictionary of Booksellers and Printers [edit] The following query uses these:Items: A Dictionary of the Booksellers and Printers who Were at Work in England, Scotland and Ireland from 1641 to 1667 (Q40901539)   Properties: published in (P1433)   SELECT ?entry ?wslink WHERE {
+  ?entry wdt:P1433 wd:Q40901539. # published in Plomer DBP
+OPTIONAL{ ?wslink schema:about ?entry; schema:isPartOf <https://en.wikisource.org/> }
+} Try it! Types of edition [edit] facsimile (Q194070) diplomatic edition (Q5394558) eclectic edition (Q42793760) annotated edition (Q4769619) Maps [edit] Map of birthplaces [edit] Lots of overlaps due to common birthplaces.. The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , place of birth (P19)   , coordinate location (P625)   , date of birth (P569)   , image (P18)    Features: map (Q24515275)  #defaultView:Map
+SELECT ?name ?birthyear ?image (SAMPLE(?coord) AS ?coord) (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink)
+WHERE {
+   ?person wdt:P3429 ?ee;
+     wdt:P19 ?place;
+     rdfs:label ?name filter (lang(?name) = \"en\").
+   ?place wdt:P625 ?coord
+   OPTIONAL { ?person wdt:P569 ?dob }
+   BIND(CONCAT(\"Born \", STR(YEAR(?dob))) as ?birthyear)
+   OPTIONAL {?person wdt:P18 ?image }
+} GROUP BY ?name ?image ?ee ?birthyear Try it! Wikipedia articles [edit] See also w:en:Wikipedia:OUP/Electronic_Enlightenment EE items that have English Wikipedia articles [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   SELECT ?name (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink) ?englishwp
+WHERE {
+?person wdt:P3429 ?ee;
+        rdfs:label ?name filter (lang(?name) = \"en\")
+?englishwp schema:about ?person; schema:isPartOf <https://en.wikipedia.org/>
+} ORDER BY ?ee Try it! Note: as of 13 April 2017, 420 imported EE items lack English Wikipedia articles. EE items that lack English Wikipedia articles, but have articles in another version of Wikipedia [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   SELECT ?person ?personLabel ?personDescription (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink)
+(GROUP_CONCAT(?otherwp) AS ?links)
+WHERE {
+?person wdt:P3429 ?ee.
+MINUS {?englishwp schema:about ?person; schema:isPartOf <https://en.wikipedia.org/> }
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\"}
+?otherwp schema:about ?person
+FILTER CONTAINS(STR(?otherwp),\"wikipedia\") 
+} GROUP BY ?personLabel ?personDescription ?ee ?person ORDER BY ?ee Try it! EE items with no article in any language version of Wikipedia, with optional links to texts that describe them [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , described by source (P1343)   SELECT ?person ?personLabel ?personDescription (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink) ?sourcename ?ws
+WHERE {
+?person wdt:P3429 ?ee.
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de\"}
+MINUS {?wp schema:about ?person; FILTER CONTAINS(STR(?wp),\"wikipedia\")  }
+OPTIONAL { ?person p:P1343/ps:P1343 ?source. ?source rdfs:label ?sourcename filter (lang(?sourcename) = \"en\")
+OPTIONAL { ?ws schema:about ?source; schema:isPartOf <https://en.wikisource.org/> } }
+} ORDER BY ?ee Try it! Depictions [edit] Image gallery [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , image (P18)    Features: ImageGrid (Q24515278)  #defaultView:ImageGrid
+SELECT ?personLabel ?personDescription ?image (URI(CONCAT(\"https://doi.org/10.13051/ee:bio/\", ?ee)) AS ?eelink)
+WHERE {
+?person wdt:P3429 ?ee;
+   wdt:P18 ?image
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,es,it,sv\"}
+} ORDER BY ?personLabel Try it! EE people without images, including links to searches on the National Portrait Gallery [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , image (P18)   , National Portrait Gallery (London) person ID (P1816)   SELECT ?person ?name ?ee (URI(CONCAT(\"http://www.npg.org.uk/collections/search/person/\", ?npg)) AS ?npglink)
+WHERE {
+?person wdt:P3429 ?ee.
+MINUS{?person wdt:P18 []} # no image
+OPTIONAL{?person wdt:P1816 ?npg}
+?person rdfs:label ?name filter (lang(?name) = \"en\")
+} ORDER BY ?name Try it! Art depicting EE people [edit] Only shows art for which there is a freely available scan in Wikimedia Commons The following query uses these:Items: human (Q5)   Properties: Electronic Enlightenment ID (P3429)   , instance of (P31)   , depicts (P180)   , image (P18)   SELECT ?person ?personLabel ?ee ?art ?artLabel ?image
+WHERE {
+?person wdt:P3429 ?ee;
+   wdt:P31 wd:Q5
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,es,it,sv,ru,pl,nl\"}
+?art wdt:P180 ?person;
+   wdt:P18 ?image
+MINUS { ?person wdt:P18 ?image }
+} ORDER BY ?personLabel Try it! Organisations [edit] Organisation membership [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , member of (P463)    Features: BubbleChart (Q24515280)  #defaultView:BubbleChart
+SELECT ?orgname (COUNT(?person) AS ?members)
+WHERE {
+   ?person wdt:P3429 [];
+     wdt:P463 ?org.
+    ?org rdfs:label ?orgname filter (lang(?orgname) = \"en\")
+} GROUP BY ?orgname
+ORDER BY DESC (?members) Try it! Organisations and the individuals who are members [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , member of (P463)   SELECT DISTINCT ?orgLabel ?person ?personLabel ?ee
+WHERE {
+?person wdt:P3429 ?ee;
+     wdt:P463 ?org
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\"}
+} ORDER BY ?orgLabel ?ee Try it! Biographical facts [edit] Bubble chart of occupations [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , occupation (P106)    Features: BubbleChart (Q24515280)  #defaultView:BubbleChart
+SELECT ?jobname (COUNT(?person) AS ?members)
+WHERE {
+   ?person wdt:P3429 ?ee;
+      wdt:P106 ?job.
+    ?job rdfs:label ?jobname filter (lang(?jobname) = \"en\")
+} GROUP BY ?jobname
+ORDER BY DESC (?members) Try it! EE people not tagged with an occupation in Wikidata [edit] The following query uses these:Items: human (Q5)   Properties: Electronic Enlightenment ID (P3429)   , instance of (P31)   , occupation (P106)   SELECT ?person ?personLabel ?personDescription ?ee
+WHERE {
+   ?person wdt:P3429 ?ee;
+           wdt:P31 wd:Q5
+MINUS{?person wdt:P106 [] }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,es\" }
+} ORDER BY ?ee Try it! Causes of death [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , cause of death (P509)   SELECT ?person ?personLabel ?ee ?causeLabel  WHERE {
+?person wdt:P3429 ?ee;
+  wdt:P509 ?cause
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?causeLabel Try it! Other identifiers [edit] UK National Archive IDs [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , UK National Archives ID (P3029)   SELECT ?person ?personLabel ?ee (URI(CONCAT(\"https://discovery.nationalarchives.gov.uk/details/c/\",?natarch)) AS ?natarchlink)  WHERE {
+?person wdt:P3429 ?ee;
+  wdt:P3029 ?natarch
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?personLabel Try it! Project Gutenberg author IDs [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , Project Gutenberg author ID (P1938)   SELECT ?person ?personLabel ?ee (URI(CONCAT(\"https://www.gutenberg.org/ebooks/author/\", ?gutenberg)) AS ?gutenberglink)  WHERE {
+?person wdt:P3429 ?ee;
+  wdt:P1938 ?gutenberg
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?personLabel Try it! Genealogics.org person IDs [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , genealogics.org person ID (P1819)   SELECT ?person ?personLabel ?ee (URI(CONCAT(\"http://www.genealogics.org/getperson.php?tree=LEO&personID=\", ?gorg)) AS ?gorglink)  WHERE {
+?person wdt:P3429 ?ee;
+  wdt:P1819 ?gorg
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?personLabel Try it! History of Parliament ID [edit] The following query uses these:Properties: Electronic Enlightenment ID (P3429)   , History of Parliament ID (P1614)   SELECT ?person ?personLabel ?ee (URI(CONCAT(\"http://www.historyofparliamentonline.org/volume/\", ?parl)) AS ?parllink)  WHERE {
+?person wdt:P3429 ?ee;
+  wdt:P1614 ?parl
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?personLabel Try it! Letters [edit] Letters sent by EE entities [edit] The following query uses these:Items: letter (Q133492)   Properties: author (P50)   , instance of (P31)   , Electronic Enlightenment ID (P3429)   SELECT ?author ?authorLabel ?letter ?letterLabel ?ws
+WHERE {
+  ?letter wdt:P50 ?author;
+   wdt:P31 wd:Q133492.
+  ?author wdt:P3429 []
+OPTIONAL {?ws schema:about ?letter; schema:isPartOf <https://en.wikisource.org/> }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} ORDER BY ?authorLabel Try it! Things addressed to EE entities [edit] The following query uses these:Properties: addressee (P1817)   , Electronic Enlightenment ID (P3429)   SELECT ?recipient ?recipientLabel ?letter ?letterLabel ?ws
+WHERE {
+  ?letter wdt:P1817 ?recipient.
+    ?recipient wdt:P3429 []
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  OPTIONAL {?ws schema:about ?letter; schema:isPartOf <https://en.wikisource.org/> }
+} ORDER BY ?recipientLabel Try it! Maintenance queries [edit] Wikidata entities with EE IDs [edit] This highlights entities that have more than one EE ID, and also gives a total count. The following query uses these:Properties: Electronic Enlightenment ID (P3429)   SELECT ?person ?personLabel ?personDescription (COUNT(?ee) AS ?eelinks)
+WHERE {
+   ?person wdt:P3429 ?ee
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,es\" }
+} GROUP BY ?person ?personLabel ?personDescription
+ORDER BY DESC(?eelinks) ?ee Try it! Early Modern Letters Online [edit] Years and places of birth and death [edit] The following query uses these:Properties: Early Modern Letters Online person ID (P1802)   , date of birth (P569)   , date of death (P570)   , place of birth (P19)   , place of death (P20)   SELECT DISTINCT ?person ?personLabel (URI(CONCAT(\"http://emlo.bodleian.ox.ac.uk/profile/person/\",?emlo)) AS ?emlolink) ?birthyear (IF(isBLANK(?pob),\"unknown\",?pobLabel) AS ?birthplace) ?deathyear (IF(isBLANK(?pod),\"unknown\",?podLabel) AS ?deathplace)
+WHERE {
+   ?person wdt:P1802 ?emlo;
+ OPTIONAL { ?person wdt:P569 ?dob }
+ OPTIONAL { ?person wdt:P570 ?dod }
+ OPTIONAL { ?person wdt:P19 ?pob }
+ OPTIONAL { ?person wdt:P20 ?pod }
+BIND(YEAR(?dob) as ?birthyear)
+BIND(YEAR(?dod) as ?deathyear)
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,nl,es,pl\".
+  ?pob rdfs:label ?pobLabel.
+  ?pod rdfs:label ?podLabel.
+  ?person rdfs:label ?personLabel
+  }
+} ORDER BY DESC(?birthyear) Try it! Map of birthplaces [edit] Lots of overlaps due to common birthplaces. Some duplicates because of individuals having multiple EMLO IDs. The following query uses these:Properties: Early Modern Letters Online person ID (P1802)   , place of birth (P19)   , coordinate location (P625)   , date of birth (P569)   , image (P18)    Features: map (Q24515275)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/ee>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

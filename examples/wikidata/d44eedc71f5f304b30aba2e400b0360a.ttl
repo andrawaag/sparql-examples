@@ -1,0 +1,406 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d44eedc71f5f304b30aba2e400b0360a> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, the Wikidata Query Service, is a powerful tool to provide insight into Wikidata's content. This guide will teach you how to use it. See also the interactive tutorial by Wikimedia Israel.Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included. Contents 1 Before we start 2 SPARQL basics 3 Our first query 3.1 Autocompletion 4 Advanced triple patterns 5 Instances and classes 5.1 Property paths 6 Qualifiers 7 ORDER and LIMIT 7.1 Exercise 7.1.1 Arthur Conan Doyle books 7.1.2 Chemical elements 7.1.3 Rivers that flow into the Mississippi 7.1.4 Rivers that flow into the Mississippi II 8 OPTIONAL 9 Expressions, FILTER and BIND 9.1 Data types 9.2 Operators 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Grouping 10.1 City populations 10.2 Painting materials 10.3 Guns by manufacturer 10.4 Publishers by number of pages 10.4.1 HAVING 10.5 Aggregate functions summary 10.6 wikibase:Label and aggregations 11 VALUES 12 Label in multiple languages 13 And beyond… 14 See also Before we start [edit] While this guide may look very long and intimidating, please don’t let that scare you away! Just learning the SPARQL basics will get you a long way – even if you stop reading after #Our first query, you will already understand enough to construct many interesting queries. Each section of this tutorial will empower you to write even more powerful queries.If you have never heard of Wikidata, SPARQL, or WDQS before, here’s a short explanation of those terms: Wikidata is a knowledge database. It contains millions of statements, such as “the capital of Canada is Ottawa”, or “the Mona Lisa is painted in oil paint on poplar wood”, or “gold has a melting point of 1,064.18 degrees Celsius”. SPARQL is a language to formulate questions (queries) for knowledge databases. With the right database, a SPARQL query could answer questions like “what is the most popular tonality in music?” or “which character was portrayed by the most actors?” or “what’s the distribution of blood types?” or “which authors’ works entered the public domain this year?”. WDQS, the Wikidata Query Service, brings the two together: You enter a SPARQL query, it runs it against Wikidata’s dataset and shows you the result. SPARQL basics [edit] A simple SPARQL query looks like this: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} The SELECT clause lists variables that you want returned (variables start with a question mark), and the WHERE clause contains restrictions on them, mostly in the form of triples. All information in Wikidata (and similar knowledge databases) is stored in the form of triples; when you run the query, the query service tries to fill in the variables with actual values so that the resulting triples appear in the knowledge database, and returns one result for each combination of variables it finds.A triple can be viewed as two vertices (alias 2 nodes, 2 resources) connected by an edge (an arc, a property) inside the vast directed (oriented) property multigraph which forms Wikidata. It can be read like a sentence (which is why it ends with a period), with a subject, a predicate, and an object: SELECT ?fruit
+WHERE
+{
+  ?fruit hasColor yellow.
+  ?fruit tastes sour.
+} The results for this query could include, for example, “lemon”. In Wikidata, most properties are “has”-kind properties, so the query might instead read: SELECT ?fruit
+WHERE
+{
+  ?fruit color yellow.
+  ?fruit taste sour.
+} which reads like “?fruit has color ‘yellow’” (not “?fruit is the color of ‘yellow’” – keep this in mind for property pairs like “parent”/“child”!).However, that’s not a good example for WDQS. Taste is subjective, so Wikidata doesn’t have a property for it. Instead, let’s think about parent/child relationships, which are mostly unambiguous. Our first query [edit] Suppose we want to list all children of the baroque composer Johann Sebastian Bach. Using pseudo-elements like in the queries above, how would you write that query?Hopefully you got something like this: SELECT ?child
+WHERE
+{
+  #  child \"has parent\" Bach
+  ?child parent Bach.
+  # (note: everything after a ‘#’ is a comment and ignored by WDQS.)
+} or this, SELECT ?child
+WHERE
+{
+  # child \"has father\" Bach 
+  ?child father Bach. 
+} or this, SELECT ?child
+WHERE
+{
+  #  Bach \"has child\" child
+  Bach child ?child.
+} The first two triples say that the ?child must have the parent/father Bach; the third says that Bach must have the child ?child. Let’s go with the second one for now.So what remains to be done in order to turn this into a proper WDQS query? On Wikidata, items and properties are not identified by human-readable names like “father” (property) or “Bach” (item). (For good reason: “Johann Sebastian Bach” is also the name of a German painter, and “Bach” might also refer to the surname, the French commune, the Mercury crater, etc.) Instead, Wikidata items and properties are assigned an identifier. To find the identifier for an item, we search for the item and copy the Q-number of the result that sounds like it’s the item we’re looking for (based on the description, for example). To find the identifier for a property, we do the same, but search for “P:search term” instead of just “search term”, which limits the search to properties. This tells us that the famous composer Johann Sebastian Bach is Q1339, and the property to designate an item’s father is P:P22.And last but not least, we need to include prefixes. For simple WDQS triples, items should be prefixed with wd:, and properties with wdt:. (But this only applies to fixed values – variables don’t get a prefix!)Putting this together, we arrive at our first proper WDQS query: SELECT ?child
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+}
+ Try it! Click that “Try it” link, then “Run” the query on the WDQS page. What do you get? child wd:Q57225 wd:Q76428 … Well that’s disappointing. You just see the identifiers. You can click on them to see their Wikidata page (including a human-readable label), but isn’t there a better way to see the results?Well, as it happens, there is! (Aren’t rhetorical questions great?) If you include the magic text SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } somewhere within the WHERE clause, you get additional variables: For every variable ?foo in your query, you now also have a variable ?fooLabel, which contains the label of the item behind ?foo. If you add this to the SELECT clause, you get the item as well as its label: SELECT ?child ?childLabel
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Try running that query – you should see not only the item numbers, but also the names of the various children. child childLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach … Autocompletion [edit] That SERVICE snippet looks tough to remember though, right? And going through the search function all the time while you’re writing the query is also tedious. Fortunately, WDQS offers a great solution to this: autocompletion. In the query.wikidata.org query editor, you can press Ctrl+Space (or Alt+Enter or Ctrl+Alt+Enter) at any point in the query and get suggestions for code that might be appropriate; select the right suggestion with the up/down arrow keys, and press Enter to select it.For example, instead of writing out SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } every time, you can just type SERV, hit Ctrl+Space, and the first suggestion will be that complete label service incantation, ready for use! Just hit Enter to accept it. (The formatting will be a bit different, but that doesn’t matter.)And autocompletion can also search for you. If you type one of the Wikidata prefixes, like wd: or wdt:, and then just write text afterwards, Ctrl+Space will search for that text on Wikidata and suggest results. wd: searches for items, wdt: for properties. For example, instead of looking up the items for Johann Sebastian Bach (Q1339) and father (P22), you can just type wd:Bach and wdt:fath and then just select the right entry from the autocompletion. (This even works with spaces in the text, e.g. wd:Johann Sebastian Bach.) Advanced triple patterns [edit] So now we’ve seen all children of Johann Sebastian Bach – more specifically: all items with the father Johann Sebastian Bach. But Bach had two wives, and so those items have two different mothers: what if we only want to see the children of Johann Sebastian Bach with his first wife, Maria Barbara Bach (Q57487)? Try writing that query, based on the one above.Done that? Okay, then onto the solution! The simplest way to do this is to add a second triple with that restriction: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339.
+  ?child wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! In English, this reads: Child has father Johann Sebastian Bach. Child has mother Maria Barbara Bach. That sounds a bit awkward, doesn’t it? In natural language, we’d abbreviate this: Child has father Johann Sebastian Bach and mother Maria Barbara Bach. In fact, it’s possible to express the same abbreviation in SPARQL as well: if you end a triple with a semicolon (;) instead of a period, you can add another predicate-object pair. This allows us to abbreviate the above query to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! which has the same results, but less repetition in the query.Now suppose that, out of those results, we’re interested only in those children who were also composers and pianists. The relevant properties and items are occupation (P106), composer (Q36834) and pianist (Q486748). Try updating the above query to add these restrictions!Here’s my solution: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! This uses the ; abbreviation two more times to add the two required occupations. But as you might notice, there’s still some repetition. This is as if we said: Child has occupation composer and occupation pianist. which we would usually abbreviate as: Child has occupation composer and pianist. And SPARQL has some syntax for that as well: just like a ; allows you to append a predicate-object pair to a triple (reusing the subject), a , allows you to append another object to a triple (reusing both subject and predicate). With this, the query can be abbreviated to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Note: indentation and other whitespaces don’t actually matter – they just make it more readable. You can also write this as: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # both occupations in one line
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! or, rather less readable: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # no indentation; makes it hard to distinguish between ; and ,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Luckily, the WDQS editor indents lines for you automatically, so you usually don’t have to worry about this.Alright, let’s summarize here. We’ve seen that queries are structured like text. Each triple about a subject is terminated by a period. Multiple predicates about the same subject are separated by semicolons, and multiple objects for the same subject and predicate can be listed separated by commas. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Now I want to introduce one more abbreviation that SPARQL offers. So if you’ll humor me for one more hypothetical scenario…Suppose we’re not actually interested in Bach’s children. (Who knows, perhaps that’s actually true for you!) But we are interested in his grandchildren. (Hypothetically.) There’s one complication here: a grandchild may be related to Bach via the mother or the father. That’s two different properties, which is inconvenient. Instead, let’s flip the relation around: Wikidata also has a “child” property, P:P40, which points from parent to child and is gender-independent. With this information, can you write a query that returns Bach’s grandchildren?Here’s my solution: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?child.
+  ?child wdt:P40 ?grandChild.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! In natural language, this reads: Bach has a child ?child. ?child has a child ?grandChild. Once more, I propose that we abbreviate this English sentence, and then I want to show you how SPARQL supports a similar abbreviation. Observe how we actually don’t care about the child: we don’t use the variable except to talk about the grandchild. We could therefore abbreviate the sentence to: Bach has as child someone who has a child ?grandChild. Instead of saying who Bach’s child is, we just say “someone”: we don’t care who it is. But we can refer back to them because we’ve said “someone who”: this starts a relative clause, and within that relative clause we can say things about “someone” (e.g., that they “have a child ?grandChild”). In a way, “someone” is a variable, but a special one that’s only valid within this relative clause, and one that we don’t explicitly refer to (we say “someone who is this and does that”, not “someone who is this and someone who does that” – that’s two different “someone”s).In SPARQL, this can be written as: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?grandChild ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! You can use a pair of brackets ([]) in place of a variable, which acts as an anonymous variable. Inside the brackets, you can specify predicate-object pairs, just like after a ; after a normal triple; the implicit subject is in this case the anonymous variable that the brackets represent. (Note: also just like after a ;, you can add more predicate-object pairs with more semicolons, or more objects for the same predicate with commas.)And that’s it for triple patterns! There’s more to SPARQL, but as we’re about to leave the parts of it that are strongly analogous to natural language, I’d like to summarize that relationship once more: natural language example SPARQL example sentence Juliet loves Romeo. period juliet loves romeo. conjunction (clause) Romeo loves Juliet and kills himself. semicolon romeo loves juliet; kills romeo. conjunction (noun) Romeo kills Tybalt and himself. comma romeo kills tybalt, romeo. relative clause Juliet loves someone who kills Tybalt. brackets juliet loves [ kills tybalt ]. Instances and classes [edit] Earlier, I said that most Wikidata properties are “has” relations: has child, has father, has occupation. But sometimes (in fact, frequently), you also need to talk about what something is. But there are in fact two kinds of relations there: Gone with the Wind is a film. A film is a work of art. Gone with the Wind is one particular film. It has a particular director (Victor Fleming), a specific duration (238 minutes), a list of cast members (Clark Gable, Vivien Leigh, …), and so on.Film is a general concept. Films can have directors, durations, and cast members, but the concept “film” as such does not have any particular director, duration, or cast members. And although a film is a work of art, and a work of art usually has a creator, the concept of “film” itself does not have a creator – only particular instances of this concept do.This difference is why there are two properties for “is” in Wikidata: instance of (P31) and subclass of (P279). Gone with the Wind is a particular instance of the class “film”; the class “film” is a subclass (more specific class; specialization) of the more general class “work of art”.To help you to figure about the difference, you can try to use two different verbs: \"is a\" and \"is a kind of\". If \"is a kind of\" works (e.g. A film \"is a kind of\" work of art), it indicates that you are talking about a subclass, a specialization of a broader class and you should use subclass of (P279). If \"is a kind of\" does not work (e.g. the sentence Gone with the wind \"is a kind of\" film does not make sense), it indicates that you are talking about a particular instance and you should use instance of (P31).So what does this mean for us when we’re writing SPARQL queries? When we want to search for “all works of art”, it’s not enough to search for all items that are directly instances of “work of art”: SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31 wd:Q838948. # instance of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! As I’m writing this (October 2016), that query only returns 2,815 results – obviously, there are more works of art than that! The problem is that this misses items like Gone with the Wind, which is only an instance of “film”, not of “work of art”. “film” is a subclass of “work of art”, but we need to tell SPARQL to take that into account when searching.One possible solution to this is the [] syntax we talked about: Gone with the Wind is an instance of some subclass of “work of art”. (For exercise, try writing that query!) But that still has problems: We’re no longer including items that are directly instances of work of art. We’re still missing items that are instances of some subclass of some other subclass of “work of art” – for example, Snow White and the Seven Dwarfs is an animated film, which is a film, which is a work of art. In this case, we need to follow two “subclass of” statements – but it might also be three, four, five, any number really. The solution: ?item wdt:P31/wdt:P279* ?class. This means that there’s one “instance of” and then any number of “subclass of” statements between the item and the class. SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31/wdt:P279* wd:Q838948. # instance of any subclass of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (I don’t recommend running that query. WDQS can handle it (just barely), but your browser might crash when trying to display the results because there are so many of them.)Now you know how to search for all works of art, or all buildings, or all human settlements: the magic incantation wdt:P31/wdt:P279*, along with the appropriate class. This uses some more SPARQL features that I haven’t explained yet, but quite honestly, this is almost the only relevant use of those features, so you don’t need to understand how it works in order to use WDQS effectively. If you want to know, I’ll explain it in a bit, but you can also just skip the next section and memorize or copy+paste wdt:P31/wdt:P279* from here when you need it. Property paths [edit] In general, the path which connects the source-node (subject) to the target-node (object) through the graph is not always direct: one may have to concatenate zero, one or many links (segments, namely path elements) into a chain; and there may be several such paths (routes). The object of a path element in the chain becomes the subject of the next element. In SPARQL, Property paths are a way to very tersely write down such a path of properties between two items. The simplest path is just a single property, which forms an ordinary triple: ?item wdt:P31 ?class. You can add path elements with a forward slash (/). ?item wdt:P31/wdt:P279/wdt:P279 ?class. This is equivalent to either of the following: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Exercise: rewrite the “grandchildren of Bach” query from earlier to use this syntax.An asterisk (*) after a path element means “zero or more of this element”. """@en,
+    """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, the Wikidata Query Service, is a powerful tool to provide insight into Wikidata's content. This guide will teach you how to use it. See also the interactive tutorial by Wikimedia Israel.Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included. Contents 1 Before we start 2 SPARQL basics 3 Our first query 3.1 Autocompletion 4 Advanced triple patterns 5 Instances and classes 5.1 Property paths 6 Qualifiers 7 ORDER and LIMIT 7.1 Exercise 7.1.1 Arthur Conan Doyle books 7.1.2 Chemical elements 7.1.3 Rivers that flow into the Mississippi 7.1.4 Rivers that flow into the Mississippi II 8 OPTIONAL 9 Expressions, FILTER and BIND 9.1 Data types 9.2 Operators 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Grouping 10.1 City populations 10.2 Painting materials 10.3 Guns by manufacturer 10.4 Publishers by number of pages 10.4.1 HAVING 10.5 Aggregate functions summary 10.6 wikibase:Label and aggregations 11 VALUES 12 Label in multiple languages 13 And beyond… 14 See also Before we start While this guide may look very long and intimidating, please don’t let that scare you away! Just learning the SPARQL basics will get you a long way – even if you stop reading after #Our first query, you will already understand enough to construct many interesting queries. Each section of this tutorial will empower you to write even more powerful queries.If you have never heard of Wikidata, SPARQL, or WDQS before, here’s a short explanation of those terms: Wikidata is a knowledge database. It contains millions of statements, such as “the capital of Canada is Ottawa”, or “the Mona Lisa is painted in oil paint on poplar wood”, or “gold has a melting point of 1,064.18 degrees Celsius”. SPARQL is a language to formulate questions (queries) for knowledge databases. With the right database, a SPARQL query could answer questions like “what is the most popular tonality in music?” or “which character was portrayed by the most actors?” or “what’s the distribution of blood types?” or “which authors’ works entered the public domain this year?”. WDQS, the Wikidata Query Service, brings the two together: You enter a SPARQL query, it runs it against Wikidata’s dataset and shows you the result. SPARQL basics A simple SPARQL query looks like this: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} The SELECT clause lists variables that you want returned (variables start with a question mark), and the WHERE clause contains restrictions on them, mostly in the form of triples. All information in Wikidata (and similar knowledge databases) is stored in the form of triples; when you run the query, the query service tries to fill in the variables with actual values so that the resulting triples appear in the knowledge database, and returns one result for each combination of variables it finds.A triple can be viewed as two vertices (alias 2 nodes, 2 resources) connected by an edge (an arc, a property) inside the vast directed (oriented) property multigraph which forms Wikidata. It can be read like a sentence (which is why it ends with a period), with a subject, a predicate, and an object: SELECT ?fruit
+WHERE
+{
+  ?fruit hasColor yellow.
+  ?fruit tastes sour.
+} The results for this query could include, for example, “lemon”. In Wikidata, most properties are “has”-kind properties, so the query might instead read: SELECT ?fruit
+WHERE
+{
+  ?fruit color yellow.
+  ?fruit taste sour.
+} which reads like “?fruit has color ‘yellow’” (not “?fruit is the color of ‘yellow’” – keep this in mind for property pairs like “parent”/“child”!).However, that’s not a good example for WDQS. Taste is subjective, so Wikidata doesn’t have a property for it. Instead, let’s think about parent/child relationships, which are mostly unambiguous. Our first query Suppose we want to list all children of the baroque composer Johann Sebastian Bach. Using pseudo-elements like in the queries above, how would you write that query?Hopefully you got something like this: SELECT ?child
+WHERE
+{
+  #  child \"has parent\" Bach
+  ?child parent Bach.
+  # (note: everything after a ‘#’ is a comment and ignored by WDQS.)
+} or this, SELECT ?child
+WHERE
+{
+  # child \"has father\" Bach 
+  ?child father Bach. 
+} or this, SELECT ?child
+WHERE
+{
+  #  Bach \"has child\" child
+  Bach child ?child.
+} The first two triples say that the ?child must have the parent/father Bach; the third says that Bach must have the child ?child. Let’s go with the second one for now.So what remains to be done in order to turn this into a proper WDQS query? On Wikidata, items and properties are not identified by human-readable names like “father” (property) or “Bach” (item). (For good reason: “Johann Sebastian Bach” is also the name of a German painter, and “Bach” might also refer to the surname, the French commune, the Mercury crater, etc.) Instead, Wikidata items and properties are assigned an identifier. To find the identifier for an item, we search for the item and copy the Q-number of the result that sounds like it’s the item we’re looking for (based on the description, for example). To find the identifier for a property, we do the same, but search for “P:search term” instead of just “search term”, which limits the search to properties. This tells us that the famous composer Johann Sebastian Bach is Q1339, and the property to designate an item’s father is P:P22.And last but not least, we need to include prefixes. For simple WDQS triples, items should be prefixed with wd:, and properties with wdt:. (But this only applies to fixed values – variables don’t get a prefix!)Putting this together, we arrive at our first proper WDQS query: SELECT ?child
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+}
+ Try it! Click that “Try it” link, then “Run” the query on the WDQS page. What do you get? child wd:Q57225 wd:Q76428 … Well that’s disappointing. You just see the identifiers. You can click on them to see their Wikidata page (including a human-readable label), but isn’t there a better way to see the results?Well, as it happens, there is! (Aren’t rhetorical questions great?) If you include the magic text SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } somewhere within the WHERE clause, you get additional variables: For every variable ?foo in your query, you now also have a variable ?fooLabel, which contains the label of the item behind ?foo. If you add this to the SELECT clause, you get the item as well as its label: SELECT ?child ?childLabel
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Try running that query – you should see not only the item numbers, but also the names of the various children. child childLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach … Autocompletion That SERVICE snippet looks tough to remember though, right? And going through the search function all the time while you’re writing the query is also tedious. Fortunately, WDQS offers a great solution to this: autocompletion. In the query.wikidata.org query editor, you can press Ctrl+Space (or Alt+Enter or Ctrl+Alt+Enter) at any point in the query and get suggestions for code that might be appropriate; select the right suggestion with the up/down arrow keys, and press Enter to select it.For example, instead of writing out SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } every time, you can just type SERV, hit Ctrl+Space, and the first suggestion will be that complete label service incantation, ready for use! Just hit Enter to accept it. (The formatting will be a bit different, but that doesn’t matter.)And autocompletion can also search for you. If you type one of the Wikidata prefixes, like wd: or wdt:, and then just write text afterwards, Ctrl+Space will search for that text on Wikidata and suggest results. wd: searches for items, wdt: for properties. For example, instead of looking up the items for Johann Sebastian Bach (Q1339) and father (P22), you can just type wd:Bach and wdt:fath and then just select the right entry from the autocompletion. (This even works with spaces in the text, e.g. wd:Johann Sebastian Bach.) Advanced triple patterns So now we’ve seen all children of Johann Sebastian Bach – more specifically: all items with the father Johann Sebastian Bach. But Bach had two wives, and so those items have two different mothers: what if we only want to see the children of Johann Sebastian Bach with his first wife, Maria Barbara Bach (Q57487)? Try writing that query, based on the one above.Done that? Okay, then onto the solution! The simplest way to do this is to add a second triple with that restriction: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339.
+  ?child wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! In English, this reads: Child has father Johann Sebastian Bach. Child has mother Maria Barbara Bach. That sounds a bit awkward, doesn’t it? In natural language, we’d abbreviate this: Child has father Johann Sebastian Bach and mother Maria Barbara Bach. In fact, it’s possible to express the same abbreviation in SPARQL as well: if you end a triple with a semicolon (;) instead of a period, you can add another predicate-object pair. This allows us to abbreviate the above query to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! which has the same results, but less repetition in the query.Now suppose that, out of those results, we’re interested only in those children who were also composers and pianists. The relevant properties and items are occupation (P106), composer (Q36834) and pianist (Q486748). Try updating the above query to add these restrictions!Here’s my solution: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! This uses the ; abbreviation two more times to add the two required occupations. But as you might notice, there’s still some repetition. This is as if we said: Child has occupation composer and occupation pianist. which we would usually abbreviate as: Child has occupation composer and pianist. And SPARQL has some syntax for that as well: just like a ; allows you to append a predicate-object pair to a triple (reusing the subject), a , allows you to append another object to a triple (reusing both subject and predicate). With this, the query can be abbreviated to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Note: indentation and other whitespaces don’t actually matter – they just make it more readable. You can also write this as: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # both occupations in one line
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! or, rather less readable: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # no indentation; makes it hard to distinguish between ; and ,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Luckily, the WDQS editor indents lines for you automatically, so you usually don’t have to worry about this.Alright, let’s summarize here. We’ve seen that queries are structured like text. Each triple about a subject is terminated by a period. Multiple predicates about the same subject are separated by semicolons, and multiple objects for the same subject and predicate can be listed separated by commas. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Now I want to introduce one more abbreviation that SPARQL offers. So if you’ll humor me for one more hypothetical scenario…Suppose we’re not actually interested in Bach’s children. (Who knows, perhaps that’s actually true for you!) But we are interested in his grandchildren. (Hypothetically.) There’s one complication here: a grandchild may be related to Bach via the mother or the father. That’s two different properties, which is inconvenient. Instead, let’s flip the relation around: Wikidata also has a “child” property, P:P40, which points from parent to child and is gender-independent. With this information, can you write a query that returns Bach’s grandchildren?Here’s my solution: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?child.
+  ?child wdt:P40 ?grandChild.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! In natural language, this reads: Bach has a child ?child. ?child has a child ?grandChild. Once more, I propose that we abbreviate this English sentence, and then I want to show you how SPARQL supports a similar abbreviation. Observe how we actually don’t care about the child: we don’t use the variable except to talk about the grandchild. We could therefore abbreviate the sentence to: Bach has as child someone who has a child ?grandChild. Instead of saying who Bach’s child is, we just say “someone”: we don’t care who it is. But we can refer back to them because we’ve said “someone who”: this starts a relative clause, and within that relative clause we can say things about “someone” (e.g., that they “have a child ?grandChild”). In a way, “someone” is a variable, but a special one that’s only valid within this relative clause, and one that we don’t explicitly refer to (we say “someone who is this and does that”, not “someone who is this and someone who does that” – that’s two different “someone”s).In SPARQL, this can be written as: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?grandChild ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! You can use a pair of brackets ([]) in place of a variable, which acts as an anonymous variable. Inside the brackets, you can specify predicate-object pairs, just like after a ; after a normal triple; the implicit subject is in this case the anonymous variable that the brackets represent. (Note: also just like after a ;, you can add more predicate-object pairs with more semicolons, or more objects for the same predicate with commas.)And that’s it for triple patterns! There’s more to SPARQL, but as we’re about to leave the parts of it that are strongly analogous to natural language, I’d like to summarize that relationship once more: natural language example SPARQL example sentence Juliet loves Romeo. period juliet loves romeo. conjunction (clause) Romeo loves Juliet and kills himself. semicolon romeo loves juliet; kills romeo. conjunction (noun) Romeo kills Tybalt and himself. comma romeo kills tybalt, romeo. relative clause Juliet loves someone who kills Tybalt. brackets juliet loves [ kills tybalt ]. Instances and classes Earlier, I said that most Wikidata properties are “has” relations: has child, has father, has occupation. But sometimes (in fact, frequently), you also need to talk about what something is. But there are in fact two kinds of relations there: Gone with the Wind is a film. A film is a work of art. Gone with the Wind is one particular film. It has a particular director (Victor Fleming), a specific duration (238 minutes), a list of cast members (Clark Gable, Vivien Leigh, …), and so on.Film is a general concept. Films can have directors, durations, and cast members, but the concept “film” as such does not have any particular director, duration, or cast members. And although a film is a work of art, and a work of art usually has a creator, the concept of “film” itself does not have a creator – only particular instances of this concept do.This difference is why there are two properties for “is” in Wikidata: instance of (P31) and subclass of (P279). Gone with the Wind is a particular instance of the class “film”; the class “film” is a subclass (more specific class; specialization) of the more general class “work of art”.To help you to figure about the difference, you can try to use two different verbs: \"is a\" and \"is a kind of\". If \"is a kind of\" works (e.g. A film \"is a kind of\" work of art), it indicates that you are talking about a subclass, a specialization of a broader class and you should use subclass of (P279). If \"is a kind of\" does not work (e.g. the sentence Gone with the wind \"is a kind of\" film does not make sense), it indicates that you are talking about a particular instance and you should use instance of (P31).So what does this mean for us when we’re writing SPARQL queries? When we want to search for “all works of art”, it’s not enough to search for all items that are directly instances of “work of art”: SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31 wd:Q838948. # instance of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! As I’m writing this (October 2016), that query only returns 2,815 results – obviously, there are more works of art than that! The problem is that this misses items like Gone with the Wind, which is only an instance of “film”, not of “work of art”. “film” is a subclass of “work of art”, but we need to tell SPARQL to take that into account when searching.One possible solution to this is the [] syntax we talked about: Gone with the Wind is an instance of some subclass of “work of art”. (For exercise, try writing that query!) But that still has problems: We’re no longer including items that are directly instances of work of art. We’re still missing items that are instances of some subclass of some other subclass of “work of art” – for example, Snow White and the Seven Dwarfs is an animated film, which is a film, which is a work of art. In this case, we need to follow two “subclass of” statements – but it might also be three, four, five, any number really. The solution: ?item wdt:P31/wdt:P279* ?class. This means that there’s one “instance of” and then any number of “subclass of” statements between the item and the class. SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31/wdt:P279* wd:Q838948. # instance of any subclass of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (I don’t recommend running that query. WDQS can handle it (just barely), but your browser might crash when trying to display the results because there are so many of them.)Now you know how to search for all works of art, or all buildings, or all human settlements: the magic incantation wdt:P31/wdt:P279*, along with the appropriate class. This uses some more SPARQL features that I haven’t explained yet, but quite honestly, this is almost the only relevant use of those features, so you don’t need to understand how it works in order to use WDQS effectively. If you want to know, I’ll explain it in a bit, but you can also just skip the next section and memorize or copy+paste wdt:P31/wdt:P279* from here when you need it. Property paths In general, the path which connects the source-node (subject) to the target-node (object) through the graph is not always direct: one may have to concatenate zero, one or many links (segments, namely path elements) into a chain; and there may be several such paths (routes). The object of a path element in the chain becomes the subject of the next element. In SPARQL, Property paths are a way to very tersely write down such a path of properties between two items. The simplest path is just a single property, which forms an ordinary triple: ?item wdt:P31 ?class. You can add path elements with a forward slash (/). ?item wdt:P31/wdt:P279/wdt:P279 ?class. This is equivalent to either of the following: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Exercise: rewrite the “grandchildren of Bach” query from earlier to use this syntax.An asterisk (*) after a path element means “zero or more of this element”. """@en,
+    """This is a draft version of User:TweetsFactsAndQueries/A Guide To WDQS.  WDQS, the Wikidata Query Service, is an awesome tool to answer many questions you might have, and this guide will teach you how to use it. Contents 1 Before we start 2 SPARQL basics 3 Our first query 3.1 Autocompletion 4 Advanced triple patterns 5 Instances and classes 5.1 Property paths 6 Qualifiers 7 ORDER and LIMIT 8 Exercise 8.1 Arthur Conan Doyle books 8.2 Chemical elements 8.3 Rivers that flow into the Mississippi 8.4 Rivers that flow into the Mississippi II 9 OPTIONAL 10 Expressions, FILTER and BIND 10.1 Data types 10.2 Operators 10.3 FILTER 10.4 BIND, BOUND, IF 10.5 COALESCE 11 Grouping 11.1 City populations 11.2 Painting materials 11.3 Guns by manufacturer 11.4 Publishers by number of pages 11.4.1 HAVING 11.5 Aggregate functions summary 12 And beyond… Before we start [edit] This guide looks very long, perhaps intimidatingly so. Please don’t let that scare you away! SPARQL is complicated, but the simple basics will already get you a long way – if you want, you can stop reading after #Our first query, and you’ll already know enough to write many interesting queries. After that, the sections just add information about more topics that you can use to write different queries. Each of them will empower you to write even more awesome queries, but none of them are necessary – you can stop reading at any point and hopefully still walk away with a lot of useful knowledge!Also, if you’ve never heard of Wikidata, SPARQL, or WDQS before, here’s a short explanation of those terms: Wikidata is a knowledge database. It contains lots of statements, like “the capital of Canada is Ottawa”, or “the Mona Lisa is painted in oil paint on poplar wood”, or “gold has a thermal conductivity of 25.418 joule per mole kelvin”. SPARQL is a language to formulate questions (queries) for knowledge databases. With the right database, a SPARQL query could answer questions like “what is the most popular tonality in music?” or “which character was portrayed by the most actors?” or “what’s the distribution of blood types?” or “which authors’ works entered the public domain this year?”. WDQS, the Wikidata Query Service, brings the two together: You enter a SPARQL query, it runs it against Wikidata’s dataset and shows you the result. SPARQL basics [edit] A simple SPARQL query looks like this: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} The SELECT clause lists variables that you want returned (variables start with a question mark), and the WHERE clause contains restrictions on them, mostly in the form of triples. All information in Wikidata (and similar knowledge databases) is stored in the form of triples; when you run the query, the query service tries to fill in the variables with actual values so that the resulting triples appear in the knowledge database, and returns one result for each combination of variables it finds.A triple can be read like a sentence (which is why it ends with a period), with a subject, a predicate, and an object: SELECT ?fruit
+WHERE
+{
+  ?fruit hasColor yellow.
+  ?fruit tastes sour.
+} The results for this query could include, for example, “lemon”. In Wikidata, most properties are “has”-kind properties, so the query might instead read: SELECT ?fruit
+WHERE
+{
+  ?fruit color yellow.
+  ?fruit taste sour.
+} which reads like “?fruit has color ‘yellow’” (not “?fruit is the color of ‘yellow’” – keep this in mind for property pairs like “parent”/“child”!).However, that’s not a good example for WDQS. Taste is subjective, so Wikidata doesn’t have a property for it. Instead, let’s think about parent/child relationships, which are mostly unambiguous. Our first query [edit] Suppose we want to list all children of the baroque composer Johann Sebastian Bach. Using pseudo-elements like in the queries above, how would you write that query?Hopefully you got something like this: SELECT ?child
+WHERE
+{
+  # either this...
+  ?child parent Bach.
+  # or this...
+  ?child father Bach.
+  # or this.
+  Bach child ?child.
+  # (note: everything after a ‘#’ is a comment and ignored by WDQS.)
+} The first two triples say that the ?child must have the parent/father Bach; the third says that Bach must have the child ?child. Let’s go with the second one for now.So what remains to be done in order to turn this into a proper WDQS query? On Wikidata, items and properties are not identified by human-readable names like “father” (property) or “Bach” (item). (For good reason: “Johann Sebastian Bach” is also the name of a German painter, and “Bach” might also refer to the surname, the French commune, the Mercury crater, etc.) Instead, Wikidata items and properties are assigned an identifier. To find the identifier for an item, we search for the item and copy the Q-number of the result that sounds like it’s the item we’re looking for (based on the description, for example). To find the identifier for a property, we do the same, but search for “P:search term” instead of just “search term”, which limits the search to properties. This tells us that the famous composer Johann Sebastian Bach is Q1339, and the property to designate an item’s father is P:P22.And last but not least, we need to include prefixes. For simple WDQS triples, items should be prefixed with wd:, and properties with wdt:. (But this only applies to fixed values – variables don’t get a prefix!)Putting this together, we arrive at our first proper WDQS query: SELECT ?child
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+}
+ Try it! Click that “Try it” link, then “Run” the query on the WDQS page. What do you get? child wd:Q57225 wd:Q76428 … Well that’s disappointing. You just see the identifiers. You can click on them to see their Wikidata page (including a human-readable label), but isn’t there a better way to see the results?Well, as it happens, there is! (Aren’t rhetorical questions great?) If you include the magic text SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } somewhere within the WHERE clause, you get additional variables: For every variable ?foo in your query, you now also have a variable ?fooLabel, which contains the label of the item behind ?foo. If you add this to the SELECT clause, you get the item as well as its label: SELECT ?child ?childLabel
+WHERE
+{
+# ?child  father   Bach
+  ?child wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Try running that query – you should see not only the item numbers, but also the names of the various children. child childLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach … Autocompletion [edit] That SERVICE snippet looks tough to remember though, right? And going through the search function all the time while you’re writing the query is also tedious. Fortunately, WDQS offers a great solution to this: autocompletion. In the query.wikidata.org query editor, you can press Ctrl+Space at any point in the query and get suggestions for code that might be appropriate; select the right suggestion with the up/down arrow keys, and press Enter to select it.For example, instead of writing out SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } every time, you can just type SERV, hit Ctrl+Space, and the first suggestion will be that complete label service incantation, ready for use! Just hit Enter to accept it. (The formatting will be a bit different, but that doesn’t matter.)And autocompletion can also search for you. If you type one of the Wikidata prefixes, like wd: or wdt:, and then just write text afterwards, Ctrl+Space will search for that text on Wikidata and suggest results. wd: searches for items, wdt: for properties. For example, instead of looking up the items for Johann Sebastian Bach (Q1339) and father (P22), you can just type wd:Bach and wdt:fath and then just select the right entry from the autocompletion. (This even works with spaces in the text, e. g. wd:Johann Sebastian Bach.) Advanced triple patterns [edit] So now we’ve seen all children of Johann Sebastian Bach – more specifically: all items with the father Johann Sebastian Bach. But Bach had two wives, and so those items have two different mothers: what if we only want to see the children of Johann Sebastian Bach with his first wife, Maria Barbara Bach (Q57487)? Try writing that query, based on the one above.Done that? Okay, then onto the solution! The simplest way to do this is to add a second triple with that restriction: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339.
+  ?child wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! In English, this reads: Child has father Johann Sebastian Bach. Child has mother Maria Barbara Bach. That sounds a bit awkward, doesn’t it? In natural language, we’d abbreviate this: Child has father Johann Sebastian Bach and mother Maria Barbara Bach. In fact, it’s possible to express the same abbreviation in SPARQL as well: if you end a triple with a semicolon (;) instead of a period, you can add another predicate-object pair. This allows us to abbreviate the above query to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! which has the same results, but less repetition in the query.Now suppose that, out of those results, we’re interested only in those children who also were also composers and pianists. The relevant properties and items are occupation (P106), composer (Q36834) and pianist (Q486748). Try updating the above query to add these restrictions!Here’s my solution: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! This uses the ; abbreviation two more times to add the two required occupations. But as you might notice, there’s still some repetition. This is as if we said: Child has occupation composer and occupation pianist. which we would usually abbreviate as: Child has occupation composer and pianist. And SPARQL has some syntax for that as well: just like a ; allows you to append a predicate-object pair to a triple (reusing the subject), a , allows you to append another object to a triple (reusing both subject and predicate). With this, the query can be abbreviated to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Note: indentation and other whitespace doesn’t actually matter – I’ve just indented the query to make it more readable. You can also write this as: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # both occupations in one line
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! or, rather less readable: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # no indentation; makes it hard to distinguish between ; and ,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Luckily, the WDQS editor indents lines for you automatically, so you usually don’t have to worry about this.Alright, let’s summarize here. We’ve seen that queries are structured like text. Each triple about a subject is terminated by a period. Multiple predicates about the same subject are separated by semicolons, and multiple objects for the same subject and predicate can be listed separated by commas. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Now I want to introduce one more abbreviation that SPARQL offers. So if you’ll humor me for one more hypothetical scenario…Suppose we’re not actually interested in Bach’s children. (Who knows, perhaps that’s actually true for you!) But we are interested in his grandchildren. (Hypothetically.) There’s one complication here: a grandchild may be related to Bach via the mother or the father. That’s two different properties, which is inconvenient. Instead, let’s flip the relation around: Wikidata also has a “child” property, P:P40, which points from parent to child and is gender-independent. With this information, can you write a query that returns Bach’s grandchildren?Here’s my solution: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?child.
+  ?child wdt:P40 ?grandChild.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! In natural language, this reads: Bach has a child ?child. ?child has a child ?grandChild. Once more, I propose that we abbreviate this English sentence, and then I want to show you how SPARQL supports a similar abbreviation. Observe how we actually don’t care about the child: we don’t use the variable except to talk about the grandchild. We could therefore abbreviate the sentence to: Bach has as child someone who has a child ?grandChild. Instead of saying who Bach’s child is, we just say “someone”: we don’t care who it is. But we can refer back to them because we’ve said “someone who”: this starts a relative clause, and within that relative clause we can say things about “someone” (e. g., that he or she “has a child ?grandChild”). In a way, “someone” is a variable, but a special one that’s only valid within this relative clause, and one that we don’t explicitly refer to (we say “someone who is this and does that”, not “someone who is this and someone who does that” – that’s two different “someone”s).In SPARQL, this can be written as: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?grandChild ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! You can use a pair of brackets ([]) in place of a variable, which acts as an anonymous variable. Inside the brackets, you can specify predicate-object pairs, just like after a ; after a normal triple; the implicit subject is in this case the anonymous variable that the brackets represent. (Note: also just like after a ;, you can add more predicate-object pairs with more semicolons, or more objects for the same predicate with commas.)And that’s it for triple patterns! There’s more to SPARQL, but as we’re about to leave the parts of it that are strongly analogous to natural language, I’d like to summarize that relationship once more: natural language example SPARQL example sentence Juliet loves Romeo. period juliet loves romeo. conjunction (clause) Romeo loves Juliet and kills himself. semicolon romeo loves juliet; kills romeo. conjunction (noun) Romeo kills Tybalt and himself. comma romeo kills tybalt, romeo. relative clause Juliet loves someone who kills Tybalt. brackets juliet loves [ kills tybalt ]. Instances and classes [edit] Earlier, I said that most Wikidata properties are “has” relations: has child, has father, has occupation. But sometimes (in fact, frequently), you also need to talk about what something is. But there are in fact two kinds of relations there: Gone with the Wind is a film. A film is a work of art. Gone with the Wind is one particular film. It has a particular director (Victor Fleming), a specific duration (238 minutes), a list of cast members (Clark Gable, Vivien Leigh, …), and so on.Film is a general concept. Films can have directors, durations, and cast members, but the concept “film” as such does not have any particular director, duration, or cast members. And although a film is a work of art, and a work of art usually has a creator, the concept of “film” itself does not have a creator – only particular instances of this concept do.This difference is why there are two properties for “is” in Wikidata: instance of (P31) and subclass of (P279). Gone with the Wind is a particular instance of the class “film”; the class “film” is a subclass (more specific class; specialization) of the more general class “work of art”.So what does this mean for us when we’re writing SPARQL queries? When we want to search for “all works of art”, it’s not enough search for all items that are directly instances of “work of art”: SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31 wd:Q838948. # instance of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! As I’m writing this, that query only returns 2815 results – obviously, there are more works of art than that! The problem is that this misses items like Gone with the Wind, which is only an instance of “film”, not of “work of art”. “film” is a subclass of “work of art”, but we need to tell SPARQL to take that into account when searching.One possible solution to this is the [] syntax we talked about: Gone with the Wind is an instance of some subclass of “work of art”. (For exercise, try writing that query!) But that still has problems: We’re no longer including items that are directly instances of work of art. We’re still missing items that are instances of some subclass of some other subclass of “work of art” – for example, Snow White and the Seven Dwarfs is an animated film, which is a film, which is a work of art. In this case, we need to follow two “subclass of” statements – but it might also be three, four, five, any number really. The solution: ?item wdt:P31/wdt:P279* ?class. This means that there’s one “instance of” and then any number of “subclass of” statements between the item and the class. SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31/wdt:P279* wd:Q838948. # instance of any subclass of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! (I don’t recommend running that query. WDQS can handle it (just barely), but your browser might crash when trying to display the results because there’s so many of them.)Now you know how to search for all works of art, or all buildings, or all human settlements: the magic incantation wdt:P31/wdt:P279*, along with the appropriate class. This uses some more SPARQL features that I haven’t explained yet, but quite honestly, this is almost the only relevant use of those features, so you don’t need to understand how it works in order to use WDQS effectively. If you want to know, I’ll explain it in a bit, but you can also just skip the next section and memorize or copy+paste wdt:P31/wdt:P279* from here when you need it. Property paths [edit] Property paths are a way to very tersely write down a path of properties between two items. The simplest path is just a single property, which forms an ordinary triple: ?item wdt:P31 ?class. You can add path elements with a forward slash (/). ?item wdt:P31/wdt:P279/wdt:P279 ?class. This is equivalent to either of the following: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Exercise: rewrite the “grandchildren of Bach” query from earlier to use this syntax.An asterisk (*) after a path element means “zero or more of this element”. """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/en>,
+    <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/A_Guide_To_WDQS/Staging>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126482-wikidata_prefixes,
+    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126482-6B8F312685EE3C0F5593F882D7BE31B6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126482-E9186D5C14AD4D888F9021B4CA37C10F;
+  schema:target <https://query.wikidata.org/sparql/> .

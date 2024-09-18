@@ -1,0 +1,66 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-941d56f0f9d1d7a83aac81ceccd29046> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?propC2 ?propC2Label WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+  VALUES ?clase { wd:Q18618644 wd:Q18608359} # Propiedades sobre obras, sobre fuentes. No se incluye las de narrativa/ficción wd:Q29963999	wd:Q22984512
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+ORDER BY ?propC2Label""";
+  rdfs:comment """Para descubrir, de una vez por todas, todos los libros que hay en Wikipedia No es fácil precisar qué es un libro o qué es una obra literaria, teniendo en cuenta la diferencia entre obra-expresión-manifestación, las obras en series, los diferentes tipos de libros que se consideran obras literarias o meros libros funcionales o la diferencia entre ficción y no ficción... Contents 1 Ediciones sin obra 2 Propiedades ID 3 Propiedades para obras en el Cluster 2 4 Obras agregadas y obras con partes 5 Conexiones y referencias entre obras 6 Fecha de las obras 6.1 Todas las propiedades posibles de fecha 7 Vamos a extraer todas las subclases de Obra literaria 7.1 ¿Qué propiedades se usan para hacer declaraciones que apuntan a una clase como \"Obra literaria\"? 8 Consultas sobre clases y esquemas 8.1 Propiedades para describir cosas de un \"dominio\" 8.2 Clases de un dominio 8.3 Propiedades más usadas en un dominio 9 Profundizando en las obras literarias \"subclaseadas\" con artículos en Wikipedia 10 Evaluación de items subclasificados en obra literaria 11 Algoritmo de selección de items obra literaria en subclases 12 Recorrer taxonomía de clases 12.1 Consultando la ontología (Propiedades, clases) 12.1.1 Jerarquía de clases sobre BOSQUE (broad context) 12.1.2 Jerarquía de clases hasta BOSQUE (narrow context) 12.1.3 Versión con Graph Service 12.1.3.1 Árbol de subclases bajo BOSQUE (Traversal direction = Reverse) 12.1.3.2 Árbol de clases para BOSQUE (Traversal direction = Forward) 12.1.4 Grafo de vecindad de conceptos de la Pandamia COVID-19 12.1.5 Encontrar el camino desde una subclase a su superclase (target) con GAS Service Ediciones sin obra [edit] Wikidata usa grosso modo el modelo BibFrame que se centra en la Obra y la diferencia de su Expresión/Manifestación/Edición/Versión. Con esto hay que tener cuidado, porque en nuestro trabajo 2022 seguimos la pista de las obras, aunqu estén recogidas de forma diversa como libro, obra escrita u obra literaria, o cualquiera de sus clases, pero convendría comprobar las ediciones/traducciones, en el caso de que no tengan obra asociada. Esto es la propiedad P747. Por ejemplo, Don Quijote (Q480) tiene declaradas un puñado de ediciones a través de la propiedad P747, donde se refleja su historia editorial, a través de las ediciones históricas más destacadas. Se usa sobre todo en ese sentido de ediciones destacables, y no para obras actuales; En \"Las uvas de la ira\" (Q215983) no aparece, y para \"El nombre de la rosa\" (Q172850) se recogen tres traducciones.Por lo tanto encontramos un considerable número de elementos que son ediciones (P31 = Q3331189), en total 183.329 ediciones. Sin embargo solo 76.756 proceden de una obra, por lo que hay 109.059 ediciones descritas sin los dos niveles Obra/Expresión necesarios. SELECT ?edicion?edicionLabel WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } } Aunque hay que tener en cuenta que algunas de estas ediciones también están declaradas al mismo tiempo para varias clases, por ejemplo, como \"Obra literaria\". Hay, por tanto, 100.295 ediciones \"puras\", y 8.764 elementos que mezclan clases y queu seguramente puedan salir al recuperar por otras clases adecuadas para obras. SELECT ?edicion (COUNT(?tipo) as ?num) WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  ?edicion wdt:P31 ?tipo
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+Group by ?edicion
+HAVING (?num = 1) Pero de estas cien mil \"ediciones sin obra\", solo 396 tienen artículo en alguna Wikipedia, por lo que son candidatas a estudiarse junto a las obras, puesto que tienen señales de relevancia enciclopédica. SELECT ?edicion (COUNT(?tipo) as ?num) (COUNT(?article) as ?sitelinks) WHERE { 
+  ?edicion wdt:P31 wd:Q3331189. # Elementos del tipo edición/traducción
+  ?edicion wdt:P31 ?tipo
+  MINUS {?obra wdt:P747 ?edicion } # Obras que tienen edición/traducción
+  ?article schema:about ?edicion .
+  FILTER (CONTAINS(str(?article),'wikipedia'))
+  #SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". } 
+}
+Group by ?edicion
+HAVING (?num = 1) Pero los podemos considerar irrelevantes, porque ninguno aparece en más de una Wikipedia. Algunos de estos elementos son versiones de software o juevos. Propiedades ID [edit] Para obtener las propiedades identificador, no hace falta consultar la taxonomía de clases para propiedades, a través de su P31. Es un tipo específico de propiedad en la ontología wikibase (PREFIX wikibase: <http://wikiba.se/ontology#>). Salen 6814. SELECT * WHERE { 
+   ?prop_id wikibase:propertyType ?pt .
+   FILTER (CONTAINS(str(?pt),'ExternalId'))  
+ }
+ Try it! De paso, si queremos todas las propiedades con sus labels, alias y descripciones .. PREFIX bd: <http://www.bigdata.com/rdf#> 
+PREFIX schema: <http://schema.org/> 
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+PREFIX wikibase: <http://wikiba.se/ontology#> 
+
+SELECT ?p ?pt ?pLabel ?d ?aliases WHERE {
+  {
+    SELECT ?p ?pt ?d 
+              (GROUP_CONCAT(DISTINCT ?alias; separator=\"
+ Try it! Pero, atención, los ID pueden ser tanto identificadores externos como meramente strings. Y las propiedades string no siempre son identificadores (fecha, ...) Propiedades para obras en el Cluster 2 [edit] Las propiedades usadas para describir obras se clasifican en la clase Q18618644 \"propiedad de Wikidata para elementos sobre obras\", que se subdivide en bastantes subclases y además también hay otras usadas. La exploración de las 25 propiedades más usadas en el Cluster 2, que recoge unas 2300 obras con cierta notoriedad, nos indica que las propiedades son 16 casos son \"Propiedades sobre obras\" y en 9 \"Propiedaes sobre fuentes\" (Teniendo en cuenta que una propiedad puede pertenecer a varias clases). El resto de clases no son específicas del dominio biliográfico, excepto dos propiedades clasificadas como \"propiedad de Wikidata relativa a obras de ficción\" y \"propiedad de Wikidata relativa a datos narrativos\" que podrían ser interesante en el caso específico de la narrativa. Clases de las propiedades de obras del C2 SELECT ?clase ?claseLabel (COUNT(?clase) AS ?num) WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+GROUP BY ?clase ?claseLabel
+ORDER BY DESC(?num) Propiedades y sus clases de las obras del C2 SELECT ?propC2 ?propC2Label ?clase ?claseLabel WHERE {
+  #Top 25 propiedades C2
+  VALUES ?propC2 { <http://www.wikidata.org/entity/P407> <http://www.wikidata.org/entity/P50> <http://www.wikidata.org/entity/P1476> <http://www.wikidata.org/entity/P136> <http://www.wikidata.org/entity/P577> <http://www.wikidata.org/entity/P495> <http://www.wikidata.org/entity/P7937> <http://www.wikidata.org/entity/P18> <http://www.wikidata.org/entity/P6216> <http://www.wikidata.org/entity/P747> <http://www.wikidata.org/entity/P123> <http://www.wikidata.org/entity/P4969> <http://www.wikidata.org/entity/P571> <http://www.wikidata.org/entity/P840> <http://www.wikidata.org/entity/P156> <http://www.wikidata.org/entity/P674> <http://www.wikidata.org/entity/P155> <http://www.wikidata.org/entity/P921> <http://www.wikidata.org/entity/P179> <http://www.wikidata.org/entity/P910> <http://www.wikidata.org/entity/P1889> <http://www.wikidata.org/entity/P1922> <http://www.wikidata.org/entity/P1433> <http://www.wikidata.org/entity/P291> <http://www.wikidata.org/entity/P3132>  }
+   ?propC2 wdt:P31 ?clase #wd:Q18618644 .
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\" }
+}
+ORDER BY ?claseLabel Por lo tanto, podrían ser propiedades candidatas a usarse como factor de corrección (alza, como en PageRank) las 18 propiedades del Top 25 del Cluster 2, que sean de las clases Obras y Fuentes. """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Tsaorin/Obrasliterarias>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dbe17ac9b0426ed39e543d8095ec26a8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """select distinct ?item ?subjectCode ?itemLabel ?pm20Folder
+where {
+  ?item wdt:P31 wd:Q91257459 ;
+        wdt:P4293 ?folderId ;
+        wdt:P1269 ?country ;
+        wdt:P921 ?subjectCategory .
+  ?country wdt:P8483 ?geoCode .
+  ?subjectCategory wdt:P8484 ?subjectCode .
+  
+  # construct URI for folder access
+  bind(uri(concat('http://purl.org/pressemappe20/folder/', ?folderId)) as ?pm20Folder)
+  
+  # TODO create sort order by serial ordinal
+                                                      
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+order by ?geoCode ?subjectCode""";
+  rdfs:comment "Properties: instance of (P31)   , PM20 folder ID (P4293)   , facet of (P1269)   , main subject (P921)   , PM20 geo code (P8483)   , PM20 subject code (P8484)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

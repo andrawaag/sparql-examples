@@ -1,0 +1,114 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e833635f4f7283fc17baecbcc4251520> a sh:SPARQLExecutable;
+  rdfs:comment """Babel user information hu-N Ennek a szerkesztőnek magyar az anyanyelve. en-3 This user has advanced knowledge of English. de-1 Dieser Benutzer beherrscht Deutsch auf grundlegendem Niveau. es-1 Este usuario tiene un conocimiento básico del español. nl-1 Deze gebruiker heeft elementaire kennis van het Nederlands. ru-1 Этот участник владеет русским языком на начальном уровне. Users by language Userboxes This user has created a global account. Máté's main account is on Wikipedia. This user has created a global account. Matthew Beta's main account is on Wikipedia. This user has rollback rights on Wikidata. (verify) Hi! I'm Máté (pronounced [ˈmaːteː]) a researcher (Q1650915) from Hungary (Q28). I studied international business (Q3681519) & entrepreneurship (Q3908516) at Corvinus University of Budapest (Q851164) (BA), history of film (Q107478) & film theory (Q28793) major with editing (Q194105) minor at Eötvös Loránd University (Q390287) (BLA), and cultural economics (Q1791932) & entrepreneurship (Q3908516) at Erasmus University Rotterdam (Q633529) (MA). I have worked in market research (Q913709) and risk management (Q189447). Proposed properties [edit] PORT film ID (P905) Box Office Mojo film ID (former scheme) (P1237) Rotten Tomatoes ID (P1258) NMHH film rating (P2363) PORT person ID (P2435) NAVA ID (P2475) MTMT author ID (P2492) OM institution ID (P2493) Box Office Mojo franchise ID (former scheme) (P2530) Box Office Mojo studio ID (archived) (P2531) production designer (P2554) Hungarian company ID (P2619) MEK ID (P2623) BBFC rating (P2629) rating certificate ID (P2676) Kijkwijzer rating (P2684) Hungarian-style transcription (P2719) Filmiroda rating (P2747) film crew member (P3092) ISzDb film ID (P3110) ISzDb person ID (P3114) ISzDb company ID (P3115) ISzDb dub ID (P3116) NSZL name authority ID (P3133) Australian Classification (P3156) ClassInd rating (P3216) HAS member ID (P3226) PORT organization URL (P3268) ICAA rating (P3306) CNC film rating (Romania) (P3402) INCAA film rating (P3428) JMK film rating (P3650) KMRB film rating (P3818) RTC film rating (P3834) LUMIERE film ID (P4282) LUMIERE director ID (P4283) FPB rating (P4437) MAVISE TV channel ID (P4676) MAVISE on-demand audiovisual service ID (P4677) MAVISE competent authority ID (P4678) MAVISE company ID (P4679) ICAA film catalogue ID (P5128) IGAC rating (P5150) KAVI rating (P5152) IMDA rating (P5201) editor-in-chief (P5769) image of interior (P5775) Medierådet rating (P5970) CBFC rating (P6452) OSZMI ID (P6796) OFLC classification (P7327) IFCO rating (P7573) type of age limit (P8241) Netflix maturity rating (P8652) ClassInd game ID (P8782) MTRCB rating (P8889) ClassInd audiovisual work ID (P8958) Hungarian Film Archive ID (P9067) BAMID film rating (P9086) izeltlabuak.hu ID (P9839) Queries [edit] # musicals and rock operas first performed in Hungary with the list of authors
+SELECT DISTINCT ?musical ?musicalLabel ?premieredate ?premiereplaceLabel
+(GROUP_CONCAT(DISTINCT(?author); separator=\" – \") as ?authors)
+WHERE {
+  { ?musical wdt:P31/wdt:P279* wd:Q2743 . }
+  UNION
+  { ?musical wdt:P31/wdt:P279* wd:Q253137 . }
+  ?musical p:P1191 [
+    ps:P1191 ?premieredate;
+    pq:P276 ?premiereplace
+  ] .
+  ?premiereplace wdt:P131+ wd:Q28
+  OPTIONAL { ?musical (wdt:P86|wdt:P676|wdt:P87)/rdfs:label ?author FILTER (lang(?author) = \"hu\") . }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"hu\" .
+  }
+} GROUP BY ?musical ?musicalLabel ?premieredate ?premiereplaceLabel ORDER BY ASC(?premieredate)
+ Try it! # ratings of Hungarian films
+SELECT DISTINCT ?film ?filmLabel ?ratingLabel ?age ?countryLabel
+WHERE {
+  [] wdt:P31/wdt:P279* wd:Q24716199; wikibase:directClaim ?p .
+  ?film wdt:P31/wdt:P279* wd:Q11424;
+        wdt:P495 wd:Q28;
+        ?p ?rating .
+  ?rating wdt:P2899 ?age; wdt:P31/wdt:P361/wdt:P17 ?country .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"hu,en\" .
+  }
+} ORDER BY ?filmLabel ?countryLabel
+ Try it! # Russian film titles without Hungarian transcriptions
+SELECT ?film ?filmLabel ?title
+WHERE {
+  ?film wdt:P31/wdt:P279* wd:Q11424;
+        p:P1476 ?s .
+  ?s ps:P1476 ?title .
+  MINUS { ?s pq:P2719 [] . }
+  FILTER ( lang(?title) = \"ru\" ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"hu\" . }
+}
+ Try it! # same-sex supercouples
+SELECT DISTINCT ?item ?itemLabel ?workLabel ?sexLabel
+WHERE {
+  ?item wdt:P31 wd:Q1274180;
+        wdt:P527 ?one, ?two . FILTER ( ?one != ?two )
+  ?one wdt:P21 ?sex . ?two wdt:P21 ?sex .
+  OPTIONAL { ?item wdt:P1441 ?work . }
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! # languages qualifier Hungarian-style transcription (P2719) is used with by number of statements, identified by their Hungarian labels
+SELECT ?lang (COUNT(?v) AS ?num)
+WHERE {
+  [] #wikibase:propertyType wikibase:Monolingualtext;
+     wikibase:statementProperty ?ps .
+  ?v pq:P2719 ?trans; ?ps ?text .
+  BIND (lang(?text) AS ?wmlc) .
+  OPTIONAL { [] wdt:P424 ?wmlc; wdt:P31 wd:Q34770; rdfs:label ?lang .
+            FILTER (lang(?lang) = \"hu\") . }
+} GROUP BY ?lang ORDER BY DESC(?num)
+ Try it! Distribution of ratings SELECT ?label (count(?film) AS ?count)
+WHERE {
+  [] wdt:P31/wdt:P279* wd:Q24716199; wikibase:directClaim ?p .
+  ?film wdt:P31/wdt:P279* wd:Q11424; ?p [ wdt:P2899 ?age ] .
+  BIND(IF( 0 <= ?age && ?age < 3, \"00-02\",
+          IF( 3 <= ?age && ?age < 6, \"03-05\",
+             IF( 6 <= ?age && ?age < 9, \"06-08\",
+                IF( 9 <= ?age && ?age < 12, \"09-11\",
+                   IF( 12 <= ?age && ?age < 15, \"12-14\",
+                      IF( 15 <= ?age && ?age < 18, \"15-17\",
+                         IF( 18 <= ?age, \"18+\", \"\" ) ) ) ) ) ) )
+       AS ?label)
+} GROUP BY ?label ORDER BY ASC(?label)
+ Try it! SELECT ?label (count(?film) AS ?count)
+WHERE {
+  [] wdt:P31/wdt:P279* wd:Q24716199; wikibase:directClaim ?p .
+  ?film wdt:P31/wdt:P279* wd:Q11424; ?p [ wdt:P2899 ?age ] .
+  BIND(IF( 0 <= ?age && ?age < 6, \"00-05\",
+          IF( 6 <= ?age && ?age < 12, \"06-11\",
+             IF( 12 <= ?age && ?age < 18, \"12-17\",
+                IF( 18 <= ?age, \"18+\", \"\" ) ) ) )
+       AS ?label)
+} GROUP BY ?label ORDER BY ASC(?label)
+ Try it! SELECT ?film (count(distinct ?p) AS ?numberOfRatingProperties)
+WHERE {
+  [] wdt:P31/wdt:P279* wd:Q24716199; wikibase:claim ?p .
+  ?film wdt:P31/wdt:P279* wd:Q11424; ?p []
+} GROUP BY ?film ?filmLabel ORDER BY DESC(?numberOfRatingProperties) LIMIT 10
+ Try it! #check for RTC ratings with the same rating ID
+SELECT ?item1 ?item2
+WHERE {
+  ?item1 p:P3834 [ pq:P2676 ?r ] .
+  ?item2 p:P3834 [ pq:P2676 ?r ] .
+  FILTER ( ?item1 != ?item2 )
+}
+ Try it! #FSK ratings with source URL but no Prüfnummer
+SELECT * WHERE {
+  ?item p:P1981 ?s.
+  ?s prov:wasDerivedFrom/pr:P854 ?source.
+  MINUS { ?s pq:P2676 [] }
+  FILTER(CONTAINS(STR(?source), \"fsk.de\"))
+}
+ Try it! Icon of Hungarian film rating (?hun) """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:M%C3%A1t%C3%A9>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

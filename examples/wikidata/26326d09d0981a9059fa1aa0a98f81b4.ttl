@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-26326d09d0981a9059fa1aa0a98f81b4> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT
+  ?item ?itemLabel ?itemDescription 
+  (SAMPLE(?d) as ?d) (SAMPLE(?tp) as ?tp) 
+  (GROUP_CONCAT(DISTINCT ?an; separator=\", \") as ?ann) (GROUP_CONCAT(DISTINCT ?al; separator=\", \") as ?all) 
+WHERE
+{
+	?item wdt:P921 wd:Q637866 ; wdt:P31 wd:Q13442814 
+    OPTIONAL { ?item p:P577 / psv:P577 [ wikibase:timeValue ?d ; wikibase:timePrecision ?tp ] }
+	OPTIONAL { ?item wdt:P2093 ?an } 
+    OPTIONAL { ?item wdt:P50 / rdfs:label ?al . FILTER( lang(?al)=\"en\" ) }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+GROUP BY ?item ?itemLabel ?itemDescription
+ORDER BY DESC(?d)""";
+  rdfs:comment """Contents 1 Maintenance queries 1.1 count number of book reviews 1.2 find more book reviews 1.3 find more book reviews (cont) 2 Reference queries 2.1 articles about book reviews 2.2 articles about ISBN 3 Discussion Maintenance queries [edit] count number of book reviews [edit] SELECT (COUNT(*) as ?ct)  WHERE { ?item wdt:P136 wd:Q637866 ; wdt:P31 wd:Q13442814 }
+ Try it! SELECT (COUNT(*) as ?ct)  WHERE { ?item wdt:P136 wd:Q637866 }
+ Try it! find more book reviews [edit] SELECT DISTINCT ?item ?itemLabel ?title (\"P??\" as ?pr) (\"Q637866\" as ?value)
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\\\"book review\\\" haswbstatement:P31=Q13442814 -haswbstatement:P921=Q33057 -haswbstatement:P921=Q637866 -haswbstatement:P136=Q637866  -haswbstatement:P31=Q637866  -haswbstatement:P6977\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! One may want to differentiate: genre (P136) = book review (Q637866) - a book review. Use review of (P6977) to link to the item about the work being reviewed main subject (P921) = book review (Q637866) - a work about book reviews named after (P138) = book review (Q637866) - something that is called \"book review\", but isn't necessarily the review of a book find more book reviews (cont) [edit] SELECT DISTINCT ?item ?itemLabel ?title (\"P??\" as ?pr) (\"Q637866\" as ?value)
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"ISBN haswbstatement:P31=Q13442814 -haswbstatement:P921=Q33057 -haswbstatement:P921=Q637866 -haswbstatement:P136=Q637866  -haswbstatement:P31=Q637866  -haswbstatement:P6977\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! One may want to differentiate: genre (P136) = book review (Q637866) - a book review. Use review of (P6977) to link to the item about the work being reviewed main subject (P921) = International Standard Book Number (Q33057) - a work about ISBN Reference queries [edit] articles about book reviews [edit] Items used: book review (Q637866)   , scholarly article (Q13442814)   Properties used: main subject (P921)   , instance of (P31)   , author name string (P2093)   , author (P50)   , publication date (P577)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q637866>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

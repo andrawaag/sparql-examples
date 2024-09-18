@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7a3b2b373e7b4d9362c123da28d804fb> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS' gränssnitt Tooltips when hovering SPARQL code WDQS urval av visningsresultat Länk till visa skript i WDQS-resultatruta efter ett Testa Denna sida beskriver WDQS' gränssnitt och ska hjälp dig förstå de olika möjligheterna att visa resultat i SPARQL-frågetjänsten. Sidan sökfrågeexempel kan innehålla många bra exempel du kan leka med!Öppna WDQS' gränssnitt och: välj ditt språk i i den övre verktygsraden. ange en giltig SPARQL-kod i textinrådet. check your script by hovering the elements with your mouse; tooltips appear and should be consistent with what you intend to do. They adopt the language you have selected (default to english). Klicka sedan på den blåa knappen Kör sökfråga i sidospalten för att köra din begäran. En röd ruta lyser i sidorutan medan kommandet körs. Efter att du kört en sökfråga kan du välja i \"Visa\"-formaten hur du vill att resultaten ska visas. Olika visningslägen är tillgängliga beroende på din sökfråga och datatyp. Exempel på källa # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Obs: Du kan också köra en hårdkodad begäran direkt via TryIt-länkarna på den här sidan. När det tar dig direkt till resultatsvisningen kan du alltid gå tillbaka till källskriptet med länken längst ner i gränssnittet. Contents 1 Tabell (standard) 2 Bildrutnät 2.1 Alternativ 3 Kartor 3.1 Alternativ 4 Linje-, stapel-, spridnings- och områdesdiagram 5 Bubbeldiagram 6 Träkarta 7 Träd 8 Tidslinje 8.1 Alternativ 9 Dimensioner 10 Graf 11 Ytterligare information 11.1 RDF-datatyp-kartläggning 11.2 Formatering 11.3 Mobil / responsiv 11.4 Inbäddat läge 11.5 Ladda ner resultat 11.6 Standardvisning 11.7 Resultatvisningsalternativ 11.8 Titel 11.9 Lista över WDQS-taggar 11.10 Automatiskt språk 11.11 Automatiska koordinater Tabell (standard) Visar resultaten som en tabell. Det är 'standardläge för att visa resultat och kan visa alla datatyper.Kommer kartlägga alla variabler från SPARQL-select-klausulerna till en formaterad tabellkolumn. Tabellresultat Tabellresultat på små skärmar med omvända kolumner  Bildrutnät Bildrutnät Testa detVisar resultatdatan som ett rutnät med bilder i.Alla rutnät har en stor bild och öppnar galleriet när man klickar på det.Innehåller ett objekt med formaterad raddata. Variabel Datatyp Kartläggning Beskrivning * Media på Commons Rutnätsobjekt Bildkolumner kommer skapa ett rutnätsobjekt. Rader som inte innehåller några bilder ignoreras.Det går dock att inte inkludera några bildrader i resultatet genom att modifiera sparql genom att inkludera en standardbild ifall bildvariabeln inte binds: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/sv>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

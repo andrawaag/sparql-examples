@@ -1,0 +1,230 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f5ac0387c802ddf7788891a025a41429> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT DISTINCT ?item WHERE {
+  ?item ?label \"Hartmann von Aue\".
+  ?item wdt:P31 wd:Q5.
+}""";
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 P40 without adopted children and their offspring? 2 Select by qualifier value 3 Women born BCE 4 More higher 5 Items with property quote 6 BLfD-ID and no P18 7 Wikipedia articles categorized in a Wikiproject 8 All national wildlife areas of Canada in Quebec 9 Ottoman Sultans and their Grand Viziers 10 format got URL as an external link 11 Fixing descriptions with a certain error 12 Can't query some labeled items 13 Integer numbers, sorted by (thresholded) number of times they appear as values in statements 14 Simple tree of upper ontology? 15 village (Q532) and India (Q668) 16 Papers with the most authors 17 qualifiers used with significant event (P793) 18 List of all scientific articles with a PMCID and a title with a trailing asterisk and a dot (*.) 19 Getting the list of taxa described by a given taxonomist, or more generally by the people of an insitution (or a country) 20 All items with multiple instances of same statement 21 Most common title of paintings 22 Scientific Journals with more than 3 stated ISSNs 23 Bengali Wikipedia articles with no Wikidata statement 24 Pedido para agregar información en la mini base de datos de Q6152160 (Jane Duncan) 25 Number of items with at least one Wikipedia page 26 Optimization needed for artist dupe detection 27 Country name in a given language & in Bengali P40 without adopted children and their offspring? SELECT * { wd:Q658061 wdt:P40+ ?item }
+ Try it! Any idea how I could get children and grandchildren without adopted children and their descendants, e.g. Q63014#P40. --- Jura 06:06, 27 February 2018 (UTC) This question of trying to do a path query, but with the links subject to a qualifier test, is similar to the question I had above, in #Virtual_graph_?. There is in general no way to write that kind of test into the path statement. You can get a result which is close to what you are looking for here with SELECT * { 
+   wd:Q658061 wdt:P40+ ?item.
+   MINUS {
+     wd:Q658061 wdt:P40* ?adoptee_parent.
+     ?adoptee_parent p:P40 ?stmt .
+     ?stmt pq:P1039 wd:Q25858158 .
+     ?stmt ps:P40 ?adoptee .
+     ?adoptee wdt:P40* ?item .
+  }
+}
+ Try it! But this does exclude descendants who have multiple lines back to the top of the tree, if any one of those lines was adoptive. (That case, of multiple lines, could perhaps also be queried for). Of course, if you're only interested in looking down to a finite depth, eg grandchildren, in that case you could make an explicit join for each generation, including an adoptiveness test, rather than using the path query. Jheald (talk) 11:06, 27 February 2018 (UTC) Thanks. Actually, I started out with Sophia of Hanover (Q57224) and tried to do infinite depth. It's likely that there would be multiple lines back. Normally any living, non-Catholic, non-adoptee descendants are on the line of succession. Maybe gas:service needs a more detailed option than gas:linkType wdt:P40 . --- Jura 11:16, 27 February 2018 (UTC) An in-house addition to the existing GAS programs that allowed the presence or absence of a particular triple (or triples?) to be tested for on each link would also solve my #Virtual_graph_? tube line example above. The question I suppose is how often this kind of issue comes up, to make it worth the exploration. But perhaps we could ask User:Smalyshev (WMF) whether he thinks a GAS subroutine modified in this way could be feasible? Jheald (talk) 13:26, 27 February 2018 (UTC) Maybe GAS can already do it. If not, we might need to scale back on the use of qualifiers. --- Jura 17:03, 27 February 2018 (UTC) So if I understand right what you're asking for, you're asking for BFS implementation that can apply certain conditions to nodes as it is traversing. This looks like something that GAS should be able to do, however I do not think any existing GAS program currently does that. I think it is possible to implement one, though not sure what the performance would be. If we just check against the index (i.e. just one hop for each vertex) then it is just index lookup and might be OK. More complex joins might be more problematic. In any case, this would probably require developing a new GAS class. So if you think it is helpful, please submit Phabricator task with examples of problems it would solve. Smalyshev (WMF) (talk) 01:00, 1 March 2018 (UTC) Select by qualifier value I need a list of items with P528 where its qualifier P972 = Q20102343. It must show the Q, label/page (for CA), P625, the selected P528 and its qualifiers P585 and P973. Thanks, Amadalvarez (talk) 06:53, 1 March 2018 (UTC) Sounds like this: SELECT ?item ?itemLabel ?coordinates ?catalogCode ?pointInTime ?describedAtUrl WHERE {
+  ?item p:P528 [ ps:P528 ?catalogCode; pq:P972 wd:Q20102343; pq:P585 ?pointInTime; pq:P973 ?describedAtUrl ] .
+  OPTIONAL { ?item wdt:P625 ?coordinates }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'ca,[AUTO_LANGUAGE]' }
+}
+ Try it! —MisterSynergy (talk) 07:54, 1 March 2018 (UTC) @ MisterSynergy:. Thanks a lot. Easier that I imagine !. However, why it does'nt show Q11236 ? the only difference I can see is that P972 is not the first qualifier. Amadalvarez (talk) 09:59, 1 March 2018 (UTC) @Amadalvarez: For Biure (Q11236) there is no described at URL (P973) for the catalog code (P528), see this query SELECT ?item ?itemLabel ?coordinates ?catalogCode ?pointInTime ?describedAtUrl WHERE {
+  ?item p:P528 ?p528stm .
+  ?p528stm ps:P528 ?catalogCode;
+           pq:P972 wd:Q20102343.
+  OPTIONAL { ?p528stm pq:P585 ?pointInTime }
+  OPTIONAL { ?p528stm pq:P973 ?describedAtUrl }
+  OPTIONAL { ?item wdt:P625 ?coordinates }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'ca,[AUTO_LANGUAGE]' }
+}
+ Try it! --Larske (talk) 10:34, 1 March 2018 (UTC) @Larske: This is correct !. The only qualifiers mandatory is P972 because contains the catàlog to select. The others qualifiers are optional. Thanks !Amadalvarez (talk) 11:12, 1 March 2018 (UTC) Women born BCE Hi! I am looking for women who are born BCE and have no sitelink to dewiki. Can anybody help? Thank you, Doc Taxon (talk) 07:41, 1 March 2018 (UTC) SELECT ?item WHERE {
+  ?item wdt:P569 ?dob; wdt:P21 wd:Q6581072; wdt:P31 wd:Q5 .
+  MINUS { ?item ^schema:about/schema:isPartOf <https://de.wikipedia.org/> }
+  FILTER(YEAR(?dob) < 0) .
+}
+ Try it! —MisterSynergy (talk) 08:02, 1 March 2018 (UTC) More higher With this query I have the lis of all the chess player with ELO > 2700, The problem is that are reported more rows for item. I need only the most recent higher ELO or the oldest higher ELO is feasible? (regardless of rank.) SELECT distinct ?item ?itemLabel ?elo ?date WHERE {
+  ?item wdt:P1087 ?elo .
+  FILTER(?elo > 2700)
+  optional {?item p:P1087 ?statement .}
+  optional {?statement pq:P585 ?date .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --ValterVB (talk) 18:19, 1 March 2018 (UTC) Slightly trickier than I thought it was going to be, because I originally thought it was possible to use GROUP BY and then LIMIT 1 to return only one row from each group... but it turns out LIMIT doesn't work that way. However, I think the following query does what you want: SELECT distinct ?item ?itemLabel ?elo ?date WITH {
+  SELECT ?item ?stmt ?elo ?date WHERE {
+     ?item p:P1087 ?stmt .
+     ?stmt ps:P1087 ?elo .
+     FILTER(?elo > 2700)
+     optional {?stmt pq:P585 ?date }
+  }
+} AS %elo
+
+WHERE {
+  {
+    SELECT ?item (MAX(?date) AS ?date) WHERE {
+       INCLUDE %elo .
+    } GROUP BY ?item 
+  }
+  INCLUDE %elo .   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! This returns players with ELOs over 2700. If there are multiple ELOs for a player, it returns the most recent one that is over 2700. That might not be the current ELO, if their ELO has since fallen. But I think this is what you were asking for. Jheald (talk) 19:02, 1 March 2018 (UTC) Change MAX() to MIN() to give the earliest date and score over 2700. Jheald (talk) 19:12, 1 March 2018 (UTC) Perfect, this is exactly what I need. Thanks --ValterVB (talk) 20:28, 1 March 2018 (UTC) Items with property quote How do I get all items with the property Property:P1683? Vishvas vasuki (talk) 16:31, 2 March 2018 (UTC) Found the solution thanks to https://stackoverflow.com/questions/36523546/wikidata-query-find-items-where-property-exists : Try it here. Vishvas vasuki (talk) 03:43, 3 March 2018 (UTC) BLfD-ID and no P18 Hello! I am looking for all the entities who have a Bavarian monument authority ID (P4244) of D-5-64-000-\\d{1,9999} and have no image (P18). How can I do this? Doc Taxon (talk) 18:07, 3 March 2018 (UTC) ... or Bavarian monument authority ID (P4244) beginning with D-5-64-000- SELECT distinct ?item ?itemLabel ?BavNo WHERE {
+  ?item wdt:P4244 ?BavNo .                     # item has a P4244
+  MINUS { ?item wdt:P18 [] } .                 # item has no image
+  filter(substr(?BavNo,1,11)=\"D-5-64-000-\")    # P4244 value starts with D-5-64-000-
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+}
+Order by ?BavNo
+ Try it! I think this is Bavarian monument authority ID (P4244) beginning with D-5-64-000- and without an image, @Doc Taxon:. --Tagishsimon (talk) 18:58, 3 March 2018 (UTC) @Tagishsimon: Oh thank you, I want to show optional coordinates, too, but only the value in the parentheses. SELECT ?BLfD_ID ?item ?itemLabel ?itemDescription ?coords ?address WHERE {
+  ?item wdt:P4244 ?BLfD_ID .                      # item has a P4244
+  MINUS { ?item wdt:P18 [] } .                    # item has no image
+  MINUS { ?item wdt:P373 [] } .                   # item has no Commonscat
+  OPTIONAL { ?item wdt:P625 ?coords . }           # show coordinates
+  OPTIONAL { ?item wdt:P969 ?address . }          # show address
+  FILTER(SUBSTR(?BLfD_ID,1,11)=\"D-5-64-000-\")     # P4244 value starts with D-5-64-000-
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?BLfD_ID
+ Try it! with this I get: Point(11.06342 49.37388) but I only want to get: 11.06342 49.37388 Doc Taxon (talk) 19:43, 3 March 2018 (UTC) SELECT ?BLfD_ID ?item ?itemLabel ?itemDescription ?latlon ?address WHERE {
+  ?item wdt:P4244 ?BLfD_ID .                      # item has a P4244
+  MINUS { ?item wdt:P18 [] } .                    # item has no image
+  MINUS { ?item wdt:P373 [] } .                   # item has no Commonscat
+  OPTIONAL { ?item p:P625 ?coord .
+             ?coord psv:P625 ?coord_node .
+             ?coord_node wikibase:geoLongitude ?lon .
+             ?coord_node wikibase:geoLatitude ?lat .
+             BIND(CONCAT(STR (?lat), \" \", STR(?lon)) AS ?latlon).
+           }           # show coordinates
+  OPTIONAL { ?item wdt:P969 ?address . }          # show address
+  FILTER(SUBSTR(?BLfD_ID,1,11)=\"D-5-64-000-\")     # P4244 value starts with D-5-64-000-
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?BLfD_ID
+ Try it! Not the most elegant solution, but it works! :-) Tkarcher (talk) 21:53, 3 March 2018 (UTC) SELECT ?BLfD_ID ?item ?itemLabel ?itemDescription ?coords ?coord2 ?address WHERE {
+  ?item wdt:P4244 ?BLfD_ID .                      # item has a P4244
+  MINUS { ?item wdt:P18 [] } .                    # item has no image
+  MINUS { ?item wdt:P373 [] } .                   # item has no Commonscat
+  OPTIONAL { ?item wdt:P625 ?coords . }           # show coordinates
+  OPTIONAL { ?item wdt:P969 ?address . }          # show address
+  FILTER(SUBSTR(?BLfD_ID,1,11)=\"D-5-64-000-\")     # P4244 value starts with D-5-64-000-
+  BIND(SUBSTR(?coords,7,16) as ?coord2)           # slice the coords you want out of coords
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?BLfD_ID
+ Try it! - This seems to work @Doc Taxon: ... only because all the coords seem to have the same number of DP, and a 2-digit ordinal ... which is to say it's a hack & not the right way to do things. --Tagishsimon (talk) 21:55, 3 March 2018 (UTC) I noticed a slight difference between the solutions based on wdt and the solution based on p above, the version using p gives three more results rows. It boils down to the object Q41427943 giving four identical result rows whereas the other objects only give one result. In the following query I have removed everything else but the coordinates. The only \"structural difference\" between the object Q41411330 with one result and Q41427943 with four results that I can see is that the latter also has a description in Indonesian (Q9240). Can anyone explain this? SELECT ?item ?lat ?lon WHERE {
+  VALUES ?item { wd:Q41427943 wd:Q41411330 }
+#why does Q41427943 give FOUR results rows but Q41411330 only gives ONE?
+#the only? structural difference between these two objects is that Q41427943 has a desccription in 'id' (indonesian)!
+  ?item p:P625 ?coord .
+  ?coord psv:P625 ?coord_node .
+  ?coord_node wikibase:geoLongitude ?lon .
+  ?coord_node wikibase:geoLatitude ?lat .  
+}
+ Try it! --Larske (talk) 04:08, 4 March 2018 (UTC) It has nothing to do with the indonesian translation (which was wrong anyway, so I deleted it now), but with the Wikidata Data Model: https://stackoverflow.com/questions/49012872/duplicated-results-from-wikidata --Tkarcher (talk) 15:40, 4 March 2018 (UTC) Thanks for the hint. It seems some coordinate values have multiple values (0 and some other value) for wikibase:geoPrecision. #some coordinate values seem to have multiple values for wikibase:geoPrecision
+SELECT ?item ?coord ?geoprecision WHERE {
+  VALUES ?item { wd:Q41427943 wd:Q41411330 }
+  ?item p:P625 ?p625 .
+  ?p625 ps:P625 ?coord .
+  ?p625 psv:P625 [ wikibase:geoPrecision ?geoprecision ]
+}
+ORDER BY ?item
+ Try it! This seems to be very common, here are some 8,800 coordinates for church building (Q16970) in France (Q142) with this \"multiple precision problem\". Are there any plans to correct this? SELECT ?item ?coord ?geoprecision1 ?geoprecision2 WHERE {
+  ?item wdt:P31 wd:Q16970 .
+  ?item wdt:P17 wd:Q142 .
+  ?item p:P625 ?p625 .
+  ?p625 ps:P625 ?coord .
+  ?p625 psv:P625 ?psv625 .
+  ?psv625 wikibase:geoPrecision ?geoprecision1 .
+  ?psv625 wikibase:geoPrecision ?geoprecision2 .
+  FILTER(?geoprecision1<?geoprecision2)
+}
+ORDER BY ?item
+ Try it! I also noticed that this API only returns one value for \"precision\" for Q41427943 when Wikidata Query reports two as per the query above? --Larske (talk) 12:14, 5 March 2018 (UTC) Thanks for the thorough analysis. This does indeed sound like a bug either in the database itself or in the query service. If no one comes up with a good explanation, we should open a phabricator task for it. --Tkarcher (talk) 20:11, 5 March 2018 (UTC) I created a task for it now: https://phabricator.wikimedia.org/T189086 --Tkarcher (talk) 08:38, 7 March 2018 (UTC) Wikipedia articles categorized in a Wikiproject I'm looking for a way to retrieve all items that have a Wikipedia article that was categorized in a given Wikiproject. For example, all items with an article in the English Wikipedia that are in the biophysics wikiproject. Is it possible at all? Thank you. --MarioGom (talk) 11:01, 6 March 2018 (UTC) Yes, using PetScan - https://petscan.wmflabs.org/?psid=3470173. --Jklamo (talk) 12:14, 6 March 2018 (UTC) All national wildlife areas of Canada in Quebec Good day, I would like to get a list of all national wildlife areas of Canada (Q337807) located in the province of Quebec (Q176). My problem is that in the different instances of Q337807, the P131 (located in the administrative territory) is either the city or the local region where the item is located. How can I find all of them that are in a given province? Is it possible to have some sort of recursive P131 until it hits the level of a province? Thanks, Amqui (talk) 17:25, 9 March 2018 (UTC) @Amqui: This query returns eight items, does it seem reasonable? #defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?location WHERE
+{
+  ?item wdt:P31 wd:Q337807;
+        wdt:P131* wd:Q176;
+        wdt:P625 ?location. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Larske (talk) 18:31, 9 March 2018 (UTC) @Larske: It works perfectly. I tried it with another province as well and the return is accurate. Thank you very much, Amqui (talk) 20:14, 9 March 2018 (UTC) Ottoman Sultans and their Grand Viziers A lot of attention is given to Turkey at this time. I would like a query where in a chronological order you find the Ottoman Empire Sultans and their Grand Viziers. When this works other high ranking officials can be shown in a separate column. Thanks, GerardM (talk) 06:51, 10 March 2018 (UTC) @GerardM: Something like this? SELECT ?sultan ?sultanLabel ?vizier ?vizierLabel ?start ?end WHERE {
+  {
+    ?sultan p:P39 ?sultan_stmt .
+    ?sultan_stmt ps:P39 wd:Q15315411 .
+    OPTIONAL {?sultan_stmt pq:P580 ?start } .      
+    OPTIONAL {?sultan_stmt pq:P582 ?end } .
+  } UNION {
+    ?vizier p:P39 ?vizier_stmt .
+    ?vizier_stmt ps:P39 wd:Q15063567 .
+    OPTIONAL {?vizier_stmt pq:P580 ?start } .      
+    OPTIONAL {?vizier_stmt pq:P582 ?end } .
+  } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?start
+ Try it! Jheald (talk) 09:05, 10 March 2018 (UTC) @GerardM: Or alternatively: SELECT ?sultan ?sultanLabel ?sultan_start ?sultan_end ?vizier ?vizierLabel ?vizier_start ?vizier_end WHERE {
+ 
+    ?sultan p:P39 ?sultan_stmt .
+    ?sultan_stmt ps:P39 wd:Q15315411 .
+    OPTIONAL {?sultan_stmt pq:P580 ?sultan_start } .      
+    OPTIONAL {?sultan_stmt pq:P582 ?sultan_end } .
+
+    ?vizier p:P39 ?vizier_stmt .
+    ?vizier_stmt ps:P39 wd:Q15063567 .
+    OPTIONAL {?vizier_stmt pq:P580 ?vizier_start } .      
+    OPTIONAL {?vizier_stmt pq:P582 ?vizier_end } .
+  
+    FILTER ((?vizier_start <= ?sultan_end) && (?vizier_end >= ?sultan_start))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?sultan_start ?vizier_start
+ Try it! Jheald (talk) 11:15, 10 March 2018 (UTC) format got URL as an external link I need an improvement of the previous Select_by_qualifier_value query. Regarding the referenced query (above in this discussion), I'd like to use the \"describedAtUrl\" (when exists) as a link of the \"catalogCode\" (Ex.: [URL catalogCode]), because when I show result as a map or timeline instead of table I don't need to see the URL but the link. Thanks, Amadalvarez (talk) 18:31, 10 March 2018 (UTC) WDQS doesn't know what links are, so doesn't recognise them and can't display them as such. For external use (eg Wikipages, Listeria, etc), it should be easy enough to build the required strings as desired from the different variables you already have using something like BIND(CONCAT(......) AS ?link) Jheald (talk) 19:06, 10 March 2018 (UTC) So this doesn't work for display within WDQS: SELECT ?item ?link WHERE {
+    ?item wdt:P973 ?url .
+    BIND(CONCAT('<a href=\"', str(?url), '\">link</a>') AS ?link) .
+} LIMIT 10
+ Try it! and nor does this SELECT ?item ?link WHERE {
+    ?item wdt:P973 ?url .
+    BIND(CONCAT('[', str(?url), ' link]') AS ?link) .
+} LIMIT 10
+ Try it! but such forms can sometimes be useful if results are being created for re-display outside WDQS. Jheald (talk) 19:15, 10 March 2018 (UTC) @Jheald: It doesn't run ... as I expected, because it build correctly the HTML, but it's not clikable as a link when shows in timeline: #defaultView:Timeline
+SELECT ?item ?itemLabel  ?pointInTime ?link ?notariLabel WHERE {
+  ?item p:P528 ?p528stm .
+  ?p528stm ps:P528 ?catalogCode;
+           pq:P972 wd:Q20102343.
+  OPTIONAL { ?p528stm pq:P585 ?pointInTime }
+  OPTIONAL { ?p528stm pq:P973 ?describedAtUrl }
+  OPTIONAL { ?p528stm pq:P664 ?notari }
+  OPTIONAL { ?item wdt:P625 ?coord }
+   BIND(CONCAT('<a href=\"', str(?describedAtUrl), '\">', ?catalogCode, '</a>') AS ?link) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'ca,[AUTO_LANGUAGE]' }
+ Try it! Amadalvarez (talk) 09:43, 11 March 2018 (UTC) @Amadalvarez: As I said, this doesn't work within WDQS. Jheald (talk) 09:47, 11 March 2018 (UTC) @Jheald: Excuse me, I did not understand. In listeria, the HREF option doesn't work, but the second one (claudators) runs ok. Thanks, Amadalvarez (talk) 10:00, 11 March 2018 (UTC) Fixing descriptions with a certain error I am trying to fix an error with Bengali descriptions that was propagated by those using namescript.js, namely the change from the incorrect \"পারিবারিক নামাম\" to the correct \"পারিবারিক নাম\". I have this query, which should list those family name items with the faulty description, but it has timed out as written and in several of its previous revisions: select ?item ?itemLabel ?description where {
+  ?item wdt:P31 wd:Q101352.
+  ?item schema:description ?description.
+  filter(lang(?description) = \"bn\" && regex(str(?description), \"পারিবারিক নামাম.*\"))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],bn,en\". }
+}
+ Try it! Is there a more efficient way of generating this list? Mahir256 (talk) 22:01, 11 March 2018 (UTC) Do you really need the regex function? Otherwise this would do the job: select ?item ?itemLabel ?description where {
+  ?item wdt:P31 wd:Q101352; schema:description 'পারিবারিক নামাম'@bn .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE],bn,en' }
+}
+ Try it! —MisterSynergy (talk) 22:32, 11 March 2018 (UTC) Running string operations on a class with 239,000 members is never going to be fast. One option would be to run the job and make the fixes as a batch process, extracting and fixing a finite number at once: select ?item ?label_bn ?label_en ?description where {
+  ?item wdt:P31 wd:Q101352.
+  ?item schema:description ?description.
+  filter(lang(?description) = \"bn\" && regex(str(?description), \"পারিবারিক নামাম.*\")) .
+  OPTIONAL {?item rdfs:label ?label_bn . FILTER(lang(?label_bn) = \"bn\")} .
+  OPTIONAL {?item rdfs:label ?label_en . FILTER(lang(?label_en) = \"en\")} .
+} LIMIT 1000
+ Try it! Having looked at some of the results, it's apparent that User:MisterSynergy's query is not going to be enough, because you need to account for the different values after the Bengali text. I tried STRSTARTS() rather than the regex, but it still timed out: select ?item ?itemLabel ?description where {
+  ?item wdt:P31 wd:Q101352; schema:description ?description.
+  FILTER( STRSTARTS(?description, 'পারিবারিক নামাম')) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE],bn,en' }
+}
+ Try it! Indeed, looking at it on the LIMIT 1000 query, the query is actually slower if one omits the filter(lang(?description) = \"bn\" &&; it's also slower if one omits the STR() cast before STRSTARTS. The most efficient I think I can therefore do is: select ?item ?label_bn ?label_en ?description where {
+  ?item wdt:P31 wd:Q101352.
+  ?item schema:description ?description.
+  filter(lang(?description) = \"bn\" && STRSTARTS(str(?description), \"পারিবারিক নামাম\")) .
+  OPTIONAL {?item rdfs:label ?label_bn . FILTER(lang(?label_bn) = \"bn\")} .
+  OPTIONAL {?item rdfs:label ?label_en . FILTER(lang(?label_en) = \"en\")} .
+} LIMIT 1000
+ Try it! Jheald (talk) 22:49, 11 March 2018 (UTC) Actually, on further runs, sometimes the regex is faster, sometimes the STRSTARTS(). So I haven't really been able to help you at all, apart from the suggestion to batch the queries and fix the data in chunks. Jheald (talk) 23:07, 11 March 2018 (UTC) @MisterSynergy, Jheald: Thank you both; I guess I'll just fix them in batches, then. Mahir256 (talk) 23:16, 11 March 2018 (UTC) @MisterSynergy, Jheald: Alternatively, there was PetScan. Mahir256 (talk) 23:45, 11 March 2018 (UTC) ... which can do the label lookup and regex as a post-processing operation, after the basic query. Smart. Jheald (talk) 23:49, 11 March 2018 (UTC) Can't query some labeled items Dear all,I want to check, if a person exists and return its identifier.This works fine:"""@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .
