@@ -1,0 +1,127 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b456af323b50e783c7ac6a7e34f0ad3c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Contents 1 Sign up 2 Current state of textile equipment on Wikidata 2.1 Search by use 3 Activities 3.1 Activity 1 3.2 General Activity 3.3 Resources 3.3.1 Tutorials Sign up [edit] Please create a Wikidata account and also login to the dashboard, if you are logged into a Wikimedia project already you won't have to enter details. This will help me track edits made today. Current state of textile equipment on Wikidata [edit] Some queries to get a sense of what we have in terms of textile equipment, mills, and related things on Wikidata.Looms or subclasses of looms. SELECT DISTINCT ?object ?objectLabel  
+
+WHERE { ?object wdt:P31 / wdt:P279? wd:Q173056 . #Looms or subclasses of
+ 
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! Weaving tools or subclasses of that (more results). SELECT DISTINCT ?object ?objectLabel  
+
+WHERE { ?object wdt:P31 / wdt:P279? wd:Q123909494 . #Weaving tools or subclasses of
+ 
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! Things which \"has use\" \"combing\" SELECT DISTINCT ?object ?objectLabel  
+
+WHERE { ?object wdt:P366 wd:Q3491532 . #Weaving tools or subclasses of
+ 
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! Textile machines or subclasses of that (more results). SELECT DISTINCT ?object ?objectLabel  
+
+WHERE { ?object wdt:P31 / wdt:P279? wd:Q1573728 . #Weaving tools or subclasses of
+ 
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! Things called a \"loom\" SELECT DISTINCT ?thing ?name WHERE {
+VALUES ?prop {wdt:P279 wdt:P31}
+?thing ?prop wd:Q173056; 
+  rdfs:label ?name FILTER (lang(?name)=\"en\") FILTER STRENDS(?name, \" loom\")
+} ORDER BY ?name
+ Try it! Things which are a \"facet of\" \"textile manufacturing\" SELECT ?item ?itemLabel #added a Label here
+
+WHERE { ?item wdt:P1269 wd:Q1505660  . #facet of textile manufacturing 
+         
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! Things called a \"loom\" that have an inventory number OR a Science Museum Group ID SELECT DISTINCT ?thingLabel ?name ?ID ?ID2 WHERE {
+VALUES ?prop {wdt:P279 wdt:P31}
+?thing ?prop wd:Q173056; 
+  rdfs:label ?name FILTER (lang(?name)=\"en\") FILTER STRENDS(?name, \" loom\") #this is case sensitive! 
+                     
+{ ?thing wdt:P8694 ?ID .} # has SMG ID
+UNION
+{ ?thing wdt:P217 ?ID2 . } # has inventory number of any kind
+       
+} ORDER BY ?name
+ Try it! Search by use [edit] Something that has use: weaving. SELECT DISTINCT ?object ?objectLabel  
+
+WHERE { ?object (wdt:P366) wd:Q192296 . #has use, weaving
+ 
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }
+ Try it! Activities [edit] Activity 1 [edit] 1. Run this query for textile machinery with \"loom\" in the name. The following query uses these:Items: loom (Q173056)   Properties: subclass of (P279)   , instance of (P31)   , Science Museum Group ID (P8694)   , inventory number (P217)   SELECT DISTINCT ?thingLabel ?name ?ID ?ID2 WHERE {
+VALUES ?prop {wdt:P279 wdt:P31}
+?thing ?prop wd:Q173056; 
+  rdfs:label ?name FILTER (lang(?name)=\"en\") FILTER STRENDS(?name, \" loom\") #this is case sensitive! 
+                     
+{ ?thing wdt:P8694 ?ID .} # has SMG ID
+UNION
+{ ?thing wdt:P217 ?ID2 . } # has inventory number of any kind
+       
+} ORDER BY ?name Try it! 2. Find something in a collection that is a \"loom\". This could be something online, like that can be found in the Science Museum Collection online or from the Bradford Industrial Museum or Woolen Museum in this spreadsheet3. Create a Wikidata item for the object you have chosen.4. Add the object's inventory number and/or if it's in the Science Museum Collection add its Science Museum Group ID. Add any other relevant properties to it.5. Add the Q number to this spreadsheet.6. Wait a few minutes for the query service to update the cache of Wikidata it is searching from... 7. Run the same query again, your items should start to show up.The following query uses these:Items: loom (Q173056)   Properties: subclass of (P279)   , instance of (P31)   , Science Museum Group ID (P8694)   , inventory number (P217)   SELECT DISTINCT ?thingLabel ?name ?ID ?ID2 WHERE {
+VALUES ?prop {wdt:P279 wdt:P31}
+?thing ?prop wd:Q173056; 
+  rdfs:label ?name FILTER (lang(?name)=\"en\") FILTER STRENDS(?name, \" loom\") #this is case sensitive! 
+                     
+{ ?thing wdt:P8694 ?ID .} # has SMG ID
+UNION
+{ ?thing wdt:P217 ?ID2 . } # has inventory number of any kind
+       
+} ORDER BY ?name Try it! 8. You can also run this query, as new items are added and I populate it, it should show a graph of the things we have created The following query uses these:Items: Lancashire loom (Q125808087)   , Power loom (Q125807993)   , loom (Q173056)   , Weaving tool (Q116248865)   , weaving (Q192296)   , Science Museum (Q674773)   Properties: image (P18)   , logo image (P154)    Features: Graph (Q24515287)  #defaultView:Graph
+SELECT ?item1 ?image ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel ?logo2Label 
+WITH { SELECT ?item1 WHERE {
+VALUES ?item1 {wd:Q125808087 wd:Q125807993 wd:Q173056 wd:Q116248865 wd:Q192296 wd:Q674773} #list of things depicted and connected, deities, museums, countries etc
+} } AS %item1
+WITH {SELECT (?item1 AS ?item2) WHERE {INCLUDE %item1} } AS %item2
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.?item1 ?prop ?item2.
+?edge ?dummy ?prop ; rdf:type wikibase:Property
+OPTIONAL {?item1 wdt:P18 ?image}
+OPTIONAL {?item2 wdt:P18 ?image2}
+OPTIONAL {?item2 wdt:P154 ?logo2} 
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! General Activity [edit] Add \"connecting tissue\", is there a type of machine or thing that does not exist? Create it, add it to the spreadsheet. Add different terminology in the alias label section of existing items. Are we lacking a property? propose it. Try writing queries, this is a very basic list that can be modified. If you want, add the Qnumbers you create to the below query but also relevant items like places, people, etc, this will help us visualise them and see where the connecting tissue might be missing. The following query uses these:Items: Lancashire loom (Q125808087)   , Power loom (Q125807993)   , loom (Q173056)   , Weaving tool (Q116248865)   , weaving (Q192296)   , Science Museum (Q674773)   Properties: image (P18)   , logo image (P154)    Features: Graph (Q24515287)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Battleofalma/Congruence_Engine/Textile_Machinery>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89773-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
+SELECT ?item1 ?image ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel ?logo2Label 
+WITH { SELECT ?item1 WHERE {
+VALUES ?item1 {wd:Q125808087 wd:Q125807993 wd:Q173056 wd:Q116248865 wd:Q192296 wd:Q674773} # <-ADD YOUR CREATED ITEMS IN HERE
+WITH {SELECT (?item1 AS ?item2) WHERE {INCLUDE %item1} } AS %item2
+WHERE {
+  INCLUDE %item1.
+  INCLUDE %item2.?item1 ?prop ?item2.
+?edge ?dummy ?prop ; rdf:type wikibase:Property
+OPTIONAL {?item1 wdt:P18 ?image}
+OPTIONAL {?item2 wdt:P18 ?image2}
+OPTIONAL {?item2 wdt:P154 ?logo2} 
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""" .

@@ -1,0 +1,252 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bdfbf80a49cc89d20ab15e82803d3d5c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 P597 = 321846 2 Airports (again :) ) 3 Double Elo ratings 4 Find items who have an article in atj.wp and without French description 5 Names & Birthdays of current US Representatives 6 Definitive (?) list of deduplicated iata and icao wikilinks 7 Need for a simple count that is time-consuming 8 Academic papers on a given subject 9 List of viking age Icelanders 10 Any airports (not military) : do they have at least one icao/iata code 11 Names & Types of furniture from around the world 12 Two simple queries for sl.wikisource 13 Top 50 popular first names in ukrainian wikipedia 14 Identifier with 11 digits 15 Elo ratings without source 16 What are the elements that have airport as a class ? 17 Longest citation chain on a given topic 18 Items with KLEKs ID but without coordinates 19 Wikisource text available in most languages? 20 Query for a film 21 Two queries 22 Truthy statement fail 23 Human item with Label Diodati but no P734 24 Occupation politican 25 Looking into OpenStreetMap 26 Inefficient query - people who remained in office at elections 27 Query not working, why ? 28 Objects very close to a geographical coordinates 29 De-duplication help needed 30 Items with a given template used on any sitelink 31 Award winning women with no article a or no language 32 Elo ratings with two P585 33 Norwegian ships 34 Not exists <=> no values 35 Newspapers with an infobox in their enwiki page 36 Average lifespan 37 Multiple citizenship 38 Galleries holding the work of a given artist 39 Tunnels in Faroe islands 40 Alias = Label (third time, according to the archives) 41 worship places in Quebec not using P5599 42 Recently removed sitelinks to a particular project 43 Looking for monument items without a photo 44 P279 query 45 Position + value query 46 Organization validation query 47 P239 with Q845993 as source 48 Persons on Norwegian wikipedia 49 Query statement in references 50 Bug in usage of REGEX 51 Traversing graph of \"owned by\" properties 52 Number of edits/views based on country, Wikipedia 53 Items with the largest number of interwiki without link to a given wiki 54 Types and Pokémon 55 Amount of statements per property 56 Looking for a way of finding wikipedia articles which have a reference to a specific site 57 Order integer 58 Pages in it.wikiquote and it.wikipedia 59 Query items to the nearest items of another instance 60 Displaying maps / colours 61 Multiples coordinates : filter first one P597 = 321846 Hi! I am looking for an example of a SPARQL request. I want to list the enwiki and the dewiki sitelink title name of the item that has the WTA player ID (P597) with the value (as string type) \"321846\". For this example the title names has to be \"Lena Rüffer\", but I'm not able to build the SPARQL code. Thanks for any help, Doc Taxon (talk) 00:10, 1 August 2018 (UTC) @Doc Taxon: this gives you the article names. ?sitelink_en and ?sitelink_de, if added to the select line, give you the full URL. SELECT ?item ?itemLabel ?en_article ?de_article
+WHERE 
+{
+  ?item wdt:P597 ?value.
+  filter(?value=\"321846\")
+  ?en_article ^schema:name ?sitelink_en . ?sitelink_en schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> .
+  ?de_article ^schema:name ?sitelink_de . ?sitelink_de schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 00:21, 1 August 2018 (UTC) @Tagishsimon: wow, so fast! Thanks a lot for the reply ... Doc Taxon (talk) 00:29, 1 August 2018 (UTC) @Tagishsimon: Oh, I also need both the en_itemLabel and de_itemLabel Doc Taxon (talk) 00:42, 1 August 2018 (UTC) @Doc Taxon: I thought about that, but was too lazy to give it to you in the first query. Here's a souped-up version. SELECT ?item ?en_label ?de_label ?en_article ?de_article
+WHERE 
+{
+  ?item wdt:P597 ?value.
+  filter(?value=\"321846\")
+  optional {?en_article ^schema:name ?sitelink_en . ?sitelink_en schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> .}
+  optional {?de_article ^schema:name ?sitelink_de . ?sitelink_de schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> .}
+  optional {?item rdfs:label ?en_label. filter(lang(?en_label)=\"en\")}
+  optional {?item rdfs:label ?de_label. filter(lang(?de_label)=\"de\")}
+}
+ Try it! --Tagishsimon (talk) 01:01, 1 August 2018 (UTC) @Tagishsimon: thanks a lot again, Doc Taxon (talk) 02:32, 1 August 2018 (UTC) Airports (again :) ) Hello, would it be possible to get a list of airports (except : rail infrastructure (Q1311670)
+ Royal Air Force station (Q7373622)
+ heliport (Q502074) and
+ minus {?item2 wdt:P576 ?date}                     # exclude destructed airports that have multiples natures of airports (exemple : airport + aerodrome instead of simply airport) a list of airports (except : rail infrastructure (Q1311670)
+ Royal Air Force station (Q7373622)
+ heliport (Q502074) and
+ minus {?item2 wdt:P576 ?date}                     # exclude destructed airports that have multiples countries (exemple : former kingdom Poland + current Poland, etc)Thanks for helping me clean data :) [Besides, is it useful to say that \"former country X\" is \"deprecated\" and \"current Poland\" is \"preferred\" ? how to filter only current and valid data) ?] --Bouzinac (talk) 15:30, 30 July 2018 (UTC) Hi @Bouzinac: first, let's cover a previous request - you asked earlier about items which 'have a native language wikipage but no English wikipage?'. I do not have that for you, but something similar. The report below shows items with a link to the Bahasa Melayu wikipedia (ms.wikipedia) - I understand this to be Malaysian wikipedia, though I think in fact there are several language versions covering that country. You can adapt this query (with some care) to check for sitelinks existing on wikipedia A but not on wikipedia B. Alter the URL strings after schema:isPartOf. The difficulty I have with the full request is that of mapping a country to a language wikipedia ... it can be done, probably, but is complex and fraught with multi-language issues. fwiw, it's a two part query ... the inner query finds candidate airports, but then groups them to eliminate duplicates; the outer query gets codes & countries & labels. select distinct ?item ?itemLabel ?iata ?icao ?countryLabel ?ms_Sitelink with {select ?item ?ms_Sitelink WHERE {
+  {?item wdt:P238 ?iata .}
+  UNION
+  {?item wdt:P239 ?icao .}
+  ?ms_Sitelink schema:about ?item; schema:isPartOf <https://ms.wikipedia.org/> .
+  filter not exists { ?enSitelink schema:about ?item; schema:isPartOf <https://en.wikipedia.org/> .}
+  } group by ?item ?ms_Sitelink } as %i where {
+  include %i
+  optional {?item wdt:P17 ?country.}
+  optional {?item wdt:P238 ?iata .}
+  optional {?item wdt:P239 ?icao .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by ?country ?ms_Sitelink
+ Try it! --Tagishsimon (talk) 00:39, 31 July 2018 (UTC) Here is airports with multiple countries, and with the exclusions you listed - are you sure about rail infrastructure (Q1311670)? The inner query finds the airports and by grouping them, counts the countries. The outer query filters where more than one country was counted, and finds codes, labels, and countrynames. There are few enough results that I have not bothered to look at issues of multiple / end-dated codes or countries. select distinct ?item ?itemLabel ?iata ?icao ?countryLabel with {select ?item (count(distinct ?country) as ?cc)  WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.
+  ?item wdt:P17 ?country.
+  } group by ?item } as %i where {
+  include %i
+  filter (?cc >1)
+  optional {?item wdt:P17 ?country.}
+  optional {?item wdt:P238 ?iata .}
+  optional {?item wdt:P239 ?icao .}
+  minus {?item wdt:P31 wd:Q1311670.}
+  minus {?item wdt:P31 wd:Q7373622.}
+  minus {?item wdt:P31 wd:Q502074.}
+  minus {?item wdt:P576 ?date.}   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by ?itemLabel
+ Try it! --Tagishsimon (talk) 00:53, 31 July 2018 (UTC) And this is airports with multiple P31 types. It's possible to do this report so that we get one row per airport ... couple of different ways of doing so (group-concatenate values, or specify a column for each potential type of P31 ... but there are 62 distinct instance types, so maybe that won't work) ... see how you get on. select distinct ?item ?itemLabel ?iata ?icao ?instanceLabel with {select ?item (count(distinct ?instance) as ?ic)  WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.
+  ?item wdt:P31 ?instance.
+  } group by ?item } as %i where {
+  include %i
+  filter (?ic >1)
+  optional {?item wdt:P31 ?instance.}
+  optional {?item wdt:P238 ?iata .}
+  optional {?item wdt:P239 ?icao .}
+  minus {?item wdt:P31 wd:Q1311670.}
+  minus {?item wdt:P31 wd:Q7373622.}
+  minus {?item wdt:P31 wd:Q502074.}
+  minus {?item wdt:P576 ?date.}   
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by ?itemLabel
+ Try it! --Tagishsimon (talk) 01:00, 31 July 2018 (UTC) multiple countries ==> Deduplicating done, thanks ( cleaning false statements or putting main countries when really dual nationalities)--Bouzinac (talk) 18:47, 31 July 2018 (UTC)  multiple P31 types==>cleaned! Dear Template:Tagishsimon, could you please refine the query about malaisian wikipedia : add a column specifiying if the article exists only in malaisian wikipage ? Thank you! --Bouzinac (talk) 21:35, 1 August 2018 (UTC) @Bouzinac: Here you go; final column is a count of the number of sitelinks ... if the count is 1, then we know that the ms.wiki is the inly sitelink. --Tagishsimon (talk) 21:49, 1 August 2018 (UTC) select distinct ?item ?itemLabel ?iata ?icao ?countryLabel ?ms_Sitelink ?linkcount with {select ?item ?ms_Sitelink WHERE {
+  {?item wdt:P238 ?iata .}
+  UNION
+  {?item wdt:P239 ?icao .}
+  ?ms_Sitelink schema:about ?item; schema:isPartOf <https://ms.wikipedia.org/> .
+  filter not exists { ?enSitelink schema:about ?item; schema:isPartOf <https://en.wikipedia.org/> .}
+  } group by ?item ?ms_Sitelink } as %i where {
+  include %i
+  optional {?item wdt:P17 ?country.}
+  optional {?item wdt:P238 ?iata .}
+  optional {?item wdt:P239 ?icao .}
+  optional {?item wikibase:sitelinks ?linkcount. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} order by ?linkcount ?country ?ms_Sitelink
+ Try it! --Tagishsimon (talk) 21:49, 1 August 2018 (UTC) @Tagishsimon:, wow 1200 elements in malaisian... almost impossible for me to check one by one, some true airports (mainly airstrips), some false/doubles. I give up for those only having ICAO code, and try to clean those with both iata+icao. Thank you, in any case--Bouzinac (talk) 08:56, 2 August 2018 (UTC) Double Elo ratings Is it possible to query if the property Elo rating (P1087) is used in an item with the same value of the qualifier point in time (P585) twice (it should not be discriminated between day and month precision, so 01-05-2018 and 05-2018 should be recognized as identical) ? Steak (talk) 07:32, 1 August 2018 (UTC) Can be done, @Steak:, but we quickly run into timeouts which might render it impractical without multiple queries segmenting chess players by country, etc. The code below seems to be the thing; right now it restricts the query to UK chess players (and sometimes runs, sometimes timesout?). Commented out is a values statement restricting it to Judit Polgar - uncomment it, and comment the UK citizen line, to see a result for Judit. I don't know how inefficient my code is or where at the moment to go for improvements. The problem is chess players have so many ELO ratings, and the Cartesian product of these exhausts the hamsters. SELECT ?item ?en_label ?pit1 ?value1 ?pit2 ?value2 
+WHERE 
+{
+  ?item wdt:P106 wd:Q10873124.      # occupation of chess player
+# values ?item {wd:Q183250}         # the JuditP values statement
+  ?item wdt:P27 wd:Q145.            # UK citizen - comment out if you want to enstate the JuditP values statement
+
+  ?item p:P1087 ?statement1.        # find first date block
+  ?statement1 ps:P1087 ?value1.
+  ?statement1 pqv:P585 ?node1.
+  {?node1 wikibase:timePrecision \"11\"^^xsd:integer.}
+  UNION
+  {?node1 wikibase:timePrecision \"10\"^^xsd:integer.}
+  ?node1 wikibase:timeValue ?pit1.
+             
+  ?item p:P1087 ?statement2.        # find second date block
+  ?statement2 ps:P1087 ?value2.
+  ?statement2 pqv:P585 ?node2.
+  {?node2 wikibase:timePrecision \"11\"^^xsd:integer.}
+  UNION
+  {?node2 wikibase:timePrecision \"10\"^^xsd:integer.}
+  ?node2 wikibase:timeValue ?pit2.
+ 
+  filter(month(?pit1)=month(?pit2))  # logic
+  filter(year(?pit1)=year(?pit2))
+  filter (str(?statement1)>str(?statement2))
+  
+  optional {?item rdfs:label ?en_label. filter(lang(?en_label)=\"en\")}
+}
+ Try it! --Tagishsimon (talk) 10:44, 1 August 2018 (UTC) Thanks. Do you think this can be used as a complex constraint? Steak (talk) 11:00, 1 August 2018 (UTC) No experience of. Maybe, since it's effectively doing the Polgar trick - dealing with a single item only, so might avoid timeout. Would probably need only the stuff from the # find first date block line downwards, and without the optional labels statement. --Tagishsimon (talk) 11:06, 1 August 2018 (UTC) Find items who have an article in atj.wp and without French description Hello,I need help to write a query... I'm looking for items that have an article in Atikamekw (atj.wp) but that has no description in French language.Thank you inadvance, Benoit Rochon (talk) 15:13, 1 August 2018 (UTC) @Benoit Rochon: This, I think...and some of the items that lack fr descriptions also lack fr labels... SELECT ?item ?fr_label ?atj_article ?sitelink_atj 
+WHERE 
+{
+?atj_article ^schema:name ?sitelink_atj . ?sitelink_atj schema:about ?item ; schema:isPartOf <https://atj.wikipedia.org/> .
+filter not exists {?item schema:description ?fr_desc. filter(lang(?fr_desc)=\"fr\")}
+optional {?item rdfs:label ?fr_label. filter(lang(?fr_label)=\"fr\")}
+} order by ?fr_label
+ Try it! --Tagishsimon (talk) 16:15, 1 August 2018 (UTC) Here, gratuitously, is the set that are missing their fr label, whether or not they have a fr description SELECT ?item ?fr_desc ?atj_article ?sitelink_atj 
+WHERE 
+{
+?atj_article ^schema:name ?sitelink_atj . ?sitelink_atj schema:about ?item ; schema:isPartOf <https://atj.wikipedia.org/> .
+optional {?item schema:description ?fr_desc. filter(lang(?fr_desc)=\"fr\")}
+filter not exists {?item rdfs:label ?fr_label. filter(lang(?fr_label)=\"fr\")}
+} order by ?fr_desc
+ Try it! Thank you Tagishsimon for your help, that is perfect. But I'm not sure the difference between both queries? Best, Benoit Rochon (talk) 13:20, 2 August 2018 (UTC) @Benoit Rochon: The first shows items where there is no French description. The second shows items where there is no French label. There is maybe a wide overlap :) --Tagishsimon (talk) 13:23, 2 August 2018 (UTC) Names & Birthdays of current US Representatives What would a query look like for the label (or given name (P735) & family name (P734)) and date of birth (P569) of the current United States representative (Q13218630)? Thanks! U+1F360 (talk) 14:21, 2 August 2018 (UTC) @U+1F360: It would look as below, but the data does not right now support it - I'm guessing few P39-Q13218630 statements are end-dated, so we get 10k hits - and even that number seems excessive to me :( . SELECT distinct ?item ?itemLabel ?givennameLabel ?familynameLabel ?dob
+WHERE 
+{
+  ?item p:P39 ?statement.                     #there is a P39 for the item
+  ?statement ps:P39 wd:Q13218630.             #the P39 is United States representative
+  filter not exists {?statement pq:P582 [].}  #the P39 does not have an end date
+  optional {?item wdt:P735 ?givenname.}       #item might have a given name
+  optional {?item wdt:P734 ?familyname.}      #item might have a family name
+  optional {?item wdt:P569 ?dob.}             #item might have a date of birth
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+ Try it! --Tagishsimon (talk) 18:17, 2 August 2018 (UTC) @Tagishsimon: Interesting! Thanks! U+1F360 (talk) 18:21, 2 August 2018 (UTC) Definitive (?) list of deduplicated iata and icao wikilinks Hello Taghsimon, I thought this query would end up work but keeps time-outrunned : any tip ? In fact, my final aim is to help build this dataset as requested by a wikipedian : for airports that have an fr.wiki airport article: {'continent', 'country', 'IATA', 'ICAO', 'airport article title', 'destination city article title'} for airports that do not have an fr.wiki airport article (interwiki linking to en.wiki): {'continent', 'country', 'IATA', 'ICAO', , 'destination city article title', 'QID'} (see discussion there [1]) SELECT distinct ?item ?itemLabel ?countryLabel ?fr_article ?Wfr ?en_article ?Wen ?iata ?icao WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.                     # item must be an instance of an airport, or an instance that is a subclass of an airport
+  optional {?item wdt:P17 ?country .                        # ?item may have a country 
+           filter not exists {?country pq:P582 [].} }        # ?country that still exists              
+  optional {?item p:P238 ?node .                           # item may have a P238 (IATA) node
+           ?node ps:P238 ?iata.                            # and the node has a P238 (IATA) value
+           filter not exists {?node pq:P582 [].}   }       # but the value is ignored if it has an end-date
+  optional {?item wdt:P239 ?icao .                         # item may have a P239 (ICAO) value  
+           filter not exists {?icao pq:P582 [].}   }      # P239 that still exists        
+  optional {?Wen schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://en.wikipedia.org/>;   # the sitelink points to en.wikipedia
+            schema:name ?en_article.}                      # and has an article name
+  optional {?Wfr schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://fr.wikipedia.org/>;   # the sitelink points to fr.wikipedia 
+            schema:name ?fr_article.}                      # and has an article name
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}              # exclude items having instances that are military airports & subclasses thereof
+  bind(coalesce(?en_article,?fr_article) as ?article)      # create ?article if there is an EN or FR wikipedia article
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}      # exclude military airports
+  minus {?item wdt:P31/wdt:P279* wd:Q1311670.}     # exclude railways stations
+  minus {?item wdt:P31/wdt:P279* wd:Q7373622.}     # exclude Royal Air Force
+  minus {?item wdt:P31/wdt:P279* wd:Q502074.}      # exclude héliports
+  minus {?item wdt:P576 ?date}                     # exclude destructed airports
+  minus {?item wdt:P31/wdt:P279* wd:Q44665966.}    # exclude  airports being build
+  filter(bound(?article))                                  # select only if there is an ?article
+  bind(coalesce(?iata,?icao) as ?code)                     # create ?code if there is an ICAO or IATA code 
+  filter(bound(?code))                                     # select only if there is an ?code
+  minus {?item wdt:P576 [].}                               # remove items with P576 (dissolved, abolished or demolished) as a main property
+  minus {?item wdt:P582 [].}                               # remove items with P582 (end date) as a main property
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} group by ?item ?itemLabel ?sitelink order by ?itemLabel
+ Try it!--Bouzinac (talk) 19:26, 2 August 2018 (UTC)@Bouzinac: this gets your query working, I think. Let me know if it works for you. I can look at 'destination city article title' later ... not sure how well the data support that. LHR should give us London. What should Stanstead airport give? --Tagishsimon (talk) 19:40, 2 August 2018 (UTC) SELECT distinct ?item ?itemLabel ?countryLabel ?fr_article ?Wfr ?en_article ?Wen ?iata ?icao WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784.                     # item must be an instance of an airport, or an instance that is a subclass of an airport
+  optional {?item wdt:P17 ?country .                        # ?item may have a country 
+           filter not exists {?country pq:P582 [].} }        # ?country that still exists              
+  optional {?item p:P238 ?node .                           # item may have a P238 (IATA) node
+           ?node ps:P238 ?iata.                            # and the node has a P238 (IATA) value
+           filter not exists {?node pq:P582 [].}   }       # but the value is ignored if it has an end-date
+  optional {?item p:P239 ?node2. 
+            ?node2 ps:P239 ?icao .                         # item may have a P239 (ICAO) value  
+           filter not exists {?node2 pq:P582 [].}   }      # P239 that still exists        
+  optional {?Wen schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://en.wikipedia.org/>;   # the sitelink points to en.wikipedia
+            schema:name ?en_article.}                      # and has an article name
+  optional {?Wfr schema:about ?item;                       # item may have a sitelink
+            schema:isPartOf <https://fr.wikipedia.org/>;   # the sitelink points to fr.wikipedia 
+            schema:name ?fr_article.}                      # and has an article name
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}              # exclude items having instances that are military airports & subclasses thereof
+  bind(coalesce(?en_article,?fr_article) as ?article)      # create ?article if there is an EN or FR wikipedia article
+  minus {?item wdt:P31/wdt:P279* wd:Q695850.}      # exclude military airports
+  minus {?item wdt:P31/wdt:P279* wd:Q1311670.}     # exclude railways stations
+  minus {?item wdt:P31/wdt:P279* wd:Q7373622.}     # exclude Royal Air Force
+  minus {?item wdt:P31/wdt:P279* wd:Q502074.}      # exclude héliports
+  minus {?item wdt:P576 ?date}                     # exclude destructed airports
+  minus {?item wdt:P31/wdt:P279* wd:Q44665966.}    # exclude  airports being build
+  filter(bound(?article))                                  # select only if there is an ?article
+  bind(coalesce(?iata,?icao) as ?code)                     # create ?code if there is an ICAO or IATA code 
+  filter(bound(?code))                                     # select only if there is an ?code
+  minus {?item wdt:P576 [].}                               # remove items with P576 (dissolved, abolished or demolished) as a main property
+  minus {?item wdt:P582 [].}                               # remove items with P582 (end date) as a main property
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } . #this bit gets labels for Qid values
+} order by ?itemLabel
+ Try it! thanks,but no icao are present in your dataset. For your question about London, it should be disambiguated somewhat like \"London - Stansted\" // \"Paris - Orly\" etc. --Bouzinac (talk) 20:02, 2 August 2018 (UTC) @Bouzinac: icao fixed in the above query. My point about, for example, London Stansted Airport (Q8709) is, what statement exists in the record to guide us to the city served. (Okay, so in this example they include London in the name ... we cannot rely on that, though. Neither the P131 value and the P625 coordinate help us greatly. --Tagishsimon (talk) 20:13, 2 August 2018 (UTC) Need for a simple count that is time-consuming Generating \"time out\" error. I need this counting query to https://github.com/OSMBrasil/semantic-bridge SELECT  (COUNT(DISTINCT ?item) AS ?count)
+    WHERE {
+      ?item wdt:P402 _:b0.
+      ?item  (wdt:P31*|wdt:P279*)/wdt:P17 wd:Q155 .
+    } --Krauss (talk) 21:14, 2 August 2018 (UTC)PS: expected ≥ 5580. I try with \"similar but not the same\" operations, SELECT  (COUNT(DISTINCT ?item) AS ?count) 
+WHERE {
+      ?item wdt:P402 _:b0 .
+      ?item wdt:P31*/wdt:P17 wd:Q155
+}
+# wdt:P17 = 5579
+# wdt:P31*/wdt:P17 = 5580   #seems optimal
+# wdt:P31*/wdt:P279*/wdt:P17 = 5580
+# wdt:P279*/wdt:P31*/wdt:P17 = 5580
+# ... seems all = 5580
+
+SELECT  (COUNT(DISTINCT ?item) AS ?count) 
+WHERE {
+      ?item wdt:P279*/wdt:P31*/wdt:P17 wd:Q155
+}
+# wdt:P17 = 99224
+# wdt:P31*/wdt:P17 = 100856
+# wdt:P31*/wdt:P279*/wdt:P17 = 101035 #seems optimal
+# wdt:P279*/wdt:P31*/wdt:P17 = 100981 I'm not sure what you are trying to count. In general, P17=Q155 should be present on all relevant items. So doing the below should be sufficient (currently 5581): Items used: Brazil (Q155)   Properties used: OpenStreetMap relation ID (P402)   , country (P17)   SELECT  (COUNT(DISTINCT ?item) AS ?count) 
+WHERE
+{
+      ?item wdt:P402 _:b0.
+      ?item wdt:P17 wd:Q155 .
+} Try it! --- Jura 21:41, 2 August 2018 (UTC) Oops, sorry, edited with DISTINCT as you remember! @Jura1: Thanks (!). Sorry, your query is not what I need, the problem is described in https://stackoverflow.com/q/51660914/287948 So, there are a way to submit query where we can wait by a result? END, problem solved by Stanislav Kralin (see (wdt:P31|wdt:P279)*) with QueryHints: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d830494-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?osm_relid ?name {
+  ?itemi wdt:P17 wd:Q155 .
+  hint:Prior hint:runFirst true .
+  ?item (wdt:P31|wdt:P279)* ?itemi .
+  ?item wdt:P625 [].  # or P402
+  OPTIONAL { ?item wdt:P1448 ?name. }
+  OPTIONAL { ?item wdt:P402 ?osm_relid .}
+  SERVICE wikibase:label { 
+      bd:serviceParam wikibase:language \"en,[AUTO_LANGUAGE]\". 
+  }
+}""" .

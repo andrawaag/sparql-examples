@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-778f408f0c374e5ed32d70497489901c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819793-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel
+{
+  ?item wdt:P31 wd:Q7889; # items that are video games
+        p:P577 ?releaseDateStatement. # items with a publication date.
+  ?releaseDateStatement a wikibase:BestRank; # ... of best rank (instead of wdt:P577)
+       psv:P577 / wikibase:timePrecision 11 . # Precision is \"day\" (encoded as integer 11)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

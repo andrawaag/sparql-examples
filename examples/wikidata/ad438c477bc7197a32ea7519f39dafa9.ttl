@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad438c477bc7197a32ea7519f39dafa9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852748-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d852748-61CA95EE391329EEAC84CEBF95C492BB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?place ?placeLabel ?location ?continent WHERE {
+  SERVICE wikibase:box {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:cornerSouthWest \"Point(136 -90)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:cornerNorthEast \"Point(142 -60)\"^^geo:wktLiteral .
+  }
+  OPTIONAL { ?place wdt:P30 ?continent }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

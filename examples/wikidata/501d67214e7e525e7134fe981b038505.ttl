@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-501d67214e7e525e7134fe981b038505> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d82669-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d82669-F7E0C3F13D66ADD96BD438E72ABDFB86;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propLbl ?value WHERE {
+  ?property a wikibase:Property .
+  ?property wikibase:claim ?claimprop; wikibase:statementProperty ?stmtprop; rdfs:label ?propLbl .
+  FILTER(LANG(?propLbl) = 'en') .
+  
+  ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  
+  ?item ?claimprop ?statement .
+  ?statement ?stmtprop ?value; prov:wasDerivedFrom ?source .
+  ?source pr:P854 ?referenceUrl . 
+  VALUES ?mandatoryStatement {
+#	pr:P248 # stated in (if applicable)
+	pr:P813 # retrieved
+#	pr:P1476 # title
+#   pr:P577 # publication date
+#   pr:P1065 # archive url
+#   pr:P2960 # archive date
+#   pr:P2439 # language
+#   pr:P50 # author
+#   pr:P123 # publisher
+#   pr:P1683 # quote
+  }
+  MINUS { 
+    ?source ?mandatoryStatement ?foo . 
+  }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""" .

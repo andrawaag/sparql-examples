@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1c6bebe49af357645ed859d6383e00b3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries/Lists_sailboat_class>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sailing/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d829729-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d829729-425DC13E087422DB901F73C37701B0B2;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?sailboat ?sailboatLabel ?desc ?property ?qualifierLabel
+WHERE 
+{
+  ?sailboat wdt:P31 wd:Q106179098 .
+  ?sailboat wdt:P2043 ?property .
+  ?sailboat schema:description ?desc .
+  ?sailboat p:P2043 [ps:P2043 ?property;
+                     pq:P642 ?qualifier;
+                     pq:P642 wd:Q1817392;
+                    ].
+  
+  FILTER ( lang(?desc) = \"en\" )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

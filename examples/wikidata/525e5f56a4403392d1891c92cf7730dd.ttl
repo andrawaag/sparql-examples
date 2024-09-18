@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-525e5f56a4403392d1891c92cf7730dd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Aluxosm/Scratchpad>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d86227-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d86227-EC290F1BC785091FF88FAF5C95A04F30;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Table
+
+SELECT ?person ?personLabel ?positionLabel ?start_time ?end_time
+WHERE
+{
+  ?person wdt:P31 wd:Q5 .                                           # human
+  ?person p:P39 [ ps:P39 ?position; pq:P642 wd:Q4698217] .          # position held - ? - of - Air Training Corps
+  OPTIONAL{?person p:P39 [ ps:P39 ?position; pq:P580 ?start_time]}  # start time
+  OPTIONAL{?person p:P39 [ ps:P39 ?position; pq:P582 ?end_time]}    # end time
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+
+ORDER BY (?start_time)""" .

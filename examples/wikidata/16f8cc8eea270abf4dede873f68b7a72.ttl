@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16f8cc8eea270abf4dede873f68b7a72> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_SrpKor/Queries>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_ELTeC/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d828718-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d828718-36BEFE7B9B2BEC826650AEAA559DF011;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:BubbleChart
+SELECT ?pid ?place (COUNT(*) as ?count)
+WHERE {
+    ?novel  wdt:P31  wd:Q7725634;
+            wdt:P840 ?pid;
+            wdt:P747 ?edition.
+    ?edition wdt:P1433 wd:Q106927517.
+           #  wdt:P123 wd:Q106926624.
+    OPTIONAL {
+		?pid rdfs:label ?place
+        filter (lang(?place) = \"sr\")}
+	}
+GROUP BY ?pid ?place
+ORDER BY DESC(?count) ASC(?place)""" .

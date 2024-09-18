@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c83171ce1519575d71ade35e1255aabe> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825556-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d825556-672FABF13E5099C4F3EEED2D6DBC646D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?id ?name ?first ?second ?birth ?death
+WHERE {
+  ?item p:P396 [ ps:P396 ?id ; pq:P1810 ?name ] .
+  FILTER REGEX(?name, \"<(.*\\\\d+.*)-(.*)\")
+  BIND(REPLACE(?name, \"^.*<(.*\\\\d+.*)-(.*)>$\", \"$1\") AS ?first)
+  BIND(REPLACE(?name, \"^.*<(.*\\\\d+.*)-(.*)>$\", \"$2\") AS ?second)
+  OPTIONAL { ?item wdt:P569 ?born } . BIND(YEAR(?born) AS ?birth)
+  OPTIONAL { ?item wdt:P570 ?died } . BIND(YEAR(?died) AS ?death)
+  FILTER(STR(?first) != STR(?birth))
+}
+ORDER BY ?birth""" .

@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-44a8ba5e5946510b92f7fa6d575adf26> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d828898-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?place ?latitude ?longitude
+with {
+SELECT ?place 
+WHERE {
+  ?place_sub wdt:P279* wd:Q811979 .
+  ?place wdt:P31 ?place_sub.
+  SERVICE wikibase:around { 
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center \"Point(13.5812565 52.5153623)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:radius \"5\" .
+    }
+} GROUP BY ?place } as %i
+where
+{
+  include %i .
+  ?place p:P625 ?statement .
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?latitude .
+  ?coordinate_node wikibase:geoLongitude ?longitude . 
+ }""";
+  <http://example.org/bigdata_select> """SELECT ?place ?latitude ?longitude
+with {
+SELECT ?place 
+WHERE {
+  ?place_sub wdt:P279* wd:Q811979 .
+  ?place wdt:P31 ?place_sub.
+  SERVICE wikibase:around { 
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center \"Point(13.5812565 52.5153623)\"^^geo:wktLiteral .
+    bd:serviceParam wikibase:radius \"5\" .
+    }
+} GROUP BY ?place } as %i
+where
+{
+  include %i .
+  ?place p:P625 ?statement .
+  ?statement psv:P625 ?coordinate_node .
+  ?coordinate_node wikibase:geoLatitude ?latitude .
+  ?coordinate_node wikibase:geoLongitude ?longitude . 
+ }""" .

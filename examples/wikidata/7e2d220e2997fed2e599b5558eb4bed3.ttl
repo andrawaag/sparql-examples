@@ -1,0 +1,36 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7e2d220e2997fed2e599b5558eb4bed3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?child
+WHERE
+{
+  #  child \"has parent\" Bach
+  ?child parent Bach.
+  # （注：‘#’ より後ろはすべてはコメントで、WDQSには無視されます。）
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS こと Wikidata Query Service は、Wikidata のコンテンツへの洞察を提供する強力なツールです。このガイドでは WDQS の使い方を説明します。interactive tutorial by Wikimedia Israel も参照してください。自分で SPARQL クエリを書く前に、{{Item documentation}}やその他の一般的な SPARQL クエリのテンプレートを調べて、その中にすでに書きたいクエリが含まれていないかどうか確認してください。 Contents 1 はじめる前に 2 SPARQLの基本 3 初めてのクエリ 3.1 自動補完 4 より進んだトリプルのパターン 5 インスタンスとクラス 5.1 プロパティパス 6 修飾子 7 ORDERとLIMIT 7.1 演習 7.1.1 アーサー・コナン・ドイルの本 7.1.2 化学元素 7.1.3 ミシシッピ川に流れ込む川 7.1.4 ミシシッピ川に流れ込む川 その2 8 OPTIONAL 9 式、FILTERとBIND 9.1 データ型 9.2 演算子 9.3 FILTER 9.4 BIND、BOUND、IF 9.5 COALESCE 10 グループ化 10.1 都市の人口 10.2 画材 10.3 メーカー別の銃 10.4 ページ数別の出版社 10.4.1 HAVING 10.5 集約関数の概要 10.6 wikibase:ラベルと集約 11 VALUES 12 Label in multiple languages 13 さらには… 14 関連項目 はじめる前に このガイドはとても長く威圧的に見えるかもしれませんが、どうか敬遠しないでください。SPARQLの基本を学ぶだけでも、かなりのことができるようになります。#初めてのクエリまでで読むのを止めたとしても、興味深いクエリをたくさん書くための知識としては十分です。さらにこのチュートリアルの各セクションを読めば、よりパワフルなクエリを書くことができるでしょう。WikidataやSPARQL、WDQSについて、これまでまったく聞いたことがない方のために、これらの用語について簡単に説明しておきましょう。 Wikidata は知識データベースです。「カナダの首都はオタワである」「モナリザはポプラの木に油絵の具で描かれている」「金の融点は1,064.18度である」といったような、何百万もの文から成ります。 SPARQL は知識データベースに対して定式化された質問（クエリ）を行うための言語です。適切なデータベースとSPARQLクエリがあれば、「音楽のもっとも主要な調性は?」「もっとも多くの俳優に演じられたキャラクターは?」「血液型の分布は?」「今年パブリックドメインになる作家の作品は?」といった疑問に答えることができます。 WDQS こと Wikidata Query Service は、上のふたつを統合したものです。SPARQLクエリを入力すると、Wikidataのデータセットに対して検索を行い、その結果を表示します。  SPARQLの基本 シンプルなSPARQLクエリは次のようなものです。 SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} SELECT節にはクエリの結果として得たい変数を列挙します（変数はクエスチョン・マークで始まります）。WHERE節はそれらの変数に対する制約からなり、ほとんどの場合はトリプルの形をとります。Wikidata（および類似の知識データベース）のすべての情報は、トリプルの形で保存されています。クエリが実行されると、クエリサービスは得たいトリプルの制約を満たすような変数の値を知識データベース上に見つけようと試みます。そしてそのような変数の組み合わせが見つかるごとに、それをひとつの結果として返します。 トリプルは主語、述語、目的語を持つ文のように読むことができます(トリプルがピリオドで終わるのはそのためです)。 SELECT ?fruit
+WHERE
+{
+  ?fruit hasColor yellow.
+  ?fruit tastes sour.
+} このクエリの回答は、例えば “lemon” です。Wikidataでは、ほとんどのプロパティは “has” の性質を持つプロパティです。そのためこのクエリは以下のように書いてもいいでしょう。 SELECT ?fruit
+WHERE
+{
+  ?fruit color yellow.
+  ?fruit taste sour.
+} これは?fruit has color ‘yellow’ と読めます（?fruit is the color of ‘yellow’ ではありません — parent/child のような対になるプロパティのためにこれは心に留めておいてください）。しかしながら、WDQSの説明のためには、これはあまりいい例ではありませんでした。taste（〜な味がする）は主観的なので、Wikidataにはこれに対応するプロパティがないのです。代わりに、たいていの場合においては曖昧さのない、parent/child（親／子）の関係について考えてみましょう。 初めてのクエリ バロック音楽の作曲家、ヨハン・ゼバスティアン・バッハの、すべての子供を列挙したいものと考えてみてください。上のクエリで見たような擬似要素を使うとして、あなたならどんなクエリを書きますか？こんな感じのクエリを書いたのではないでしょうか。 """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/ja>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-80221c37c5047f380a77eaa78370b3cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:William_Avery/Taxonomic_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d830962-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?recombination ?taxonname ?ocitem ?octaxonname
+WHERE
+{
+     ?recombination wdt:P171+ wd:Q4867740. #Gastropoda
+     ?recombination p:P225 ?name.
+     ?name  ps:P225 ?taxonname.
+  
+     ?ocitem wdt:P2868 wd:Q14192851.       #Role of protonym
+     ?ocitem p:P225 ?ocname.
+     ?ocname  ps:P225 ?octaxonname.
+     ?ocitem p:P2868 ?protonym.
+     ?protonym pq:P642 ?recombination.
+
+
+      ?sitelink schema:about ?recombination;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name []. 
+  
+      ?sitelink2 schema:about ?ocitem;
+      schema:isPartOf <https://en.wikipedia.org/>;
+      schema:name [].  
+ 
+
+} LIMIT 100""" .

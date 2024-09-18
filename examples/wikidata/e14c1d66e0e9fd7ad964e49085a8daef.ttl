@@ -1,0 +1,90 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e14c1d66e0e9fd7ad964e49085a8daef> a sh:SPARQLExecutable;
+  rdfs:comment """Contents 1 Hello SPARQL queries dataset 2 Uso de UNION 3 Listar elementos con una referencia determinada 4 Listar calificadores 5 Consulta a partir de una lista de elementos previos conocidos 6 Listar un rango de elementos de una consulta usando OFFSET 7 List an P31 value with a specific reference 8 Elementos que usan una propiedad que es instancia de una «propiedad de Wikidata» 9 Ejemplo de capa en Wikishootme 10 Buscar una cadena de texto en la etiqueta de un elemento 11 Buscar una cadena de texto en la descripción de un elemento 12 Listar enlaces (sitelink) a ESWiki 13 Extraer la URI a una sentencia/afirmación/statement 14 Listar los nacidos en una región/provincia 15 Listar todos los nacidos en una provincia/región fallecidos en cualquier campo de concentración nazi 16 Listar todos los elementos en una zona geográfica con el mismo valor de propiedad 17 Truco de aceleración «rutas inversas de propiedad» 18 Todo lo que enlaza a un elemento 19 Todas las entradas del eDBA 20 Ejemplo de optimización de consulta 21 Listados en ESwiki y ENwiki 22 Todos los elementos en una localización administrativa 23 Consulta de elementos geolocalizados alrededor de un punto predeterminado 24 Elementos geolocalizados alrededor de Alamedilla (Q1631944) 25 Consultar los elementos que tienen determinada cadena como valor para una propiedad determinada 26 Todas las clases de playas alrededor de la ciudad de Almería 27 Todos los artículos académicos con P31= scholarly article (Q13442814) 28 filtrar elementos por cadena de texto en la URL 29 Filtrar por calificadores 30 Todas las obras de Rainer Werner Fassbinder (Q44426) 31 Empotrar un gráfico de tarta con una plantilla 32 Extraer sitelinks y contadores 33 Usando el graph builder de WDQS Hello SPARQL queries dataset [edit] Search for thousands example Wikidata queries: https://observablehq.com/@pac02/hello-sparql-queries-dataset Uso de UNION [edit] Profesiones y ocupaciones con entrada eswiki: SELECT DISTINCT ?profesi_n ?profesi_nLabel ?article WHERE {
+  {
+    ?profesi_n wdt:P31 wd:Q28640.
+    ?article schema:about ?profesi_n .
+    ?article schema:isPartOf <https://es.wikipedia.org/>.
+  } UNION {
+      ?profesi_n wdt:P31 wd:Q12737077.
+      ?article schema:about ?profesi_n .
+      ?article schema:isPartOf <https://es.wikipedia.org/>.                 
+  } UNION {
+        ?profesi_n wdt:P279 wd:Q28640.
+        ?article schema:about ?profesi_n;
+        schema:isPartOf <https://es.wikipedia.org/>.
+  } UNION {
+       ?profesi_n wdt:P279 wd:Q12737077.
+       ?article schema:about ?profesi_n;
+       schema:isPartOf <https://es.wikipedia.org/>. 
+  }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+             
+} ORDER BY ?profesi_nLabel
+ Try it! Listar elementos con una referencia determinada [edit] SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item p:P31 [ps:P31 wd:Q4989906; prov:wasDerivedFrom/pr:P248 wd:Q5917182]. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\".}
+}
+ Try it! Listar calificadores [edit] SELECT ?eremitorio ?eremitorioLabel ?id ?codigo ?fecha_ini ?fecha_fin ?epoca WHERE {
+  ?eremitorio wdt:P3318 ?id;
+    wdt:P8425 ?codigo;
+    p:P31 ?statement.
+  ?statement a wikibase:BestRank;
+             ps:P31 wd:Q513550.
+
+  OPTIONAL { ?statement pq:P580 ?fecha_ini. }
+  OPTIONAL { ?statement pq:P582 ?fecha_fin. }
+  OPTIONAL { ?statement pq:P1264 ?epoca. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\".}
+}
+ Try it! Consulta a partir de una lista de elementos previos conocidos [edit] SELECT ?municipio ?municipioLabel ?item ?itemLabel ?itemDescription ?coordenadas ?codigoIAPH WHERE {
+  VALUES ?thing { wd:Q1447785 wd:Q1358190 wd:Q1157982 wd:Q1447755 wd:Q1358351 wd:Q695536 wd:Q940842 wd:Q596058 
+                  wd:Q1611746 wd:Q1358027 wd:Q1447770 wd:Q1358171 wd:Q1110408 wd:Q1358100 wd:Q1157977 wd:Q1628481 
+                  wd:Q1445226 wd:Q1358237 wd:Q1611880 wd:Q1407152 wd:Q1444119 }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+  ?item wdt:P131 ?thing, ?municipio. 
+  ?item wdt:P8425 ?codigoIAPH. 
+  FILTER NOT EXISTS { ?item wdt:P625 ?coordenadas. }
+}
+ Try it! Listar un rango de elementos de una consulta usando OFFSET [edit] SELECT DISTINCT ?item ?cod_IAPH
+WHERE 
+{
+  ?item (wdt:P131*) wd:Q82142;
+    wdt:P8425 ?cod_IAPH.
+  ?item wdt:P1435 wd:Q23712. 
+}
+ORDER BY ?cod_IAPH
+OFFSET 500 LIMIT 500
+ Try it! List an P31 value with a specific reference [edit] SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item p:P31 [ps:P31 wd:Q4989906; prov:wasDerivedFrom/pr:P248 wd:Q5917182]. 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Elementos que usan una propiedad que es instancia de una «propiedad de Wikidata» [edit] SELECT (COUNT(DISTINCT ?protected_area ) AS ?count)
+WHERE
+{  
+  {
+    ?prop wdt:P31 wd:Q55978235.
+    ?prop wikibase:directClaim ?claim.
+    ?protected_area ?claim [].
+  }
+  UNION 
+  {
+    ?protected_area wdt:P31/wdt:P279* wd:Q473972.
+  }
+}
+ Try it! Ejemplo de capa en Wikishootme [edit] Mapa de elementos de patrimonio en la Bahía de Cádiz """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Olea/Ejemplos_de_consultas_WDQS>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

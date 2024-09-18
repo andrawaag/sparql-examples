@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d5639ab7aff9eccfdac76cae06b4f7ab> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838693-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?id ?taxonName ?urlAsSource ?importedFromWikimediaProject ?statedIn WHERE {
+      ?item wdt:P225 ?taxonName .
+      ?item p:P685/ps:P685 ?id .
+      ?item p:P685 ?idStatement .      
+      ?idStatement prov:wasDerivedFrom ?ref . 
+      OPTIONAL {?ref pr:P854 ?urlAsSource} .
+      OPTIONAL {?ref pr:P143 ?importedFromWikimediaProject} .
+      OPTIONAL {?ref pr:P248 ?statedIn} . 
+      BIND(str(?urlAsSource) as ?urlAsSourceString)
+      FILTER(!bound(?statedIn))
+      FILTER(strStarts(?urlAsSourceString, \"https://www.ncbi.nlm.nih.gov/\"))
+      #FILTER(bound(?statedIn) && !sameTerm(?statedIn, wd:Q13711410))
+}
+ORDER BY ASC(xsd:integer(?id)) ASC(?taxonName)""" .

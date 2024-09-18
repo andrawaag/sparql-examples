@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b63f90898f1602f884fcec1aec3c762d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiFactMine/Core_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810472-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810472-A4DCD3B4F5E8B0BA48FFD90EDB1A2669;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Minerals by type locality
+#defaultView:BubbleChart
+SELECT ?locality ?localityLabel ?count
+WHERE 
+{
+  {
+    SELECT ?locality (COUNT(?mineral ) AS ?count)    
+WHERE {
+    ?mineral wdt:P279* wd:Q7946 . 
+    ?mineral wdt:P2695 ?locality .  
+        }
+  GROUP BY ?locality 
+  }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?count)
+LIMIT 100""" .

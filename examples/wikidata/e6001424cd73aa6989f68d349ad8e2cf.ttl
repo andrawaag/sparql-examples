@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e6001424cd73aa6989f68d349ad8e2cf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d81892-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d81892-C95143579A09C7FB49007A6D2DE6E639;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Find all mineral type localities and sort them by most minerals defined (chris.urs-o)
+SELECT ?locality ?name (COUNT(DISTINCT ?mineral) AS ?count)
+WHERE
+{
+    ?mineral wdt:P279* wd:Q7946 .           # Find all instances and subclasses of mineral (traverse the tree)
+    ?mineral wdt:P2695 ?locality .          # Where a locality statement exists
+   
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+        
+    }
+}
+GROUP BY ?locality ?name
+ORDER BY DESC(?count)""" .

@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c8f2ce2110489b985ed0b9acf42ef748> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/07>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2023/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825952-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d825952-9366608B41399E966A5E4ACC390A11DA;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?human ?humanLabel
+  ?orcid
+  ?article
+
+WHERE {
+  {
+  SELECT 
+    ?human ?orcid ?article  
+  WHERE { 
+    ?human wdt:P31 wd:Q5 ;
+           wdt:P496 ?orcid ;
+           ^schema:about ?article .
+    ?article schema:inLanguage \"en\" .
+  }
+  LIMIT 100  # Change if more humans should be returned
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
+}""";
+  <http://example.org/bigdata_select> """SELECT 
+  ?human ?humanLabel
+  ?orcid
+  ?article
+WITH {
+  SELECT 
+    ?human ?orcid ?article  
+  WHERE { 
+    ?human wdt:P31 wd:Q5 ;
+           wdt:P496 ?orcid ;
+           ^schema:about ?article .
+    ?article schema:inLanguage \"en\" .
+  }
+  LIMIT 100  # Change if more humans should be returned
+} AS %result
+WHERE {
+  INCLUDE %result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }        
+}""" .

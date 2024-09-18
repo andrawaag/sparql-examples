@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4da90104267a09d114d713939b0544b6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842695-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d842695-980CE76B8A901E63F7C0433BD918B35C;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT ?streetwithout ?streetwithoutLabel ?withoutcoordinate (COUNT(?streetwithout) as ?count) {
+  ?street wdt:P138/wdt:P106 wd:Q1028181;
+          wdt:P31 wd:Q79007;
+          wdt:P17 wd:Q55;
+          wdt:P625 ?coordinate.
+  SERVICE wikibase:around { 
+     ?streetwithout wdt:P625 ?withoutcoordinate . 
+     bd:serviceParam wikibase:center ?coordinate . 
+     bd:serviceParam wikibase:radius \"0.2\" . 
+  }
+  ?streetwithout wdt:P31 wd:Q79007 .
+  MINUS { ?streetwithout wdt:P138 [] }    
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"nl\" .
+  }
+} GROUP BY ?streetwithout ?streetwithoutLabel ?withoutcoordinate""" .

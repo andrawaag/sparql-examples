@@ -1,0 +1,80 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-123bff00ee796255b782f892e4da05f5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852127-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d852127-1561256EEA89F3C4A94ABF4B806307BA,
+    _:genid-4e694113159d4e3db4a1a913894a81d852127-090024E5F2F682C39BFCE8B03C180765, _:genid-4e694113159d4e3db4a1a913894a81d852127-1C1A0710EF1B3006365101035D3161D2,
+    _:genid-4e694113159d4e3db4a1a913894a81d852127-7DB3FB2E73252D6AB320F16B166195B9, _:genid-4e694113159d4e3db4a1a913894a81d852127-D237BC9C9F9A153555A53A25CC08F7FD,
+    _:genid-4e694113159d4e3db4a1a913894a81d852127-B16E11A2ADD5A98F504B1578E4AFF164, _:genid-4e694113159d4e3db4a1a913894a81d852127-B16AD39281A6FD1FB3CA53AD4DB72A54,
+    _:genid-4e694113159d4e3db4a1a913894a81d852127-7920EF94F0DF4604A83677C487AF4219, _:genid-4e694113159d4e3db4a1a913894a81d852127-81F34EAF5BBA4BF79A6CC8C72F65364E,
+    _:genid-4e694113159d4e3db4a1a913894a81d852127-603BA693B0A9B7832354C17544FBA5B4;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# This query collects data related to entities on Barbara Harris. 
+# It demonstrates collecting individual attributes and concatenating them for easier post processing. 
+
+SELECT 
+  ?item
+(SAMPLE(?itemLabel) AS ?itemLabel) 
+(SAMPLE(?itemDescription) AS ?itemDescription) 
+  (SAMPLE(?pic) AS ?pic) 
+(SAMPLE(?date_of_birth) AS ?date_of_birth) 
+(GROUP_CONCAT(DISTINCT ?country_of_citizenship; SEPARATOR=\", \") AS ?country_of_citizenships)
+(GROUP_CONCAT(DISTINCT ?country_of_citizenshipLabel; SEPARATOR=\", \") AS ?country_of_citizenshipLabels)
+
+(GROUP_CONCAT(DISTINCT ?occupation; SEPARATOR=\", \") AS ?occupations)
+(GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupationLabels)
+
+(GROUP_CONCAT(DISTINCT ?country; SEPARATOR=\", \") AS ?countries)
+(GROUP_CONCAT(DISTINCT ?countryLabel; SEPARATOR=\", \") AS ?countryLabels)
+
+
+WHERE {
+  VALUES ?item {
+    wd:Q269809
+    wd:Q274590
+    wd:Q24576851
+    wd:Q807461
+    wd:Q4858963
+    wd:Q27954833
+    wd:Q4859015
+    wd:Q826930
+  }
+  OPTIONAL { ?item wdt:P18 ?pic. }
+  OPTIONAL { ?item wdt:P27 ?country_of_citizenship. }
+  OPTIONAL { ?item wdt:P106 ?occupation. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  OPTIONAL { ?item wdt:P31 ?instance_of. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P569 ?date_of_birth. }
+  SERVICE wikibase:label { 
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?item rdfs:label ?itemLabel.
+    ?item rdfs:description ?itemDescription.
+    ?country_of_citizenship rdfs:label ?country_of_citizenshipLabel.
+    ?occupation rdfs:label ?occupationLabel.
+    ?country rdfs:label ?countryLabel.
+  }
+}
+GROUP BY ?item""" .

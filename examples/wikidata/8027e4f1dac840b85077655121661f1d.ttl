@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8027e4f1dac840b85077655121661f1d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Bouzinac/Histoire>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840622-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d840622-26CF950916FB6DA51DC0BB521C11338F,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-B16DDCBC4B70B7079C25EF9E16518B27, _:genid-4e694113159d4e3db4a1a913894a81d840622-CA0E6C281C3ECD585500C8D225CE650A,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-AEEC2A0728528B8B52CAED9BD8B49568, _:genid-4e694113159d4e3db4a1a913894a81d840622-64B69652EA49A1948E042D3B1F9D943A,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-10298DA49101C6777553F94F0DBA2BD7, _:genid-4e694113159d4e3db4a1a913894a81d840622-CD88D51FCCCDA4F03802BB0D64595BBC,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-D4AE2C00565B354E411FBBCD5B8942A3, _:genid-4e694113159d4e3db4a1a913894a81d840622-13D0EA93F3D5507D0A3D9A036F5B684E,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-4F06E5828AE5D5800105D0813A06A254, _:genid-4e694113159d4e3db4a1a913894a81d840622-AC922CDF70845B0798686182E708FC56,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-3D4E734721FB56083D9793EF90719787, _:genid-4e694113159d4e3db4a1a913894a81d840622-9E0544D852132F91AAE4374288179214,
+    _:genid-4e694113159d4e3db4a1a913894a81d840622-737E7AAE113AE305DE806AA03F24C9A8, _:genid-4e694113159d4e3db4a1a913894a81d840622-60DC8357B2B24A59808A67CA86B53BC9;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel 
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"airport -haswbstatement:P31 -haswbstatement:P279\" .
+    ?title wikibase:apiOutput mwapi:title. 
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  #add any other requirements here
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

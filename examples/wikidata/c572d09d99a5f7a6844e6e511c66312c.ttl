@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c572d09d99a5f7a6844e6e511c66312c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Addshore/Dartmoor>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d827950-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d827950-117B775DAE3B074E9D9AC41E2808744A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+    ?item ?itemLabel ?itemDescription ?image ?instance ?instanceLabel
+    ?prominence ?elevation ?coord ?osgrid
+    ?geonamesId
+    ?partOf ?partOfLabel ?onFeature ?onFeatureLabel ?territory ?territoryLabel ?inProtectedArea ?inProtectedAreaLabel 
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q631305; # Rock formation -> Tor 
+        wdt:P17           wd:Q145; # In the UK
+        wdt:P31           ?instance;
+        wdt:P276          wd:Q214823. # Location Dartmoor
+  OPTIONAL { ?item wdt:P18 ?image }
+  OPTIONAL { ?item wdt:P2660 ?prominence }
+  OPTIONAL { ?item wdt:P2044 ?elevation }
+  OPTIONAL { ?item wdt:P625 ?coord }
+  OPTIONAL { ?item wdt:P613 ?osgrid }
+  OPTIONAL { ?item wdt:P1566 ?geonamesId }
+  OPTIONAL { ?item wdt:P361 ?partOf }
+  OPTIONAL { ?item wdt:P706 ?onFeature }
+  OPTIONAL { ?item wdt:P131 ?territory }
+  OPTIONAL { ?item wdt:P3018 ?inProtectedArea }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

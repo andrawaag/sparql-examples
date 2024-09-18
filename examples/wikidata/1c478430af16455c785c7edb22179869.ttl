@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1c478430af16455c785c7edb22179869> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , publication date (P577)   , genre (P136)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d845506-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d845506-0C04BA88E324E84D83661BF2785E502F,
+    _:genid-4e694113159d4e3db4a1a913894a81d845506-56EFC28D4A954DFD5108DA5B07080787, _:genid-4e694113159d4e3db4a1a913894a81d845506-F731293C448F901D35F189ABB88296C4,
+    _:genid-4e694113159d4e3db4a1a913894a81d845506-3939A6BDDA539CD4EB963393B3EE22E4, _:genid-4e694113159d4e3db4a1a913894a81d845506-28B4FA94582D142264ACF7EEB7B59401,
+    _:genid-4e694113159d4e3db4a1a913894a81d845506-0D395738BAC2FCDF9AB9DCD83A36F7CD, _:genid-4e694113159d4e3db4a1a913894a81d845506-2BCF94E5B315A65DFF3C970065EB2385,
+    _:genid-4e694113159d4e3db4a1a913894a81d845506-0275C02C5EA3E2A91B79AE341083108C, _:genid-4e694113159d4e3db4a1a913894a81d845506-9DB1FE965A54115044C7BA5208C5C5FB,
+    _:genid-4e694113159d4e3db4a1a913894a81d845506-2CB5E5758C3C72BC61DC45502465D8FA;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#defaultView:ScatterChart
+SELECT   ?year  (COUNT(?_genre) AS ?count ) (SAMPLE(?_genreLabel) AS ?label )  (?year as ?year_shown) WHERE {
+  ?item wdt:P31 wd:Q11424.
+  ?item wdt:P577 ?_publication_date.
+  ?item wdt:P136 ?_genre.
+  ?_genre rdfs:label ?_genreLabel.
+  BIND(str(YEAR(?_publication_date)) AS ?year)
+  FILTER((LANG(?_genreLabel)) = \"en\")
+ 
+ FILTER (?_publication_date >= \"2000-00-00T00:00:00Z\"^^xsd:dateTime)
+}
+GROUP BY ?_genreLabel ?year
+HAVING (?count > 30)""" .

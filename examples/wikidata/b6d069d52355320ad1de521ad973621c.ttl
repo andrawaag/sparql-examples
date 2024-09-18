@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b6d069d52355320ad1de521ad973621c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d828772-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d828772-F46E40D5316485961BE75E97F8166705,
+    _:genid-4e694113159d4e3db4a1a913894a81d828772-D53314D18C5604BB8C71DE7AF0999CCD, _:genid-4e694113159d4e3db4a1a913894a81d828772-F6C62BD81123A9FCD20372F223434869,
+    _:genid-4e694113159d4e3db4a1a913894a81d828772-53D4BA6FE956301F3A54860E3E46FC8F, _:genid-4e694113159d4e3db4a1a913894a81d828772-74688275ED7D48D57DB75382405A3823,
+    _:genid-4e694113159d4e3db4a1a913894a81d828772-0CCB7633E9B460A979AB2FCD0458D581, _:genid-4e694113159d4e3db4a1a913894a81d828772-0A36CBF3C950288F72CBC0708DEF7916,
+    _:genid-4e694113159d4e3db4a1a913894a81d828772-8EFDA10872776B88EC5F2E4670E4E827, _:genid-4e694113159d4e3db4a1a913894a81d828772-340F5D208C8803306F722403610601B2,
+    _:genid-4e694113159d4e3db4a1a913894a81d828772-2412FAC22B79BE26A7E8C33395D8A08B;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#added before 2016-10
+SELECT ?item ?dob
+WHERE
+{
+  	# place of birth = Scotland (Q22)
+  	{ ?item wdt:P19 wd:Q22 }
+	# OR place of birth within Scotland.
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q22 }
+
+	# humans only
+  	?item wdt:P31 wd:Q5 .
+
+	# get DOB for ordering.
+	OPTIONAL { ?item wdt:P569 ?dob  }
+}
+#Order by date of birth, avoid overriding this in the template with sort=
+ORDER BY ?dob
+#Listeria can only handle up to 5000
+LIMIT 4000
+#start at the first item
+OFFSET 0 #change to OFFSET 4000 to start at the 4001th item""" .

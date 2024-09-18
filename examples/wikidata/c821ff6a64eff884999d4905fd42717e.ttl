@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c821ff6a64eff884999d4905fd42717e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>,
+    <https://www.wikidata.org//wiki/User:Shisma/katakana.sparql>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d832219-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d832219-AC469FC326852A5452A64D7B64CCA522;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+SELECT ?lexeme ?lemma ?derived_from ?lexeme_de_lemma
+{
+  ?lexeme a ontolex:LexicalEntry .
+  ?lexeme wikibase:lemma ?lemma .
+  FILTER REGEX(?lemma, \"^[\\u30A0-\\u30FF]+$\") # Katakana main unicode range
+  ?lexeme wdt:P5191 ?derived_from .
+  ?lexeme_de wdt:P5191? ?derived_from .
+  ?lexeme_de wikibase:lemma ?lexeme_de_lemma .
+  FILTER (LANG(?lexeme_de_lemma) = \"de\")
+}""" .

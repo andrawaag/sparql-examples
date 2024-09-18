@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2dccaf1ad9df554e6b43fe80c8e6282f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Thekidpossum>, <https://www.wikidata.org//wiki/User:Brochon99/M%C3%A9moire>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87358-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d87358-2E202BBFA306C0A843AD035899E875CB,
+    _:genid-4e694113159d4e3db4a1a913894a81d87358-48944BBAE05B25CE8E6BF1B85F1394AB, _:genid-4e694113159d4e3db4a1a913894a81d87358-F90625B6EA4D3E23E226F78CD9E37FC5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?genderLabel ?itemDescription ?awardLabel (YEAR(?date) AS ?year) (GROUP_CONCAT(DISTINCT ?language; separator=\", \") AS ?languages) {
+  VALUES ?award { wd:Q3404296 wd:Q2365303 wd:Q28869834 wd:Q3404842 wd:Q3404891 wd:Q3404993 
+                  wd:Q3405049 wd:Q24928963 wd:Q3405011 wd:Q21658579 wd:Q3405354 } . #award: 10 Acfas awards
+  ?item wdt:P31 wd:Q5;
+        wdt:P21 ?gender;
+        p:P166 ?awardStatement.
+  ?awardStatement ps:P166 ?award.
+  OPTIONAL { ?awardStatement pq:P585 ?date. }
+  OPTIONAL {
+    ?article a schema:Article;
+               schema:about ?item;
+               schema:inLanguage ?language.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+GROUP BY ?item ?itemLabel ?genderLabel ?itemDescription ?award ?awardLabel ?date
+ORDER BY ?genderLabel ?awardLabel""" .

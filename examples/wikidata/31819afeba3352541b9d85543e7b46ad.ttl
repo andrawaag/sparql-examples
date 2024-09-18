@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-31819afeba3352541b9d85543e7b46ad> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/Dresdner_Hefte>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821491-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d821491-BEF86CA7E235CD33D9111A8CED050363;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#create Literature-Snippets from @ddhefte WD items with WP sitelink
+SELECT ?subject ?subjectLabel ?heft ?heftLabel ?item ?itemLabel ?pl ?sitelink ?snippet
+WHERE 
+{
+  ?heft wdt:P1433 wd:Q14916674.
+  ?item wdt:P1433 ?heft.
+  ?heft wdt:P1476 ?hefttitle.
+  ?heft wdt:P433 ?issue.
+  ?heft wdt:P98  ?editor.
+  ?heft wdt:P212 ?isbn13.
+  ?heft wdt:P577 ?published.
+  ?editor rdfs:label ?el filter (lang(?el) = \"de\").
+  ?item wdt:P304 ?pages.
+  ?item wdt:P50 ?author.
+  ?author rdfs:label ?al filter (lang(?al) = \"de\").
+  ?item wdt:P1476 ?title.
+  ?item wdt:P921 ?subject.
+  optional {
+    ?item wdt:P5008 ?project.
+    ?project rdfs:label ?pl filter (lang(?pl) = \"de\").
+  }
+  ?subject wdt:P31 wd:Q5.
+  ?sitelink schema:about ?subject .
+  ?sitelink schema:isPartOf <https://de.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  BIND(CONCAT(\"'\"`UNIQ--ref-0000000E-QINU`\"'\") as ?snippet)
+}""" .

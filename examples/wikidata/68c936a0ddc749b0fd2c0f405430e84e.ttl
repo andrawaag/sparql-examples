@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-68c936a0ddc749b0fd2c0f405430e84e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Chris_Mytton/sandbox/prompts/Riigikogu>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d817510-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d817510-49FE6A1830B09346931DFBE73BC48AED;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?name ?wikidata WHERE {
+    ?wikidata p:P39 ?mem .
+    ?mem ps:P39 wd:Q33129158 .
+    FILTER NOT EXISTS { ?mem pq:P582 [] } # no end date
+    SERVICE wikibase:label { 
+      bd:serviceParam wikibase:language \"et,en\". 
+      ?wikidata rdfs:label ?name .
+    }
+  }""" .

@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe62a067ab5f2679ff5703f62040da47> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846283-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d846283-4BDBAF372F02372800B9261DF144DADF;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# disasters without a date
+SELECT ?disaster ?disasterLabel ?typeLabel WHERE {
+  ?disaster wdt:P31/wdt:P279* wd:Q3839081 .
+  ?disaster wdt:P31 ?type .
+  filter not exists { ?disaster p:P580 ?start_time } .
+  filter not exists { ?disaster p:P585 ?point_in_time } .
+  filter not exists { ?disaster wdt:P31 wd:Q13406463 } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""" .

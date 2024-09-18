@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-39114afe1e8046c6be7342c542cc5739> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d862036-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT
+?person ?personLabel ?sexgenderLabel ?sportLabel ?citizenshipLabel
+WITH
+{ SELECT DISTINCT ?person 
+    WHERE { ?person wdt:P3171 ?value . 
+            ?person wikibase:statements ?statements .
+            FILTER (?statements > 50) . }
+} as %athletes
+WITH
+{ SELECT DISTINCT ?person ?sexgender (GROUP_CONCAT(DISTINCT ?sportLabel_;separator=\"; \") as ?sportLabel) (GROUP_CONCAT(DISTINCT ?citizenshipLabel_;separator=\"; \") as ?citizenshipLabel)
+         WHERE { INCLUDE %athletes 
+                 { ?person wdt:P21 ?sexgender . }
+                 { ?person wdt:P2416 ?sport . ?sport rdfs:label ?sportLabel_ . filter(lang(?sportLabel_)=\"en\") }
+                 { ?person wdt:P27 ?citizenship . ?citizenship rdfs:label ?citizenshipLabel_ . filter(lang(?citizenshipLabel_)=\"en\") }
+} GROUP BY ?person ?sexgender } as %athletes2
+WHERE
+ { INCLUDE %athletes2
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT
+?person ?personLabel ?sexgenderLabel ?sportLabel ?citizenshipLabel
+WITH
+{ SELECT DISTINCT ?person 
+    WHERE { ?person wdt:P3171 ?value . 
+            ?person wikibase:statements ?statements .
+            FILTER (?statements > 50) . }
+} as %athletes
+WITH
+{ SELECT DISTINCT ?person ?sexgender (GROUP_CONCAT(DISTINCT ?sportLabel_;separator=\"; \") as ?sportLabel) (GROUP_CONCAT(DISTINCT ?citizenshipLabel_;separator=\"; \") as ?citizenshipLabel)
+         WHERE { INCLUDE %athletes 
+                 { ?person wdt:P21 ?sexgender . }
+                 { ?person wdt:P2416 ?sport . ?sport rdfs:label ?sportLabel_ . filter(lang(?sportLabel_)=\"en\") }
+                 { ?person wdt:P27 ?citizenship . ?citizenship rdfs:label ?citizenshipLabel_ . filter(lang(?citizenshipLabel_)=\"en\") }
+} GROUP BY ?person ?sexgender } as %athletes2
+WHERE
+ { INCLUDE %athletes2
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""" .

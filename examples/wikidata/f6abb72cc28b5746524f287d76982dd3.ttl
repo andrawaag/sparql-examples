@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f6abb72cc28b5746524f287d76982dd3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Database_reports/WMF_projects/missing>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d832843-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+SELECT ?url ?family (SAMPLE(?article) as ?article) (SAMPLE(?item) as ?item) 
+WITH
+{
+  SELECT DISTINCT ?url ?family
+  { ?url wikibase:wikiGroup ?family 
+    FILTER NOT EXISTS { [] wdt:P856 ?url  ; wdt:P1800 [] }
+  }
+} as %q
+WHERE
+{
+  INCLUDE %q
+  OPTIONAL { ?article schema:about ?item ; schema:isPartOf ?url }   
+}
+GROUP BY ?url ?family""";
+  <http://example.org/bigdata_select> """SELECT ?url ?family (SAMPLE(?article) as ?article) (SAMPLE(?item) as ?item) 
+WITH
+{
+  SELECT DISTINCT ?url ?family
+  { ?url wikibase:wikiGroup ?family 
+    FILTER NOT EXISTS { [] wdt:P856 ?url  ; wdt:P1800 [] }
+  }
+} as %q
+WHERE
+{
+  INCLUDE %q
+  OPTIONAL { ?article schema:about ?item ; schema:isPartOf ?url }   
+}
+GROUP BY ?url ?family""" .

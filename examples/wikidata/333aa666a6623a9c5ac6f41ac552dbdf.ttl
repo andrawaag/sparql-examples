@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-333aa666a6623a9c5ac6f41ac552dbdf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_property_constraints/Archive_2>,
+    <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2018/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d813751-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d813751-144D3E77B081EA44947D07D2AC295708;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Bar chart of statements that have a constraint violation, grouped by instance of the regarding item:
+#defaultView:BarChart
+#TEMPLATE={ \"template\": { \"en\": \"Bar chart of statements that have a constraint violation grouped by ?property the regarding item\" }, \"variables\": { \"?property\": { \"query\":\"SELECT ?id  WHERE { VALUES ?id {  wd:P31 wd:P17 wd:P571 wd:P361 wd:P19 } }\" } } }
+SELECT ?instance_ofLabel (COUNT(?instance_ofLabel) AS ?count) WHERE {
+  ?s wikibase:hasViolationForConstraint ?y.
+  ?item ?z1 ?s.
+  BIND(wdt:P31 AS ?property)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  OPTIONAL { ?item ?property ?instance_of. }
+}
+GROUP BY ?instance_ofLabel
+ORDER BY DESC(?count)
+LIMIT 30""" .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-00568da3a4e358f4d78c71e01e33c7aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/06>,
+    <https://www.wikidata.org//wiki/User_talk:Bargioni>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856705-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d856705-4BC481B64A35FCC7F1EB3A37EACFAF74;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Biblioteche, musei e chiese a Roma
+#defaultView:Map
+SELECT DISTINCT ?luogo ?luogoLabel ?coordinate ?layer
+WHERE {
+  VALUES ?layer { wd:Q7075 wd:Q33506 wd:Q16970 } # biblioteca, museo e chiesa
+  ?luogo wdt:P131 wd:Q220 .
+  OPTIONAL { ?luogo wdt:P625 ?coordinate . }
+  ?luogo wdt:P31/wdt:P279* ?layer.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it,en\". }
+}""" .

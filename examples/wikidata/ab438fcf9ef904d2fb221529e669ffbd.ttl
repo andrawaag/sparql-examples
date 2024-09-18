@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ab438fcf9ef904d2fb221529e669ffbd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Erfurth/DieDatenlaube>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d816394-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d816394-DB58C09E9663D1DAF06C976471F1FACE;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#Chart of number books on animal magnetism (1766-1880) grouped by decade
+SELECT ?decade (COUNT(?item) AS ?noB) WHERE {
+  ?item wdt:P2 wd:Q394362;
+    wdt:P243 wd:Q172203;
+    wdt:P222 ?date.
+  BIND(YEAR(?date) AS ?year)
+  BIND(STR((ROUND(?year / 10 )) * 10)  AS ?decade)
+}
+GROUP BY ?decade
+ORDER BY (?decade)""" .

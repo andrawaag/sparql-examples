@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b359ec5b8d963d9695de4f7e4eefc2ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:2le2im-bdc/Reusser>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837190-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#élément connu de Wikidata réalisé par Francis Reusser
+SELECT ?film ?filmLabel ?durée ?date ?enLigneLabel ?URL
+WHERE 
+{
+  ?film wdt:P57 wd:Q116204.
+  OPTIONAl {?film wdt:P577 ?date.}
+  OPTIONAl {?film wdt:P2047 ?durée.}
+  OPTIONAL {?film wdt:P3301 ?enLigne.}
+  OPTIONAL {?film p:P3301 ?enLigneStat.
+           ?enLigneStat ps:P3301 ?accès.
+           ?enLigneStat pq:P2699 ?URL.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?date""" .

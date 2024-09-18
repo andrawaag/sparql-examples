@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e2909279c64e6529de404d07ae2c3597> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d816040-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Version 2 - using filters
+select ?item ?itemLabel ?pit ?value 
+  WHERE 
+  {
+    values ?item {wd:Q84}
+
+    ?item p:P1082 ?statement.     # this block finds a ?pit / ?value combination
+    ?statement ps:P1082 ?value.
+    ?statement pq:P585 ?pit.
+
+    filter not exists {          # this block finds another ?pit / ?value combination
+      ?item p:P1082 ?statement2.
+      ?statement2 ps:P1082 ?value2.
+      ?statement2 pq:P585 ?pit2.
+      filter (str(?statement) != str(?statement2))
+      filter (?pit2>?pit) }     # and the filter checks that there is not a more recent 
+                                # point in time (?pit2) than the selected ?pit 
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

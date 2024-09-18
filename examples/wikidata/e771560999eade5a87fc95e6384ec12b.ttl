@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e771560999eade5a87fc95e6384ec12b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: occupation (P106)   , country of citizenship (P27)   , date of birth (P569)   , date of death (P570)   , VIAF ID (P214)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d845434-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel (URI(CONCAT(\"http://viaf.org/viaf/\",?viaf)) AS ?viaf_id) ?birthyear ?deathyear WHERE {
+?person wdt:P106 wd:Q49757;
+        wdt:P27 wd:Q161885;
+        wdt:P569 ?birthdate;
+        wdt:P570 ?deathdate.
+FILTER (!isBLANK(?birthdate))
+FILTER (!isBLANK(?deathdate))
+OPTIONAL{ ?person wdt:P214 ?viaf}
+BIND(YEAR(?birthdate) AS ?birthyear)
+BIND(YEAR(?deathdate) AS ?deathyear)
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,fr,ru\"}
+} ORDER BY ?birthyear""" .

@@ -1,0 +1,122 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-5da2aceef906d98d911f3c53c123a939> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Music help - personnel that played on a recording 2 Count identifiers with exceptions 3 Interwiki table from mwapi 4 Query of a category on EN WP vs Simple English WP 5 check for missing values 6 Query for novalue on qualifier 7 I would like to query wiki data by numeric twitter ID 8 Listed buildings in Coventry 9 Can you query by twitterID? 10 Query an Exact Instrumentation 11 Property-based neighbourhood graph 12 MWAPI insource 13 All articles on the English WIkipedia about National parks around the world 14 Countries with population - but no result for Greece? 15 Remove duplicates when the subject has several objects that corresponds to one predicate 16 MPs representing Coventry 17 Numeration of rows 18 Number of votes of a given party on an election by municipality 19 How to get all the attributes QID/UID 20 Find the today's featured article or a range (from the start to today for example) 21 Calculating ratios 22 Correcting wikidata list, avoiding country bug 23 Need to select all the coutries in the world, and their GPD 24 Extraction d'un qualificatif lié à une propriété 25 Search for element in subcategories 26 Get LatLng of Administrative territorial entity if available 27 RfQ: enwikisource interwiki to ruwiki / ruwikisource 28 Distribution of alma mater of elected members by legislature 29 Item ID in label, but only sometimes 30 Specific description and now P31/P279 set 31 Trying to query whether new data has been created in WikiData for a particular subject. 32 List of people from a state 33 Count of female artists with articles in the Portuguese Wikipedia 34 Grammatical featue 35 Using wikibase:around and also return the aggregate count of statements for each returned item 36 If recursive 37 Subway stations that aren't subway stations Music help - personnel that played on a recording TIA for any help! I saw on the Wikiproject Music page that it's possible to \"Use performer (P175) to list all the performers with instrument (P1303) as a qualifier to say which instrument each performer played on that recording.\" I'd be interested in either performers with instruments on a recording or a release. But I haven't been able to find an example query showing how to do this nor have I been able to construct one myself.Using the Beatles as an example, I am guessing I want to look at a track and not a song. I see I can get the composer and producer as properties, and I can return the band as performer, but have had no luck in my attempts to get the personnel roles. But I'm also not confident how to know if the entities will even have roles. I've tried with a few different tracks & releases but don't know if it's my query or the entities I'm looking at. Both? Any help much appreciated.Query: # personnel and instruments played on a recording 
+SELECT ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+wd:Q60712461 wdt:P175 ?statement .
+?statement ps:wd:Q5 ?performer .
+?statement pq:P1303 ?instrument .
+  
+   SERVICE wikibase:label {
+     bd:serviceParam wikibase:language \"en\" .
+  }
+} @Nikoladelikatesla: So a couple of things to say about your version. If you want to reach for ps: and pq: values, you generally start with a p:P175, not a wdt:P175. And then the ?performer statement ... would just be ps:P175. That they're a human is neither here nor there. Here's a working query. It's actually written pretty much in reverse order, since the scarcest values are instruments used as qualifiers to performer. There are > 460k uses of P175, so queries involving this property will probably have to have some other conditions to decrease the result set, such as country, or genre, or whatever. # personnel and instruments played on a recording 
+SELECT ?item ?itemLabel ?performer ?performerLabel ?instrument ?instrumentLabel
+WHERE {
+  
+?statement pq:P1303 ?instrument .
+?statement ps:P175 ?performer .
+?item p:P175 ?statement .
+  
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! --Tagishsimon (talk) 19:56, 1 April 2021 (UTC) Thank you very much Tagishsimon! This is exactly it. I'm cleary very hazy on the qualifier stuff, need to spend some more time studying it. Appreciate the fast response. -- Nikoladelikatesla 20:07, 1 April 2021 (UTC) @Nikoladelikatesla: This section of the WDQS tutorial is quite good on qualifiers; and the datamodel for an item tries to convey how data is strung together with predicates. (Start at the item bubble; wdt: takes you to a simple value, but is otherwise a dead end. p: takes you to a statement which allows you to look at ps:, pq:, prov:wasDerivedFrom (which leads to pr: ) and other good stuff. --Tagishsimon (talk) 20:17, 1 April 2021 (UTC) Count identifiers with exceptions Hi all! Starting from the following banal query SELECT ?n WHERE { wd:Q11922067 wikibase:identifiers ?n . }
+ Try it! I would like to ask you if the two following improvements are possible: obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers only once (i.e. counting P8034 one time instead of three times, P227 one time instead of two times etc.) obtain a query asking to count, in Philumenus (Q11922067), all the external identifiers except one or more specific properties, e.g. excluding all the values of P214 and P1871 from count Thank you very much! --Epìdosis 07:23, 1 April 2021 (UTC) Items used: Philumenus (Q11922067)   SELECT (COUNT(DISTINCT ?wdt) as ?count) ?n 
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  wd:Q11922067 ?wdt [] .
+  wd:Q11922067 wikibase:identifiers ?n .
+}
+GROUP BY ?n Try it! Items used: Philumenus (Q11922067)   Properties used: VIAF ID (P214)   , CERL Thesaurus ID (P1871)   SELECT (COUNT(*) as ?count) ?n 
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  FILTER( ?wdt != wdt:P214 )
+  FILTER( ?wdt != wdt:P1871 )
+  wd:Q11922067 ?wdt [] .
+  wd:Q11922067 wikibase:identifiers ?n .
+}
+GROUP BY ?n Try it!--- Jura 07:54, 1 April 2021 (UTC)  Here is another proposal for the second query: SELECT (COUNT(DISTINCT(?wdt)) as ?count)
+WHERE 
+{
+  ?p wikibase:propertyType wikibase:ExternalId .   
+  ?p wikibase:directClaim ?wdt .
+  wd:Q11922067 ?wdt [] .
+  FILTER( ?wdt != wdt:P214 )
+  FILTER( ?wdt != wdt:P1871 )
+}
+ Try it! --Larske (talk) 14:29, 1 April 2021 (UTC) Oh, I don't quite see the difference, but, if one or the other statement had preferred rank, the following would be needed: SELECT (COUNT(*) as ?count) ?n
+WHERE
+{
+  ?prop wikibase:propertyType wikibase:ExternalId.
+  ?prop wikibase:claim ?p .
+  FILTER( ?prop != wd:P214 )
+  FILTER( ?prop != wd:P1871 )
+  wd:Q11922067 ?p ?st.
+  ?st wikibase:rank ?goodrank .
+  VALUES ?goodrank { wikibase:NormalRank wikibase:PreferredRank }
+  wd:Q11922067 wikibase:identifiers ?n.
+}
+GROUP BY ?n
+ Try it! --- Jura 14:58, 1 April 2021 (UTC)@Jura1: Both of your query versions with filtering out VIAF ID (P214) and CERL Thesaurus ID (P1871) give the result \"?count = 17\" and \"?n = 27\". My query version gives the result \"?count = 14\". That is the difference. It seems we interprete the expectations from Epìdosis differently. \"only once\" is just stated in item 1 above, but it is my interpretation that \"only once\" is valid also for item 2.Below is a figure showing my interpretation of \"only once\" and the basis for the result \"?count = 14\". It also shows where the result \"?count = 17\" comes from. Number of properties (of which not removed by filter) Property Value Number of values (of which not removed by filter) Comment 1 (0) VIAF ID (P214) xx 1 (0) 1 property with 8 values removed by filter xx 2 (0) xx 3 (0) xx 4 (0) xx 5 (0) xx 6 (0) xx 7 (0) xx 8 (0) 2 (1) ISNI (P213) xx 9 (1) 3 (2) Vatican Library VcBA ID (P8034) xx 10 (2) xx 11 (3) xx 12 (4) 4 (3) NORAF ID (P1015) xx 13 (5) 5 (4) GND ID (P227) xx 14 (6) xx 15 (7) 6 (5) Library of Congress authority ID (P244) xx 16 (8) 7 (6) RERO ID (obsolete) (P3065) xx 17 (9) 8 (7) IdRef ID (P269) xx 18 (10) 9 (8) WorldCat Identities ID (superseded) (P7859) xx 19 (11) 10 (9) American Academy in Rome ID (P9097) xx 20 (12) 11 (9) CERL Thesaurus ID (P1871) xx 21 (12) 1 property with 2 values removed by filter xx 22 (12) 12 (10) DLL Catalog author ID (P8122) xx 23 (13) 13 (11) Freebase ID (P646) xx 24 (14) 14 (12) PHI Latin Texts author ID (P6941) xx 25 (15) 15 (13) Pinakes author ID (P6831) xx 26 (16) 16 (14) SHARE Catalogue author ID (P3987) xx 27 (17) I see no need to test for rank \"goodrank\" to get the result \"?count = 14\", directClaim will take care of excluding any properties where all values have a \"deprecated rank\". But yes, to get the result \"?count = 17\" you have to filter for the \"goodranks\" in order to include all \"normal values\" and exclude any \"deprecated values\" in case there are any property with values of more than one rank. --Larske (talk) 07:20, 2 April 2021 (UTC) Interwiki table from mwapi Is there are a way to retrieve https://meta.wikimedia.org/w/api.php?action=query&meta=siteinfo&siprop=interwikimap&sifilteriw=local from Query Service? It's the same as m:Special:Interwiki. This didn't get me past acronym:. It's based on one of Dipsacus fullonum's (Wikidata:Request_a_query/Archive/2021/01#Get_wikis_statistics_from_a_query). It would be helpful if mw:API:Siteinfo#Sample_code (and similar) included Wikidata Query Service. Alternatively, external links from m:Interwiki map would get some of the data: https://meta.wikimedia.org/w/api.php?action=query&prop=extlinks&titles=Interwiki%20map&ellimit=500 --- Jura 11:45, 3 April 2021 (UTC) Query of a category on EN WP vs Simple English WP Greetings from the Simple English WP, where I'm assisting an eager new editor who's keen to share esoteric knowledge. Here's the query: Of the 36 pages in the w:Category:Meitei people, which also exist (i.e. linked via Wikidata items) in the Simple English WP? I'm trying to populate that newly created category in the SEWP but have only found bio pages for \"primordial gods and goddesses\"...! Thank you for your kind help. -- Deborahjay (talk) 13:39, 3 April 2021 (UTC) @Deborahjay: Only one, if my query works as I think it should. SELECT distinct ?item ?itemLabel ?WP_EN_name ?simple_article ?simple_sitelink where
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:Meitei people\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?WP_EN_name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    } 
+  filter(bound(?item))
+  OPTIONAL { ?simple_article schema:about ?item ;
+  schema:isPartOf <https://simple.wikipedia.org/> ; 
+  schema:name ?simple_sitelink . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }
+ Try it! --Tagishsimon (talk) 13:56, 3 April 2021 (UTC) @Tagishsimon: Your findings are consistent with what I've seen of the topic in that WP - including that I'd neglected to link a newly created category to its Wikidata item (now done). Furthermore - the product is helpful for quick-click access (via the WD item number) to three dozen sketchy and neglected WD items to which I can fairly quickly slap on at least a description in English. So we improve. Your facilitating is much appreciated! -- Deborahjay (talk) 14:24, 3 April 2021 (UTC) check for missing values I have connected Swedish runeinscriptions to the page they are mentioned on in some scanned books and would like now to check if I have connected all runeinscriptions ... All the runeinscriptions has a number see sort column and all the books are part of Upplands runinskrifter (Q106007110)Question how to check with SPARQL if all runeinscriptions are connected U 1 - U 1181 and number is missing Scandinavian Runic-text Database ID (P1261) contains the number Upplands runinskrifter (Q106007110) all books are part of this serie SELECT distinct ?signum ?sort ?item ?itemLabel ?citationLabel ?Litteraturbanken WHERE {
+  ?item wdt:P1261 ?signum.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  FILTER(STRSTARTS(?signum, \"U \"))
+  BIND(STRAFTER(?signum, \"U \") AS ?sort)
+  ?item p:P1343 ?LitteraturbankenP;
+    ?Litt ?Litt_value.
+  ?Litt_value prov:wasDerivedFrom ?reference.
+  ?reference pr:P248 ?citation;
+    pr:P5123 ?litturl.
+  ?reference pr:P248 ?partof.
+  ?partof wdt:P361 wd:Q106007110  # Books in serie Q106007110
+  BIND(URI(CONCAT(\"https://litteraturbanken.se/forfattare/\", ?litturl)) AS ?Litteraturbanken)
+#  FILTER(xsd:integer(?sort) > 921)
+}
+ORDER BY (xsd:integer(?sort))
+ Try it! Looks like U781 and U 782 is the same inscription i.e. it will be the same object in Wikidata... - Salgo60 (talk) 08:11, 4 April 2021 (UTC) Properties used: KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   , Scandinavian Runic-text Database ID (P1261)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d855655-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+SELECT ?missing_rune ?nv
+WHERE
+{
+    [] wdt:P5176 ?i ; wdt:P1181 ?nv .
+    FILTER( ?nv > 0 && ?nv < 1190 )
+    BIND( CONCAT(\"U \",?i) as ?missing_rune)
+    FILTER NOT EXISTS { [] ps:P1261 ?missing_rune }
+} 
+ORDER BY ?nv""" .

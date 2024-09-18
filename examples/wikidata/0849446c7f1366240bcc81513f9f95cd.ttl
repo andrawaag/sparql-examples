@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0849446c7f1366240bcc81513f9f95cd> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Charles_Matthews>, <https://www.wikidata.org//wiki/User:Charles_Matthews/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854875-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d854875-11F5692021105D559332478BA7E5CFD4,
+    _:genid-4e694113159d4e3db4a1a913894a81d854875-0E4D61BC248039F8D9EA276F6821F8DF, _:genid-4e694113159d4e3db4a1a913894a81d854875-F344FFD17A5B1B57E69AA2B19E68ADED;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?description1 ?item1 ?item1Label ?item2 ?item2Label
+{
+	{	SELECT DISTINCT ?item1 ?description1 ?item2
+		{
+			?item1 wdt:P1415 ?whatever1 .
+    		?item1 schema:description ?description1 .
+           FILTER (CONTAINS(str(?description1),'),'))
+		}
+		LIMIT 10000
+	}
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dd31c2714c1f61bc2180e8f2282ee793> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858277-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d858277-A8C8620145BE4C2AD88F7B42C19424D9,
+    _:genid-4e694113159d4e3db4a1a913894a81d858277-033D55E352D3CAE1CB809B7A51B359A5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?itDescrizione  WHERE {
+  {
+  SELECT ?item {
+    BIND( 1000000 * 13 AS ?base ) . # change this 0-30
+    ?item wdt:P31 wd:Q4167836 .
+    BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) .
+    FILTER( ?num > ?base + 0 && ?num < ?base + 1000001 ) .
+  }
+} .
+  ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
+  FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itDescrizione WITH {
+  SELECT ?item {
+    BIND( 1000000 * 13 AS ?base ) . # change this 0-30
+    ?item wdt:P31 wd:Q4167836 .
+    BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) .
+    FILTER( ?num > ?base + 0 && ?num < ?base + 1000001 ) .
+  }
+} AS %sub WHERE {
+  INCLUDE %sub .
+  ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
+  FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
+}""" .

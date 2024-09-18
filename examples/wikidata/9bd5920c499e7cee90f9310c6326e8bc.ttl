@@ -1,0 +1,53 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9bd5920c499e7cee90f9310c6326e8bc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d827608-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d827608-A154A7632B6274FA92ED4A0161C4CD79,
+    _:genid-4e694113159d4e3db4a1a913894a81d827608-5FB2568BD22133E9D4017E9D9F801222, _:genid-4e694113159d4e3db4a1a913894a81d827608-F8F482AC143584DE5A94D4F66570AC3E,
+    _:genid-4e694113159d4e3db4a1a913894a81d827608-8A732A75DBC073B6717EDB5F2A7D9F2D, _:genid-4e694113159d4e3db4a1a913894a81d827608-37A5F6988010866F4160B875B3F75618,
+    _:genid-4e694113159d4e3db4a1a913894a81d827608-DBEFE72C04AAA5B4E3C57BEC5792A896, _:genid-4e694113159d4e3db4a1a913894a81d827608-A38E00A45A31D3A58A52E9CD6EB67212,
+    _:genid-4e694113159d4e3db4a1a913894a81d827608-227DE33A1F4F347AE50A3542CC2F2B57, _:genid-4e694113159d4e3db4a1a913894a81d827608-A797704FA26035AA20E528C57A033C41,
+    _:genid-4e694113159d4e3db4a1a913894a81d827608-642BE8B14DE15F0E6EBE52B60556FAC7;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+#added before 2016-10
+ #sample from cywiki:Wicipedia:Merched_a_anwyd_yng_Nghymru
+SELECT ?item
+WHERE
+{
+	# gender = female
+  	?item wdt:P21 wd:Q6581072 .
+
+  	# place of birth = Wales (Q25)
+  	{ ?item wdt:P19 wd:Q25 }
+	# OR place of birth within Wales. This relies on places using P131 with Q25 (\"Wales\") as value (or with a value that has Q25 in P131)
+	UNION  { ?item wdt:P19 ?pob . ?pob wdt:P131* wd:Q25 }
+
+	# look for articles (sitelinks) in Welsh (\"cy\")
+  	OPTIONAL { ?sitelink schema:about ?item . ?sitelink schema:inLanguage \"cy\" }
+	# but select items with no such article
+	FILTER (!BOUND(?sitelink))
+
+	# humans only
+  	?item wdt:P31 wd:Q5 .
+}
+#Listeria can only handle up to 5000
+LIMIT 1000""" .

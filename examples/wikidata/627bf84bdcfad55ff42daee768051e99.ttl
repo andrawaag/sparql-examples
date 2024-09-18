@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-627bf84bdcfad55ff42daee768051e99> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_British_Politicians/Archive_1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d85645-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?person ?personLabel ?start_date ?end_date ?prev ?prevLabel ?next ?nextLabel ?office ?officeLabel 
+WHERE { 
+  wd:Q145 wdt:P1313 ?office .
+  ?person p:P39 ?posn ; wdt:P31 wd:Q5 .
+  ?posn ps:P39 ?office .
+  OPTIONAL { ?posn pq:P580 ?start_date }  
+  OPTIONAL { ?posn pq:P582 ?end_date }  
+  OPTIONAL { ?posn pq:P1365 ?prev }  
+  OPTIONAL { ?posn pq:155 ?prev }  
+  OPTIONAL { ?posn pq:P1366 ?next }  
+  OPTIONAL { ?posn pq:P156 ?next }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY DESC(?start_date)""" .

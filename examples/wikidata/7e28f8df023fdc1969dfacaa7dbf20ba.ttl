@@ -1,0 +1,72 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7e28f8df023fdc1969dfacaa7dbf20ba> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , continent (P30)   , contains the administrative territorial entity (P150)   , locator map image (P242)   , flag image (P41)   , capital (P36)   , image (P18)   , population (P1082)   , head of government (P6)   , twinned administrative body (P190)   , inception (P571)   , located in or next to body of water (P206)   , has part(s) (P527)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d862729-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d862729-C5FBC1A57412ED0B0D82C4A1C03CE914,
+    _:genid-4e694113159d4e3db4a1a913894a81d862729-24814CEF036FE0AE33991AA28C286B07, _:genid-4e694113159d4e3db4a1a913894a81d862729-77EE65745A9AFC7C2C664B6C3471F1A7,
+    _:genid-4e694113159d4e3db4a1a913894a81d862729-CA2D8136CB77D3EBEF43C59409292BEA, _:genid-4e694113159d4e3db4a1a913894a81d862729-B275F9A546211C6FB852A8C69AA5E10E,
+    _:genid-4e694113159d4e3db4a1a913894a81d862729-CF22B73A062A5D0E281CB5D50C262889, _:genid-4e694113159d4e3db4a1a913894a81d862729-644090BB82628DF811679C2DA19AEFF6,
+    _:genid-4e694113159d4e3db4a1a913894a81d862729-6241BD94FC0DD0BDF851780757E52BDA, _:genid-4e694113159d4e3db4a1a913894a81d862729-52C051D39ED6240E5189BE3906E82BFD,
+    _:genid-4e694113159d4e3db4a1a913894a81d862729-E5C9983C9B95BE88A0627214FD621F5A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
+SELECT ?continent ?continentFlag ?continentLabel ?country ?countryLabel ?countryFlag ?region ?regionLabel ?regionFlag ?city ?cityLabel ?cityImage ?property ?propertyLabel ?value ?valueLabel WHERE {
+  {
+    SELECT * WHERE {
+      ?continent wdt:P31 wd:Q5107.
+      ?country wdt:P30 ?continent.
+      ?country p:P31/ps:P31 wd:Q6256.
+      ?country wdt:P150 ?region.
+      OPTIONAL {
+        ?continent wdt:P242 ?continentFlag.
+        ?country wdt:P41 ?countryFlag.
+        ?region wdt:P41 ?regionFlag.
+      }
+      OPTIONAL {
+        ?region wdt:P36 ?city.
+        ?city wdt:P31 wd:Q515.
+        ?city wdt:P18 ?cityImage.
+        OPTIONAL {
+          VALUES (?prop) {
+            (wdt:P1082)
+            (wdt:P6)
+            (wdt:P190)
+            (wdt:P31)
+            (wdt:P571)
+            (wdt:P150)
+            (wdt:P206)
+            (wdt:P527)
+          }
+          ?city ?prop ?value.
+          ?property ?ref ?prop.
+          ?property rdf:type wikibase:Property.
+        }
+      }
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

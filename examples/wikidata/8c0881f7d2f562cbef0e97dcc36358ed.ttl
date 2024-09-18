@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8c0881f7d2f562cbef0e97dcc36358ed> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840418-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Average birth-year by occupation in Lur Hiztegi Entziklopedikoa
+# Select the desired columns and get labels
+SELECT ?occ ?occLabel ?avgBirthYear ?count
+WHERE
+{
+  {
+    # Group the people by their occupation and calculate age
+    SELECT
+      ?occ
+        (count(?p) as ?count)
+        (round(avg(?birthYear)) as ?avgBirthYear)
+    WHERE {
+      {
+        # Get people with occupation + birth/death dates; combine multiple birth/death dates using avg
+        SELECT
+          ?p
+            ?occ
+            (avg(year(?birth)) as ?birthYear)
+        WHERE {
+           ?p  wdt:P31 wd:Q5 ;
+               wdt:P10242 ?lur ;
+              wdt:P106 ?occ ;
+              p:P569/psv:P569 [
+                wikibase:timePrecision \"9\"^^xsd:integer ; # precision of at least year
+                wikibase:timeValue ?birth ;
+              ] .
+        }
+        GROUP BY ?p ?occ
+      }
+    }
+    GROUP BY ?occ
+  }
+ 
+  FILTER (?count > 30) # arbitrary number to weed out values with 'few' observations
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu,en\" . }
+}
+ORDER BY ASC(?avgBirthYear)""" .

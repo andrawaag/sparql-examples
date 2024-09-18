@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-92e167326c2c6207e4184eec10d1116a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?fill
+WHERE
+{
+  # fill «té pare» Bach 
+  ?fill pare Bach. 
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, el Servei de Consultes, és una eina per respondre preguntes que pugueu tenir, i aquesta guia us ajudarà a aprendre com utilitzar-lo. Vegeu també el tutorial interactiu de Wikimedia Israel.Abans d'escriure la vostra pròpia consulta d'SPARQL, reviseu {{Item documentation}} o qualsevol altra plàntilla de consulta SPARQL genèrica per veure si la vostra consulta ja hi ha estat inclosa. Contents 1 Abans de començar 2 Conceptes bàsics d'SPARQL 3 La nostra primera consulta 3.1 Autocompletat 4 Patrons avançats de ternes 5 Instàncies i classes 5.1 Rutes de propietats 6 Qualificadors 7 ORDER i LIMIT 7.1 Exercici 7.1.1 Llibres d'Arthur Conan Doyle 7.1.2 Elements químics 7.1.3 Rius que desemboquen al Mississippi 7.1.4 Rius que desemboquen al Mississippi II 8 OPTIONAL 9 Expressions, FILTER i BIND 9.1 Tipus de dades 9.2 Operadors 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Agrupant 10.1 Població de ciutats 10.2 Materials de pintura 10.3 Armes per fabricant 10.4 Editorials per nombre de pàgines 10.4.1 HAVING 10.5 Resum de funcions d'agregació 10.6 wikibase: Etiquetes i agregacions 11 VALUES 12 Label in multiple languages 13 I més enllà… 14 Vegeu també Abans de començar Aquesta guia pot semblar llarga, tant que potser intimida. No us espanteu! L'SPARQL és complicat, però només amb els conceptes bàsics ja es pot anar força lluny. Si voleu, podeu deixar de llegir després de la nostra primera consulta i ja podreu escriure moltes consultes interessants. Les seccions que venen a continuació d'això només afegeixen informació sobre altres elements que podeu utilitzar per escriure consultes diferents. Cadascuna d'aquestes seccions us capacitarà per escriure consultes encara més potents, però cap d'elles és necessària: podeu deixar de llegir en qualsevol moment i, tot i així, disposareu de molts coneixements útils.Si no heu sentit mai a parlar de Wikidata, SPARQL o WDQS, aquí en teniu una explicació breu: Wikidata és una base de dades de coneixement. Conté molts fets, com ara que «la capital de Canadà és Ottawa», o que «la Mona Lisa fou pintada a l'oli en una fusta de pollancre», o que «l'or té una conductivitat tèrmica de 25.418 joules per mol kelvin». L'SPARQL és un llenguatge per formular consultes a bases de dades de coneixement. Amb la base de dades correcta, una consulta SPARQL podria preguntar qüestions com ara “quina és la tonalitat musical més popular?” o “quin personatge ha estat interpretat per més actors?” o “quina és la distribució de tipus de sang?” o “quines obres d'autor han entrat en el domini públic enguany?”. WDQS, el Servei de Consulta de Wikidata ajunta les dues coses: en definir una consulta SPARQL, el servei l'executa usant les dades de Wikidata, mostrant-ne el resultat.  Conceptes bàsics d'SPARQL Una consulta senzilla en SPARQL s'assembla a això: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} La clàusula SELECT llista les variables que volem consultar (les variables comencen amb un signe d'interrogació) i la clàusula WHERE conté les restriccions que hi volem aplicar, en forma de ternes. Tota la informació de Wikidata (i d'altres bases de dades de coneixement similars) està desada en forma de ternes; quan executem la consulta, el servei de consultes intenta emplenar les variables amb valors reals existents a la base de dades, tornant un resultat per a cada combinació de variables que troba.Una terna es pot considerar com dos vèrtexs (és a dir, 2 nodes, 2 recursos) connectats per una aresta (un arc, una propietat) dins del vast multigràfic de propietats directe (orientat) que forma Wikidata. Es pot llegir com una frase (per això s'acaba amb un punt), amb un «subjecte», un «predicat» i un «complement directe». SELECT ?fruita
+WHERE
+{
+  ?fruita ésDeColor groc.
+  ?fruita téGust agre.
+} El resultat d'aquesta consulta pot incloure, per exemple, «llimona». A Wikidata, la majoria de propietats assumeixen que els ítems «tenen» propietats, pel què la consulta podria ser: SELECT ?fruita
+WHERE
+{
+  ?fruita color groc.
+  ?fruita gust agre.
+} el que es pot llegir com “?fruita té color ‘groc’” (no “?fruita és de color ‘groc’” – tinguem això present per a propietats com “pare”/“fill”!).Tot i això, aquest no és un bon exemple de WDQS. El gust és subjectiu, així que Wikidata no en té una propietat. En canvi, observem la relació pare/fill, que és menys ambigua. La nostra primera consulta Suposem que volem llistar tots els fills del compositor barroc Johann Sebastian Bach. Utilitzant psèudo-elements com a les consultes anteriors, com escriuríem la consulta?Amb sort, aconseguirem una cosa així: SELECT ?fill
+WHERE
+{
+  #  fill «té pare» Bach
+  ?fill pare Bach.
+  # (Nota: tot el que hi ha darrere d'un ‘#' és un comentari i WDQS ho ignora.)
+} o això, """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/ca>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

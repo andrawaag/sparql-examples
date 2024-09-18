@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-db1ab2b513588b9f4fc2fce86077c491> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Zygimantus/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846928-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d846928-84B0C176F890D8CCB64EC55FBB3ECE3D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+##title:Map of castles in Lithuania
+#defaultView:Map{\"hide\": [\"?coords\", \"?layer\"]}
+SELECT DISTINCT ?library ?libraryLabel ?coords ?layer WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+                          ?type rdfs:label ?layer.
+                          ?library rdfs:label ?libraryLabel }
+  ?library wdt:P31 ?type .
+OPTIONAL { ?library wdt:P18 ?image }.
+  ?type wdt:P279* wd:Q23413.
+  ?library wdt:P17 wd:Q37.
+  ?library wdt:P625 ?coords.
+}""" .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-65686bf160289e7cc69191063128f865> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: OCLC control number (P243)   , has edition or translation (P747)   , edition number (P393)   , language of work or name (P407)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d851668-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?wdWork ?wcWork ?wdWorkLabel ?wdEdition ?wcEdition ?wdEditionLabel ?languageLabel ?editionNumber
+WHERE {
+  ?wdWork wdt:P243 ?ocnWork ;
+          wdt:P747 ?wdEdition.
+  ?wdEdition wdt:P243 ?ocnEdition .
+  OPTIONAL {?wdEdition wdt:P393 ?editionNumber}
+  OPTIONAL {?wdEdition wdt:P407 ?language}
+  BIND (URI(CONCAT(\"http://www.worldcat.org/oclc/\",?ocnWork)) AS ?wcWork)
+  BIND (URI(CONCAT(\"http://www.worldcat.org/oclc/\",?ocnEdition)) AS ?wcEdition)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY ?wdWorkLabel ?editionNumber
+LIMIT 100""" .

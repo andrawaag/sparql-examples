@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad8e098b2796c9975720daabf131d1a3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Simon_Villeneuve/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810145-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810145-20B3CE7CF4E6C6D22CA374793EC284BB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Trouver des labels sans TIMEOUT grâce à mwapi
+SELECT distinct ?item ?label
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:Simon @fr\";
+                    mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item rdfs:label ?label.
+  ?item wdt:P31 wd:Q5 .
+  FILTER CONTAINS(?label, \"Simon \")
+  minus {?item wdt:P735 ?prénom .}
+}""" .

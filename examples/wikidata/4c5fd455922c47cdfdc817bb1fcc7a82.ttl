@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c5fd455922c47cdfdc817bb1fcc7a82> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment " This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 http outputs from WDQS 2 suggestions on Query Service input GUI 2.1 list of additions 2.2 Comments 3 Prefix should be s: but it return wds: http outputs from WDQS Tracked in Phabricator Task T153563 WDQS produces HTTP links to wikidata items (both as the link in an a href in the WDQS interface, and when a result set is downloaded). Meanwhile wikidata appears to be website served as HTTPS. Why is WDQS unaware of wikidata's HTTPS? Why is WDQS in effect serving insecure URLs in preference to secure? Might we now move to WDQS serving HTTPS links? --Tagishsimon (talk) 10:06, 1 December 2020 (UTC) Please see phab:T226453. DCausse (WMF) (talk) 08:00, 2 December 2020 (UTC) I think the ticket is about another feature and some blog entry can hardly justify negligent handling of https on WMF servers. --- Jura 08:31, 2 December 2020 (UTC) In the past I have complained about this as well, but I think this is not an issue any longer. Wikimedia projects including Wikidata and WDQS meanwhile use HTTP Strict Transport Security (Q2438540) headers, so users access entity pages on Wikidata via HTTPS anyways even if the WDQS output explicitly uses the \"insecure\" canonical HTTP URLs. —MisterSynergy (talk) 08:57, 2 December 2020 (UTC) I should have pointed to phab:T153563 which has a lot more useful resources to understand the current situation. DCausse (WMF) (talk) 10:46, 2 December 2020 (UTC) Are there test cases that ensure this works correctly and is this continuously monitored? --- Jura 10:52, 2 December 2020 (UTC) Do you refer to the HSTS header? It is standard technology these days, supported by all non-ancient browsers, and this scenario is the use case for it. I am not sure whether it is being monitored, or needs to be monitored at all. For my setup, however, it does indeed work as expected: I was just able to verify that my browser automatically requests HTTPS links from the WDQS results lists, although the results are listed with the canonical HTTP URLs; there are also the HSTS headers visible in each request (all confirmed via the browser's developer tools). I really do not worry about this any longer, and I also do not think that anyone else needs to. —MisterSynergy (talk) 12:33, 2 December 2020 (UTC) @DCausse (WMF): You point to phab:T226453 \"Concept URI in sidebar on Wikidata uses HTTP instead of HTTPS\" which is for sure a similar issue, but not the same issue. My question was plain, and the discussion has not answered it. If wikidata uses https URLs, why does the output of WDQS use http, and, can this be changed please. For the avoidance of doubt, at the very least it makes combining datasets sourced from WDQS and from the wikidata front-end, or from Petscan, a pain to the extent that one has to deal with the URLs being different. That an http call will be redirected to https is of little solice when the problem exhibits in, for instance, string-slicing URLs in my spreadsheet. It's plainly wrong, or wrong-headed, to issue http claims when objects are actually to be found at https, and I tend to think we should be trying to do a little better than this. --Tagishsimon (talk) 16:23, 13 December 2020 (UTC) Sorry for pointing at phab:T226453, as said in another comment I should have pointed to phab:T153563 in the first place. I agree that if we were to start this again https would have been chosen from the get go. Changing it now was deemed too disruptive because it is thought that references to http IRIs are too widespread. DCausse (WMF) (talk) 08:20, 14 December 2020 (UTC) suggestions on Query Service input GUI list of additions A blank line separates suggestions. Multiline suggestions wont have a blank line. Please add yours. Items used: building (Q41176)   Properties used: instance of (P31)   Features used: map (Q24515275)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d847957-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?coor\"]}
+
+#TEMPLATE={\"template\":\"list of concepts of type by selection criteria\" }
+
+hint:Prior hint:gearing \"forward\".
+
+hint:Prior hint:rangeSafe true.
+
+FILTER(    ?date >= \"1925-00-00\"^^xsd:dateTime
+        && ?date <  \"1926-00-00\"^^xsd:dateTime )
+
+SERVICE bd:sample { ?item wdt:P31 wd:Q41176 . bd:serviceParam bd:sample.limit 42 }
+
+SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Search\" .
+    bd:serviceParam mwapi:srsearch ?search .
+    bd:serviceParam mwapi:srnamespace \"0\" .
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                         ?item rdfs:label ?itemLabel .
+                         ?item schema:description ?itemDescription .
+                         ?item skos:altLabel ?itemAltLabel .
+                       } # manual mode of label service""" .

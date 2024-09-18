@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-29aee150ad24164f4e9482600c5d51c9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:EveryPolitician/Proposal:Term_Membership_Items>,
+    <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-25>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d81793-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d81793-92F2B1FC952D213AB4F221B70BCC7EDB,
+    _:genid-4e694113159d4e3db4a1a913894a81d81793-125ADB2A0B346E1E97CBC285699DB277, _:genid-4e694113159d4e3db4a1a913894a81d81793-A65D4405A9A6DF5CD789A33D9F319B12;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?who ?whoLabel ?positionLabel ?start1 ?start2 {
+  ?position wdt:P279* wd:Q1711695 .
+  ?who p:P39 [ ps:P39 ?position ; pq:P580 ?start1 ; pq:P580 ?start2 ] .
+  FILTER (?start2 > ?start1) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY ?start1 ?whoLabel""" .

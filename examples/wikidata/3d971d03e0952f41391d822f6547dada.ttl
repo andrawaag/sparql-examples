@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3d971d03e0952f41391d822f6547dada> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks/en>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_Performing_arts/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858271-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d858271-EB7DAA3F039FAF1B2893B8A5CC67F338,
+    _:genid-4e694113159d4e3db4a1a913894a81d858271-290FE128CFA7C7B7263D817FDD8CC918, _:genid-4e694113159d4e3db4a1a913894a81d858271-29166145AE205AC560E2843395EA28A0;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Voice types of humans in the order of frequency of use.
+SELECT ?value ?valueLabel ?count  WHERE {
+  {
+  SELECT ?value (COUNT(DISTINCT ?singer) AS ?count) WHERE {
+    ?singer wdt:P31/wdt:P279* wd:Q5.
+    ?singer wdt:P412 ?value.
+    }
+  GROUP BY ?value
+  ORDER BY DESC(?count)
+  LIMIT 100
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#Voice types of humans in the order of frequency of use.
+SELECT ?value ?valueLabel ?count WITH {
+  SELECT ?value (COUNT(DISTINCT ?singer) AS ?count) WHERE {
+    ?singer wdt:P31/wdt:P279* wd:Q5.
+    ?singer wdt:P412 ?value.
+    }
+  GROUP BY ?value
+  ORDER BY DESC(?count)
+  LIMIT 100
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""" .

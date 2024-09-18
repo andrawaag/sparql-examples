@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c740336c97aebe32aa24c029dddc925f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d8167-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d8167-338CE2A262E518518A3B33F92ACC3913,
+    _:genid-4e694113159d4e3db4a1a913894a81d8167-548A64EE3A1B2202486ED3AC2A4034CA, _:genid-4e694113159d4e3db4a1a913894a81d8167-FE223A23F09424EF59C11DC18C50872E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2016-10
+
+#Most frequent occupations without a label in Latvian (lv)
+#by Edgars2007/Jura1, 2016-05-09
+SELECT ?occup ?occupLabel ?count
+WHERE
+{
+	{
+		SELECT ?occup (COUNT(?person) as ?count)
+		WHERE
+		{
+			?person wdt:P106 ?occup
+		}
+		GROUP BY ?occup
+		ORDER BY DESC(?count)
+		LIMIT 1000
+	}
+  	OPTIONAL {?occup rdfs:label ?label1 	filter(lang(?label1) = \"lv\")}
+	FILTER(!BOUND(?label1))
+ 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,es,pl,ja,zh,ru\" }
+}
+ORDER BY DESC(?count)
+LIMIT 50""" .

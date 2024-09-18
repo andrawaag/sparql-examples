@@ -1,0 +1,315 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ddb62e084c72f679168be2707bf6b664> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 A bit of sport 2 Separación en dos diferentes objetos Q de Wikidata, de dos artículos en un mismo idioma, uno de desambiguación respecto de XXXX, y el otro agrupando personas con el apellido XXXX 3 All items that ever were popular 4 Nobel prizes 5 Finding all super-classes 6 Creation date 7 Communes of France without a church 8 Grey mountains 9 without P31 10 Percent female per first letter in the surname 11 Same label for two items of same type 12 Taxon label in French different from the scientific name 13 Avoid duplication - geo coords 14 All statements with a reference \"imported from OpenStreetMap\" 15 Airports less than 100km from Berlin didn't work 16 How to filter away properties that have 'no value' set? 17 stated in : Q20087097 but without P304 18 Where is the most dense concentration of item ? 19 Double first cousins 20 Living people without an image from a specific country 21 All items with P373 and a hewiki article 22 Label and Alias same at different Items 23 Looking for items where category saved in sitelink to Commons does not match P373 24 Put multiple results in one cell 25 Looking for items where there is category saved in sitelink to Commons but we have no P373 26 Release date and region 27 Media release region 28 Wikipedia articles about Canadian cities that has no photo 29 Get a work's label in its original language 30 Wikidata items with coordinate location (P625) tag 31 Rocket launches per year 32 existing french wikivoyage page and no OSM relation, in wikidata page A bit of sport The problem: have a list of all the footballers that played in 2016–17 Serie A (Q23728326)Possible approach: search all the player that have played in team listed by participating team (P1923) in 2016–17 Serie A (Q23728326) in the period time period (P2348) using member of sports team (P54) and qualifier start time (P580) and end time (P582), To detect footballers we can use occupation (P106)=association football player (Q937857) (maybe P2348 isn't so easy to use).Some volunteers? --ValterVB (talk) 17:53, 29 September 2017 (UTC) ValterVB, thanks for your valuable input. I just wanted to point out that the season is 2017-2018 (this season). --Bella Situazione (talk) 14:14, 30 September 2017 (UTC) If the query work for one season, work for all season. In this case I prefer 2016-2017 because the item is more complete, for 2017-2018 we need at least the teams. --ValterVB (talk) 14:48, 30 September 2017 (UTC) I tried to do something, that's what I've been able to do: PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?item ?itemLabel ?datanascita ?transfermkt WHERE {
+  ?item wdt:P106 wd:Q937857.
+  ?item wdt:P54 wd:Q631.
+  OPTIONAL { ?item wdt:P569 ?datanascita. }
+  OPTIONAL { ?item wdt:P2446 ?transfermkt. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"it\". }
+  
+}
+ORDER BY xsd:integer(?ordinal)
+LIMIT 10
+ Try it! With this query, i obtain names birthday and transfermarkt id for all the players that have played for FC Internazionale Milano in their career (limited to 10 names). I tried to use those inputs that ValterVB wrote some rows ago, but I was unsuccesful. I hope that someone could help me in improve this query so that it works in the way ValterVB said. ;) -- Bella Situazione (talk) 13:55, 2 October 2017 (UTC) Like said I think that the query isn't easy. It's possible that this kind of query isn't possible with our model. In this case it's necessary change how we model the data for footballers --ValterVB (talk) 17:46, 2 October 2017 (UTC) I am pretty sure that it is too early to get this information out of Wikidata. User:Steak recently tried to collect all player of the German Bundesliga (Q82595) and 3. Liga (Q154069) with the league (P118) property and the league item (not season item) as values. I am sure he somehow plans to add season information as well, and I am also sure that it will take a lot of time until data on a per-game level will be available at Wikidata. —MisterSynergy (talk) 18:56, 2 October 2017 (UTC) So, our model is wrong or is incomplete? In second case what we must add to answer to the question? --ValterVB (talk) 19:04, 2 October 2017 (UTC) Our data is incomplete. Until this summer it wasn’t even possible to retrieve all players that ever had an appearance in the Fußball-Bundesliga, although most (or even all?) items already existed. User:Steak managed to get them into a shape that they can be collected with the query service now. However, it would require extra effort to add season data to all the items (there are ~6k items about Fußball-Bundesliga players, for 53 or 54 seasons in total). At this point it would IMO be the best to add such information for all relevant (European) leagues. Once this is done, a model for season data should be rather simple to develop. However, one needs to have a good source with a suitable license to import from, and I suspect that this could become difficult. There are in fact plenty of public football databases available, but they are typically not licensed properly. —MisterSynergy (talk) 19:50, 2 October 2017 (UTC) The opening post implicitely assumes that if a player e.g. played for AC Milan in season 2016/17, and AC Milan played in Serie A in this season, then the player played in Serie A also. Besides the possibility that the player did not have any playing time in this season, it can also be that the player played only in the domestic cup or some European cup. So the initial ansatz for the query is wrong, no matter if the wikidata data would provide this data or not. This is the reason why every player needs the League-property to enable assigning unambigously one or more leagues. As far as I know, this was done so far only for some german leagues. Steak (talk) 20:20, 2 October 2017 (UTC) Thank you all for your contribution on this topic. Steak, I understand your point and, if this can help in searching a solution, what I need are players that are under contract with a team that plays in Serie A in a particular season, even those that are not playing at all because they are injured or disqualified for a year or relegated to the youth team or isolated by the coach from the rest of the team etc. So, no need for even a minute of game play, just a contract. --Bella Situazione (talk) 14:57, 3 October 2017 (UTC) Separación en dos diferentes objetos Q de Wikidata, de dos artículos en un mismo idioma, uno de desambiguación respecto de XXXX, y el otro agrupando personas con el apellido XXXX Separación en dos diferentes objetos Q de Wikidata, de dos artículos en un mismo idioma, en uno listando personas con un determinado apellido XXXX, y en otro agrupando artículos sobre calles o aeropuertos o estaciones de metro o nombres de lugares, etc, cuyo título contiene la misma palabra XXXX.La presente es una consulta genérica, aunque por cierto, está en lo inmediato motivada por un tropiezo que tuve hace pocos minutos, al manipular creaciones y modificaciones en Wikidata y Wikipedia.Véase.Hace pocos minutos, añadí una entrada en inglés a Q36971360 (objeto de Wikidata que ya estaba creado pero que no tenía ningún enlace a ningún artículo), del que para más claridad, transcribo seguidamente la correspondiente dirección digital https://www.wikidata.org/wiki/Q36971360 El artículo en inglés que por mí fue transferido, tiene por título en:Bisbal, y vino de Q866043, cuya dirección electrónica transcribo a continuación https://www.wikidata.org/wiki/Q866043 Al abrir el artículo en inglés de título en:Bisbal, con facilidad podrá verificarse que el apellidos allí manejado es Bilbal (y no La Bilbal), pero lo que me parece más importante destacar en este momento, es que dicho artículo no es de desambiguación, sino que corresponde a uno de categoría apellido. Claramente por tanto, ese artículo no puede estar en un determinado elemento Q, mezclado con otros artículos de desambiguación . Y como advertencia, han puesto este mensaje al pie del artículo: ‘’This page lists people with the surname Bisbal. If an internal link intending to refer to a specific person led you to this page, you may wish to change that link by adding the person's given name(s) to the link.’’En el detalle de propiedades de los wikidata de desambiguación, también se indica una advertencia similar: ‘’los apellidos deben usar un elemento diferente del de la respectiva página de desambiguación’’Muy bien … ¿pero cómo es la cosa? ¿Esta separación de dos artículos en inglés, en dos diferentes elementos Q, uno de ellos conteniendo exclusivamente nombres de personas con el mismo apellido, y otro conteniendo esa misma palabra de apellido pero en artículos de otras categorías, es que acaso solamente vale para el idioma inglés?La intención de quienes están programando el software de Wikidata, parece clara en que esto se extienda a todos los idiomas, tanto a español, como por ejemplo al ruso (y cito explícitamente el idioma ruso, pues lo he visto declarado como artículo de listado de personas con el mismo apellido, y en el mismo elemento Q de Wikidata, junto con su artículo hermano en inglés.GRACIAS ANTICIPADAMENTE por aclararme este asunto, y/o darme algún consejo sobre cómo sería mejor que yo me manejara en casos similares.--AnselmiJuan (talk) 22:47, 28 September 2017 (UTC) Hola, AnselmiJuan. Por ser breves: 1) sí, items de desambiguaciones y de apellidos deben ser independientes 2) no tengo tan claro como tú que en:Bisbal no sea una desambiguación (de hecho creo que es una página de desambiguación y que debería volver a donde estaba) 3) esta página (Wikidata:Request a query) no es para resolver este tipo de dudas, sino exclusivamente para pedir ayuda con consultas SPARQL (Q54871) específicas (además de que conviene escribir en inglés). Saludos. Strakhov (talk) 05:32, 29 September 2017 (UTC) Hola usuario Strakhov Ante todo, disculpa por escribir en español, pero mis conocimientos de inglés son muy básicos, y lo único que podría hacer es escribir en español y traducir a inglés con algún traductor, por lo que ello en todo caso dejo a quien aquí responda, si no comprende español. Respecto a tu observación en relación a que no te queda tan claro esta situación, y que tal vez lo que correspondería sería revertir la transferencia que yo hice cambiando de Wikidata, bueno, observando solamente este caso particular, hasta podría coincidir contigo, pero siempre y cuando se cambiara la categoría principal en el artículo titulado en:Bisbal, allí agregando categoría \"desambiguación\", pues en mi opinión, en un wikidata de desambiguación no se puede tener enlaces a un cierto artículo (el mismo sea en inglés o en otro idioma), si dicho artículo no tiene la categoría principal \"desambiguación\". Sin embargo, mirando lo resuelto en otros casos más completos, en lo personal esta posibilidad no me convence en lo más mínimo. Por favor, mira el caso del apellido Dreyfus con la variante Dreyfuss, que está muy completo, y en el que yo mismo no intervine para nada. Ejemplo completo en objetos de Wikidata de categorías apellidos y desambiguación : Dreyfus con la variante Dreyfuss Apellidos (Dreyfus) : https://www.wikidata.org/wiki/Q16833671 Apellidos (Dreyfuss) : https://www.wikidata.org/wiki/Q21448992 Desambiguación (Dreyfus) : https://www.wikidata.org/wiki/Q582240 Desambiguación (Dreyfuss) : https://www.wikidata.org/wiki/Q121920 Mira con atención como se separan en diferentes wikidatas, las dos variantes Dreyfus y Dreyfuss. Pero más interesante es fijarse por ejemplo, que en la variante Apellidos (Dreyfuss), o sea en Q21448992, solamente se tienen dos entradas, una en inglés y otra en chino, mientras que en la variante Desambiguación (Dreyfuss), o sea en Q121920, se tienen tres entradas, una en alemán, otra en español, y otra en francés. Tal vez más ilustrativo incluso sea el tratamiento de la variante Dreyfus. Mira por favor la variante Apellidos (https://en.wikipedia.org/wiki/Dreyfus) en Q16833671, donde se tienen tres entradas, en inglés, en ruso, y en chino. Y mira ahora la variante Desambiguación (Dreyfus), o sea Q582240, donde se tienen 14 entradas, y donde la versión en inglés está aquí también. O sea, tanto en Q16833671 como en Q582240 hay entradas en inglés, pero estas dos versiones son diferentes, tal como puedes comprobar activando las dos direcciones electrónicas que indico a continuación: Entrada en inglés de Q16833671 : https://en.wikipedia.org/wiki/Dreyfus_(surname) Entrada en inglés de Q582240 : https://en.wikipedia.org/wiki/Dreyfus Mi conclusión, es que este especial tratamiento en Wikidata, no afecta únicamente al inglés como caso muy especial, sino que afecta a todos los idiomas, y como puede concluirse en base al ejemplo particular de Dreyfus y Dreyfuss, al menos en ruso y chino ya se está siguiendo esta norma en la práctica. Podría también darte otros ejemplos de que también se ha seguido esta norma en idioma neerlandés y en idioma sueco, pues recuerdo haber visto casos como esos. Y si después de esta explicación sigues teniendo dudas, bueno, podría buscar otros ejemplos. Wikidata es un proyecto muy joven, pues su lanzamiento fue el 29 de octubre de 2012, y a mediado y largo plazo se contemplan resultados muy pero muy importantes, en particular para el entorno del año 1930, y el entorno del año 1950. Soy de la opinión que este proyecto debe ser seguido muy de cerca, y ya hoy día, está permitiendo poner orden en las interwikis. En particular, el usuario que escribe estas líneas, ya ha encontrado elementos Q muy entreverados, en donde por ejemplo coexisten varias entradas en un mismo idioma, y en algunos casos, he logrado hacer la separación, y poner orden. Pero seguramente, aún subsisten miles de casos en que los automatismos de inteligencia de Wikidata aún no han logrado poner orden, entre otras cosas porque en ciertos casos la opinión de un usuario resulta imprescindible. --AnselmiJuan (talk) 13:15, 29 September 2017 (UTC) Mi respuesta a tu última consulta o comentario, la que transcribo a continuación: 3) esta página (Wikidata:Request a query) no es para resolver este tipo de dudas, sino exclusivamente para pedir ayuda con consultas SPARQL (Q54871) específicas (además de que conviene escribir en inglés) Si tú opinas que es mejor que yo plantee esto en otra sala de café, dime en cual, y con mucho gusto así procederé. Gracias anticipadamente por aconsejarme en este sentido. --AnselmiJuan (talk) 13:20, 29 September 2017 (UTC) Acabo de encontrar otro caso que tal vez ejemplifica mejor que las 'variantes de los apellidos Dreyfus y Dreyfuss' en relación a la forma como debe ser tratada esta cuestión en Wikidata Me estoy refiriendo al apellido Goldschmidt, que tiene sus dos correlatos en Q21502372 (tratado como apellido) y en Q277578 (tratado como página de desambiguación). Como podrá constatarse con facilidad, allí coexisten dos versiones distintas de entradas en alemán (código de) Y estas dos diferentes entradas en alemán son: de:Goldschmidt (Familienname) (entrada para los apellidos) de:Goldschmidt (entrada para la página de desambiguación) Por lo tanto, insisto, esta separación en Wikidata, de apellidos por un lado, y de típicos casos de desambiguación por otro (en esta última situación con exclusión de los apellidos), no es que afecte únicamente a artículos en inglés, y ni siquiera es que afecte como casos muy particulares también a artículos en chino, en ruso, en neerlandés, y en sueco, sino que (en base al ejemplo señalado) también afecta a artículos en alemán, como puede constatarse si se analizan los dos artículos en alemán referentes al término Goldschmidt. Obviamente, se podrá señalar que en no todos los idiomas se ha adoptado esta postura, y por el momento, esto parecería ser cierto. Pero creo haber dado argumentos en el sentido de que al ser una postura genérica de Wikidata, tarde o temprano esto muy probablemente se generalizará a todos los idiomas, o al menos a la mayoría. Y qué mejor entonces que desde ya empezar a hacer esta separación en por ejemplo el idioma español, tal como intenté hacer por ejemplo con el término Bisbal (que generó la presente consulta), pero como ya señalé y como puede comprobarse fácilmente, a los pocos segundos de haber iniciado mis acciones para concretar esta separación, zácate, ya me fue revertido sin más trámite lo que iniciado en este proceso. Yo no estoy en contra específicamente ni que se revierta una enmienda, ni que se borre un artículo por la vía rápida, pues en casos de un claro vandalismo, opino que esa es la forma correcta de actuar. Sin embargo, hay wikipedistas que cuando opinan que una modificación hecha por un tercero en un artículo tiene un aspecto erróneo, en vez de revertir esa acción de inmediato, prefieren poner un aviso en la página de discusión de quien hizo esa modificación, dando su opinión personal al respecto, y preguntando si el tercero actuante tiene otra opinión diferente, que la exprese, para poder actuar luego en la forma que sea más correcta. Y una actitud más prudente como esta, con más razón conviene tener en el caso de pensar que se necesita simplemente borrar la entrada de que se trate. Como ya dije, hay casos en que por vandalismos evidentes o por carecer por ejemplo de fuentes confiables, efectivamente es recomendable el borrado de algunos artículos, de reciente creación, o aún de no tan creciente creación. Sin embargo, opino que puede ser un buen gesto de prudencia y de respeto hacia otros wikipedistas, no abusar del procedimiento de borrado rápido, y por el contrario, proponer el procedimiento de borrado por votación, pues así, se da la posibilidad de que el artículo en cuestión pueda ser mejorado y así salvado, o al menos, se da la oportunidad de reunir un número suficiente de opiniones en el sentido de que no hay otra que borrar el artículo, pues en el caso analizado se opina que el número de falencias del mismo es tan grande, que no da como para simplemente poner algún cartelito señalando una falencia, o poniendo varios cartelitos en diferentes secciones, dejando constancia de falencias varias. --AnselmiJuan (talk) 12:42, 4 October 2017 (UTC) All items that ever were popular Is there a good way to obtain a list of those Wikidata items that were ever included as part of Wikidata:Main Page/Popular? Mahir256 (talk) 01:47, 6 October 2017 (UTC) Nobel prizes I've managed this: #People alive after 2011, who received a Nobel prize, with ORCID iD, if any
+SELECT ?person ?personLabel ?ORCID ?award ?awardLabel ?ddate WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  ?person wdt:P166 ?award.
+  ?person wdt:P31 wd:Q5.
+  ?award wdt:P279* ?type.
+  ?type wdt:P31 wd:Q7191.
+  OPTIONAL { ?person wdt:P496 ?ORCID. }
+  OPTIONAL { ?person wdt:P570 ?ddate. 
+  FILTER(?ddate > \"2012-01-01T00:00:00Z\"^^xsd:dateTime) }
+}
+ Try it! Can it be improved? How would I exclude winners of Nobel Peace Prize (Q35637) and Nobel Prize in Literature (Q37922)? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 21:35, 3 October 2017 (UTC)I solved the latter: #People alive after 2011, who received a science Nobel prize, with ORCID iD, if any
+SELECT ?person ?personLabel ?ORCID ?award ?awardLabel ?ddate WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  ?person wdt:P166 ?award.
+  ?person wdt:P31 wd:Q5.
+  ?award wdt:P279* ?type filter (?type not in (wd:Q35637, wd:Q37922)). 
+  ?type wdt:P31 wd:Q7191.
+  OPTIONAL { ?person wdt:P496 ?ORCID. }
+  OPTIONAL { ?person wdt:P570 ?ddate. 
+  FILTER(?ddate > \"2012-01-01T00:00:00Z\"^^xsd:dateTime) }
+}
+ Try it! Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 22:24, 3 October 2017 (UTC)@Pigsonthewing: The VALUES keyword can be useful, if there are a limited number of possible options you would like to specify for something. So VALUES ?type { wd:Q44585 wd:Q38104 wd:Q80061 } . for just Nobel Prize in Chemistry (Q44585), Nobel Prize in Physics (Q38104), Nobel Prize in Physiology or Medicine (Q80061) Jheald (talk) 16:01, 6 October 2017 (UTC) Finding all super-classes Hi, I'm trying to use Wikidata for Named Entity classification. I want to find all (relevant) super-classes of an item #super-classes, works
+SELECT DISTINCT ?c ?cLabel WHERE {
+  wd:Q60 wdt:P31/wdt:P279? ?c.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! My own attempt works for some classes (above), but not for others (below). #super-classes, doesn't work
+SELECT DISTINCT ?c ?cLabel WHERE {
+   wd:Q121 wdt:P31/wdt:P279? ?c.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! What is it I am doing wrong? How would you find all super-classes? Is there even the possibility to find the 'depth' of an item below entity (Q35120), which is the root of everything, if I understand Wikidata:Item classification correctly? EnemyOfTheState (talk) 00:00, 7 October 2017 (UTC) #super-classes, works
+SELECT DISTINCT ?c ?cLabel WHERE {
+  wd:Q60 wdt:P31/wdt:P279* ?c.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! finds really all super-classes of New York City (Q60). Please note the * (any level) instead of the ? (one or zero levels only). In the second case, July (Q121) does not have any instance of (P31) claims, thus there are no results. It works if you make the instance-of claim optional and use the subclass-of claim of no instance-of is there: #super-classes, doesn't work
+SELECT DISTINCT ?c ?cLabel WHERE {
+   wd:Q121 wdt:P31?/wdt:P279* ?c.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! . —MisterSynergy (talk) 05:35, 7 October 2017 (UTC) Creation date Is it possible to obtain the creation date of an item? schema:dateModified gives the date when the item was last modified? John Samuel 10:17, 7 October 2017 (UTC) Communes of France without a church I'm looking for the list of current commune of France (Q484170) without any subclass of church building (Q16970). I've found a query for current commune of France (Q484170): SELECT distinct ?commune ?communeLabel {
+  ?commune p:P31 ?statement .
+  ?statement ps:P31 wd:Q484170 . 
+  FILTER NOT EXISTS { ?statement pq:P582 ?x } .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"fr\" .
+  }
+}
+ Try it! but I don't know how to exclude those with a church. Could you help me please? Thanks. — Ayack (talk) 13:35, 8 October 2017 (UTC) SELECT distinct ?commune ?communeLabel
+WITH
+{
+  SELECT ?commune
+  {
+    ?commune wdt:P31 wd:Q484170 . 
+    ?commune p:P31 ?statement .
+    ?statement ps:P31 wd:Q484170 . 
+    FILTER NOT EXISTS { ?statement pq:P582 ?x } .
+    FILTER NOT EXISTS { ?commune wdt:P576 [] }
+  }
+} as %communes
+WHERE
+{
+    INCLUDE %communes
+    FILTER NOT EXISTS { ?church wdt:P131 ?commune ; wdt:P31 wd:Q16970 }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" }
+}
+ Try it! Maybe the above (gives 12000 without and, if you change it, 23400 with). --- Jura 13:52, 8 October 2017 (UTC) Parfait, merci Jura ! — Ayack (talk) 14:20, 8 October 2017 (UTC) Grey mountains How do I search for items with the label (in english) \"Gråberget\" that is not a hill (Q54050)? /ℇsquilo 08:08, 9 October 2017 (UTC) without P31 How to get a set of items without P31? \"SELECT ?item WHERE { OPTIONAL { ?item wdt:P31 ?dummy0 } FILTER(!bound(?dummy0)) }\" always times out. --Infovarius (talk) 14:06, 6 October 2017 (UTC) The problem is that there are too many such items. One strategy is to use LIMIT and OFFSET to extract some items, then filter those to see which ones don't have a P31 or a P279 -- so here's a query for some items with an en-wiki sitelink but (mostly) no descriptions and also no P31 or P279: tinyurl.com/y7k3w6ud If there are any other properties you can use to narrow it down that can also be helpful -- eg here's a recent query of mine for items with country (P17) = United Kingdom (Q145) and a sitelink to sv-wiki tinyurl.com/yc3mj8no with no P31. One important tip is not to use the SERVICE wikibase:label -- because it tries to read all items, regardless of LIMIT, rather than just a stream. Also ORDER BY might have the same problem. Jheald (talk) 14:39, 6 October 2017 (UTC) Actually I tried to get all articles in ru:Категория:Буквы по алфавитам recursively whose items don't have P31. But mentioned filter in sparql doesn't work. Filter \"categories not sparql\" with query for all items containing P31 doesn't work obviously too. How to filter it? --Infovarius (talk) 20:10, 7 October 2017 (UTC) @Infovarius: I presume you're using PetScan (?). Can you extract a list of all articles in that category & its subcategories okay, to the depth you require? Putting in depth=1 on the \"Categories\" tab there, and selecting in the Wikidata tab: \"Add items where available\" and \"Uses items props\" = \"P31, P279\" : None I can get a list of 291 results in the first level that don't have a P31 or a P279. petscan:1319540 Is that the kind of thing you're looking for? Jheald (talk) 20:32, 7 October 2017 (UTC) petscan:1319537 should do the job. Mind the “Wikidata” tab. —MisterSynergy (talk) 20:27, 7 October 2017 (UTC) You beat me to it by three jobs! :-) Jheald (talk) 20:34, 7 October 2017 (UTC) @Jheald: oh, \"uses items props\"! Thank you, I've forgotten about it. --Infovarius (talk) 22:36, 8 October 2017 (UTC) Percent female per first letter in the surname We have Dictionary of Swedish National Biography ID (P3217) that is research done in the Swedish National Archive - SBL about people. Comparing female vs. men Bubble chart. This organisation started in 1920 documenting people that are important in Sweden and are dead. After 100 years they are on character S ==> with this approach you miss all people not dead yet when you document a Surname as role of women in Sweden has changed the last 100 years documentation in 1917 was most about men BUT as SBL has selected to just document dead persons and surnames in alfabetic order a women who was important in 1930 and had a surname starting on A would not be documented until SBL has done A-Z (Ö) ==> they have to wait maybe 20 more years. The query I would like to see is percentage females per first character in the surname in a bar chart ==> Surname starting with A 3% women Surname starting with B 8% women ..... My feeling is that by still 2017 following the concept of 1917 a big part of important women are not documented - Salgo60 (talk) 08:18, 8 October 2017 (UTC) Something like this is close, but I don't understand why it's re-ordering the letters, and not showing the female part of the bar #defaultView:BarChart
+SELECT ?letter (100* ?m/(?m+?f) AS ?m_pct) (100* ?f/(?m+?f) AS ?f_pct) WHERE {
+  {
+    SELECT ?letter (COUNT(?item) AS ?count) (COUNT(?male) AS ?m) (COUNT(?female) AS ?f) {
+      ?item wdt:P3217 [] .
+      OPTIONAL {
+         ?item wdt:P21 wd:Q6581097 .
+         BIND (1 AS ?male) 
+      }
+      OPTIONAL {
+         ?item wdt:P21 wd:Q6581072 .
+         BIND (1 AS ?female) 
+      }
+      ?item wdt:P734 ?surname .
+      ?surname rdfs:label ?surname_label FILTER(LANG(?surname_label) = \"en\") .
+      BIND (substr(?surname_label, 1, 1) AS ?letter) .
+   } GROUP BY ?letter 
+ }
+} ORDER BY ?letter
+ Try it! A couple of further caveats: this is only counting items where (i) we have an identified surname, with (ii) an English label, and (iii) we have a known gender. It would be worth checking how much of the dataset complies with that, as those requirements might skew the results. Jheald (talk) 10:12, 8 October 2017 (UTC) Here's a revised query. I've tried to guess the bar chart syntax from the examples out there, and got to this which is nearer to what you wanted:tinyurl.com/yda3wwun I have to say, I do find the chart syntax significantly under-documented and counter-intuitive. Is this really the SELECT() one is supposed to have to write? Can anyone link to a write up that actually explains the columns it needs to be give? Also, it would be nice to be able to tweak the colours, if anyone knows how to do this. Jheald (talk) 11:03, 8 October 2017 (UTC) Many thanks I have too check the surnames I guess its not set so often. Gender I feel is better.... Question: Is best practice to set family name (P734)? I feel its not often done but you need it to order things on surname etc.... - Salgo60 (talk) 12:17, 8 October 2017 (UTC) 7182 people, but only 2869 with family name (P734) tinyurl.com/y8lh5n9s It very much is best practice to set it; but unfortunately, since it's not there for most people-items, the property auto-suggester doesn't suggest it, so people don't think to add it when they make new items. There's been some attempt to systematically identify and add surnames, creating items for them if necessary, but I don't know who's been leading it, or how much they reckon to have done. Jheald (talk) 09:46, 10 October 2017 (UTC) Same label for two items of same type I'm trying to trap duplicates of apple cultivar (Q15731356) - how would I query for \"items which are instance of Q15731356 with the same label\"? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 13:39, 10 October 2017 (UTC) Apple cultivars with same labels (text AND language): SELECT ?item ?item2 ?label (LANG(?label) AS ?lang) {
+  ?item wdt:P31 wd:Q15731356;
+        rdfs:label/^rdfs:label ?item2 .
+  FILTER( STR( ?item ) < STR( ?item2 ) ) .
+  FILTER EXISTS { ?item2 wdt:P31 wd:Q15731356 } .
+  ?item rdfs:label ?label .
+  ?item2 rdfs:label ?label .
+} ORDER BY STR(?label)
+ Try it! Apple cultivars with same labels (across languages): SELECT ?item ?item2 ?label1 WITH {
+  SELECT DISTINCT ?item (STR(?_label) AS ?label1) {
+    ?item wdt:P31 wd:Q15731356; rdfs:label ?_label .
+  }
+} AS %query1 WITH {
+  SELECT DISTINCT ?item2 (STR(?_label) AS ?label2) {
+    ?item2 wdt:P31 wd:Q15731356; rdfs:label ?_label .
+  }
+} AS %query2 WHERE {
+  INCLUDE %query1 .
+  INCLUDE %query2 .
+  FILTER( ?label1 = ?label2 ) .
+  FILTER( STR( ?item ) < STR( ?item2 ) ) .
+} ORDER BY ?label1
+ Try it! Matěj Suchánek (talk) 14:07, 10 October 2017 (UTC) Taxon label in French different from the scientific name Hi all,I would like to have a query that gives me all taxon (Q16521) label in French that are different from the taxon name (P225), but that are not store in the property taxon common name (P1843), in order to add them to this property with QuickStatements.Thank you! Tubezlob (🙋) 15:08, 9 October 2017 (UTC) SELECT ?item ?label WHERE{
+  ?item wdt:P31 wd:Q16521;
+        wdt:P225 ?taxonname;
+        rdfs:label ?label;
+  FILTER(LANG(?label) = 'fr')
+  FILTER(lcase(STR(?label))!= lcase(?taxonname))
+  OPTIONAL {
+    ?item wdt:P1843 ?commonname .
+    FILTER(LANG(?commonname) = 'fr')
+  }
+  FILTER(!bound(?commonname))
+} LIMIT 1000
+ Try it! --Pasleim (talk) 14:32, 10 October 2017 (UTC) Thank you Pasleim! Tubezlob (🙋) 18:59, 10 October 2017 (UTC) Avoid duplication - geo coords Hi everyone, I'm trying to work with the query editor to improve my skills (i'm still at very base level, though :)).I was trying to extract a list of airports, with their IATA and ICAO codes, their municipality and, the most important item, geo coordinates.Now, this is the query i was able to write: SELECT ?item ?itemLabel ?iata ?icao ?coord ?LocationLabel WHERE {
+  ?item wdt:P31 wd:Q1248784.
+  ?item wdt:P238 ?iata.
+  OPTIONAL { 
+      ?item wdt:P239 ?icao;
+            wdt:P931 ?Location;
+            wdt:P625 ?coord.
+            }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?iata
+LIMIT 100
+ Try it! Results are good, but i can see lots of duplicates. For what I was able to understand, duplications are consequence of different coordinates given by different versions of wikipedia. See, for example, Arapoti Airport (Q4784231): there are three coordinate location (P625), coming from English wiki, Malay wiki and Aerodromes registration. I think that I can accept the coordinates set in English wiki, so i don't want to see geo cords coming from other projects. This should avoid duplicates. But I don't understand how to \"filter\" the results in order to unprocess the data that i don't need. Can you help me? Thanks! --Bella Situazione (talk) 07:24, 12 October 2017 (UTC) Hi. This problem is always annoying. Actually, the most straightforward solution is to clean them up. My workaround would be to only show the coordinates that are considered the \"lowest\", like SELECT ?item ?itemLabel ?iata ?icao ?coord ?LocationLabel WHERE {
+  ?item wdt:P31 wd:Q1248784; wdt:P238 ?iata .
+  OPTIONAL { ?item wdt:P239 ?icao } .
+  OPTIONAL { ?item wdt:P931 ?Location } .
+  OPTIONAL {
+    ?item wdt:P625 ?coord .
+    OPTIONAL {
+      ?item wdt:P625 ?coord1 .
+      FILTER( ?coord1 < ?coord ) .
+    } .
+    FILTER( !BOUND( ?coord1 ) ) .
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}
+ORDER BY ?iata
+LIMIT 100
+ Try it! Matěj Suchánek (talk) 10:16, 12 October 2017 (UTC) Thank you Matěj, this can surely help. But it's not the best solution for me, because I made some sample checks and I saw that, most of the times, geo entries different from en.wiki are wrong (even kilometers from the real point); so taking the lowest can result in taking a wrong couple of coords. --Bella Situazione (talk) 14:54, 13 October 2017 (UTC) All statements with a reference \"imported from OpenStreetMap\" I would like to list all Wikidata statements with a reference stating imported from Wikimedia project (P143) OpenStreetMap (Q936).How to do that? Thanks! Syced (talk) 06:51, 13 October 2017 (UTC) SELECT ?item ?itemLabel ?p ?rank ?value {
+  ?ref pr:P143 wd:Q936;
+       ^prov:wasDerivedFrom ?statement .
+  ?item ?p ?statement .
+  ?p ^wikibase:claim/wikibase:statementProperty ?ps .
+  ?statement wikibase:rank ?rank; ?ps ?value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+} ORDER BY ?p ?value
+ Try it! Matěj Suchánek (talk) 07:16, 13 October 2017 (UTC) Thanks a lot! Syced (talk) 07:38, 16 October 2017 (UTC) Airports less than 100km from Berlin didn't work Hi, I tried the query about the Berlin airports given in the examples and I exceed the time allowed : #Aéroports à moins de 100 km de Berlin
+#added before 2016-10
+
+#defaultView:Map
+SELECT ?place ?placeLabel ?location
+WHERE
+{
+  # Berlin coordinates
+  wd:Q64 wdt:P625 ?berlinLoc .
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?berlinLoc .
+      bd:serviceParam wikibase:radius \"100\" .
+  }
+  # Is an airport
+  ?place wdt:P31/wdt:P279* wd:Q1248784 .
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }
+}
+ Try it! Someone know why it didn't work (anymore ?) ? Simon Villeneuve (talk) 15:26, 18 October 2017 (UTC) I can't really explain why but FILTER EXISTS { ?place wdt:P31/wdt:P279* wd:Q1248784 } . fixed that. Matěj Suchánek (talk) 17:42, 18 October 2017 (UTC) It was all I needed. Thank you very much ! Simon Villeneuve (talk) 18:04, 18 October 2017 (UTC) How to filter away properties that have 'no value' set? Hi SELECT ?municipalityLabel ?gkz ?tkk ?monument ?monumentLabel WHERE {
+ ?monument wdt:P1435 wd:Q1188447.
+ ?monument wdt:P131 ?municipality.
+ ?municipality wdt:P131* wd:Q42880 .
+ ?municipality wdt:P964 ?gkz.
+ #?municipality wdt:P131* wd:Q665605.
+ ?municipality wdt:P31 wd:Q667509.
+ filter not exists { ?monument wdt:P4219 ?tkk}
+  #filter (?tkk != wdno:P4219)			# no value for tkk
+
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! selects all cultural heritage monument objects in Tyrol that miss the id of the TKK (Tiroler Kunstkastaster) Tyrolean Art Cadastre inventory ID (P4219). Works fine except when the property is set to no value. How can I remove the matches that have Tyrolean Art Cadastre inventory ID (P4219) set to no value, but still get those where the property is missing? regards --Herzi Pinki (talk) 21:35, 19 October 2017 (UTC) SELECT ?municipalityLabel ?gkz ?monument ?monumentLabel WHERE {
+ ?monument wdt:P1435 wd:Q1188447;
+           wdt:P131+ ?municipality.
+ ?municipality wdt:P131+ wd:Q42880;
+               wdt:P964 ?gkz;
+               wdt:P31 wd:Q667509.
+ FILTER NOT EXISTS { ?monument wdt:P4219 [] }
+ FILTER NOT EXISTS { ?monument rdf:type wdno:P4219 }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Pasleim (talk) 21:47, 19 October 2017 (UTC) Doppelt dank, weil schnell & richtig. Was bedeutet das + hinter P131? P131* heißt mW rekursive Auflösung, also liegt direkt in der Verwaltungseinheit, oder in einer Verwaltungseinheit, die in der gesuchten Verwaltungseinheit liegt, oder usw. Aber P131+? Ich habe bei den Beispielen nach einem Beispiel für mein Problem gesucht und nichts gefunden, insoferne würde sich das als neues Beispiel anbieten. lg --Herzi Pinki (talk) 22:31, 19 October 2017 (UTC) P131?, P131* und P131+ sind alle sehr ähnlich, der Unterschied liegt nur darin, wie häufig P131 verwendet werden darf. + bedeuted \"einmal oder mehrfach\" * bedeuted \"keinmal, einmal oder mehrfach\" ? bedeuted \"keinmal oder einmal\" --Pasleim (talk) 22:53, 19 October 2017 (UTC) stated in : Q20087097 but without P304 I am looking for items which have (any) statements with P248:Q20087097 as source, but which lack the page number (P304). This is not a high priority fix, but it is still something I try to take care of. -- Innocent bystander (talk) 08:25, 20 October 2017 (UTC)Hope I got it right:SELECT ?item ?itemLabel ?property ?propertyLabel ?value WHERE {
+  ?refhandle pr:P248 wd:Q20087097 .
+  MINUS { ?refhandle pr:P304 [] }
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?statementProperty .
+  ?item ?claim [ prov:wasDerivedFrom ?refhandle; ?statementProperty ?value ] . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY ?item
+ Try it!—MisterSynergy (talk) 09:01, 20 October 2017 (UTC)Looks nice, thanks MrS! -- Innocent bystander (talk) 09:36, 20 October 2017 (UTC) Where is the most dense concentration of item ? Hi,I had this question « Where is the most dense concentration of item ? ». Is it something that can be done with a query ? (probably with wikibase:around but I'm stuck with the most part). The best I could to is: SELECT ?item (COUNT(?place) AS ?count) WHERE {
+  ?item wdt:P131+ wd:Q12130 ; wdt:P625 ?center .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?coord .
+    bd:serviceParam wikibase:center ?center .
+    bd:serviceParam wikibase:radius \"1\" .
+  } .
+}
+GROUP BY ?item
+ORDER BY DESC(?count)
+ Try it! But it's limited to Brittany (Q12130) to avoid TimeOut. I tried to embed to select inside one another but I fail to have results :/ Has anyone a better idea how to do it ?Cdlt, VIGNERON (talk) 18:05, 20 October 2017 (UTC) Interesting question. Not sure, but you might want to add DISTINCT in the COUNT(). --- Jura 14:00, 21 October 2017 (UTC) Double first cousins Items used: human (Q5)   Properties used: father (P22)   , mother (P25)   , sibling (P3373)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d836350-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d836350-16D01A6DF482A99B45F61D94665C73B1;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Double cousins: children of 2 brothers marrying 2 sisters
+SELECT 
+  ?person ?personLabel
+  ?relative ?relativeLabel
+  ?link
+  ?f1 ?f1Label
+  ?m1 ?m1Label
+  ?f2 ?f2Label
+  ?m2 ?m2Label
+  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
+  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
+WITH
+{
+  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
+  {
+    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
+    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
+    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
+    # checks to avoid half-siblings:
+    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
+    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
+    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    } 
+    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
+  }  LIMIT 200
+} as %basic
+WHERE
+{
+    # hint:Query hint:optimizer \"None\".
+    INCLUDE %basic
+    ?person wdt:P31 wd:Q5 .
+    ?relative wdt:P31 wd:Q5 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """# Double cousins: children of 2 brothers marrying 2 sisters
+SELECT 
+  ?person ?personLabel
+  ?relative ?relativeLabel
+  ?link
+  ?f1 ?f1Label
+  ?m1 ?m1Label
+  ?f2 ?f2Label
+  ?m2 ?m2Label
+  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
+  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
+WITH
+{
+  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
+  {
+    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
+    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
+    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
+    # checks to avoid half-siblings:
+    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
+    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
+    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    } 
+    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
+  }  LIMIT 200
+} as %basic
+WHERE
+{
+    # hint:Query hint:optimizer \"None\".
+    INCLUDE %basic
+    ?person wdt:P31 wd:Q5 .
+    ?relative wdt:P31 wd:Q5 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

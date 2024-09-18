@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b999f35aca54f7f064284da5a8db3355> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q115664695>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d814894-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d814894-FE72C1D9F007118656B14C1634FE65C0;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX dct: <http://purl.org/dc/terms/>
+SELECT ?lexemeId ?lemma ?dicoentry ?startpage ?endpage WHERE {
+  ?lexemeId dct:language wd:Q150 ; wikibase:lemma ?lemma ; p:P1343 ?dico.
+  ?dico ps:P1343 wd:Q115664695 ; pq:P304 ?page ; pq:P1932 ?dicoentry.
+  BIND(xsd:integer(REPLACE(?page, \"-[0-9]*\", \"\")) AS ?startpage)
+  BIND(xsd:integer(REPLACE(?page, \"[0-9]*-\", \"\")) AS ?endpage) 
+}
+ORDER BY ASC(?startpage)""" .

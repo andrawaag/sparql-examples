@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4c3e5af78f2f714430e119db6c8b30ab> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Esperanto Lëtzebuergesch Nederlands Türkçe català dansk español français italiano polski svenska Ελληνικά беларуская (тарашкевіца) русский српски / srpski українська հայերեն עברית العربية བོད་ཡིག 中文 日本語 粵語 WDQS interface Tips bij het over SPARQL-code gaan met de muis WDQS resultaat selectie weergave Link om het script te tonen in het venster weergave resultaten na het uitproberen Deze pagina beschrijft de interface en helpt u om de verschillende mogelijkheden te begrijpen om resultaten te weergeven van de service SPARQL query. Deze voorbeeldpagina bevat veel goede voorbeelden van queries die u kunt proberen!Open de WDQS-interface en vervolg met: selecteer uw taal in van de bovenste werkbalk met hulpmiddelen. schrijf een geldige SPARQL-code in het tekstgebied. controleer uw script door over de elementen met uw muis te gaan; er worden dan tips getoond en ze moeten overeenkomen met wat u wilt doen. Zij gebruiken de taal die u heeft geselecteerd (standaardwaarde is Engels). klik vervolgens op de blauwe knop Zoekopdracht uitvoeren van de zijbalk uit om het verzoek te starten. Het rode vierkant licht in de zijbalk op terwijl het verzoek wordt uitgevoerd. na het uitvoeren van een query kunt u met de \"Weergave\" kiezen welke resultaatweergave u wilt krijgen. Afhankelijk van uw query en het type gegevens zijn sommige van de weergaven niet beschikbaar. Voorbeeld bron # Recent events
+SELECT ?event ?eventLabel ?date
+WHERE
+{
+  # find events
+  ?event wdt:P31/wdt:P279* wd:Q1190554.
+  # with a point in time or start date
+  OPTIONAL { ?event wdt:P585 ?date. }
+  OPTIONAL { ?event wdt:P580 ?date. }
+  # but at least one of those
+  FILTER(BOUND(?date) && DATATYPE(?date) = xsd:dateTime).
+  # not in the future, and not more than 31 days ago
+  BIND(NOW() - ?date AS ?distance).
+  FILTER(0 <= ?distance && ?distance < 31).
+  # and get a label as well
+  OPTIONAL {
+    ?event rdfs:label ?eventLabel.
+    FILTER(LANG(?eventLabel) = \"en\").
+    }
+}
+# limit to 10 results so we don't timeout
+LIMIT 10 Opmerking: U kunt ook een hardcoded verzoek rechtstreeks uitvoeren via de links Proberenǃ van deze pagina. Als het u rechtstreeks het resultaat weergeven krijgt, kunt u altijd terug naar het bron script door de link aan de onderkant van de interface te gebruiken. Contents 1 Tabel (standaard) 2 Beeldraster 2.1 Opties 3 Kaart 3.1 Opties 4 Lijn, Staaf, Verspreiding en Gebied grafiek 5 Bubbel grafiek 6 Boom grafiek 7 Boom 8 Tijdlijn 8.1 Opties 9 Dimensies 10 Grafiek 11 Aanvullende informatie 11.1 RDF-data-type koppeling 11.2 Opmaak 11.3 Mobiel / Responsief 11.4 Embed Mode 11.5 Resultaten downloaden 11.6 Standaardweergave 11.7 Opties resultaatweergave 11.8 Titel 11.9 Lijst met WDQS-tags 11.10 Auto taal 11.11 Auto-coördinaten Tabel (standaard) Toont de resultaten als tabel. Het is de standaardweergave voor resultaten en kan elk datatype weergeven.Elke variabele van de SPARQL select clause kan in een geformatteerde tabelkolom worden weergegeven. Tabelresultaat Tabelresultaat op kleine schermen met omgekeerde kolommen  Beeldraster Beeldraster ProberenToont de resultaten als een raster met beelden.Elk raster-item heeft een grote afbeelding en opent de galerij als u erop klikt.Inhoud van een item is een geformatteerde rij gegevens. Variabele Data-type Koppeling Beschrijving * Commons Media Raster item De kolommen van de afbeelding maken een beeldraster. Rijen zonder afbeelding worden genegeerd.Het is wel mogelijk om geen afbeeldingsrijen in het resultaat op te nemen door de sparql te wijzigen door een standaardafbeelding op te nemen in het geval de afbeeldingsvariabele niet gebonden is: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/Wikidata_Query_Help/Result_Views/nl>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

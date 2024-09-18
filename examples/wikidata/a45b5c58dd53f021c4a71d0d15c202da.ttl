@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a45b5c58dd53f021c4a71d0d15c202da> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852463-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d852463-DD51B5E325E33D00EF421AEE8B32367D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+#title:Single items containing references with only P813
+SELECT ?item ?id ?property ?statement ?retrieved
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  VALUES ?item { wd:Q107331778 }
+  ?item ?property ?statement . 
+  ?property ^ wikibase:claim [] .
+  ?statement prov:wasDerivedFrom ?b .
+  ?b pr:P813 ?retrieved . 
+  FILTER NOT EXISTS { ?b ?other [] . FILTER( ?other != pr:P813 && ?other != prv:P813 ) }
+}""" .

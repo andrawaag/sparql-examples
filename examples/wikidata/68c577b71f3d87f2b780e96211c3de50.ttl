@@ -1,0 +1,136 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-68c577b71f3d87f2b780e96211c3de50> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Home Model Query Curate About Discuss  These example queries for the Wikidata Query Service can assist with accessing Wikidata's clinical trials data.  Contents 1 Model profiles 1.1 Clinical trials for Zika fever 1.2 Clinical trials using COVID-19 vaccine 1.3 Clinical trials at Vanderbilt University 1.4 Clinical trials with Julie McElrath as principal investigator 1.5 Clinical trials funded by Patient-Centered Outcomes Research Institute 2 Topics by count of clinical trials 2.1 Medical conditions 2.2 Research interventions 2.3 Research sites 2.4 Principal investigators 2.5 Funders 3 Organizational affiliations 3.1 Clinical trials with principal investigator and their affiliation 3.2 Clinical trials where principal investigator has Vanderbilt University affiliation 3.3 Chart of organizations by count of clinical trials 3.4 Clinical trials where the sponsor was Pfizer 4 Researcher demographics 4.1 Count of principal investigators by gender 4.2 Clinical trials where the principal investigator is female 4.3 Principal investigators by occupation 5 Scope of Wikidata's clinical trials content 5.1 List of clinical trials 5.2 Count of clinical trials 5.3 Most common properties applied to clinical trials 5.4 Count of statements in clinical trial records 5.5 Count of trial records in Wikidata per clinical trial registry 6 Scholia queries Model profiles [edit] Each of these queries generates a list of clinical trials associated with another concept. medical condition treated (P2175) research intervention (P4844) principal investigator (P8329) research site (P6153) funder (P8324) Clinical trials for Zika fever [edit] The following query uses these:Items: clinical trial (Q30612)   , Zika fever (Q8071861)   , Zika virus infection (Q27043680)   Properties: instance of (P31)   , medical condition treated (P2175)   SELECT ?trial ?trialLabel  WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P2175 wd:Q8071861. }
+  UNION
+  { ?trial wdt:P2175 wd:Q27043680. }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Clinical trials using COVID-19 vaccine [edit] The following query uses these:Items: clinical trial (Q30612)   , COVID-19 vaccine (Q87719492)   Properties: instance of (P31)   , research intervention (P4844)   , subclass of (P279)   SELECT ?trial ?trialLabel  WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  ?trial wdt:P4844 ?intervention. 
+  ?intervention wdt:P31/wdt:P279* wd:Q87719492 .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Clinical trials at Vanderbilt University [edit] The following query uses these:Items: clinical trial (Q30612)   , Vanderbilt University (Q29052)   Properties: instance of (P31)   , research site (P6153)   , parent organization (P749)   SELECT ?trial ?trialLabel WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P6153 [ wdt:P749* wd:Q29052  ] .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Clinical trials with Julie McElrath as principal investigator [edit] The following query uses these:Items: clinical trial (Q30612)   , Julie McElrath (Q22006776)   Properties: instance of (P31)   , principal investigator (P8329)   SELECT ?trial ?trialLabel WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8329 wd:Q22006776 .}
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Clinical trials funded by Patient-Centered Outcomes Research Institute [edit] examples: Aspirin Dosing: A Patient-Centric Trial Assessing Benefits and Long-term (Q65392692) (sponsor (P859)) Comparing the Benefits and Harms of Three Types of Weight Loss Surgery -- The PCORnet® Bariatric Study (Q93611889) (funder (P8324)) draft query: The following query uses these:Items: clinical trial (Q30612)   , Patient-Centered Outcomes Research Institute (Q7144950)   Properties: instance of (P31)   , funder (P8324)   , sponsor (P859)   SELECT ?trial ?trialLabel ?link WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8324 wd:Q7144950 .}
+  UNION
+  { ?trial wdt:P859 wd:Q7144950 .}
+  ?trial ?link wd:Q7144950 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Topics by count of clinical trials [edit] Medical conditions [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: subclass of (P279)   , medical condition (P1050)   , instance of (P31)   SELECT DISTINCT ?condition ?conditionLabel (COUNT(?trial) AS ?count) 
+WHERE
+{
+   ?trial p:P31/ps:P31/wdt:P279* wd:Q30612.
+   ?trial wdt:P1050 ?condition .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?condition ?conditionLabel ?count 
+ORDER BY DESC(?count) Try it! Research interventions [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: subclass of (P279)   , research intervention (P4844)   , instance of (P31)   SELECT DISTINCT ?intervention ?interventionLabel (COUNT(?trial) AS ?count) 
+WHERE
+{
+   ?trial p:P31/ps:P31/wdt:P279* wd:Q30612.
+   ?trial wdt:P4844 ?intervention .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?intervention ?interventionLabel ?count 
+ORDER BY DESC(?count) Try it! Research sites [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: instance of (P31)   , research site (P6153)   , parent organization (P749)   SELECT DISTINCT ?research_site ?research_siteLabel ?count
+WITH {
+  SELECT ?research_site (COUNT(?trial) AS ?count)  WHERE {
+    ?trial wdt:P31 wd:Q30612 .
+    { ?trial wdt:P6153 ?research_site . }
+    UNION
+    { ?trial wdt:P6153 [wdt:P749 ?research_site] . }  
+  }
+  GROUP BY ?research_site
+} AS %sites
+WHERE {
+  INCLUDE %sites
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?research_site ?research_siteLabel ?count
+ORDER BY DESC(?count) Try it! Principal investigators [edit] Bubble chart version: The following query uses these:Items: clinical trial (Q30612)   Properties: instance of (P31)   , principal investigator (P8329)   , employer (P108)   , affiliation (P1416)    Features: BubbleChart (Q24515280)  #defaultView:BubbleChart
+SELECT (COUNT(DISTINCT ?trial) AS ?count) ?PI ?PILabel 
+WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8329 ?PI .}
+
+  { ?PI wdt:P108 ?org }  
+  UNION
+  { ?PI wdt:P1416 ?org }  
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?PI ?PILabel 
+ORDER BY DESC(?count) Try it! Funders [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: subclass of (P279)   , sponsor (P859)   , funder (P8324)   , instance of (P31)   SELECT DISTINCT ?funder ?funderLabel (COUNT(?trial) AS ?count) 
+WHERE
+{
+   ?trial p:P31/ps:P31/wdt:P279* wd:Q30612.
+  { ?trial wdt:P859 ?funder .}
+  UNION
+  { ?trial wdt:P8324 ?funder .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?funder ?funderLabel ?count 
+ORDER BY DESC(?count) Try it! Organizational affiliations [edit] Clinical trials with principal investigator and their affiliation [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: instance of (P31)   , principal investigator (P8329)   , employer (P108)   , affiliation (P1416)   SELECT ?trial ?trialLabel ?PI ?PILabel ?org ?orgLabel  WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8329 ?PI .}
+
+  { ?PI wdt:P108 ?org }  
+  UNION
+  { ?PI wdt:P1416 ?org }  
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Clinical trials where principal investigator has Vanderbilt University affiliation [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: instance of (P31)   , principal investigator (P8329)   , employer (P108)   , parent organization (P749)   , affiliation (P1416)   # Q29052 is Vanderbilt University
+PREFIX target: <http://www.wikidata.org/entity/Q29052>
+
+SELECT ?trial ?trialLabel ?PI ?PILabel  WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8329 ?PI .}
+
+  { ?PI wdt:P108 [ wdt:P749* target: ] }  
+  UNION
+  { ?PI wdt:P1416 [ wdt:P749* target: ] }  
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Chart of organizations by count of clinical trials [edit] The following query uses these:Items: clinical trial (Q30612)   Properties: instance of (P31)   , principal investigator (P8329)   , employer (P108)   , affiliation (P1416)    Features: BubbleChart (Q24515280)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Clinical_Trials/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d835597-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+SELECT (COUNT(DISTINCT ?trial) AS ?count) ?org ?orgLabel 
+WHERE {
+  ?trial wdt:P31 wd:Q30612 .
+  { ?trial wdt:P8329 ?PI .}
+
+  { ?PI wdt:P108 ?org }  
+  UNION
+  { ?PI wdt:P1416 ?org }  
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?org ?orgLabel 
+ORDER BY DESC(?count)""" .

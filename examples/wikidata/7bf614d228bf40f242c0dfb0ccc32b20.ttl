@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7bf614d228bf40f242c0dfb0ccc32b20> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/Queries>, <https://www.wikidata.org//wiki/User:Ep%C3%ACdosis/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88219-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d88219-CB724D9530DA62EF0D09DFF6E7559A5D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:Description containing
+SELECT ?item ?itemLabel ?itemDescription
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\".
+    bd:serviceParam wikibase:api \"Generator\".
+    bd:serviceParam mwapi:generator \"search\".
+    bd:serviceParam mwapi:gsrsearch \"Alman politikacılar\".
+    bd:serviceParam mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item schema:description ?itemDescription.
+  FILTER (LANG(?itemDescription) = \"tr\")
+  FILTER CONTAINS(?itemDescription, \"Alman politikacılar\")
+}""" .

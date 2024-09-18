@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b1494c3a4730aab54b84f2204318daff> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834625-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d834625-F235847F1F09A6295C3019E3A435469F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?father ?fatherLabel ?child ?childLabel ?depth ?dob WHERE
+ {
+  SERVICE gas:service {
+       gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ; gas:in wd:Q7747 ; gas:out ?father ; gas:out1 ?depth ; gas:out2 ?child .
+       gas:program gas:linkType wdt:P22 . }
+   OPTIONAL {?father wdt:P569 ?dob.}
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\". }
+} order by ?depth""" .

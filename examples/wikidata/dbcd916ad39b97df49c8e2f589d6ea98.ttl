@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-dbcd916ad39b97df49c8e2f589d6ea98> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d839053-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d839053-E7354090B638D43AC0870E3A7BF79D90;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?type (CONCAT(STR(?lat),' / ',STR(?long)) AS ?loc) WHERE {
+?item wdt:P31/wdt:P279? wd:Q744099 ; wdt:P31 ?type ; wdt:P131 wd:Q23183 ; wdt:P4102 ?atlas ; p:P625 ?locstatement .
+FILTER EXISTS { ?locstatement prov:wasDerivedFrom/pr:P854 ?locref } .
+?locstatement psv:P625 ?coordinate_node .
+?coordinate_node wikibase:geoLatitude ?lat .
+?coordinate_node wikibase:geoLongitude ?long .
+?type wdt:P279? wd:Q744099
+}""" .

@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad72c009cad984c0a4d594a2c3c7ba6a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?çocuk
+WHERE
+{
+  # çocuk \"babasına sahip\" Bach 
+  ?çocuk baba Bach. 
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, Vikiveri Sorgu Servisi, Vikiveri'nin içeriği hakkında fikir sahibi olmak için güçlü bir araçtır. Bu rehber size nasıl kullanılacağını öğretecektir. Ayrıca Wikimedia İsrail tarafından oluşturulmuş etkileşimli öğreticiye bakabilirsiniz.Kendi SPARQL sorgunuzu yazmadan önce, sorgunuzun zaten daha önce {{Item documentation}} ya da diğer genel SPARQL sorgu şablonlarına dâhil edilip edilmediğine bakın. Contents 1 Başlamadan önce 2 SPARQL temelleri 3 İlk sorgumuz 3.1 Autocompletion 4 Advanced triple patterns 5 Instances and classes 5.1 Property paths 6 Qualifiers 7 ORDER and LIMIT 7.1 Exercise 7.1.1 Arthur Conan Doyle books 7.1.2 Chemical elements 7.1.3 Rivers that flow into the Mississippi 7.1.4 Rivers that flow into the Mississippi II 8 OPTIONAL 9 Expressions, FILTER and BIND 9.1 Data types 9.2 Operators 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Grouping 10.1 City populations 10.2 Painting materials 10.3 Guns by manufacturer 10.4 Publishers by number of pages 10.4.1 HAVING 10.5 Aggregate functions summary 10.6 wikibase:Label and aggregations 11 VALUES 12 Label in multiple languages 13 And beyond… 14 See also Başlamadan önce Bu rehber çok uzun ve korkutucu görünmekle birlikte lütfen bunun sizi korkutmasına izin vermeyin! Sadece SPARQL temellerini öğrenmek bile uzun vadede işinize yarayacaktır. İlk sorgumuzdan sonra okumayı bıraksanız bile birçok ilginç sorgu oluşturacak kadar konuyu zaten anlayacaksınız. Bu eğitimin her bölümü daha güçlü sorgular yazmanızı sağlayacaktır.Daha önce Vikiveri, SPARQL veya WDQS'i hiç duymadıysanız bu terimlerin kısa bir açıklaması karşınızda: Vikiveri, bir bilgi veritabanıdır. \"Kanada'nın başkenti Ottawa'dır\" ya da \"Mona Lisa kavak ağacı üzerine yağlı boyayla boyanmıştır\" veya \"altın 1.064.18 santigrat derece erime noktasına sahiptir\" gibi milyonlarca cümle içerir. SPARQL, bilgi veritabanları için sorular (sorgular) formüle etmek için kullanılan bir dildir. Doğru veritabanıyla bir SPARQL sorgusu \"müzikte en popüler tonalite nedir?\", en çok hangi oyuncu hangi karakteri canlandırdı?, \"kan gruplarının dağılımı nedir?\" veya \"hangi yazarın eserleri bu yıl yayımlandı?\" gibi sorulara cevap verebilir. WDQS, Vikiveri Sorgu Hizmeti, şu ikisini bir araya getirir: Bir SPARQL sorgusu girince bunu Vikiveri veri kümesine karşı çalıştırır ve sonucu gösterir.  SPARQL temelleri Basit bir SPARQL sorgusu şöyle görünür: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} SELECT yan tümcesi, döndürülmesini istediğiniz değişkenleri listeler (değişkenler bir soru işareti ile başlar) ve WHERE yan tümcesi, çoğunlukla üçlü formda olan kısıtlamaları içerir. Vikiveri'deki tüm bilgiler (ve benzer bilgi veritabanları) üçlü şeklinde saklanır; sorguyu çalıştırdığınızda sorgu hizmeti değişkenleri gerçek değerlerle doldurmaya çalışır, böylece elde edilen üçlüler bilgi veritabanında görünür ve bulduğu değişkenlerin her birleşimi için bir sonuca çevirir. Üçlü, bir cümle gibi (bu nedenle bir nokta ile biter) bir özne, bir yüklem ve bir nesne ile okunabilir: SELECT ?meyve
+WHERE
+{
+  ?meyve rengi sarı.
+ ?meyve tadı ekşi.
+} Bu sorgu için sonuçlar arasında örneğin “limon” yer alabilir. Vikiveri'de çoğu özellik sahiplik anlamı içerir, bu nedenle sorguyu bu şekilde okuyabiliriz: SELECT ?meyve
+WHERE
+{
+  ?meyve rengi sarı.
+ ?meyve tadı ekşi.
+} yüklemlerin sahiplik özelliğini bu örnekte gözlemleyebiliriz. “‘sarı’ renge sahip ?meyve ” (“sarı renkte ki ?meyve ” değil – sahiplik özelliğine hiyerarşik yapıda ki Üçlü'ler arasında dikkat edin!)Bu örnek WDQS için iyi bir örnek değildir. Tat subjektif bir yüklem olduğu için Vikiveri tat yüklemini kullanmaz. Bunun yerine hiyerarşik bir düzene sahip kaynak/alt-öğe ilişkileri tercih edilir. İlk sorgumuz Barok dönem bestekarlarından Johann Sebastian Bach'ın bütün çocuklarını listeleyelim. Yukarıda gördüğümüz Üçlü elementleriyle nasıl sorgu oluşturabilirsiniz?Umarız aşağıdakine benzer bir sorgu oluşturdunuz: SELECT ?çocuk
+WHERE
+{
+  #  çocuk \"ebeveyne sahip\" Bach
+  ?çocuk ebeveyn Bach.
+  # (not: '#' karakterinden sonra yazılanlar yorum olarak algılanır ve WDQS sorgusu için kullanılmaz.)
+} ya da bu, """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/tr>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

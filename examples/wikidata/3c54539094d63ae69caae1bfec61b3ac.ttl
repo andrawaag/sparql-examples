@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3c54539094d63ae69caae1bfec61b3ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837046-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d837046-8477AEC3AEE86D614809624A5021E16B,
+    _:genid-4e694113159d4e3db4a1a913894a81d837046-6EA309F71CBD7593BECE2F8AEA76D8A4, _:genid-4e694113159d4e3db4a1a913894a81d837046-B14331420D52235C560E5860C82A09B6,
+    _:genid-4e694113159d4e3db4a1a913894a81d837046-C76CE98E74AB706496ABAA3970581472, _:genid-4e694113159d4e3db4a1a913894a81d837046-353E2426044037BACCE1D2C8B8B8F8C2,
+    _:genid-4e694113159d4e3db4a1a913894a81d837046-8CAF6F9EE018373038BD9D1B40F73F94, _:genid-4e694113159d4e3db4a1a913894a81d837046-AC7F787EC1F199B3AB3B15B6D3B7B5A3,
+    _:genid-4e694113159d4e3db4a1a913894a81d837046-8CBF47E2F60170AF7A71C6107520CE0B, _:genid-4e694113159d4e3db4a1a913894a81d837046-DC11CAF914931300DD7DD738895BEF2D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?snippet
+WHERE {
+  # Old approach was:
+  #   ?item rdfs:label ?label . FILTER CONTAINS(?label, \"&quot;\") .
+  # It worked before 2017, but due to database growth it started to timeout, eventually.
+  # Luckily, there is an alternative way to search in labels and aliases with CirrusSearch.
+  # See [[mw:Help:Extension:WikibaseCirrusSearch]] and [[mw:Wikidata Query Service/User Manual/MWAPI]] for more details.
+
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"inlabel:\\\"&quot;\\\"\" .
+    ?snippet wikibase:apiOutput \"@snippet\". 
+    ?item wikibase:apiOutputItem mwapi:title. 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c43404bb232a2ef1662c19615f801bcf> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852070-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d852070-068096B365F1850AD423DA1AABDC53A3;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propertyLabel ?url  WHERE {
+  {
+  SELECT DISTINCT ?item ?p ?url WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; ?p [ prov:wasDerivedFrom/pr:P854 ?url ] .
+  }
+} .
+  ?property wikibase:claim ?p .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY ASC(?url)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?property ?propertyLabel ?url WITH {
+  SELECT DISTINCT ?item ?p ?url WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618; ?p [ prov:wasDerivedFrom/pr:P854 ?url ] .
+  }
+} AS %subquery WHERE {
+  INCLUDE %subquery .
+  ?property wikibase:claim ?p .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+} ORDER BY ASC(?url)""" .

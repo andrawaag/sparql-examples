@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4660c8252659df1c5e610f8d432c39fa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2020-11-16>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2020-08-25>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-09-26>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-08-21>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Intro-2019-05-13>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Atelier_2018>, <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821824-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d821824-E6268777BAF75393898A7C1B82F09642,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-D25D2789B7513970A1FA2AE043E5D219, _:genid-4e694113159d4e3db4a1a913894a81d821824-008AB10F82C3D6FD428388F7D4093790,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-4F49EEAD7E94C6A87AF7FAD54F331D6A, _:genid-4e694113159d4e3db4a1a913894a81d821824-CE4D5E8AAC4343EA512DF8D3CB9CA70E,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-CCE5CF56010B7F7B8D0105DA72C964C3, _:genid-4e694113159d4e3db4a1a913894a81d821824-DEADAC1DE5B122CA14A9991B5842DA16,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-66729E4F11E15888B6DED9DA890E72BE, _:genid-4e694113159d4e3db4a1a913894a81d821824-8A577544E637BEF2BB8855ADF6F99E56,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-9BE147618AC4E68C70A8BE2CE21AF1AE, _:genid-4e694113159d4e3db4a1a913894a81d821824-39C608169AEB5F89F4CB1A6791361D29,
+    _:genid-4e694113159d4e3db4a1a913894a81d821824-E0F78692F0143B8E43D7404DDD6E612A, _:genid-4e694113159d4e3db4a1a913894a81d821824-043FAC4E9AE29084E68177C6A43A9717;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT ?truc ?fcLabel ?trucLabel ?coord ?layer WHERE {
+ {
+ SELECT DISTINCT ?truc (SAMPLE(?coord) AS ?coord) (SAMPLE(?layer) AS ?layer) WHERE {
+ ?fc wdt:P39 wd:Q11811941 ;
+ rdfs:label ?layer.
+ FILTER((LANG(?layer)) = \"fr\")
+ 
+ ?truc wdt:P138 ?fc ;
+ wdt:P625 ?coord.
+ }
+ GROUP BY ?truc ?trucLabel
+ }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}""" .

@@ -1,0 +1,89 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fb63fd21b54e35760a8e2057bc8f1912> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 grouping problems (Bad aggregate) 2 Get pictures for an object in Wikidata and see if this picture miss depict WD in Wikicommons 3 20 criteria for 2 or 3 focus languages 4 Wikidata query into page map 5 All movies that won the awards 6 Why is this so slow? 7 Denonym 8 Troubleshoot query-not getting the right date of birth (dob) e.g Q18810921 dob query is 1954 October 12 but shows in page as 29 September 1954Julian. e.g Q13898 has 2 dob but query returns 1 dob. 9 Row numbering 10 wiki query in python. how to pass a variable (multiple QID) into query? any specific formatting required for the variable? 11 Some improvements for map query 11.1 one more thing 12 Count of Wikipedia pages for an object 13 Subway lines that are Y 14 Scatterplot query 15 Person query 16 Featured articles that don't exist 17 Japan Search SPARQL query (Wikidata-related!) 18 specify senators who served in a particular legislative term? 19 Query for Property dashboard 20 Can’t create new item 21 For... Loop query 22 Total population 23 Creator query 24 Humans with label containing ( or ) 25 finding where a particular reference is cited 26 Get all articles in a journal; multiple authors combined 27 List of administrative divisions by country 28 Focus on a specific group of items 29 Help: Query to get the creation date (when the entity was created on Wikidata) for a particular country 30 Order text strings taking accents in account 31 Countries with the least amount of restrictions on civil laws 32 Wikinews 33 Most commons name in Germany by year of birth grouping problems (Bad aggregate) Hi @all, I definitly lack practice, so please bear with me: The data is the result of my survival project lasting thoughout the last lockdowns, and now I would like to harvest some of the first fruits ;-) … the query breaks with the grouping of the architects. I read about the group_concat bug, added 2 variables for grouping but it breaks anyway. I bet you see the problem in a second. Another open issue is the image, I know I've seen an example where the output was limited on 1 value, but I cannot find it. #defaultView:Map
+SELECT ?item ?itemLabel ?coords ?img (YEAR(?date) as ?year) (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects)  WHERE {
+  ?item wdt:P166 wd:Q1795794;
+        p:P166 [ps:P166 ?award; pq:P585 ?date].            
+  OPTIONAL{
+    ?item wdt:P625 ?coords.
+  }
+  OPTIONAL{
+    ?item wdt:P18 ?img. # might be more than one. I want the first one
+  }
+  OPTIONAL {
+    ?item wdt:P84 ?architect. # up to 7 per ?item, needs grouping
+    
+  }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\". }
+} GROUP BY ?item ?itemLabel 
+LIMIT 300
+ Try it! Thanks! (please ping me for an answer)--Elya (talk) 21:11, 1 March 2021 (UTC) Items used: Kölner Architekturpreis (Q1795794)   Properties used: award received (P166)   , coordinate location (P625)   , image (P18)   , architect (P84)   , point in time (P585)   Features used: map (Q24515275)   #defaultView:Map
+SELECT 
+  ?item ?itemLabel 
+  ?coords 
+  (SAMPLE(?img) as ?image) 
+  (MIN(YEAR(?date)) as ?year) 
+  (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects) 
+WHERE 
+{
+  ?item wdt:P166 wd:Q1795794;
+        p:P166 [ps:P166 ?award; pq:P585 ?date].            
+  OPTIONAL{
+    ?item wdt:P625 ?coords.
+  }
+  OPTIONAL{
+    ?item wdt:P18 ?img. # might be more than one. I want the first one
+  }
+  OPTIONAL {
+    ?item wdt:P84 ?architect. # up to 7 per ?item, needs grouping
+  }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+                        ?item rdfs:label ?itemLabel .
+                        ?architect rdfs:label ?architectLabel .
+                        }
+} 
+GROUP BY ?item ?itemLabel ?coords
+LIMIT 300 Try it!@Elya: I tried to fix it above. \"Query is malformed: Bad aggregate\" means that in SELECT you have unaggregated variables that are missing in \"GROUP BY\". Somewhere further down, it lists one ( \"Non-aggregate variable in select expression: coords\"). It's an error message I get frequently ;) I also changed the year and the image output to list just one. --- Jura 21:26, 1 March 2021 (UTC) Jura, aaaah, yes, I see. Thanks! I'll see what else I can do with my little dataset ;-) And I promise I'll read the error message stacks next time … --Elya (talk) 21:52, 1 March 2021 (UTC) @Elya: Your query select items that received Kölner Architekturpreis (Q1795794) and that received some unspecified award on some point of time. It can both be the same award and two different awards. You probably mean ?item p:P166 [ps:P166 wd:Q1795794; a wikibase:BestRank; pq:P585 ?date]. so the point of time is when Kölner Architekturpreis (Q1795794) is received and not some other award. --Dipsacus fullonum (talk) 22:13, 1 March 2021 (UTC) @Elya: Another thing: The query has the comment ?item wdt:P18 ?img. # might be more than one. I want the first one. There is no order of statements in Wikidata, so no image can be called \"the first\". You just get a image. --Dipsacus fullonum (talk) 22:21, 1 March 2021 (UTC)  Items used: Kölner Architekturpreis (Q1795794)   Properties used: image (P18)   , architect (P84)   , educated at (P69)   , coordinate location (P625)   , award received (P166)   , point in time (P585)   Features used: map (Q24515275)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d836944-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Where did they study? 
+
+#defaultView:Map
+#defaultView:Map
+SELECT 
+  ?item ?itemLabel 
+  ?coords 
+  (SAMPLE(?img) as ?image) 
+  (MIN(YEAR(?date)) as ?year) 
+  (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects)
+  (GROUP_CONCAT(DISTINCT ?buildingLabel;separator=\", \") AS ?buildings)
+WHERE 
+{
+  ?building p:P166 [ps:P166 wd:Q1795794; a wikibase:BestRank; pq:P585 ?date ].  
+  OPTIONAL{ ?building wdt:P18 ?img }
+  ?building wdt:P84 ?architect.
+  OPTIONAL{ ?architect wdt:P69 ?item . 
+  OPTIONAL{ ?item wdt:P625 ?coords } }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de\".
+                        ?item rdfs:label ?itemLabel .
+                        ?architect rdfs:label ?architectLabel .
+                        ?building rdfs:label ?buildingLabel .
+                          }
+} 
+GROUP BY ?item ?itemLabel ?coords""" .

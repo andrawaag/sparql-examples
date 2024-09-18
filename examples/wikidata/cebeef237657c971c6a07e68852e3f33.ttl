@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cebeef237657c971c6a07e68852e3f33> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d841168-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d841168-D05E3690FBF1ED27FDF40418CE735D9B;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?person (\"P4602\" as ?P) ?burial ?dod WHERE {
+  ?person wdt:P31 wd:Q5 .
+  ?person p:P119/pq:P580 ?burial .
+  ?person wdt:P570 ?dod .
+  #MINUS { ?person wdt:P570 [] }.
+  BIND(ROUND((?burial - ?dod)) AS ?duration).
+  FILTER(?duration < 20).
+}""" .

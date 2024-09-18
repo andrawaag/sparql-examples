@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-500cac7a7726b2a9f4770519dedc1646> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d813370-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d813370-6303D0A31036261F55824038C623AD4A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item (COUNT(DISTINCT ?sitelink) as ?articlecount) WHERE {
+  ?item wdt:P570 ?deathdate;
+        wdt:P31 wd:Q5 .
+  FILTER (YEAR(?deathdate)=1945) .
+  ?sitelink schema:about ?item .
+  
+  ?item p:P106 ?occupationStatement .
+  ?occupationStatement ps:P106/wdt:P279* wd:Q2500638 .
+  MINUS { ?occupationStatement wikibase:rank wikibase:DeprecatedRank . }
+  
+} GROUP BY ?item ORDER BY DESC (?articlecount)""" .

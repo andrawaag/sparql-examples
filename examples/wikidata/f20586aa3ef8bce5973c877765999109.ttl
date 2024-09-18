@@ -1,0 +1,67 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f20586aa3ef8bce5973c877765999109> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:MartinPoulter/queries/khalili>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834742-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d834742-A692B639353A17BFA1BC7FDAF5114229,
+    _:genid-4e694113159d4e3db4a1a913894a81d834742-1E34B3AE70CDD7D2A3E4D616DEA20C9C, _:genid-4e694113159d4e3db4a1a913894a81d834742-721449CD2134C4916A25FCD1DB35344A,
+    _:genid-4e694113159d4e3db4a1a913894a81d834742-B309A98EE0367D9B48727DAE7E0314E9, _:genid-4e694113159d4e3db4a1a913894a81d834742-A0B0F3900CDC0CDBC39173328D9D7636,
+    _:genid-4e694113159d4e3db4a1a913894a81d834742-53BDC0C98130E0835BCFD714FD2E049E, _:genid-4e694113159d4e3db4a1a913894a81d834742-B7086E01A03B2B1E48A8114456B2F5BC,
+    _:genid-4e694113159d4e3db4a1a913894a81d834742-1316C849F172867819F6ADE699702839, _:genid-4e694113159d4e3db4a1a913894a81d834742-D03AB3F11886F6FE561C0CC219CEBFB3,
+    _:genid-4e694113159d4e3db4a1a913894a81d834742-F430571422EC1E6A8CC2A9787D0945E2;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#title:Non-English labels for Khalili Collections items
+SELECT ?lang ?count WITH {
+  SELECT ?work ?label WHERE {
+    ?work wdt:P195?/wdt:P361? wd:Q63160499. # Khalili Collections, or individual collections, or objects within collections
+    ?work (rdfs:label|skos:altLabel) ?label
+    FILTER(lang(?label) != \"en\") } } AS %core
+WHERE { {
+  SELECT ?lang (COUNT(?label) AS ?count) WHERE {
+    INCLUDE %core.
+    BIND(lang(?label) AS ?langcode).
+    OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langname FILTER(lang(?langname) = \"en\")}
+    BIND(IF (BOUND(?langname), ?langname, ?langcode) AS ?lang) 
+    } GROUP BY ?lang
+ } UNION {
+    SELECT (\"TOTAL\" AS ?lang) (COUNT(?label) AS ?count) WHERE {
+    INCLUDE %core.
+    } }
+} order BY DESC(?count) ?lang""";
+  <http://example.org/bigdata_select> """#title:Non-English labels for Khalili Collections items
+SELECT ?lang ?count WITH {
+  SELECT ?work ?label WHERE {
+    ?work wdt:P195?/wdt:P361? wd:Q63160499. # Khalili Collections, or individual collections, or objects within collections
+    ?work (rdfs:label|skos:altLabel) ?label
+    FILTER(lang(?label) != \"en\") } } AS %core
+WHERE { {
+  SELECT ?lang (COUNT(?label) AS ?count) WHERE {
+    INCLUDE %core.
+    BIND(lang(?label) AS ?langcode).
+    OPTIONAL { ?language wdt:P218 ?langcode; rdfs:label ?langname FILTER(lang(?langname) = \"en\")}
+    BIND(IF (BOUND(?langname), ?langname, ?langcode) AS ?lang) 
+    } GROUP BY ?lang
+ } UNION {
+    SELECT (\"TOTAL\" AS ?lang) (COUNT(?label) AS ?count) WHERE {
+    INCLUDE %core.
+    } }
+} order BY DESC(?count) ?lang""" .

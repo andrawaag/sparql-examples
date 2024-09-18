@@ -1,0 +1,63 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd27673f764e0508abc1c590af697ed2> a sh:SPARQLExecutable;
+  rdfs:comment """Contents 1 Masjid di Indonesia 2 Jangan tampilkan 3 Tampilkan bangunan di sekitar kecuali masjid 4 Tampilkan bangunan di sekitar hanya masjid dan museum 5 Peta 6 Masjid di Sumatra Barat 7 Hanya masjid di Sumbar tanpa wikibase:box 8 Menggunakan filter 9 Galeri tempat di sekitar 10 Film Indonesia 11 Genre film 5 tahun terakhir 12 Film Indonesia 10 tahun terakhir dan genre 13 Sutradara paling produktif 14 Daftar gubernur Indonesia 15 Timeline masjid 16 Wikidata Box 17 Masjid menurut abad 18 Kota menurut abad 19 Masjid berdasarkan range 20 Anggota DPR RI perempuan 21 Semua anggota DPR RI 22 Bulan lahir 23 Nagari di Sijunjung 24 Nagari lengkap 25 Nagari lengkap 2 26 Tokoh 27 Kab dan kota 28 Kantor Camat di Sumbar 29 Pohon 30 Ada berapa masjid di nagari/kecamatan 31 Spotify 32 Apapun objek di Sumbar 33 inisial 34 Masjid Sumbar 35 Beres-beres 36 Kurang ADM 37 Mencari 38 Pulau di Indonesia 39 Tempor 40 Contoh 41 Contoh 42 Asal kampung 43 Tertua 44 Ringkas orang 45 Ringkas masjid 46 Perolehan suara caleg perempuan Masjid di Indonesia [edit] #added 2017-08
+#defaultView:Map
+SELECT ?item ?itemLabel ?koordinat_tempat ?sejak ?gambar WHERE {
+  ?item wdt:P31 wd:Q32815.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?item wdt:P17 wd:Q252.
+  OPTIONAL { ?item wdt:P625 ?koordinat_tempat. }
+  OPTIONAL{?item wdt:P571 ?sejak .}
+  OPTIONAL{?item wdt:P18 ?gambar.}
+  FILTER((?sejak >= \"1900-01-01T00:00:00Z\"^^xsd:dateTime) && (?sejak <= \"1990-12-31T00:00:00Z\"^^xsd:dateTime))
+} Jangan tampilkan [edit] #added before 2016-10
+SELECT DISTINCT ?country ?countryLabel ?capital ?capitalLabel
+WHERE
+{
+  ?country wdt:P31 wd:Q3624078 .
+  #not a former country
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q3024240}
+  #and no an ancient civilisation (needed to exclude ancient Egypt)
+  FILTER NOT EXISTS {?country wdt:P31 wd:Q28171280}
+  OPTIONAL { ?country wdt:P36 ?capital } .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY ?countryLabel Tampilkan bangunan di sekitar kecuali masjid [edit] #added before 2016-10
+ SELECT ?place ?placeLabel ?location ?instanceLabel
+WHERE
+{
+  wd:Q7253 wdt:P625 ?loc .
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"1\" .
+  }
+  OPTIONAL {  	?place wdt:P31 ?instance  }
+    FILTER NOT EXISTS {?place wdt:P31 wd:Q32815}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist Tampilkan bangunan di sekitar hanya masjid dan museum [edit] #added before 2016-10
+ SELECT ?place ?placeLabel ?location ?instanceLabel
+WHERE
+{
+  wd:Q7253 wdt:P625 ?loc .
+  SERVICE wikibase:around {
+      ?place wdt:P625 ?location .
+      bd:serviceParam wikibase:center ?loc .
+      bd:serviceParam wikibase:radius \"1\" .
+  }
+  OPTIONAL {  	?place wdt:P31 ?instance  }
+    FILTER (?instance = wd:Q32815 || ?instance = wd:Q33506)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+  BIND(geof:distance(?loc, ?location) as ?dist)
+} ORDER BY ?dist Peta [edit] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Rahmatdenas>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

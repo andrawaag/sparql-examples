@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-cb6900176fbdaba3cc1eb6459b382f77> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Vojt%C4%9Bch_Dost%C3%A1l/Archive_1>,
+    <https://www.wikidata.org//wiki/Wikidata:ScienceSource_project/MeSH_and_cleanup_dashboard>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833101-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d833101-FB79AE3D19B4DEF91E2F6483FC17E0FD,
+    _:genid-4e694113159d4e3db4a1a913894a81d833101-6A116C29E0072AD3B23F4CD7F8B6F282, _:genid-4e694113159d4e3db4a1a913894a81d833101-B82D57E344BA73EDCE1D2703235206C5,
+    _:genid-4e694113159d4e3db4a1a913894a81d833101-EB67CE2C102711916B8CABDDD8356FA6;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Lone D-number MeSH statements
+SELECT DISTINCT ?item ?subject ?itemLabel
+
+WHERE {?item wdt:P486 ?subject.
+     ?item wikibase:statements ?statementcount.
+   FILTER ( ?statementcount = 1 )
+   FILTER (STRSTARTS(?subject, \"D\"))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }""" .

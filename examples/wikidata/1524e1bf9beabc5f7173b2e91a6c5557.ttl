@@ -1,0 +1,57 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1524e1bf9beabc5f7173b2e91a6c5557> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Quelet/vp.llocs>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89002-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d89002-8F7842CA55ED81987077BEDE2816F567;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Mapa d'ESPs a Catalunya
+SELECT ?item ?itemLabel ?coor
+  
+WHERE
+{
+  {
+  SELECT ?item
+WHERE {
+
+VALUES ?comarques { wd:Q5705 }
+
+ ?item wdt:P131* ?comarques;
+       } }  
+ VALUES ?que { wd:Q3055118 } #ESP
+  ?item wdt:P31 ?que
+       OPTIONAL {?item wdt:P625 ?coor}
+       ?item  wdt:P4335 ?idescat.
+        
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }""";
+  <http://example.org/bigdata_select> """# Mapa d'ESPs a Catalunya
+SELECT ?item ?itemLabel ?coor
+WITH
+{
+  SELECT ?item
+WHERE {
+
+VALUES ?comarques { wd:Q5705 }
+
+ ?item wdt:P131* ?comarques;
+       } } AS %1  
+WHERE
+{
+  INCLUDE %1  
+ VALUES ?que { wd:Q3055118 } #ESP
+  ?item wdt:P31 ?que
+       OPTIONAL {?item wdt:P625 ?coor}
+       ?item  wdt:P4335 ?idescat.
+        
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  }""" .

@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bfdc7be87191fb41dd2a4d51cfbf1560> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>,
+    <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844672-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d844672-93AAC35A2CF00018FB0CBA486DF22A73,
+    _:genid-4e694113159d4e3db4a1a913894a81d844672-7E56D5FF4320C2D554313F4F69E5ADEA, _:genid-4e694113159d4e3db4a1a913894a81d844672-D68C35F82186483EACC4B02CD86BFC56;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?country WHERE {
+ wd:Q6556803 wdt:P131* ?area.
+ ?area wdt:P17 ?country.
+ FILTER NOT EXISTS {
+  wd:Q6556803 p:P131/(ps:P131/p:P131)* ?statement.
+  ?statement ps:P131 ?area.
+  wd:Q6556803 p:P131/(ps:P131/p:P131)* ?intermediateStatement.
+  ?intermediateStatement (ps:P131/p:P131)* ?statement.
+  ?intermediateStatement pq:P582 ?endTime.
+ }
+}""" .

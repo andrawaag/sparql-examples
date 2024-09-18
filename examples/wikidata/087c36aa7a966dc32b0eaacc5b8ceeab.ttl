@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-087c36aa7a966dc32b0eaacc5b8ceeab> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Birk_Weiberg/Self-determination_of_Ethnic_Groups>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821707-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?group ?label ?selfidentified ?nonselfidentified WHERE {
+  # set language
+  BIND('fr' AS ?lang)
+  # ?group instance/subclass of ethnic group
+  ?group wdt:P31/wdt:P279* wd:Q41710.
+  {
+    ?group rdfs:label ?label .
+  } UNION {
+    ?group skos:altLabel ?label .
+  }
+  FILTER(lang(?label)=?lang)
+  OPTIONAL {
+	# self-indentified name
+  	?group wdt:P12089 ?selfidentified.
+    FILTER(lang(?selfidentified)=?lang)
+  }
+  OPTIONAL {
+	# non-self-indentified name
+    ?group wdt:P12090 ?nonselfidentified.
+    FILTER(lang(?selfidentified)=?lang)
+  }
+} ORDER BY ASC(?label)""" .

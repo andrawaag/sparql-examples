@@ -1,0 +1,33 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9ca9a4d9cf1742d540a6960bcb621262> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d8671-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d8671-CD469A1C56FFFCB10622774810AD3D2F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?citizenship ?citizenshipLabel WHERE {
+  {
+    SELECT ?item ?citizenship WHERE {
+	  ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  	  ?item wdt:P27 ?citizenship .
+    }	
+  }
+  OPTIONAL {
+    ?item schema:description ?descriptions .
+  	FILTER( LANG(?descriptions) = \"fr\" ) . 
+  }
+  FILTER(!BOUND(?descriptions))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\" }
+}""" .

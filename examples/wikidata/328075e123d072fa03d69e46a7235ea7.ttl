@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-328075e123d072fa03d69e46a7235ea7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?fruit
+WHERE
+{
+  ?fruit colour yellow.
+  ?fruit taste sour.
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS, the Wikidata Query Service, is a powerful tool to provide insight into Wikidata's content. This guide will teach you how to use it. See also the interactive tutorial by Wikimedia Israel.Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included. Contents 1 Before we start 2 SPARQL basics 3 Our first query 3.1 Autocompletion 4 Advanced triple patterns 5 Instances and classes 5.1 Property paths 6 Qualifiers 7 ORDER and LIMIT 7.1 Exercise 7.1.1 Arthur Conan Doyle books 7.1.2 Chemical elements 7.1.3 Rivers that flow into the Mississippi 7.1.4 Rivers that flow into the Mississippi II 8 OPTIONAL 9 Expressions, FILTER and BIND 9.1 Data types 9.2 Operators 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Grouping 10.1 City populations 10.2 Painting materials 10.3 Guns by manufacturer 10.4 Publishers by number of pages 10.4.1 HAVING 10.5 Aggregate functions summary 10.6 wikibase:Label and aggregations bug 11 VALUES 12 Label in multiple languages 13 And beyond… 14 See also Before we start While this guide may look very long and intimidating, please don’t let that scare you away! Just learning the SPARQL basics will get you a long way – even if you stop reading after #Our first query, you will already understand enough to construct many interesting queries. Each section of this tutorial will empower you to write even more powerful queries.If you have never heard of Wikidata, SPARQL, or WDQS before, here’s a short explanation of those terms: Wikidata is a knowledge database. It contains millions of statements, such as “the capital of Canada is Ottawa”, or “the Mona Lisa is painted in oil paint on poplar wood”, or “gold has a melting point of 1,064.18 degrees Celsius”. SPARQL is a language to formulate questions (queries) for knowledge databases. With the right database, a SPARQL query could answer questions like “what is the most popular tonality in music?” or “which character was portrayed by the most actors?” or “what’s the distribution of blood types?” or “which authors’ works entered the public domain this year?”. WDQS, the Wikidata Query Service, brings the two together: You enter a SPARQL query, it runs it against Wikidata’s dataset and shows you the result. SPARQL basics A simple SPARQL query looks like this: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} The SELECT clause lists variables that you want returned (variables start with a question mark), and the WHERE clause contains restrictions on them, mostly in the form of triples. All information in Wikidata (and similar knowledge databases) is stored in the form of triples; when you run the query, the query service tries to fill in the variables with actual values so that the resulting triples appear in the knowledge database, and returns one result for each combination of variables it finds. A triple can be read like a sentence (which is why it ends with a full stop), with a subject, a predicate, and an object: SELECT ?fruit
+WHERE
+{
+  ?fruit hasColour yellow.
+  ?fruit tastes sour.
+} The results for this query could include, for example, “lemon”. In Wikidata, most properties are “has”-kind properties, so the query might instead read: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/en-gb>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

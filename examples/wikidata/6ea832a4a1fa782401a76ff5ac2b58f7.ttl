@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6ea832a4a1fa782401a76ff5ac2b58f7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d827983-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d827983-D353F3070DF25196E8170C1342323192;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# most common properties on senses
+SELECT ?property ?propertyLabel ?count  WHERE {
+  {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?lexeme ontolex:sense ?sense.
+    ?sense ?p ?statement.
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """# most common properties on senses
+SELECT ?property ?propertyLabel ?count WITH {
+  SELECT ?property (COUNT(?statement) AS ?count) WHERE {
+    hint:SubQuery hint:optimizer \"None\".
+    ?lexeme ontolex:sense ?sense.
+    ?sense ?p ?statement.
+    ?property wikibase:claim ?p.
+  }
+  GROUP BY ?property
+} AS %results WHERE {
+  INCLUDE %results.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?count)""" .

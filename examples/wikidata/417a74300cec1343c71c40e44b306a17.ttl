@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-417a74300cec1343c71c40e44b306a17> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d831253-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d831253-01C750AC822587435F56884009DF1D0C,
+    _:genid-4e694113159d4e3db4a1a913894a81d831253-F8ABAFE83E6D3F187EAB845A458EA32C, _:genid-4e694113159d4e3db4a1a913894a81d831253-DF9865FFBC9F6637846C9EE3DA26EED3,
+    _:genid-4e694113159d4e3db4a1a913894a81d831253-344D51F6D3AD864F7B1DD2CC499550A7, _:genid-4e694113159d4e3db4a1a913894a81d831253-4D949AC97E797BFD49B07D6895A41F74,
+    _:genid-4e694113159d4e3db4a1a913894a81d831253-90D20E251A82DACBDB18B1CBCC473A6C, _:genid-4e694113159d4e3db4a1a913894a81d831253-2F2F02349A1CC23F5D29A46B3FA6E3A9,
+    _:genid-4e694113159d4e3db4a1a913894a81d831253-42389320FA3849A86715DEB63A177296, _:genid-4e694113159d4e3db4a1a913894a81d831253-3D6CAE271A3A0F0D385500BCED896748,
+    _:genid-4e694113159d4e3db4a1a913894a81d831253-A2E378A739A5B7835B31F6F9478B02A0;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:TreeMap
+SELECT ?eyes ?hairColorLabel (COUNT(?person) as ?count)
+WHERE
+{
+	?person wdt:P1340 ?eyeColor.
+    ?person wdt:P1884 ?hairColor.
+    ?person wdt:P2048 ?height.
+    ?eyeColor rdfs:label ?_eyeColorLabel.
+    FILTER((LANG(?_eyeColorLabel)) = \"en\")
+    BIND(CONCAT(?_eyeColorLabel, \" eyes\") AS ?eyes)
+   
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?eyes ?hairColorLabel""" .

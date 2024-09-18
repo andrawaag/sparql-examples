@@ -1,0 +1,77 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-11ea4fb736fd006254ffb4c73fec465e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Contents 1 Wikidata 1.1 All items that use a certain property as qualifier 1.2 All (item, property) pairs that use stated in (P248) referencing the property value 2 Wikipedia 2.1 All Wikipdia language versions 3 Germany 3.1 All places in Germany 3.2 Places in Berlin with located in the administrative territorial entity (P131) not pointing to a Ortsteil (Q253019) 4 Aviation 4.1 All German aerodromes (via located in the administrative territorial entity (P131)) 4.2 All German aerodromes (via country (P17)) Wikidata [edit] All items that use a certain property as qualifier [edit] SELECT ?s ?p ?o WHERE {
+  ?stmt pq:P1856 ?o .
+  ?s ?p ?stmt.
+} LIMIT 100
+ Try it! All (item, property) pairs that use stated in (P248) referencing the property value [edit] PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX r: <http://www.wikidata.org/prop/reference/>SELECT ?s ?p WHERE {
+  ?srcStmt r:P248 ?src .               # all source statements
+  ?stmt prov:wasDerivedFrom ?srcStmt . # all statements using source statements
+  ?stmt ?stmtProp ?src .               # statements where the object references the source
+  ?s ?p ?stmt .                        # subjects/predicates of these statements
+} LIMIT 100
+ Try it! Wikipedia [edit] All Wikipdia language versions [edit] SELECT ?wpLabel ?lLabel ?iso6391Label ?iso6392Label ?iso6393Label WHERE {
+    ?wp wdt:P31 wd:Q10876391 .
+    ?wp wdt:P407 ?l .
+    ?l wdt:P218 ?iso6391 .
+    ?l wdt:P219 ?iso6392 .
+    ?l wdt:P220 ?iso6393 .
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+    }
+ }
+ Try it! Germany [edit] All places in Germany [edit] SELECT DISTINCT ?location ?subdivisionLabel ?locationLabel WHERE {
+    ?subdivision wdt:P279+ wd:Q387917 .
+    ?location wdt:P31 ?subdivision .
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"de\" .
+    }
+ }
+ Try it! Places in Berlin with located in the administrative territorial entity (P131) not pointing to a Ortsteil (Q253019) [edit] SELECT ?s ?sLabel ?veLabel ?vetLabel WHERE {
+	?s wdt:P131+ wd:Q64 .  # everything located in Berlin (or a subdivision)
+	?s wdt:P131 ?ve .      # the subdivisions this is located in
+    ?ve wdt:P131+ wd:Q64 . # filter out all non-Berlin subdivisions (for subjects in multiple states)
+    ?ve wdt:P31 ?vet .     # type of the subdivision
+    # filter everything located in an Ortsteil or Ortslage
+    FILTER (?vet != wd:Q253019 && ?vet != wd:Q1669338) .
+    # filter Orteile
+    ?s wdt:P31 ?st .
+    FILTER (?st != wd:Q253019) .
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"de\" .
+    }
+} ORDER BY ?veLabel ?sLabel LIMIT 100
+ Try it! Aviation [edit] All German aerodromes (via located in the administrative territorial entity (P131)) [edit] [1] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Srittau/SPARQL-Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825166-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX v: <http://www.wikidata.org/prop/statement/>
+PREFIX q: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?airport ?icao ?airportLabel WHERE {
+    ?subdivision wdt:P279+ wd:Q387917 .   # all subdivision types of Germany
+    ?location wdt:P31 ?subdivision .      # all locations in Germany
+    ?airportType wdt:P279* wd:Q62447 .    # all types of aerodromes
+    ?airport wdt:P31 ?airportType .       # all aerodromes
+    ?airport wdt:P131 ?location .         # all aerodromes in Germany
+    OPTIONAL { ?airport wdt:P239 ?icao }
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"de\" .
+    }
+ } ORDER BY ?airportLabel""" .

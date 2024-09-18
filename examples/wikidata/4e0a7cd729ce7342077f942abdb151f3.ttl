@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e0a7cd729ce7342077f942abdb151f3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838225-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d838225-24C5C919307BE4603CFC204DF05F932C,
+    _:genid-4e694113159d4e3db4a1a913894a81d838225-8E968B40C7D34E73032ECF5A19A18F72, _:genid-4e694113159d4e3db4a1a913894a81d838225-4F2E6D3C1075BCA0F4EBB0BCC66E15C0,
+    _:genid-4e694113159d4e3db4a1a913894a81d838225-83F2E3C85C33D8D0AC4298EBB2CB6E47, _:genid-4e694113159d4e3db4a1a913894a81d838225-D85D9FDFBD4C494C82FA783CCDAA478C,
+    _:genid-4e694113159d4e3db4a1a913894a81d838225-9BC49CE8420F21246AC3078F4A9C4FED, _:genid-4e694113159d4e3db4a1a913894a81d838225-39F01277708686151239F115D37E8848,
+    _:genid-4e694113159d4e3db4a1a913894a81d838225-CBBAFA3965D6AD91680BBB5D913DA61F, _:genid-4e694113159d4e3db4a1a913894a81d838225-0B7210BD72CF636E896085E9BEAF784F,
+    _:genid-4e694113159d4e3db4a1a913894a81d838225-33347A67DA4E037DB8D5511D62E3A7FF, _:genid-4e694113159d4e3db4a1a913894a81d838225-B95D74BA3651D0FAF539A46510A16E0C;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?s ?desc ?linkcount
+WHERE
+{
+  ?s wdt:P31 wd:Q5 ;   # human
+     wdt:P21 wd:Q6581072 ;  # gender: female
+     wdt:P569 ?born .
+  FILTER (?born >= \"1921-01-01T00:00:00Z\"^^xsd:dateTime) .
+  ?s wikibase:sitelinks ?linkcount .
+  MINUS {
+    ?s wdt:P18 []  # exclude if there is an image
+  }
+?s rdfs:label ?desc FILTER(lang(?desc)=\"en\").
+}
+GROUP BY ?s ?desc ?linkcount
+ORDER BY DESC(?linkcount)
+LIMIT 50""" .

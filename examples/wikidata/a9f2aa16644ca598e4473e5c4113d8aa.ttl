@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9f2aa16644ca598e4473e5c4113d8aa> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834937-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d834937-8A669630282B31928D382BDEAEEB2445,
+    _:genid-4e694113159d4e3db4a1a913894a81d834937-9A409B0044F0071CEA7D16F39E158FAD, _:genid-4e694113159d4e3db4a1a913894a81d834937-F66B8A34FEBEEA5007C9A9F80AE40243,
+    _:genid-4e694113159d4e3db4a1a913894a81d834937-1FDD692A594048F748FB7B01E75CFB68, _:genid-4e694113159d4e3db4a1a913894a81d834937-5B89F1BD663E1E04C476CC8CC9BE9785,
+    _:genid-4e694113159d4e3db4a1a913894a81d834937-66F7D91BEDB00DD4935CD119A437808B, _:genid-4e694113159d4e3db4a1a913894a81d834937-23AB6434DC84C2D4AFDA4680F2909066,
+    _:genid-4e694113159d4e3db4a1a913894a81d834937-B999261863340370ADD34B8167702F63, _:genid-4e694113159d4e3db4a1a913894a81d834937-3066DCF8201FD17F9403540EA3317A27,
+    _:genid-4e694113159d4e3db4a1a913894a81d834937-54FBE71BFD969DC04F639888199AF0DB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Use the MediaWiki API to get the articles from a specific category in a specific Wikipedia language version.
+# Then use this results as usual in a query, in this example a simple query for the gender.
+# By User:Ainali with the help of User:Dipsacus fullonum  2021-02
+SELECT ?item ?itemLabel ?genderLabel WHERE {
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"sv.wikipedia.org\";     # Set the project here
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";        # Selects the content from a category
+                     mwapi:gcmtitle \"Category:Födda 2001\";.    # Specifies the category (Born in 2001)
+     ?item wikibase:apiOutputItem mwapi:item.
+  } 
+  FILTER BOUND (?item)                                         # Safeguard to not get a timeout from unbound items when using ?item below
+  ?item wdt:P21 ?gender .                                      # Example retrieval of a value
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,sv\". }    
+}""" .

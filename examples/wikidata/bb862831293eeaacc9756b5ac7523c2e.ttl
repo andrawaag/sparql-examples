@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bb862831293eeaacc9756b5ac7523c2e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860527-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?article_de ?article_en ?article_es WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P1663 ?statement0.
+      ?statement0 (ps:P1663) _:anyValueP1663.
+    }
+    LIMIT 100
+  }
+  OPTIONAL {
+    ?article_de schema:about ?item.
+    ?article_de schema:isPartOf <https://de.wikipedia.org/>.
+  }
+  OPTIONAL {
+    ?article_en schema:about ?item.
+    ?article_en schema:isPartOf <https://en.wikipedia.org/>.
+  }  
+  OPTIONAL {
+    ?article_es schema:about ?item.
+    ?article_es schema:isPartOf <https://es.wikipedia.org/>.
+  }    
+}""" .

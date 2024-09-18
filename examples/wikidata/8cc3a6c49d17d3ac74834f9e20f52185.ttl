@@ -1,0 +1,684 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8cc3a6c49d17d3ac74834f9e20f52185> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Has a person by the family name of Zelik or Zelig or Selig lived in Tarna Mare, Romania. Contents 1 Flag more accurate coordinates // less accurate 2 What is the \"main type\" of each entity 3 Explanation of differences between two queries 4 Commons files with an inception date of 2015-08-15 5 How to merge two items? 6 Query works, but slowly in web interface, has memory problem from command line 7 How to return a qualifier for a specific property 8 Statements with any property, but a particular statement value and qualifier property 9 number of items using each property of the list 9.1 Named Subquery 10 Help me make this query more organized 11 Time a statement was added to an item? 12 A list of all museums in the German State of North-Rhine Westphalia 13 Quering items with no labels on a specific language 14 PageRank for elements 15 List based upon missing sources 16 Help with a query 17 A query to improve a list 18 VALUES slows down query hugely 19 Books with an argentinian author 20 IPNI but no Wikispecies article 21 Query for people birth details Flag more accurate coordinates // less accurate [edit] Hi, in this list, there are multiples coordinates at same rank. Is there a way to distinguish low precision P625 // good precision P625 [the more decimals ==> the more precise coordinates]. Bonus : is there a tool to set en masse the more precise P625 as preferred rank ? Bouzinac 💬●✒️●💛 13:00, 8 June 2024 (UTC)[reply] You can't trust the reported precision. Quickstatements sets the precision to any coordinates to 1.0e-6 about 11.1 centimeters. Commercial GPS typically gives you between 1-10 meters of accuracy. Gauging the coordinates off a map may be accurate within 100 metres. But I've seen coordinates off by 2 arcminutes which is several kilometers. Infrastruktur (talk) 08:15, 9 June 2024 (UTC)[reply] Okay, let me rephrase my question. Would you know how to sparql items having multiple P625 statements (if only normal rank) and whose statements give P625 points very \"distants\" between them (I want to find suspicious/wrong P625 statements for data quality) ? Bouzinac 💬●✒️●💛 17:01, 9 June 2024 (UTC)[reply] Found that query in the archives which works well! SELECT ?item ?itemLabel ?location1 ?location2 ?distance WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q3887;
+    wdt:P625 ?location1, ?location2.
+  BIND(geof:distance(?location1, ?location2) AS ?distance)
+  FILTER(((geof:longitude(?location1)) < (geof:longitude(?location2))) || (((geof:longitude(?location1)) = (geof:longitude(?location2))) && ((geof:latitude(?location1)) < (geof:latitude(?location2)))))
+  FILTER(?distance > 100 )
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}order by desc(?distance)
+ Try it! Bouzinac 💬●✒️●💛 18:53, 9 June 2024 (UTC)[reply] What is the \"main type\" of each entity [edit] Hi. I'm updating OSM with the tag \"name:etymology:wikidata\", and I know howto export from OSM all those tags in a city (city's streets). But I can't imagine how to request Wikidata to retrieve for each Wikidata ID the \"main type\" and another main information, like it's a \"human / gender\", a \"locality / human settlement / Country\", a \"war battle / country\" ans so on. I know programming, so I can do a loop with each entity ID ;-)For exemple \"Q3261145\" is a human of the male gender, \"Q1686757\" is a city of Belguim, \"Q38789\" is a battle in russia, \"Q6565319\" is a species of plant ...Thanks a lot for your help <3 Cyrille37 (talk) 10:26, 2 June 2024 (UTC)[reply] Something like this? SELECT distinct ?item ?itemLabel ?cls1 ?cls1Label ?cls2 ?cls2Label ?cls3 ?cls3Label WHERE {
+  BIND(wd:Q1686757 AS ?item)
+  ?item wdt:P31 ?cls1.
+ OPTIONAL { ?cls1 wdt:P279 ?cls2. }
+  OPTIONAL { ?cls2 wdt:P279 ?cls3. }
+  # You can continue the optionals with longer property paths,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+} order by ?cls1 ?cls2 ?cls3
+ Try it! Bouzinac 💬●✒️●💛 18:47, 10 June 2024 (UTC)[reply] Explanation of differences between two queries [edit] Hello, I am working on subclasses of honorary doctorate (Q11415564) and have an issue with a query. My first query was a direct one, like that (limited to honorary doctor of the University of Rennes I (Q42303748) to limit number of results and because it is the one which generates my problem) : SELECT ?item ?itemLabel ?DHC ?DHCLabel
+WHERE
+{
+  VALUES (?DHC) {(wd:Q42303748)}
+  ?item wdt:P166 ?DHC.
+  ?DHC wdt:P279 wd:Q11415564.
+  ?DHC wdt:P17 wd:Q142.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! ATM this query returns 23 results, nice. I then would like to get qualifiers for this doctorate (especially P585) so I have started to write a query using ps. My current query is : SELECT ?person ?personLabel ?doctorate ?doctorateLabel
+WHERE
+{
+  VALUES (?doctorate) {(wd:Q42303748)}
+  ?doctorate wdt:P279 wd:Q11415564.
+  ?doctorate wdt:P17 wd:Q142.
+
+  ?person p:P166 ?award.
+  ?award ps:P166 ?doctorate .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Almost ok but this one returns 24 results. The extra one being Gerald J. Wasserburg (Q1388562) and looking at the item I can't find anything that would explain why it is returned only by the second query. Is something wrong in this query? Or in the first one? Any clue welcome! Symac (talk) 11:50, 11 June 2024 (UTC)[reply] I think this is due to the other awards on the item have been set to Preferred Rank (not sure why some awards would be ranked like this?!?), so your first query will ignore Normal Rank statements. It's mentioned at https://en.wikibooks.org/wiki/SPARQL/WIKIDATA_Qualifiers,_References_and_Ranks#Ranks under the \"Ignore ranks in queries\" subheading. Piecesofuk (talk) 06:19, 12 June 2024 (UTC)[reply] thank you so much, I now have a better understanding on what's going on, I have forgotten to look at preferred ranks (and like you, I don't really understand its usage there). Symac (talk) 08:27, 12 June 2024 (UTC)[reply] Commons files with an inception date of 2015-08-15 [edit] On the Commons query service, is it possible to query all files with a certain inception date (wdt:P571)? I'm not sure how to use dateTime, timeValue, timePrecision, etc. or even if those are necessary for this. Nosferattus (talk) 04:49, 30 May 2024 (UTC)[reply] You mean like this: Try it! ? --Strahtw (talk) 07:50, 5 June 2024 (UTC)[reply] @Strahtw: I can't seem to combine this criteria with other criteria in a query. Can you help? For example, how would I query all images that depict snow (Q7561) from January 1, 2009. (For example commons:File:Hochblauen 22.JPG.) Thank you! Nosferattus (talk) 20:39, 17 June 2024 (UTC)[reply] You can use also filters to query for the date: [1] Strahtw (talk) 12:05, 18 June 2024 (UTC)[reply] How to merge two items? [edit] Q8494811 and Q18991203 are same topics. How to merge two items? Sorry for my ignorance.--Gift69402313 (talk) 07:21, 15 June 2024 (UTC)[reply] @Gift69402313: No problem. See Help:Merge and especally the Gadget documented there, which is the easiest merge user interface, I think. I've merged these two. --Tagishsimon (talk) 23:29, 17 June 2024 (UTC)[reply] Thanks for your help and information.--Gift69402313 (talk) 08:44, 18 June 2024 (UTC)[reply] Query works, but slowly in web interface, has memory problem from command line [edit] TLDR The query is a sophisticated \"What Links Here\" report in essence. I'd like the query to be faster, and not crash. The VALUES will be different for runs, so %INCLUDE sub-queries is not easy. SELECT DISTINCT ?item ?label ?type ?subtypeLabel ?keywords ?properties ?position ?start ?end ?image ?notes WHERE {
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\".}
+{
+SELECT DISTINCT ?item ?type (MIN(?starts) as ?start) (MAX(?ends) AS ?end) 
+  (GROUP_CONCAT(DISTINCT ?noteslist; SEPARATOR = \", \") AS ?notes)
+  (GROUP_CONCAT(DISTINCT ?keywordlist; SEPARATOR = \", \") AS ?keywords)
+  (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
+  (SAMPLE (?positions) AS ?position)
+  (COALESCE(SAMPLE(?specialimagelist),SAMPLE (?standardimagelist)) AS ?image)
+  (COALESCE(SAMPLE(?labellist),?label) AS ?label)
+#  (SAMPLE (DISTINCT ?subtypes) AS ?subtype) WHERE {
+  (COALESCE(SAMPLE (DISTINCT ?sta), SAMPLE (DISTINCT ?stb)) AS ?subtype) WHERE {
+VALUES ?props {
+  wdt:P137  # operator
+  wdt:P88   # commissioned by
+  wdt:P176  # manufacturer
+  wdt:P361  # part of
+  wdt:P1343 # described by source
+}
+
+VALUES ?st1 { 
+  wd:Q18758641 # watercraft class
+}
+VALUES ?st2 {
+  wd:Q57821    # fortification
+  wd:Q177597   # naval vessel
+}
+VALUES ?st3 {
+  wd:Q728      # weapon  
+  wd:Q1184840  # military vehicle
+  wd:Q216916   # military aircraft
+}
+VALUES ?st4 {
+  wd:Q234137   # castle
+}
+{?item ?props wd:Q112737775}
+UNION {?register wdt:P2378 wd:Q112737775.
+  ?register wikibase:directClaim ?registerwdt.
+  ?item ?registerwdt ?value}
+
+      {?item wdt:P31/wdt:P279 ?sta}
+UNION {?item wdt:P31/wdt:P279* ?stb}
+UNION {?item wdt:P279* ?stc}
+UNION {?item wdt:P31/wdt:P279* ?std. ?item wdt:P3134 ?t} # tripadvisor
+FILTER ((BOUND (?sta) && ?sta = ?st1)||(BOUND (?stb) && ?stb = ?st2)||(BOUND (?stc) && ?stc = ?st3)||(BOUND (?std) && ?std = ?st4))
+
+#?note rdfs:label ?notelabel. FILTER (LANG(?notelabel) = \"en\") # times out
+#BIND(CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\") as ?noteslist)
+#BIND(IF(BOUND(?notelabel),CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\"),\"\") AS ?noteslist)
+
+OPTIONAL { {?item wdt:P279 ?k} UNION {?item wdt:P137 ?t. ?t wdt:P17 ?k} UNION {?item wdt:P17 ?k} 
+UNION {?item wdt:P31 ?k} UNION {?item wdt:P279 ?k} UNION {?item wdt:P176 ?k}
+  ?k rdfs:label ?keywordlist. FILTER (LANG(?keywordlist) = \"en\")}
+
+OPTIONAL {
+        {?item wdt:P3134 ?t. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?t,\" tripadvisor]\") AS ?propertylist)}
+  UNION {?item wdt:P2671 ?g. BIND(CONCAT(\"[https://www.google.com/search?kgmid£\",STR(?g),\" google]\") AS ?propertylist)} # Google knowledge graph ID
+}
+
+OPTIONAL {?item wdt:P625 ?p1}
+OPTIONAL {?item wdt:P276 ?l2. ?l2 wdt:P625 ?p2}
+OPTIONAL {?item wdt:P131 ?l3. ?l3 wdt:P625 ?p3}
+#OPTIONAL {?item wdt:P495 ?origin. ?origin wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P176 ?manu. ?manu wdt:P159 ?l4. ?l4 wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P17  ?l5. ?l5 wdt:P625 ?p5}
+BIND(COALESCE(?p1,?p2,?p3) AS ?positions)
+
+OPTIONAL {?item wdt:P729 ?serviceentry}
+OPTIONAL {?item wdt:P571 ?inception}
+OPTIONAL {?item wdt:P585 ?pointintime}
+OPTIONAL {?item wdt:P580 ?starttime}
+BIND(COALESCE(?awarded,?serviceentry,?inception,?pointintime,?starttime) AS ?starts)
+     
+OPTIONAL {?item wdt:P730 ?serviceretirement}
+OPTIONAL {?item wdt:P576 ?abolished}
+OPTIONAL {?item wdt:P582 ?endtime}
+BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?ends)
+
+OPTIONAL { {?item wdt:P18 ?images} BIND (wikibase:decodeUri(STR(?images)) AS ?specialimagelist)} # image
+
+OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # official name
+{SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label}
+  }
+    }
+    #GROUP by ?item ?starts ?ends ?dist ?label ?type
+    GROUP by ?item ?dist ?label ?type
+  }
+}
+ORDER BY ASC(?dist) ASC(?label)
+ Try it! Returns 200 results in 26 seconds from query.wikidata.org online, butcurl -s -H \"Accept: application/json;User-Agent: expounder\" -G 'https://query.wikidata.org/sparql' --data-urlencode query=\" $(< related.query)\" | sed -Ee 's`http://www.wikidata.org/entity/``g;s`\\\\\"`@`g' >returns SPARQL-QUERY: queryStr=SELECT DISTINCT ?item ?label ?type ?subtypeLabel ?keywords ?properties ?position ?start ?end ?image ?notes WHERE {
+...
+ORDER BY ASC(?dist) ASC(?label)
+java.util.concurrent.ExecutionException: java.util.concurrent.ExecutionException: org.openrdf.query.QueryEvaluationException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
+	at java.util.concurrent.FutureTask.get(FutureTask.java:206)
+	at com.bigdata.rdf.sail.webapp.BigdataServlet.submitApiTask(BigdataServlet.java:292)
+	at com.bigdata.rdf.sail.webapp.QueryServlet.doSparqlQuery(QueryServlet.java:678)
+	at com.bigdata.rdf.sail.webapp.QueryServlet.doGet(QueryServlet.java:290)
+	at com.bigdata.rdf.sail.webapp.RESTServlet.doGet(RESTServlet.java:240)
+	at com.bigdata.rdf.sail.webapp.MultiTenancyServlet.doGet(MultiTenancyServlet.java:273)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:687)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:790)
+	at org.eclipse.jetty.servlet.ServletHolder.handle(ServletHolder.java:865)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1655)
+	at org.wikidata.query.rdf.blazegraph.throttling.ThrottlingFilter.doFilter(ThrottlingFilter.java:322)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.throttling.SystemOverloadFilter.doFilter(SystemOverloadFilter.java:84)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at ch.qos.logback.classic.helpers.MDCInsertingServletFilter.doFilter(MDCInsertingServletFilter.java:50)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.filters.QueryEventSenderFilter.doFilter(QueryEventSenderFilter.java:123)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.filters.ClientIPFilter.doFilter(ClientIPFilter.java:43)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.filters.JWTIdentityFilter.doFilter(JWTIdentityFilter.java:66)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.filters.RealAgentFilter.doFilter(RealAgentFilter.java:33)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1642)
+	at org.wikidata.query.rdf.blazegraph.filters.RequestConcurrencyFilter.doFilter(RequestConcurrencyFilter.java:50)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1634)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:533)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:146)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:548)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:132)
+	at org.eclipse.jetty.server.handler.ScopedHandler.nextHandle(ScopedHandler.java:257)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:1595)
+	at org.eclipse.jetty.server.handler.ScopedHandler.nextHandle(ScopedHandler.java:255)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1340)
+	at org.eclipse.jetty.server.handler.ScopedHandler.nextScope(ScopedHandler.java:203)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:473)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:1564)
+	at org.eclipse.jetty.server.handler.ScopedHandler.nextScope(ScopedHandler.java:201)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1242)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:144)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:220)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:126)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:132)
+	at org.eclipse.jetty.server.Server.handle(Server.java:503)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:364)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:260)
+	at org.eclipse.jetty.io.AbstractConnection$ReadCallback.succeeded(AbstractConnection.java:305)
+	at org.eclipse.jetty.io.FillInterest.fillable(FillInterest.java:103)
+	at org.eclipse.jetty.io.ChannelEndPoint$2.run(ChannelEndPoint.java:118)
+	at org.eclipse.jetty.util.thread.strategy.EatWhatYouKill.runTask(EatWhatYouKill.java:333)
+	at org.eclipse.jetty.util.thread.strategy.EatWhatYouKill.doProduce(EatWhatYouKill.java:310)
+	at org.eclipse.jetty.util.thread.strategy.EatWhatYouKill.tryProduce(EatWhatYouKill.java:168)
+	at org.eclipse.jetty.util.thread.strategy.EatWhatYouKill.run(EatWhatYouKill.java:126)
+	at org.eclipse.jetty.util.thread.ReservedThreadExecutor$ReservedThread.run(ReservedThreadExecutor.java:366)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:765)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$2.run(QueuedThreadPool.java:683)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: java.util.concurrent.ExecutionException: org.openrdf.query.QueryEvaluationException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
+	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
+	at com.bigdata.rdf.sail.webapp.QueryServlet$SparqlQueryTask.call(QueryServlet.java:889)
+	at com.bigdata.rdf.sail.webapp.QueryServlet$SparqlQueryTask.call(QueryServlet.java:695)
+	at com.bigdata.rdf.task.ApiTaskForIndexManager.call(ApiTaskForIndexManager.java:68)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	... 1 more
+Caused by: org.openrdf.query.QueryEvaluationException: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at com.bigdata.rdf.sail.Bigdata2Sesame2BindingSetIterator.hasNext(Bigdata2Sesame2BindingSetIterator.java:188)
+	at info.aduna.iteration.IterationWrapper.hasNext(IterationWrapper.java:68)
+	at org.openrdf.query.QueryResults.report(QueryResults.java:155)
+	at org.openrdf.repository.sail.SailTupleQuery.evaluate(SailTupleQuery.java:76)
+	at com.bigdata.rdf.sail.webapp.BigdataRDFContext$TupleQueryTask.doQuery(BigdataRDFContext.java:1722)
+	at com.bigdata.rdf.sail.webapp.BigdataRDFContext$AbstractQueryTask.innerCall(BigdataRDFContext.java:1579)
+	at com.bigdata.rdf.sail.webapp.BigdataRDFContext$AbstractQueryTask.call(BigdataRDFContext.java:1544)
+	at com.bigdata.rdf.sail.webapp.BigdataRDFContext$AbstractQueryTask.call(BigdataRDFContext.java:757)
+	... 4 more
+Caused by: java.lang.RuntimeException: java.util.concurrent.ExecutionException: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at com.bigdata.rdf.sail.RunningQueryCloseableIterator.checkFuture(RunningQueryCloseableIterator.java:59)
+	at com.bigdata.rdf.sail.RunningQueryCloseableIterator.close(RunningQueryCloseableIterator.java:73)
+	at com.bigdata.rdf.sail.RunningQueryCloseableIterator.hasNext(RunningQueryCloseableIterator.java:82)
+	at com.bigdata.striterator.ChunkedWrappedIterator.hasNext(ChunkedWrappedIterator.java:197)
+	at com.bigdata.rdf.sail.Bigdata2Sesame2BindingSetIterator.hasNext(Bigdata2Sesame2BindingSetIterator.java:134)
+	... 11 more
+Caused by: java.util.concurrent.ExecutionException: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at com.bigdata.util.concurrent.Haltable.get(Haltable.java:273)
+	at com.bigdata.bop.engine.AbstractRunningQuery.get(AbstractRunningQuery.java:1516)
+	at com.bigdata.bop.engine.AbstractRunningQuery.get(AbstractRunningQuery.java:104)
+	at com.bigdata.rdf.sail.RunningQueryCloseableIterator.checkFuture(RunningQueryCloseableIterator.java:46)
+	... 15 more
+Caused by: java.lang.Exception: task=ChunkTask{query=5cae7e14-b699-4d1d-85c9-f7bd3cc900f2,bopId=178,partitionId=-1,sinkId=180,altSinkId=null}, cause=java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at com.bigdata.bop.engine.ChunkedRunningQuery$ChunkTask.call(ChunkedRunningQuery.java:1367)
+	at com.bigdata.bop.engine.ChunkedRunningQuery$ChunkTaskWrapper.run(ChunkedRunningQuery.java:926)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at com.bigdata.concurrent.FutureTaskMon.run(FutureTaskMon.java:63)
+	at com.bigdata.bop.engine.ChunkedRunningQuery$ChunkFutureTask.run(ChunkedRunningQuery.java:821)
+	... 3 more
+Caused by: java.util.concurrent.ExecutionException: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at java.util.concurrent.FutureTask.report(FutureTask.java:122)
+	at java.util.concurrent.FutureTask.get(FutureTask.java:192)
+	at com.bigdata.bop.engine.ChunkedRunningQuery$ChunkTask.call(ChunkedRunningQuery.java:1347)
+	... 8 more
+Caused by: com.bigdata.rwstore.sector.MemoryManagerOutOfMemory
+	at com.bigdata.rwstore.sector.MemoryManager.getSectorFromFreeList(MemoryManager.java:646)
+	at com.bigdata.rwstore.sector.MemoryManager.allocate(MemoryManager.java:675)
+	at com.bigdata.rwstore.sector.MemoryManager.allocate(MemoryManager.java:731)
+	at com.bigdata.rwstore.sector.AllocationContext.allocate(AllocationContext.java:195)
+	at com.bigdata.rwstore.sector.AllocationContext.allocate(AllocationContext.java:169)
+	at com.bigdata.rwstore.sector.AllocationContext.allocate(AllocationContext.java:159)
+	at com.bigdata.rwstore.sector.MemStrategy.write(MemStrategy.java:373)
+	at com.bigdata.rwstore.sector.MemStore.write(MemStore.java:173)
+	at com.bigdata.htree.AbstractHTree.writeNodeOrLeaf(AbstractHTree.java:2252)
+	at com.bigdata.htree.AbstractHTree.writeNodeOrLeaf(AbstractHTree.java:2118)
+	at com.bigdata.htree.AbstractHTree.writeNodeRecursiveCallersThread(AbstractHTree.java:1773)
+	at com.bigdata.htree.AbstractHTree.writeNodeRecursive(AbstractHTree.java:1713)
+	at com.bigdata.htree.HTree.flush(HTree.java:812)
+	at com.bigdata.htree.HTree._writeCheckpoint2(HTree.java:975)
+	at com.bigdata.htree.HTree.writeCheckpoint2(HTree.java:937)
+	at com.bigdata.bop.join.HTreeHashJoinUtility.checkpointHTree(HTreeHashJoinUtility.java:684)
+	at com.bigdata.bop.join.HTreeHashJoinUtility.saveSolutionSet(HTreeHashJoinUtility.java:651)
+	at com.bigdata.bop.join.HashIndexOpBase$ChunkTaskBase.checkpointSolutionSet(HashIndexOpBase.java:368)
+	at com.bigdata.bop.join.HashIndexOp$ChunkTask.call(HashIndexOp.java:139)
+	at com.bigdata.bop.join.HashIndexOp$ChunkTask.call(HashIndexOp.java:114)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at com.bigdata.bop.engine.ChunkedRunningQuery$ChunkTask.call(ChunkedRunningQuery.java:1346)
+	... 8 moreVicarage (talk) 07:25, 15 June 2024 (UTC)[reply] @Vicarage: This seems to give the same result & is much faster ... the change is to the long long filter statement, which now no longer seems to be required (and an issue with producing ?label is fixed ... you cannot afaik (COALESCE(SAMPLE(?labellist),?label) AS ?label) ... the variable name into which you store the value must be different from the variable names in the COALESCE). Can't speak to the command line issue - above my paygrade, have not tried it. SELECT DISTINCT ?item ?label ?type ?subtypeLabel ?keywords ?properties ?position ?start ?end ?image ?notes WHERE {
+SERVICE wikibase:label {bd:serviceParam wikibase:language \"en-GB,en,fr,de,es,pt,pl,nl,cs\".}
+{
+SELECT DISTINCT ?item ?type (MIN(?starts) as ?start) (MAX(?ends) AS ?end) 
+  (GROUP_CONCAT(DISTINCT ?noteslist; SEPARATOR = \", \") AS ?notes)
+  (GROUP_CONCAT(DISTINCT ?keywordlist; SEPARATOR = \", \") AS ?keywords)
+  (GROUP_CONCAT(DISTINCT ?propertylist; SEPARATOR = \", \") AS ?properties)
+  (SAMPLE (?positions) AS ?position)
+  (COALESCE(SAMPLE(?specialimagelist),SAMPLE (?standardimagelist)) AS ?image)
+  (COALESCE(SAMPLE(?labellist),?label_) AS ?label)
+#  (SAMPLE (DISTINCT ?subtypes) AS ?subtype) WHERE {
+  (COALESCE(SAMPLE (DISTINCT ?sta), SAMPLE (DISTINCT ?stb)) AS ?subtype) WHERE {
+VALUES ?props {
+  wdt:P137  # operator
+  wdt:P88   # commissioned by
+  wdt:P176  # manufacturer
+  wdt:P361  # part of
+  wdt:P1343 # described by source
+}
+
+VALUES ?st1 { 
+  wd:Q18758641 # watercraft class
+}
+VALUES ?st2 {
+  wd:Q57821    # fortification
+  wd:Q177597   # naval vessel
+}
+VALUES ?st3 {
+  wd:Q728      # weapon  
+  wd:Q1184840  # military vehicle
+  wd:Q216916   # military aircraft
+}
+VALUES ?st4 {
+  wd:Q234137   # castle
+}
+{?item ?props wd:Q112737775}
+UNION {?register wdt:P2378 wd:Q112737775.
+  ?register wikibase:directClaim ?registerwdt.
+  ?item ?registerwdt ?value}
+
+     {?item wdt:P31/wdt:P279 ?st1. BIND(?st1 as ?sta) }
+UNION {?item wdt:P31/wdt:P279* ?st2. BIND(?st2 as ?stb) }
+UNION {?item wdt:P279* ?st3. }
+UNION {?item wdt:P31/wdt:P279* ?st4. 
+       ?item wdt:P3134 ?t} # tripadvisor
+#FILTER ((BOUND (?sta) && ?sta = ?st1)||(BOUND (?stb) && ?stb = ?st2)||(BOUND (?stc) && ?stc = ?st3)||(BOUND (?std) && ?std = ?st4))
+
+#?note rdfs:label ?notelabel. FILTER (LANG(?notelabel) = \"en\") # times out
+#BIND(CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\") as ?noteslist)
+#BIND(IF(BOUND(?notelabel),CONCAT(\"{\",\"{Q|\",STR(?notelabel),\"|\",STR(?note),\"}\",\"}\"),\"\") AS ?noteslist)
+
+OPTIONAL { {?item wdt:P279 ?k} UNION {?item wdt:P137 ?t. ?t wdt:P17 ?k} UNION {?item wdt:P17 ?k} 
+UNION {?item wdt:P31 ?k} UNION {?item wdt:P279 ?k} UNION {?item wdt:P176 ?k}
+  ?k rdfs:label ?keywordlist. FILTER (LANG(?keywordlist) = \"en\")}
+
+OPTIONAL {
+        {?item wdt:P3134 ?t. BIND(CONCAT(\"[https://www.tripadvisor.com/\",?t,\" tripadvisor]\") AS ?propertylist)}
+  UNION {?item wdt:P2671 ?g. BIND(CONCAT(\"[https://www.google.com/search?kgmid£\",STR(?g),\" google]\") AS ?propertylist)} # Google knowledge graph ID
+}
+
+OPTIONAL {?item wdt:P625 ?p1}
+OPTIONAL {?item wdt:P276 ?l2. ?l2 wdt:P625 ?p2}
+OPTIONAL {?item wdt:P131 ?l3. ?l3 wdt:P625 ?p3}
+#OPTIONAL {?item wdt:P495 ?origin. ?origin wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P176 ?manu. ?manu wdt:P159 ?l4. ?l4 wdt:P625 ?p4}
+#OPTIONAL {?item wdt:P17  ?l5. ?l5 wdt:P625 ?p5}
+BIND(COALESCE(?p1,?p2,?p3) AS ?positions)
+
+OPTIONAL {?item wdt:P729 ?serviceentry}
+OPTIONAL {?item wdt:P571 ?inception}
+OPTIONAL {?item wdt:P585 ?pointintime}
+OPTIONAL {?item wdt:P580 ?starttime}
+BIND(COALESCE(?awarded,?serviceentry,?inception,?pointintime,?starttime) AS ?starts)
+     
+OPTIONAL {?item wdt:P730 ?serviceretirement}
+OPTIONAL {?item wdt:P576 ?abolished}
+OPTIONAL {?item wdt:P582 ?endtime}
+BIND(COALESCE(?serviceretirement,?abolished,?pointintime,?endtime) as ?ends)
+
+OPTIONAL { {?item wdt:P18 ?images} BIND (wikibase:decodeUri(STR(?images)) AS ?specialimagelist)} # image
+
+OPTIONAL {?item wdt:P1448 ?labellist. FILTER (lang(?labellist) = \"mul\")} # official name
+{SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\" . ?item rdfs:label ?label_ .}
+  }
+    }
+    #GROUP by ?item ?starts ?ends ?dist ?label ?type
+    GROUP by ?item ?dist ?label_ ?type
+  }
+}
+ORDER BY ASC(?dist) ASC(?label)
+ Try it! --Tagishsimon (talk) 02:18, 18 June 2024 (UTC)[reply] Thanks, that's a lot better for items with 200 odd results, and I've fixed the label mistake across my project. If you try for something with more results, say switching Drachinifel (Q112737775) for Subterranea Britannica (Q10683167), it times out again, but at least there isn't a memory error. A borderline case is The Dreadnought Project (Q21469902) which runs in 58s on a good day, so sometimes fails. Eliminating all the optional stuff shows it returns 2500 results in 28 seconds, which feels poor. Vicarage (talk) 07:03, 18 June 2024 (UTC)[reply] @Vicarage: I just replaced Drachinifel (Q112737775) with Subterranea Britannica (Q10683167), and got 317 results in 3303 ms. (In this bit: {?item ?props wd:Q10683167} UNION {?register wdt:P2378 wd:Q10683167 . ?register wikibase:directClaim ?registerwdt . ?item ?registerwdt ?value}.) --Tagishsimon (talk) 13:15, 18 June 2024 (UTC)[reply] What about Dreadnought, or really pushing it, Cadw? Vicarage (talk) 13:24, 18 June 2024 (UTC)[reply] @Vicarage: Can confirm the dreadnought sank it :( --Tagishsimon (talk) 13:25, 18 June 2024 (UTC)[reply] How to return a qualifier for a specific property [edit] Hello there. I am researching the National Register of Historic Places.I've created a simple query that returns any item which has 'heritage designation' (P1435) of 'National Register of Historic Places listed place' (Q19558910). It results in about 73,425 items: https://w.wiki/AJMRIf you click on any of the Wikidata items for these NRHP listings, you'll see most (if not all) have a 'start time' qualifier listed under their 'National Register of Historic Places listed place' property. This is the date the building (or historic district) was added to the National Register sometime after its inception in 1966. 'start time' is also used for other heritage designation properties (National Historic Landmark, UNESCO, etc) for some of these 73,425 items.What I want to do next is to include a column in the results that specifies the 'start time' qualifier for specifically the 'National Register of Historic Places listed place' (Q19558910) property.I am trying the following query, which somehow only results in 48 items for me: https://w.wiki/AJMeI know I could be doing something differently because: -there should be many more results of 'National Register of Historic Places listed place' items than 48 -some of the listed 'start times' are not the specific 'start times' I'm looking for. I only want start time for 'National Register of Historic Places listed place', not any other start time that might be used.Any advice on tailoring this query would be much appreciated. I've searched a lot of tutorials for the past couple hours and can't find a solution.Once I get a list of each 73,425 result, with its correct National Register heritage designation start time, I just want to create a simple tally of quantity per year. I can export the results and do this count in a spreadsheet, but if there is an easy way to formulate the correct query to do the count per year as well, that would be fantastic.Thank you to anyone who can help! Openpreservation.xyz (talk) 00:49, 6 June 2024 (UTC)[reply] The problem is that the start time (P580) is only created as a property for the 48 items you receive. For most of the others, the start time is stored as a qualifier of the heritage designation (P1435). Here is a query that lists these: https://w.wiki/AJS7 However, the other 48 are missing, so perhaps this should be standardized. Now, however, some entries are displayed several times if they have several heritage categories. As I am only moderately familiar with this myself, I can't help you any further. But if you have a solution for this, such as only the start times of the entry in the National Register of Historic Places listed place (Q19558910) let me know, because I also had the problem once and I have no solution for it so far. Strahtw (talk) 05:58, 6 June 2024 (UTC)[reply] Thank you @Strahtw for giving it a shot. Hopefully someone else can help us fine tune the query to get just National Register items with just National Register start dates. Openpreservation.xyz (talk) 16:01, 6 June 2024 (UTC)[reply] I was looking at the documentation and found an example with filters which I thought it could help. I tried it and got the query you want: SELECT ?item ?itemLabel ?start_time WHERE {
+  ?item wdt:P1435 wd:Q19558910;
+  p:P1435 ?Cat.
+  optional { ?Cat pq:P580 ?start_time. } 
+  FILTER EXISTS { ?Cat ps:P1435 wd:Q19558910 }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! But now I get 74209 entries. But some results have two entries with National Register of Historic Places listed place (Q19558910). For example Broadway Bridge (Q4972421). This doubles have to be corrected maybe. --Strahtw (talk) 07:38, 7 June 2024 (UTC)[reply] @Strahtw, Openpreservation.xyz: fwiw, here's the orthodox method for doing Strahtw's last query without using a filter (which is expensive in SPARQL terms.) It comes out with prettymuch the same result as Strahtw's query. The approach is to dispense with wdt: (which finds so-called 'truthy' aka BestRank statement values) and instead use the p:/ps: route: so using the p:P1435 predicate to find the statement node ID (?stat), then use ?stat ps:P1435 wd:Q19558910 to check the P1435 statement value, and then checking for an optional ?stat pq:P580 ?date. The query also includes ?stat a wikibase:BestRank . which finds only statements which would be returned by wdt: ... some of the (duplicated) P1435=Q19558910 statements are depecated, so they get eliminated by checking for BestRank. SELECT ?item ?itemLabel ?start_time WHERE {
+  ?item p:P1435 ?stat . 
+  ?stat ps:P1435 wd:Q19558910.
+  ?stat a wikibase:BestRank .
+  optional { ?stat pq:P580 ?start_time. } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! As Strahtw observed, quite a few items have two (or more?) heritage statements with wd:Q19558910 values, and these do need to be checked and sorted out sometime. A basic query for identifying them is below. I'm running a script just now to sort 450 of them out. The rest I leave for someone else. SELECT ?item ?itemLabel ?start_time ?start_time2 WHERE {
+  ?item p:P1435 ?stat . 
+  ?stat ps:P1435 wd:Q19558910.
+  optional { ?stat pq:P580 ?start_time. } 
+  
+  ?item p:P1435 ?stat2 . 
+  ?stat2 ps:P1435 wd:Q19558910.
+  optional { ?stat2 pq:P580 ?start_time2. } 
+  
+  filter(str(?stat) < str(?stat2))
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! --Tagishsimon (talk) 00:07, 19 June 2024 (UTC)[reply] And then the whole count per year thing: many of the statements lack a date, but for those that have a date it is possible to produce the count: SELECT ?year (count(DISTINCT ?item) as ?count) WHERE {
+  ?item p:P1435 ?stat . 
+  ?stat ps:P1435 wd:Q19558910.
+  ?stat a wikibase:BestRank .
+  optional { ?stat pq:P580 ?start_time. BIND(YEAR(?start_time) as ?year) } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+} group by ?year order by ?year
+ Try it! --Tagishsimon (talk) 00:31, 19 June 2024 (UTC)[reply] Statements with any property, but a particular statement value and qualifier property [edit] Specifically, all statements with a value of theme music (Q1193470) and a qualifier of (P642) (with any value). Thanks! Swpb (talk) 17:26, 13 June 2024 (UTC)[reply] @Swpb: So that would seem to be: SELECT ?item ?itemLabel ?propertyLabel ?value ?valueLabel  where {
+  ?item ?predicate_p ?stat . 
+  ?property wikibase:claim ?predicate_p .
+  ?property wikibase:statementProperty ?predicate_ps .
+  ?stat ?predicate_ps wd:Q1193470 . 
+  ?stat pq:P642 ?value . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! --Tagishsimon (talk) 02:59, 18 June 2024 (UTC)[reply] Amazing, thanks!!! Swpb (talk) 15:53, 18 June 2024 (UTC)[reply] number of items using each property of the list [edit] Hi !I still don't know how to use the results of a query inside another query. Like here, I don't know how to get the number of items using each of the resulting ?property of this query :SELECT DISTINCT ?property ?propertyLabel ?propertyDescription
+WHERE
+{
+    ?property rdf:type wikibase:Property ;
+              wdt:P31/wdt:P279* wd:Q55452870 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }	
+}
+ Try it!I can take each of the 465 results and count the number of items using each of them withSELECT (count (DISTINCT ?item) as ?count) WHERE 
+{
+  ?item wdt:Propertyoneof465 ?something . 
+}
+ Try it! but it's too long. How to get all in one ? Simon Villeneuve (talk) 18:53, 14 June 2024 (UTC)[reply] Alrighty then. https://w.wiki/APW7 Edit: I wrote \"count\" it should be a count distinct as P279* tends to generate duplicates. Infrastruktur (talk) 19:24, 14 June 2024 (UTC)[reply] Thank you very much! However, I would like to be able to learn in order to become more autonomous and there are two parts of your request that I do not understand. First, where can I get a description of the \"function\" wikibase:directClaim? When I look at the list of prefixes, for example here, I try to open the corresponding URLs, but nothing happens. I come across .owl, schema or other files format that none of my Windows programs recognize. And the descriptions given on mw:Wikidata_Query_Service/User_Manual#Basics_-_Understanding_Prefixes are so bare-bones that they frustrate me more than anything else. Next, I do not understand the line \"?item ?predicate [] .\" What does it do in the story? What are the [] for? Finally, I would like to know how the two SELECTs interact with each other, but I imagine that would be too much to ask as well. Simon Villeneuve (talk) 00:32, 15 June 2024 (UTC)[reply] I will try to make a adequate explanation. wikibase:directClaim is mentioned in https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Properties . This document describes the whole Wikidata data model. A graph is basically nodes and edges, and properties are basically a node that describes what a set of similar edges looks like. Many properties can also be used as references and following wikibase:reference gives us the predicate we would use for that. The prefixes allows us to shorten URIs. You don't really need them, but queries with full URIs would look ugly. Why URIs? I think this is mostly historical, any sort of namespaced identifier would have worked just as fine and this is essentially what you have when you use prefixes anyway. The URIs doesn't need to point to anything but they must not be used for anything else. Sometimes the URI prefixes point to schemas defining the namespace, but this is not mandatory. Sometimes the full URIs point to resources, but not always. [] signifies a blank node. Like a variable it can represent any value, but it's not bound, so we're basically telling the query engine not to bother remembering it for us. If you have large intermediate sets, this helps. The query up to the point where it evaluates \"?item ?predicate [] .\" have a set of predicates with corresponding properties that we are interested in. This join operation expands the set so that we get all claims that matches the set of predicates we already have. After the operation ?item will be bound and the intermediate set will be substantially larger. Subqueries are usually run starting with the innermost subquery. This can be useful if we need things to happen in a specific order. Note that the label service is called in the parent query. If we request labels prior to the aggregation step, most of them will be thrown away which is wasteful and inefficient. —Infrastruktur Hi, First, I begin by what I think I understand. I understand the subqueries running path and why we use the label service only at the end. I know that the prefixes shorten the URI parth. I know what [] means. When we write ?property rdf:type wikibase:Property, I understand that we are saying that ?property is in the \"P\" namespace. Then, when we write ?property wdt:P31/wdt:P279* wd:Q55452870, we are saying that ?property is an instance of or a subclass of Q55452870. But when we write ?property wikibase:directClaim ?predicate, I don't understand what special characteristic we are giving to ?property with that, a characteristic that is then associated with ?predicate. Finally, I don't understand what is done when we write variables one after the other when it is not preceded by SELECT. For example, when we write SELECT ?item ?property ?predicate, I understand that we are defining variables according to the characteristics specified in the following WHERE part. However, I don't understand what it does when we write ?item ?predicate [] in the WHERE part. I'm used to seeing ?variable wdt:property wd:element or ?variable wdt:property ?anothervariable, but I don't understand what ?variable ?anothervariable blank node does. I understand that the explanation I need may be too long. I've try to understand what is said in https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Properties , but it's still too advanced for me. I've read the b:SPARQL book, but it's too basic. I need something in between. Simon Villeneuve (talk) 23:20, 16 June 2024 (UTC)[reply] @Simon Villeneuve: Let me try to deal with what's going on with ?property wikibase:directClaim ?predicate. The section https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Properties tells us that for each property, there are a bunch of predicates. If we think of the P31 property, we can use the predicate wdt:P31 to look for truthy values, or we can use p:P31 to look for a statement ID. If we were to use P31 as a qualifier (which we probably don't do) then we could look for pq:P31, if we used it as a reference then pr:P31, and so on. So any property is capable of being used in a report as a predicate of any and all of the kinds listed in the RDF Dump document - a wdt: predicate, a p: predicate, a pq: predicate, &c &c. This being the case, it is possible to use a construction such as ?item ?predicate ?value in a report, which will return all triples for the item. But then it is possible to use ?property wikibase:directClaim ?predicate to say, 'but we're only interested in triples in which the predicate is a wdt: predicate'. Or we could specify ?property wikibase:claim ?predicate to say 'but we're only interested in triples in which the predicate is the statement ID. And the ?property wikibase:directClaim ?predicate clause links the predicate found by the ?item ?predicate ?value clause of the report, to its property, which is handy because the property - ?property in the clause - is where the property label and description is to be found ... the predicate does not have a label, does not have a description. So let me add comments to Infrastruktur's query ... does this help? One of the properties it finds is wd:P830 and ?property wikibase:directClaim ?predicate tells the report the predicate in ?item ?predicate [] . must be the wdt:P830 predicate. And then when it finds a P7902 property, it specifies that ?item ?predicate [] . must be the wdt:P7902 predicate. SELECT ?property ?predicate ?count ?propertyLabel ?propertyDescription
+WHERE {
+  { SELECT ?property ?predicate (COUNT(?item) as ?count) WHERE {
+    ?property rdf:type wikibase:Property ;       # ?property is a property
+              wdt:P31/wdt:P279* wd:Q55452870 ;   # ?property is an instance or subclass of a property related to encyclopedias
+              wikibase:directClaim ?predicate .  # ?predicate is a wdt: predicate of the property
+    ?item ?predicate [] .                        # an item uses the wdt: predicate of the property
+  } GROUP BY ?property ?predicate }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }	
+}
+ Try it! In very similar vein, here's one of my standard reports, this one looking at properties of UK lakes - it wants to return a list of the properties used as wdt: predicates in the set of UK lake items, and count the number of uses. SELECT ?property ?propertyLabel ?count WITH { 
+                                     # Using a named subquery here so that we can keep the label service away from the part of the query
+                                     # which is looking at the items: prevents the label service slowing down the report by getting labels for each
+                                     # item when we don't ever want to see the item labels 
+  SELECT ?property (count(distinct ?item) as ?count)  WHERE {
+    ?item wdt:P31 wd:Q23397 .        # It's a lake
+    hint:Prior hint:runFirst true .  # Run the above statement first
+    ?item wdt:P17 wd:Q145 .          # It's in the UK
+    
+    ?item ?predicate ?value .        # The item has a predicate and a value - i.e. let's look at all triples for this item.
+
+    ?property wikibase:directClaim ?predicate . # the ?predicate is a directClaim (i.e. a wdt: type predicate) 
+                                                # it is a predicate of the ?property
+                                                # and the clause is specifying that we're only interested in seeing wdt: predicates for the item
+
+  } group by ?property  } as %i                 # group on ?property so that we can count the number of distinct items with this property
+
+WHERE
+{
+  INCLUDE %i                                    # so we get the result of the named query, above, here, which will be a list of property wd: values 
+                                                # and counts for each property; and now we can get the label for each property.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} order by desc(?count)
+ Try it! So in short, the ?property wikibase:directClaim ?predicate is a means by which we can manipulate predicates without knowing what the property is, by specifing that no matter which property is found in the report, we are only interested in the wdt: predicate of the property (or, to go back to the RDF Dump document, any of the other types of predicates, each of which is linked to its property using the wikibase:this or wikibase:that type predicates listed there.) Does that help at all? --Tagishsimon (talk) 00:00, 18 June 2024 (UTC)[reply] Then for the other question you raised - what is ?item ?predicate []. or ?variable ?anothervariable blank node all about ... I'm not sure it is worth overthinking these. They're defined here - https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#QSynBlankNodes - but I've come to rationalise [] as being a variable useful in a triple, where we don't care what the value is so long as there is a value. I probably get drummed out of SPARQL school for putting it this way, but this limited understanding has served me well enough for the last however many years. --Tagishsimon (talk) 00:08, 18 June 2024 (UTC)[reply] Late news; there's another excellent example of the use of the ?property wikibase:directClaim ?predicate approach to queries in Swpb's question above: Statements with any property, but a particular statement value and qualifier property. As the question suggests, we don't know at the outset what the property will be, but the property statement must have a specific value and must have a qualifier - pq:P642. Starting from the ?item, qualifiers are only accessible via the p:Pnnn/pq:Pnnn property path, and if we want to check for a statement value in the same statement as rthe qualifier, we'll have to look down the p:Pnnn/ps:Pnnn property path. So in short we need to generate p: predicates for properties, and ps: predicates for the same properties. So we get to use the ?property wikibase:directClaim ?predicate approach; but this time to say that we're interested in items that have ?item ?predicate_p ?stat . and ?property wikibase:claim ?predicate_p . ... triples with a p: predicate for a property which give us the statement node ID ?stat; and having ?stat ?predicate_ps wd:Q1193470 . and ?property wikibase:statementProperty ?predicate_ps . which would be a ps: predicate for the same property, with a value of wd:Q1193470; and then having also the ?stat pq:P642 []. qualifier. The results include three different properties. --Tagishsimon (talk) 03:18, 18 June 2024 (UTC)[reply] Oh god, there's a lot of information here ! It took me too long to understand that DirectClaim only selects the wdt: link in the following image. So it's aptly named: direct claim. It allows you to associate this particular link of each of the ?property to a ?predicate. ?predicate being now a variable associated with a link of each of the ?property, it can be used to link a new variable, ?item, to something else (in the starting query, a blank node).I think my main difficulty is that I never understood that a variable can be associated with a link (mesh). I thought they were limited to values (nodes).For your next interventions, I still have a lot to digest. For example, I don't understand the WITH in a query, nor the as %i or INCLUDE %i. Your comments are very helpful and I will take the time to read this, test it and, who knows, update the SPARQL manual on Wikibooks! Thank you again for your time. Simon Villeneuve (talk) 19:13, 18 June 2024 (UTC)[reply] Named Subquery [edit] @Simon Villeneuve: I was delighted when I came to understood this stuff (to the extent I do) and it's a pleasure to try to share it. The WITH business is fairly straightfoward once you see the pattern. The whole thing is a named subquery, and in essence they decant the results of an earlier query into a later query, by naming the first query AS %whatever_name and including it in another query using INCLUDE %whatever_name. (and you can have multiple named queries in a single overall query). Named subqueries are Blazegraph specific so we'll lose them if & when WDQS changes the underlying query engine. A normal query: SELECT ?item WHERE {
+  ?item ?predicate ?value . 
+}
+ Try it! A basic named subquery: SELECT ?item        # This is the select for the second query
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the first query
+  ?item ?predicate ?value .         # This is the first query
+  } 
+} as %i                             # take the results of the first query, named %i
+WHERE                      
+{
+  INCLUDE %i                        # use the results of the first query 
+  ?item ?predicate2 ?value2 .       # this is the second query
+}
+ Try it! So if the first query is selecting, say, all Cat items, and delivering a list of Cat QIds to the second query, ?item in the second query is constrained to that list of QIds (unless in the second query you UNION it with some other ?items found by some other clauses). A typical use, and the one I used above, is to do the finding of items in one query and decant its results into a second query to get labels for my result set. But you can do anything you like in the second query; it's just another query. So another pattern might be to decant results of query 1 into query 2, and then decane query 2 results into query 3: SELECT ?item        # This is the select for the third query
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the first query
+  ?item ?predicate ?value .         # This is the first query
+  } 
+} as %i                             # take the results of the first query, named %i
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the second query
+  INCLUDE %i                        # use the results of the first query 
+  ?item ?predicate ?value .         # This is the second query
+  } 
+} as %j                             # take the results of the second query, named %j
+WHERE                      
+{
+  INCLUDE %j                        # use the results of the second query 
+  ?item ?predicate2 ?value2 .       # this is the third query
+}
+ Try it! Or do two named queries and use the values common to both in a third query: SELECT ?item        # This is the select for the third query
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the first query
+  ?item ?predicate ?value .         # This is the first query
+  } 
+} as %i                             # take the results of the first query, named %i
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the second query
+  ?item ?predicate ?value .         # This is the second query
+  } 
+} as %j                             # take the results of the second query, named %j
+WHERE                      
+{
+  INCLUDE %i                        # use the results of the first query 
+  INCLUDE %j                        # use the results of the second query 
+                                    # if I remember, you get the values common to the %i and %j result set
+  ?item ?predicate2 ?value2 .       # this is the third query
+}
+ Try it! or use the UNION of the values of two named queries in a third query. SELECT ?item        # This is the select for the third query
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the first query
+  ?item ?predicate ?value .         # This is the first query
+  } 
+} as %i                             # take the results of the first query, named %i
+WITH 
+{
+  SELECT ?item WHERE {              # This is the select for the second query
+  ?item ?predicate ?value .         # This is the second query
+  } 
+} as %j                             # take the results of the second query, named %j
+WHERE                      
+{
+  {INCLUDE %i}                      # use the results of the first query 
+  UNION
+  [INCLUDE %j]                      # use the results of the second query 
+                                    # if I remember, you get the all values in the %i or the %j result set
+  ?item ?predicate2 ?value2 .       # this is the third query
+}
+ Try it! --Tagishsimon (talk) 20:19, 18 June 2024 (UTC)[reply] Ok. I have adapted the first query like this and it works. It's more long and ugly. Do there's a advantage to do this instead of the first query itself ? Named subqueries are Blazegraph specific so we'll lose them if & when WDQS changes the underlying query engine you sure of that ? Cause if it's true, I'll not waste time learn this. There's no if for me here. Simon Villeneuve (talk) 13:46, 19 June 2024 (UTC)[reply] Beauty is in the eye of the beholder. But no, I don't think there's any advantage, and yes, named subqueries go bye byes when Blazegraph gets knocked on the head. So for instance they're not supported on Qlever. Shame; I quite like them b/c for me the code is cleaner when the queries look kinda sequential rather the nested Russian doll fashion. --Tagishsimon (talk) 14:00, 19 June 2024 (UTC)[reply] Yes, hard to connect Russian dolls by always going inside/outside. Qlever seems to be the best candidate (I just didn't saw any other serious alternate query engine). I hope they have worked on the dump update issue since I tried to set a server with it 2-3 years ago. Simon Villeneuve (talk) 14:16, 19 June 2024 (UTC)[reply] P.S. : gets knocked on the head I think that \"unplugged of the air supplier\" would be a better image... Simon Villeneuve (talk) 19:47, 19 June 2024 (UTC)[reply] Help me make this query more organized [edit] Is there a more efficient method for me to add new items without the need to repeatedly input additional text for each new item? I would like to seamlessly add statements 4, 5, 6, and so on as they arise. SELECT DISTINCT ?item 
+WHERE {
+  ?item p:P1733 ?statement0.
+  ?statement0 (ps:P1733) _:anyValueP1733_0.
+  MINUS {
+    ?item p:P8956 ?statement1.
+    ?statement1 (ps:P8956/(wdt:P279*)) _:anyValueP8956.
+  }
+  MINUS {
+    ?item p:P1733 ?statement2.
+    ?statement2 (ps:P1733) \"7940\".
+  }
+  MINUS {
+    ?item p:P1733 ?statement3.
+    ?statement3 (ps:P1733) \"245300\".
+  }
+}
+LIMIT 100
+ Try it! SuperUltraHardCoreGamer (talk) 08:34, 19 June 2024 (UTC)[reply]@SuperUltraHardCoreGamer: For the regular pattern of MINUSes - the last two, this seems to work, and you can add more values to the filter(?thing2 in ('7940','245300') ) list. SELECT DISTINCT ?item
+WHERE {
+  ?item p:P1733 ?statement0.
+  ?statement0 (ps:P1733) _:anyValueP1733_0.
+  MINUS {
+    ?item p:P8956 ?statement1.
+    ?statement1 (ps:P8956/(wdt:P279*)) _:anyValueP8956.
+  }
+  
+MINUS {
+    ?item p:P1733 ?statement2.
+    ?statement2 (ps:P1733) ?thing2.
+  filter(?thing2 in ('7940','245300') )
+  }
+}
+ Try it! --Tagishsimon (talk) 17:06, 19 June 2024 (UTC)[reply] Time a statement was added to an item? [edit] Hello, I have the following query that is working fine : SELECT ?person ?personLabel ?award ?personDescription ?doctorate ?doctorateLabel ?gender ( MIN(?P585base) AS ?P585) (MIN(?P6949base) AS ?P6949) (SAMPLE(?image) as ?image)
+WHERE
+{
+  ?doctorate wdt:P279 wd:Q11415564.
+  ?doctorate wdt:P17 wd:Q142.
+
+  ?person p:P166 ?award.
+  ?award ps:P166 ?doctorate .
+
+  OPTIONAL {   ?award pq:P585 ?P585base }
+  OPTIONAL {   ?award pq:P6949 ?P6949base }
+  OPTIONAL {   ?person wdt:P18 ?image }
+  OPTIONAL {   ?person wdt:P21 ?gender }
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en\". }
+}
+
+GROUP BY ?person ?personLabel ?award ?personDescription ?doctorate ?doctorateLabel ?gender
+ Try it! In my result list I get ?award which is a statement of award received (P166). I would be interested to get the date this statement was added to the item. Looking at various help pages I have not been able to find anything. Is this possible? Symac (talk) 14:08, 19 June 2024 (UTC)[reply] The date someone added the statement? No. (There's an outside chance that someone might be able to torture an API to provide that info, but I think it's vanishingly unlikely to happen.) --Tagishsimon (talk) 16:58, 19 June 2024 (UTC)[reply] yes, that's it, I was expecting that amongst all values linked to a statement there was one to give the time it was added to the item but never mind. Your message gave me some hope that API might be the way to go, but my first try does not seem to give me this information, even if it's very wordy! Symac (talk) 18:17, 19 June 2024 (UTC)[reply] At a glance, that looks like a JSON representation of some of the data within the item. You'd probably need to be manipulating https://www.mediawiki.org/wiki/API:Revisions cf. https://stackoverflow.com/questions/60597841/how-to-access-wikidata-revision-history ... but way above my pay grade, and I suspect not something that would work within WDQS. I think schema:dateModified is the only edit date related data held within WDQS, and this would be the date of the most recent revision, fullstop. --Tagishsimon (talk) 18:49, 19 June 2024 (UTC)[reply] A list of all museums in the German State of North-Rhine Westphalia [edit] This querry: SELECT DISTINCT ?item ?itemLabel WHERE { SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+ {
+   SELECT DISTINCT ?item WHERE {
+     ?item p:P31 ?statement0.
+     ?statement0 (ps:P31) wd:Q33506.
+     ?item p:P131 ?statement1.
+     ?statement1 (ps:P131/(wdt:P131*)) wd:Q1198.
+   }
+   LIMIT 1000
+ } } obviously doesn't list all the {{q| Q33506}} museums in {{q| Q1198}} North-Rhine Westphalia. For instance the {{q| Q1798475}} LWL-Museum für Kunst und Kultur is not listed. Why? Is something missing in the entry of the museum? Is it because the museum is listed as a {{q| Q207694}} Kunstmuseum?In other word is it necessary to include some kind of deep-search into the querry?When all this is done, I have a second wish: How do I visualize the results in a clickable map of North-Rhine Westphalia?Thanks--Wuselig (talk) 11:54, 6 June 2024 (UTC)[reply] Hi, a more simpler query (but limited to Munster region) #defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?coords ?image WHERE {  ?item (wdt:P31/(wdt:P279*)) wd:Q33506;#any type of museum
+    wdt:P131* wd:Q7920;#in Munster or inside Munster
+   wdt:P17 wd:Q183; #in Germany
+   wdt:P625 ?coords.#WITH coordinates
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\". }  OPTIONAL { ?item wdt:P18 ?image. }#possibly with images
+}
+ Try it! Bouzinac 💬●✒️●💛 17:16, 9 June 2024 (UTC)[reply] Thank you! But your example just shows the flaw in the above querries: Why does it work on Münster Government Region (Q7920), but not on North Rhine-Westphalia (Q1198). Is the search level from Münster (Q2742) to the administrative level Regierungsbezirk narrow enough, but to State level too large? --Wuselig (talk) 16:09, 10 June 2024 (UTC)[reply] The WDQS query service does not like expensive queries, especially with * which is very much computer-expensive. You'd have to restrict either on the P31 [not being with a *] or on the P131 [not being with a *] or add other restrictions such as a smaller geographic field. Or try a more precise type of museum than museum (Q33506) Bouzinac 💬●✒️●💛 18:37, 10 June 2024 (UTC)[reply] I have this query, because I am working together with the Museumsverband Nordrhein-Westfalen (Q108688450). They represent all the museums in North Rhine-Wesphalia. I want to show them, how good, or bad their area of responsibility is covered in Wikipedia and its sister projects. Therefore I am interested in a listing of all the museums we have in this State and not just the once in one of its five Government Regions, the Münster Government Region (Q7920), but also in the other four Arnsberg Government Region (Q7924), Detmold Government Region (Q7923), Düsseldorf Government Region (Q7926) and Cologne Government Region (Q7927). I would prefer that the querie fits the task and not the other way around. This may sound a bit harsh, and I want to emphasise that I appreciate your effort so far very much. I haven't given up hope yet, that we might find a solution. --Wuselig (talk) 19:19, 11 June 2024 (UTC)[reply] A solution could be to use QLEVER, for example: https://qlever.cs.uni-freiburg.de/wikidata/MPqfZf?exec=true Wikidata_talk:SPARQL_query_service/WDQS_graph_split#QLever_SPARQL_engine M2k~dewiki (talk) 13:12, 14 June 2024 (UTC)[reply] Auf de:Portal:Rheinland-Pfalz/Schulen de:Portal:Bayern/Schulen de:Portal:Baden-Württemberg/Schulen de:Portal:Niedersachsen/Schulen wurde es so gelöst, dass die unterschiedlichen Schularten explizit angegeben wurden, wäherend auf de:Portal:Nordrhein-Westfalen/Schulen Schulen anhand der Schulkennzahl selektiert werden. Analog könnten Museum anhand der ISIL (Property:P791) selektiert werden. M2k~dewiki (talk) 15:15, 14 June 2024 (UTC)[reply] Museen in Deutschland (Kartenansicht) Weitere Beispiele: de:Benutzer:M2k~dewiki/FAQ#Auswertebeispiele M2k~dewiki (talk) 15:23, 14 June 2024 (UTC)[reply] de:Wikipedia:WikiProjekt Österreich/WD/Museen M2k~dewiki (talk) 15:30, 14 June 2024 (UTC)[reply] Einrichtungen mit ISIL in Nordrhein-Westfalen M2k~dewiki (talk) 19:53, 14 June 2024 (UTC)[reply] Sorry for the long delay time in response. I was busy with different private activities over the weekend, and other wikimedia realted activities during the week till now. Thanks for all of your input. I will play around with some of your suggestions. I am left with three mayor issues: I want would like the search to be defined to the State of Nordrhein-Westfalen. There you have the difficulty, that in broader searches (The whole world, Germany) the museums are shown, but not in the narrow search NRW I want would like the search narrowed to Museums. Some of the suggestions above, like ISIL-number display too much bycatch I want would like the result to be easily incorporated in a (sortable) table form in Wikipedia. For instance like in Sum of Paintings 3b A map would be like add-on. As noted above, I will continue to experiment, but am happy about any assistance. --Wuselig (talk) 19:03, 20 June 2024 (UTC)[reply] In de:Portal:Rheinland-Pfalz/Schulen de:Portal:Bayern/Schulen de:Portal:Baden-Württemberg/Schulen de:Portal:Niedersachsen/Schulen wurde es so gelöst, dass die unterschiedlichen Schularten explizit angegeben wurden. M2k~dewiki (talk) 21:46, 9 July 2024 (UTC)[reply] Beispiel Museen in NRW: https://de.wikipedia.org/w/index.php?title=Benutzer:M2k~dewiki/Test&oldid=246613788 M2k~dewiki (talk) 22:00, 9 July 2024 (UTC)[reply] de:Portal:Nordrhein-Westfalen/Museen M2k~dewiki (talk) 01:51, 10 July 2024 (UTC)[reply] Quering items with no labels on a specific language [edit] Hey, folks. I want to query items that has no labels (as well as no description, and also maybe both of them at the same time) of a language, but I can't seem to figure out how to do it.Say that I have this query. SELECT ?item ?point_in_time WHERE {
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 ps:P31 wd:Q47150325.
+    }
+  }
+  OPTIONAL { ?item wdt:P585 ?point_in_time. }
+}
+LIMIT 100
+ Try it! While that works, I want to filter those that don't have an Indonesian (id) label. How can I do this? Hans5958 (talk) 01:59, 13 June 2024 (UTC)[reply] @Hans5958: Labels are attached to the ?item using the predicate rdfs:label, and descriptions are attached to the item using the predicate schema:description. In both cases the values are have a language associated with them. So the basic approach for no id Label would be filter not exists {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"id\") } and for no id Description, filter not exists {?item schema:description ?itemDescription . filter(lang(?itemDescription)=\"id\") }. In your query, something like this (the description checker is commented out, so it's just checking for the label). For other reasons, adding the new clause makes your query very slow, and it may indeed time out occasionally; presumably because most 'calendar day of a given year' items have id labels, and so the query engine needs to go through gazillions of them to find the 100 which lack the id Label and which the limit calls for. (There are 201k such items - https://w.wiki/ARD6 - and 1224 of them lack the label - https://w.wiki/ARD8 ) SELECT ?item ?point_in_time WHERE {
+  {
+    SELECT DISTINCT ?item WHERE {
+      ?item p:P31 ?statement0.
+      ?statement0 ps:P31 wd:Q47150325.
+    }
+  }
+  OPTIONAL { ?item wdt:P585 ?point_in_time. }
+  filter not exists {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"id\") }
+ # filter not exists {?item schema:description ?itemDescription . filter(lang(?itemDescription)=\"id\") }
+}
+LIMIT 100
+ Try it! For what it's worth, I dabble in finding sets of items without labels or descriptions from time to time, and so can tell you that the key problem is avoiding the timeout when there are very many items in class; films, for instance, or people. The WDQS query engine provides a means of slicing through sets of items, and if you want to play no label or no description games, then this may be useful. Here's your query, but this time looking at the first 100000 instances of wdt:P31 = wd:Q47150325. You can step through the full set of items by repeatedly running the query, adjusting the offset each time (so 0, 100000, 200000 &c). Decrease the limit if things are timing out, and/or increase it if the quesries are running in well under 60 seconds. SELECT ?item ?itemLabel ?point_in_time WHERE 
+{
+ 
+  SERVICE bd:slice {
+    ?item wdt:P31 wd:Q47150325.
+    bd:serviceParam bd:slice.offset 0 . # Start at item number (not to be confused with QID)
+    bd:serviceParam bd:slice.limit 100000 . # List this many items
+  }
+
+  filter not exists {?item rdfs:label ?itemLabel . filter(lang(?itemLabel)=\"id\") }
+  OPTIONAL { ?item wdt:P585 ?point_in_time. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Finally, if you have not come across it, https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format sets out the data model for wikidata RDF and so would have been the documentation which (in its own arcane way) would have pointed you at rdfs:label and schema:description. --Tagishsimon (talk) 03:47, 18 June 2024 (UTC)[reply] Tagishsimon, thanks for the help. I'll make sure I make a note about this. I'm pretty new on these SPARQL query things so this would be useful to me. Also, thank you for the advices! I just learned that you could slice things to make things easier around the timeouts. I will try using it somewhere. PS. I just finished adding the labels of them, so that's why. At least with that I learned the slice thing, and I know how to filter which are still missing due to errors. Hans5958 (talk) 09:40, 20 June 2024 (UTC)[reply] PageRank for elements [edit] I found a federated query example that gets PageRank information from English Wikipedia. When using \"Try it\", it fails with a timeout. Any change I made, returns an empty result set. Do you know how can I make it work? It'd be extremely useful to have that rank information. Today I use sitelinks, but adding that will help me a lot with relevance analysis. Thanks! Pruna.ar (talk) 16:02, 14 June 2024 (UTC)[reply] I wonder if that query have ever worked. I can find variants of it that refers to a private RDF store. Andreas Thalhammer (Q51283137) published various tools for computing PageRank on wiki pages. He publishes up to date pageranks in tabular form here: https://danker.s3.amazonaws.com/index.html . On his github you can find the tools that generated this data. He also have a tool to populate a triplestore. Infrastruktur (talk) 17:32, 14 June 2024 (UTC)[reply] Thanks a lot @Infrastruktur! I'll take a look at that content that you mention. Pruna.ar (talk) 15:31, 20 June 2024 (UTC)[reply] List based upon missing sources [edit] Based upon Category:Articles lacking sources - literary work (Q126599797) I would like to have a list of books ad authors i.e literary work (Q7725634) on norwegian wikipedia not having any sources Pmt (talk) 16:38, 17 June 2024 (UTC)[reply] @Pmt: Not clear to me what you mean. The query below finds the wikidata items for the 402 entries in w:no:Kategori:Artikler uten kilder – skriftlig verk. But if you want to know which of the no-wiki articles lacks references, then I don't think SPARQL can help. If you want something else, please explain. SELECT distinct ?cat_item  ?cat_name 
+WHERE { 
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"no.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Kategori:Artikler uten kilder – skriftlig verk\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?cat_name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?cat_item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    }
+  filter(BOUND(?item))
+
+}
+ Try it! --Tagishsimon (talk) 02:53, 18 June 2024 (UTC)[reply] @Tagishsimon It was as far as I can see the thing I was asking for, but unfortunately I do not get any result when running the query! Can you test it Pmt (talk) 15:29, 19 June 2024 (UTC)[reply] @Pmt: Apologies. Stupid head on. Still don't think it's what you want. It's giving you a list of the WD items which are the counterparts of the articles in the category. Nothing more. If there's now value in the WD item which you want to interrogate, that can be done. But if you want information about the internals of the NO article, I fear you are out of luck, at least from me. SELECT distinct ?item ?name
+WHERE { 
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"no.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Kategori:Artikler uten kilder – skriftlig verk\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    }
+  filter(BOUND(?item))
+
+}
+ Try it! --Tagishsimon (talk) 15:51, 19 June 2024 (UTC)[reply] @Tagishsimon This is exactly what I want, just a list of of WD-items that in NO wikipedia do not have a source. Not necessary but nice to have would be to have the IDs ISBN-13 (P212) and ISBN-10 (P957) existing or not existing. since your asking Pmt (talk) 19:14, 20 June 2024 (UTC)[reply] @Pmt: I'm still not understanding the 'not having any sources' part of it, but here are some ISBNs and the itemLabel :) SELECT distinct ?item ?itemLabel ?article_name ?ISBN_10 ?ISBN_13
+WHERE { 
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:endpoint \"no.wikipedia.org\";
+                     wikibase:api \"Generator\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Kategori:Artikler uten kilder – skriftlig verk\" ;         # specifically here
+                     mwapi:gcmprop \"ids|title|type\";
+                     mwapi:gcmlimit \"max\".
+     # out
+     ?article_name wikibase:apiOutput mwapi:title.        # en-wikipedia article / category name
+     ?item wikibase:apiOutputItem mwapi:item.            # wikidata QId for the person's item
+    }
+  filter(BOUND(?item))
+  
+  OPTIONAL { ?item wdt:P212 ?ISBN_13 . }
+  OPTIONAL { ?item wdt:P957 ?ISBN_10 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no\". }  
+}
+ Try it! --Tagishsimon (talk) 20:01, 20 June 2024 (UTC)[reply] Help with a query [edit] Hi, I made this query: """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d822427-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?item WHERE {
+  ?item p:P361 ?statement0.
+  ?statement0 (ps:P361/(wdt:P279*)) wd:Q242345.
+}""" .

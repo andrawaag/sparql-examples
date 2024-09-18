@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9d27e795c36989453232665280f34cb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Oravrattas/daynotes/2017-06-23>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d855196-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d855196-4C047DF50B6082AF564EAE9B3008D68B;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?territory ?territoryLabel (COUNT(?constituency) AS ?constituencies) 
+    ((COUNT(?constituency) - COUNT(DISTINCT ?person)) AS ?missing) {
+  ?constituency wdt:P31 wd:Q27971968 .
+  FILTER NOT EXISTS { ?constituency wdt:P576 [] }
+  OPTIONAL { ?constituency wdt:P131 ?territory }
+  OPTIONAL { 
+     ?person p:P39 [ ps:P39 wd:Q16707842; pq:P2937 wd:Q29974940 ; pq:P768 ?constituency ]
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?territoryLabel ?territory
+ORDER BY ?missing""" .

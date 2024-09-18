@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7da3fa3e61aa2588cf49ffe0dfe6bf3a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:lexeme>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d857842-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/L1319110>
+
+SELECT
+  ?form ?formLabel
+  (GROUP_CONCAT(DISTINCT ?feature_label; separator=\"; \") AS ?features)
+  (GROUP_CONCAT(DISTINCT ?hyphenation; separator=\" ; \") AS ?hyphenations)
+
+  (\"Wikidata ↗\" AS ?wikidata)
+  (CONCAT(\"https://www.wikidata.org/wiki/Lexeme:\", SUBSTR(STR(?lexeme), 32)) AS ?wikidataUrl)
+
+  (\"Ordia ↗\" AS ?ordia)
+  (CONCAT(\"https://ordia.toolforge.org/\", SUBSTR(STR(?form), 32)) AS ?ordiaUrl)
+WHERE {
+  BIND(target: AS ?lexeme)
+  target: ontolex:lexicalForm ?form .
+  ?form ontolex:representation ?formLabel .
+  OPTIONAL {
+    ?form wikibase:grammaticalFeature ?feature .
+  }
+  OPTIONAL {
+    ?form wdt:P5279 ?hyphenation
+  }
+  ?feature rdfs:label ?feature_label .
+  FILTER (LANG(?feature_label) = \"en\")
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?lexeme ?form ?formLabel 
+ORDER BY (STR(?form))""" .

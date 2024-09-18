@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f027b2c5cb048f01cc9ba4510232bc2b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810151-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810151-0CF0FC0C6435452705701E9DDE735361;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?ministerLabel ?ministryLabel ?start ?end {
+  wd:Q15772498 wdt:P580 ?beginning .
+  OPTIONAL { wd:Q15772498 wdt:P582 ?finish } .
+  ?item p:P39 ?statement .
+  {
+    ?statement ps:P39/wdt:P360? ?minister .
+    {
+      ?minister wdt:P279 wd:Q3858501 .
+    } UNION {
+      ?minister wdt:P279 wd:Q83307;
+                wdt:P17 wd:Q38 .
+    }
+  } UNION {
+    ?statement pq:P642 ?ministry .
+    ?ministry wdt:P31 wd:Q192350;
+              wdt:P17 wd:Q38 .
+  } .
+  ?statement pq:P580 ?start .
+  OPTIONAL { ?statement pq:P582 ?end } .
+  FILTER( !BOUND(?end)|| ?end > ?beginning ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+}""" .

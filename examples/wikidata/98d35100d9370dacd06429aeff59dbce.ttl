@@ -1,0 +1,43 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-98d35100d9370dacd06429aeff59dbce> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837367-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d837367-8A8AEE83B212858B1F635590A3A5CA9B,
+    _:genid-4e694113159d4e3db4a1a913894a81d837367-E05F024A9A48DC7DB8C6E111A53753B8, _:genid-4e694113159d4e3db4a1a913894a81d837367-B282FF5C286844BD640D2800203CD0E4;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?IMO_number ?event ?eventLabel ?eventdate WHERE {
+  ?item wdt:P8047 wd:Q20.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nb\". }
+  OPTIONAL { ?item p:P793 ?stat .
+             ?stat ps:P793 ?event. 
+             OPTIONAL {?stat pqv:P585 [
+                wikibase:timePrecision ?precision ;
+                wikibase:timeValue ?date_ ].
+                BIND(IF(strlen(str(month(?date_)))=2,str(month(?date_)),concat(\"0\",str(month(?date_)))) as ?month) 
+                BIND(IF(strlen(str(day(?date_)))=2,str(day(?date_)),concat(\"0\",str(day(?date_)))) as ?day) 
+                BIND(IF(?precision=9,year(?date_),
+                       IF(?precision=10,concat(str(year(?date_)),\":\",?month),
+                         IF(?precision=11,concat(str(year(?date_)),\":\",?month,\":\",?day),\"\"))) as ?date)                      
+             }
+             ?event rdfs:label ?eventLabel . filter(lang(?eventLabel)=\"nb\")
+             BIND(CONCAT(?eventLabel,\" \",str(?date)) as ?eventdate) 
+            
+            FILTER(?event IN (wd:Q906512, wd:Q1786766, wd:Q336332))
+           }
+  OPTIONAL { ?item wdt:P458 ?IMO_number. }
+}""" .

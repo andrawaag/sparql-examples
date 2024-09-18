@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-edfe0e539c1d199d8711347419f34045> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Deansfa/SPARQL>, <https://www.wikidata.org//wiki/User:Deansfa>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d861460-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d861460-74FE797F0C8ED26FC3E9E8552B214B60;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# an other query to check errors. with occupation to check if same person. 
+SELECT ?q ?qLabel ?occLabel  ?publicationDate ?mainSubject  WHERE {
+  ?q wdt:P31 wd:Q309481 ; wdt:P1433 wd:Q9684 .
+  ?q wdt:P577 ?publicationDate .
+  ?q wdt:P921 ?mainSubject . 
+  ?mainSubject wdt:P106 ?occ . 
+  # OPTIONAL { ?mainSubject wdt:P570 ?mainSubjectDeathDate . }
+  
+  FILTER(YEAR(?publicationDate) = 2015).
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,nl\". }
+}""" .

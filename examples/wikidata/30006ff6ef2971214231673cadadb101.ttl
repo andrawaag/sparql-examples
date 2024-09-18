@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-30006ff6ef2971214231673cadadb101> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d815446-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#list of items of a certain type with an enwiki sitelink but not a hewiki sitelink
+SELECT DISTINCT ?item ?itemLabel ?article1 WITH { SELECT ?item ?itemLabel ?article1 
+WHERE {
+   ?article1 schema:about ?item;
+   schema:isPartOf <https://en.wikipedia.org/>.
+} LIMIT 100000 } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS {
+      ?article2 schema:about ?item;
+            schema:isPartOf <https://he.wikipedia.org/>.
+   }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """#list of items of a certain type with an enwiki sitelink but not a hewiki sitelink
+SELECT DISTINCT ?item ?itemLabel ?article1 WITH { SELECT ?item ?itemLabel ?article1 
+WHERE {
+   ?article1 schema:about ?item;
+   schema:isPartOf <https://en.wikipedia.org/>.
+} LIMIT 100000 } as %i
+WHERE
+{
+  INCLUDE %i
+  FILTER NOT EXISTS {
+      ?article2 schema:about ?item;
+            schema:isPartOf <https://he.wikipedia.org/>.
+   }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

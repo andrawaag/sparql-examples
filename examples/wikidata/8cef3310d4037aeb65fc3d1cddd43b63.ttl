@@ -1,0 +1,65 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8cef3310d4037aeb65fc3d1cddd43b63> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: part of (P361)   , instance of (P31)   , subclass of (P279)   , logo image (P154)   , inception (P571)   , dissolved, abolished or demolished date (P576)   , parent organization (P749)   , member of (P463)   , facet of (P1269)   , country (P17)   , flag image (P41)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_IFRC/List/Tree>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d85066-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
+SELECT
+  ?top ?topLabel
+  ?parent ?parentLogo (CONCAT(?parentName,' (',COALESCE(STR(YEAR(?parentStart)),'?'),' - ',COALESCE(STR(YEAR(?parentEnd)),'x'),')') AS ?parentLabel)
+  ?society ?societyFlag (CONCAT(?societyName,' (',COALESCE(STR(YEAR(?societyStart)),'?'),' - ',COALESCE(STR(YEAR(?societyEnd)),'x'),')') AS ?societyLabel)
+  ?branch ?branchFlag (CONCAT(?branchName,' (',COALESCE(STR(YEAR(?branchStart)),'?'),' - ',COALESCE(STR(YEAR(?branchEnd)),'x'),')') AS ?branchLabel)
+WHERE {
+  ########## IRCRCM ##########
+  BIND(wd:Q7178 AS ?top).
+  
+  
+  ########## IFRC, ICRC ##########
+  ?parent wdt:P361 ?top;
+          (wdt:P31/(wdt:P279*)) wd:Q43229.
+  OPTIONAL { ?parent wdt:P154 ?parentLogo. }
+  OPTIONAL { ?parent wdt:P571 ?parentStart. }
+  OPTIONAL { ?parent wdt:P576 ?parentEnd. }
+  
+  
+  ########## National societies ##########
+  OPTIONAL {
+    ?society (wdt:P749|wdt:P463|wdt:P361|wdt:P1269) ?parent;
+             (wdt:P31/(wdt:P279*)) wd:Q43229.
+    OPTIONAL { ?society wdt:P17/wdt:P41 ?societyFlag. }
+    OPTIONAL { ?society wdt:P571 ?societyStart. }
+    OPTIONAL { ?society wdt:P576 ?societyEnd. }
+    
+    
+    ########## Regional societies and branches ##########
+    OPTIONAL {
+      ?branch (wdt:P749|wdt:P463|wdt:P361|wdt:P1269) ?society;
+              (wdt:P31/(wdt:P279*)) wd:Q43229.
+      OPTIONAL { ?branch wdt:P17/wdt:P41 ?branchFlag. }
+      OPTIONAL { ?branch wdt:P571 ?branchStart. }
+      OPTIONAL { ?branch wdt:P576 ?branchEnd. }
+    }
+  }
+  
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,de,sl\".
+    ?top rdfs:label ?topLabel .
+    ?parent rdfs:label ?parentName .
+    ?society rdfs:label ?societyName .
+    ?branch rdfs:label ?branchName .
+  }
+}
+ORDER BY (?parentLabel) (?societyLabel) (?branchLabel)""" .

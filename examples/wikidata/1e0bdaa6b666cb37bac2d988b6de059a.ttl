@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1e0bdaa6b666cb37bac2d988b6de059a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856057-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d856057-B5F89A2F6BBCB3F3294C2EE6BA8CB083;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item1 ?item1Label ?description1 ?item2 ?item2Label ?description2
+{
+	?item1 wdt:P1415 ?odnb1 .
+	?item2 wdt:P1415 ?odnb2 .
+    ?item1 schema:description ?description1 .
+    ?item2 schema:description ?description2 .
+    FILTER(LANG(?description1) = \"en\").
+    FILTER(LANG(?description2) = \"en\").
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+	FILTER(?item1 != ?item2  && str(?description1) = str(?description2)) .
+} LIMIT 50""" .

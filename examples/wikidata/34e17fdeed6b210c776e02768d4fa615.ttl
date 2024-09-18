@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-34e17fdeed6b210c776e02768d4fa615> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Trilotat/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837058-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d837058-4B9519BFC6E311E76A40F4CA0BC63184;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?errata ?errataLabel ?itemLabel ?item
+WHERE 
+{
+  hint:Query hint:optimizer \"None\" .
+  ?errata wdt:P31 wd:Q1348305 .                  # ?errata is an errata
+  filter not exists {?itemZ wdt:P2507 ?errata . } # there's no ?item pointing to the errata.
+  ?errata rdfs:label ?errataLabel . filter(lang(?errataLabel)=\"en\")
+  filter(strstarts(?errataLabel,\"Corrigendum:\"))
+  bind(replace(?errataLabel,\"Corrigendum: “\",\"\") as ?111) .
+  bind(strbefore(?111,\"”\") as ?222) .
+  bind(replace(?222,\"”\",\"\") as ?itemLabel) .
+  ?item rdfs:label ?itemLabel.
+  filter(strlen(?itemLabel)>20)
+  filter(?item != ?errata)
+}""" .

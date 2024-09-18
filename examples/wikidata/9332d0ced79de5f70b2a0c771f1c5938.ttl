@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9332d0ced79de5f70b2a0c771f1c5938> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d828547-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d828547-9630E0E8F61B806BFFFAAAB9D33A1988;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+# Brightest celestial bodies
+SELECT ?star ?starLabel ?images ?apparent_magnitude
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+  { SELECT  ?star ?apparent_magnitude ?images
+    WHERE {   
+      ?star wdt:P31 wd:Q523;
+            wdt:P1215 ?apparent_magnitude;
+            wdt:P18 ?images .
+      FILTER(?apparent_magnitude < 1)
+    } LIMIT 10 
+  }
+} ORDER BY (?apparent_magnitude)""" .

@@ -1,0 +1,65 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9bb389f406f34cfb3ea0a7bdc9c8d22e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825955-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d825955-A5C9C418EBAA226F3BFD24E49CF3E09F,
+    _:genid-4e694113159d4e3db4a1a913894a81d825955-0836D979457DE87C06F6DCC7C0432295, _:genid-4e694113159d4e3db4a1a913894a81d825955-466C82CD93C6AD7B467530C8BB23921D,
+    _:genid-4e694113159d4e3db4a1a913894a81d825955-E3E5618DF84E0C8314A183DF37097554, _:genid-4e694113159d4e3db4a1a913894a81d825955-9286017BD630DFE5B1CD190123FB454E,
+    _:genid-4e694113159d4e3db4a1a913894a81d825955-41999B12761689D30D38CCA33E1F9872, _:genid-4e694113159d4e3db4a1a913894a81d825955-C61FD3B0D87E9C01616435E3196D32B9,
+    _:genid-4e694113159d4e3db4a1a913894a81d825955-C9C58CA11DF9588A3444FF7CCFAC82CA, _:genid-4e694113159d4e3db4a1a913894a81d825955-A42EC2F7435D92612BBE8EB751E38C55,
+    _:genid-4e694113159d4e3db4a1a913894a81d825955-13B8501E27B68F1641A707CD54E8FE94;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT DISTINCT ?item ?itemLabel ?place ?placeLabel ?id ?coords ?article ?rgb WHERE {
+ ?c wdt:P279* wd:Q11032 .
+  ?item wdt:P31 ?c .
+ ?item wdt:P17|wdt:P495 wd:Q30 .
+ OPTIONAL{?item wdt:P5454 ?id .}
+ ?item wdt:P291 ?place .
+ ?place wdt:P625 ?coords.
+ OPTIONAL {   
+   SELECT ?item ?pageid ?ns WHERE {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"search\" .
+      bd:serviceParam mwapi:gsrsearch \"hastemplate:\\\"infobox newspaper\\\"\" .
+      bd:serviceParam mwapi:gsrlimit \"max\" .
+      ?item wikibase:apiOutputItem mwapi:item .
+      ?pageid wikibase:apiOutput \"@pageid\" .
+      ?ns wikibase:apiOutput \"@ns\" .
+    }
+  } LIMIT 15000
+ }
+    
+  OPTIONAL {
+      ?article schema:about ?item .
+      ?article schema:inLanguage \"en\" .
+      FILTER (SUBSTR(str(?article), 1, 25) = \"https://en.wikipedia.org/\")
+  }
+
+  BIND( IF(BOUND(?article),   IF(BOUND(?ns), \"009500\" , \"FFF000\" )  ,  \"FF0000\"   )  AS ?rgb).  
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

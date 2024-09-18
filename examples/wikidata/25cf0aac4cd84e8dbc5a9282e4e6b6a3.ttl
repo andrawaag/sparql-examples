@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-25cf0aac4cd84e8dbc5a9282e4e6b6a3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d841291-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?item ?itemLabel
+  ?bi_date ?bi_precision ?bi_rank ?bi_earliest ?bi_earliest_precision ?bi_latest ?bi_latest_precision ?bi_circaLabel ?bi_refineLabel
+WHERE
+{
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+
+  ?item wdt:P31 wd:Q5.
+  VALUES ?item { wd:Q10261 }
+
+  # date of birth
+  OPTIONAL {
+    ?item wdt:P569 ?bi_date.
+    ?item p:P569 ?bi.
+    ?bi ps:P569 ?bi_date.
+    ?bi wikibase:rank ?bi_rank.
+    ?bi psv:P569 [ wikibase:timePrecision ?bi_precision ].
+    OPTIONAL { ?bi pq:P1319 ?bi_earliest.
+              ?bi pqv:P1319 [ wikibase:timePrecision ?bi_earliest_precision ].
+             }
+    OPTIONAL { ?bi pq:P1326 ?bi_latest.
+              ?bi pqv:P1326 [ wikibase:timePrecision ?bi_latest_precision ].
+             }
+    OPTIONAL { ?bi pq:P1480 ?bi_circa. }
+    OPTIONAL { ?bi pq:P4241 ?bi_refine. }
+  }
+}""" .

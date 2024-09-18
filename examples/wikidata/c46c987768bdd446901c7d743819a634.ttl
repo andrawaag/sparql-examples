@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c46c987768bdd446901c7d743819a634> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Neo-Jay/Query/1.1>, <https://www.wikidata.org//wiki/User:Neo-Jay/Query>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87580-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d87580-D5ADB8BAAEC94773AD747F2B95983409;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# title of the query
+#title: timeline of members of the Politburo Standing Committee of the Chinese Communist Party
+# viewed as timeline (also viewable as table and image grid)
+#defaultView:Timeline
+SELECT DISTINCT ?member ?memberLabel ?image ?start ?end
+WHERE {
+  # ?member is instance of (P31) human (Q5)
+  ?member wdt:P31 wd:Q5;
+          # ?member's \"position held\" (P39) statement is ?x_position
+          p:P39 ?x_position.
+  # ?x_position's value is \"subclass of (P279)\" [ZeroOrMorePath (*)]
+  # member of the Politburo Standing Committee of the Chinese Communist Party (Q42327067)
+  ?x_position ps:P39/wdt:P279* wd:Q42327067
+  # optional: ?member's image (P18) is ?image
+  OPTIONAL {?member wdt:P18 ?image}
+  # optional: ?x_position's qualifier \"start time\" (P580) is ?start
+  OPTIONAL {?x_position pq:P580 ?start}
+  # optional: ?x_position's qualifier \"end time\" (P582) is ?end
+  OPTIONAL {?x_position pq:P582 ?end}
+  # show label in auto language as default, and English when no default label exists
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

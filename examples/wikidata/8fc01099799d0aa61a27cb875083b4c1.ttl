@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8fc01099799d0aa61a27cb875083b4c1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860065-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d860065-BE5D0E531AB1F0E80D32907FBC7A616D,
+    _:genid-4e694113159d4e3db4a1a913894a81d860065-7493323828D82C679F48FB06037707C0, _:genid-4e694113159d4e3db4a1a913894a81d860065-BCB9C3451C5A5203F44B717B39E859A4;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BarChart
+SELECT ?year (COUNT(?herrialdea) AS ?count) (SAMPLE(?herrialdeaLabel) AS ?label) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu,es,fr,en\". }
+  ?Bertsosaio wdt:P31 wd:Q8247090.
+  ?Bertsosaio wdt:P710 ?bertsolari.
+  ?bertsolari wdt:P19 ?jaiolekua.
+  ?jaiolekua (wdt:P131*) ?herrialdea.
+  {?herrialdea wdt:P31 wd:Q162620.}
+  UNION
+  {?herrialdea wdt:P31 wd:Q34876.}
+  ?Bertsosaio wdt:P582 ?data.
+  BIND(STR(YEAR(?data)) AS ?year)
+  ?herrialdea rdfs:label ?herrialdeaLabel FILTER((LANG(?herrialdeaLabel)) = \"eu\") .
+}
+GROUP BY ?herrialdeaLabel ?year""" .

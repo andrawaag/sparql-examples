@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e64914749af2ddbe7fd0bab19a125c09> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Tasks>,
+    <https://www.wikidata.org//wiki/User:Soni/sandbox>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838876-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d838876-6AD41D6B49BB43AB94795CFFB39FDAA1,
+    _:genid-4e694113159d4e3db4a1a913894a81d838876-614CABE36DB5BE2AC1D781D2642CB4F8, _:genid-4e694113159d4e3db4a1a913894a81d838876-4B2FEAB120E8105F959CCDEE37E15C78;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#All cities and towns of India without a coordinate mentioned
+SELECT  ?object ?objectLabel ?coord
+WHERE {
+  ?object wdt:P17 wd:Q668. #India
+  ?object wdt:P31/wdt:P279* wd:Q486972. #Human settlement
+  {?object wdt:P31/wdt:P279* wd:Q515.} UNION {?object wdt:P31/wdt:P279* wd:Q3957.} #Cities and towns. Add more categories, as needed
+  MINUS {?object wdt:P625 ?coord.} #Filter out all Location that has coordinates.
+  #MINUS {?object wdt:P473 ?localcode.} #Does not have an STD code mentioned. Not necessary yet
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}""" .

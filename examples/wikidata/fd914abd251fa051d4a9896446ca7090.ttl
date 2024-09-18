@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fd914abd251fa051d4a9896446ca7090> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Christian_Ferrer>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d859591-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d859591-6AE001AFFB0830FB6BE18D6DA0EDA689;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT distinct ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?deLabel {
+   service <https://query.wikidata.org/sparql> {
+     select ?stype ?stypeLabel ?collec ?collecLabel ?role ?de ?roleLabel ?deLabel { 
+       ?stype wdt:P31/wdt:P279* wd:Q51255340 
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       optional {
+         ?stype wdt:P195 ?collec .
+       }
+       ?stype p:P2868 [ps:P2868 ?role ; pq:P642 ?de] .
+       values ?collec {
+        wd:Q838691 
+             }
+        ?de wdt:P171* wd:Q44631
+     }
+   }
+}""" .

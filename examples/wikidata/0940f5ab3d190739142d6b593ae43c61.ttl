@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0940f5ab3d190739142d6b593ae43c61> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: LepIndex ID (P3064)   , taxon name (P225)   , taxon rank (P105)   , BugGuide taxon ID (P2464)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d841246-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d841246-FFEB451C5BC688018B7E629496B1D7B9;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?taxon ?item ?rankLabel
+{
+	?item wdt:P3064 ?value .
+	?item wdt:P225  ?taxon .       # taxon name
+    ?item wdt:P105  ?rank .
+    BIND ( wd:Q34740 as ?rank).
+	MINUS { ?item wdt:P2464 [] } . # BugGuideID 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""" .

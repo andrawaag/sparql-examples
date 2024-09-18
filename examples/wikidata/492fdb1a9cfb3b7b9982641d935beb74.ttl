@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-492fdb1a9cfb3b7b9982641d935beb74> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Neo-Jay>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d822667-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?outbreak ?outbreakLabel ?countryLabel
+WHERE {?outbreak p:P31 ?x.
+  ?x ps:P31 ?y.
+  ?y wdt:P279* wd:Q3241045. # ?outbreak is an instance of (P31) disease outbreak (Q3241045) or its subclass (P279)
+  ?x pq:P642 wd:Q84263196;  # of (P642) COVID-19 (Q84263196)
+     pq:P518 ?country.      # applies to part (P518): ?country
+  ?country wdt:P31 wd:Q6256 # ?country is an instance of (P31) country (Q6256)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".} }""" .

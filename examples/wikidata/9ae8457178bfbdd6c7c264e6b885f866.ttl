@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9ae8457178bfbdd6c7c264e6b885f866> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2016/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d853429-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d853429-02617A08FA5D93D098BDD8EBB26E7E28;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?dummyLabel ?count
+{ 
+	{
+  		SELECT ?dummy (COUNT(distinct ?item) as ?count) 
+		{ 
+			?wiki0 schema:about ?item ; schema:isPartOf <https://lv.wikipedia.org/> . 
+			{ ?item wdt:P31 ?dummy . } UNION { ?item wdt:P279 ?dummy . } .
+		}
+		GROUP BY ?dummy
+	}
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"lv\" .}
+}
+ORDER BY DESC(?count)""" .

@@ -1,0 +1,27 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2bc33e11bf8ca1f6775871be20167574> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """This is an archive of past discussions. Do not edit the contents of this page. If you wish to start a new discussion or revive an old one, please do so on the current talk page. Contents 1 Wikimedia-kategori 2 Replace typo דיפולמט in correct word דיפלומט 3 Replace p:P3602/pq:P4100 with p:P3602/pq:P102 (qualifier fix) 4 Import solar eclipses data 5 Import Babelnet IDs 6 Move student (P802) to significant person (P3342) Wikimedia-kategori Request date: 1 September 2019, by: J 1982 Link to discussions justifying the request No need, this is a standard. Task description Move all categories described in Swedish as \"kategorisida\" into \"Wikimedia-kategori\". Discussion I also call for all categories described in Swedish as \"Wikipedia-kategori\" to be moved into \"Wikimedia-kategori\". It is also a standard, so we don't need link to discussions justifying the request. I added those as well. It is running in bits and pieces, there are 4.4 million Wikimedia-categories, and the SparQL-query runs fine on PAWS, but it needs a restart once a day or so. On my Linux machine the query gives Killed after 10 minutes, usually that means that there is a memory issue due to too many results in the query. An alternative by downloading the items to a CSV-file should resolve this, but for the time that didn't cause a start-to-end run. But it's still running (update 16 sep), and it's still updating items. Edoderoo (talk) 07:35, 6 September 2019 (UTC) In your PAWS account main folder, you can add a file \"user-config.py\" (not .ipynb!) with content put_throttle=1 to edit at 1/s (after re-starting your server). That said, there are admins who do not like larger amounts of PAWS edits under your regular account. I did receive a block for doing so in the past, thus you should consider to run it under your bot account. Assuming your pywikibot-code linked above is what you are actually using, I suggest to tweak the query to make it more efficient: with SELECT DISTINCT ?item WHERE { VALUES ?description { 'kategorisida'@sv 'wikipedia-kategori'@sv 'wikipedia kategori'@sv 'kategori'@sv } . ?item wdt:P31 wd:Q4167836; schema:description ?description . }
+ Try it! , you only load the ~166k affected items to be edited. At 1/s, you'd be finishing the task within 2 days. —MisterSynergy (talk) 17:06, 16 September 2019 (UTC) Maybe I'll try to tweak the query and run it with my bot account on Ubuntu, else it will also finish in like 20 days. There is no hurry for this query to finish, but it's nice to know that you can speed it up in the way you explain. Edoderoo (talk) 21:15, 16 September 2019 (UTC) Request process Accepted by (Edoderoo (talk) 09:54, 3 September 2019 (UTC)) and under process Has been running: python script in PAWS Task completed (20:58, 20 September 2019 (UTC)) It finished today. A few items with issues are left, there might be some merge candidates inbetween. Edoderoo (talk) 20:58, 20 September 2019 (UTC) I think that this discussion is resolved and can be archived. If you disagree, don't hesitate to replace this template with your comment. --Pasleim (talk) 09:40, 25 December 2019 (UTC) Replace typo דיפולמט in correct word דיפלומט Request date: 15 September 2019, by: Uziel302Replace typo דיפולמט in correct word דיפלומט.8000 occurences. Can you give a few more details? In which language is this occurance? And is this a description? Or a label, or an alias? Edoderoo (talk) 05:42, 16 September 2019 (UTC) Edoderoo, look at my edit log, I managed to do it with quickstatements.Uziel302 (talk) 10:49, 16 September 2019 (UTC) Request process  I think that this discussion is resolved and can be archived. If you disagree, don't hesitate to replace this template with your comment. Pasleim (talk) 10:48, 11 January 2020 (UTC) Replace p:P3602/pq:P4100 with p:P3602/pq:P102 (qualifier fix) Items used: Canada (Q16)   Properties used: country (P17)   , candidacy in election (P3602)   , parliamentary group (P4100)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Bot_requests/Archive/2019/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d811150-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?election ?electionLabel ?representing ?representingLabel 
+{
+  ?item p:P3602 [ps:P3602 ?election; pq:P4100 ?representing] .
+  ?election wdt:P17 wd:Q16 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+}""" .

@@ -1,0 +1,29 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f046330af6a1939647dda72f42fce611> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: subclass of (P279)   , Gene Ontology ID (P686)   , encoded by (P702)   , physically interacts with (P129)   , regulates (molecular biology) (P128)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842275-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Same query as the previous, but also retrieving small molecules interacting with these gene products.
+SELECT DISTINCT ?gene ?geneLabel ?mir ?mirLabel ?drug ?drugLabel WHERE {
+  ?x wdt:P279* [wdt:P686 'GO:0006955'] . # regulation of immune response
+  ?p ?pr ?x .
+  ?p wdt:P702 ?gene .
+  OPTIONAL { ?p wdt:P129 ?drug . }
+  
+  ?mir wdt:P128 ?gene . 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+}
+GROUP BY ?gene ?mir ?mirLabel ?geneLabel ?drug ?drugLabel
+HAVING(?mirLabel = 'hsa-miR-211-5p'@en)""" .

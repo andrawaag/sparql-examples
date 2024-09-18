@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a97659ba2525da5028458eab7af29546> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d820819-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d820819-10027C8A467BCB01FE850763D5416935;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?born ?died {
+  ?item (p:P569|p:P570)/pq:P31 wd:Q26961029; wdt:P569 ?born; wdt:P570 ?died .
+  FILTER( YEAR(?born) > 600 && YEAR(?died) < 1500 ) .
+  VALUES ?Czechia { wd:Q213 wd:Q2162698 wd:Q42585 } .
+  ?item wdt:P19/wdt:P131* ?Czechia;
+        wdt:P20/wdt:P131* ?Czechia .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs,en\" } .
+}""" .

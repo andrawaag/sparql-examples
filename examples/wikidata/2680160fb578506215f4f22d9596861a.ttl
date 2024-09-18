@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2680160fb578506215f4f22d9596861a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88702-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Find AFD ids having a plant as a parent  
+SELECT ?item ?itemLabel
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    SERVICE bd:slice
+    {
+      ?item wdt:P6039 _:afd_id .
+      bd:serviceParam bd:slice.offset 0 .
+      bd:serviceParam bd:slice.limit 25000 .
+    }
+    ?item wdt:P171* wd:Q756 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+} 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}""";
+  <http://example.org/bigdata_select> """# Find AFD ids having a plant as a parent  
+SELECT ?item ?itemLabel
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE bd:slice
+    {
+      ?item wdt:P6039 _:afd_id .
+      bd:serviceParam bd:slice.offset 0 .
+      bd:serviceParam bd:slice.limit 25000 .
+    }
+    ?item wdt:P171* wd:Q756 .
+    hint:Prior hint:gearing \"forward\" .
+  }
+} AS %sub
+WHERE
+{
+  INCLUDE %sub 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}""" .

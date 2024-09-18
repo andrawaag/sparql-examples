@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3fa77aba5a91591f30b5f42706ed92f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>,
+    <https://www.wikidata.org//wiki/User:Hog%C3%BC-456>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826066-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d826066-F585362934EA2197B180B3B015A687FC;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Forms of nouns in German
+# Based on a query by Uziel302
+SELECT ?lexemeId ?lemma ?form ?word ?grammatikalisches_Geschlecht ?grammatikalisches_GeschlechtLabel ?gF ?gFLabel WHERE {
+  ?lexemeId dct:language wd:Q188;
+    wikibase:lexicalCategory wd:Q1084;
+    wikibase:lemma ?lemma;
+    ontolex:lexicalForm ?form.
+  ?form ontolex:representation ?word.
+  ?form wikibase:grammaticalFeature ?gF.
+  OPTIONAL { ?lexemeId wdt:P5185 ?grammatikalisches_Geschlecht. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-826a2c7bb941cbb03ba25ce42a414f30> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854437-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d854437-019148995EAB8AF62D42785A14DA132D,
+    _:genid-4e694113159d4e3db4a1a913894a81d854437-363BF319A5ABED00E86A20C5259E345C, _:genid-4e694113159d4e3db4a1a913894a81d854437-892FE2C15FF5EA904AE88D9463177BB0,
+    _:genid-4e694113159d4e3db4a1a913894a81d854437-41C54CE09B84C9A9C995C355F27CBA00, _:genid-4e694113159d4e3db4a1a913894a81d854437-58F8E483EACBA831F3357266D5B617A8,
+    _:genid-4e694113159d4e3db4a1a913894a81d854437-CAF818FEE5F4D992C044F2F5B8C41607, _:genid-4e694113159d4e3db4a1a913894a81d854437-4AC3A3B9AD93AA73C676846B46CECA35,
+    _:genid-4e694113159d4e3db4a1a913894a81d854437-3EE9899C0BAE3276C4F63DDDE911E78C, _:genid-4e694113159d4e3db4a1a913894a81d854437-9EA9B829E8561040FEF09A4BE59053EC,
+    _:genid-4e694113159d4e3db4a1a913894a81d854437-6A70DC5C6F979B0A31864956B2C33153;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT DISTINCT ?city ?cityLabel (SAMPLE(?location) AS ?location) (MAX(?population) AS ?population) (SAMPLE(?layer) AS ?layer)
+WHERE
+{
+  ?city wdt:P31/wdt:P279* wd:Q515;
+        wdt:P625 ?location;
+        wdt:P1082 ?population.
+  FILTER(?population >= 500000).
+  BIND(
+    IF(?population < 1000000, \"<1M\",
+    IF(?population < 2000000, \"1M-2M\",
+    IF(?population < 5000000, \"2M-5M\",
+    IF(?population < 10000000, \"5M-10M\",
+    IF(?population < 20000000, \"10M-20M\",
+    \">20M\")))))
+    AS ?layer).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?city ?cityLabel""" .

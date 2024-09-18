@@ -1,0 +1,49 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f5e7c2b6c89e4c5a0906e8300d390dc7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d829075-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d829075-924E35BDC77EDCFD843047262A5AFE9A,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-A113024D8607670C143DC5D754A9FC98, _:genid-4e694113159d4e3db4a1a913894a81d829075-CEF57A4E2DE654528CD30BC8596E2D06,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-CECCC434689B3B784F47A773E0A95D7A, _:genid-4e694113159d4e3db4a1a913894a81d829075-143AC9F92D147970185F5EAFAE9DE19F,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-41CFB98BD30ECAB95F290AEE0658700D, _:genid-4e694113159d4e3db4a1a913894a81d829075-CC3BB53284BB2386DA968A77BD2128BE,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-1F964D391B53C45E06D7817A86BD28DD, _:genid-4e694113159d4e3db4a1a913894a81d829075-7B123227FE18994C9E4EECE2EBF7B755,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-349AEA9EB08A2B23AE16EF91364CFBC9, _:genid-4e694113159d4e3db4a1a913894a81d829075-F86540AEC600A2CF285C4C38E3A7EB22,
+    _:genid-4e694113159d4e3db4a1a913894a81d829075-D364AE150E0DB38338369A3CCB5FEB92, _:genid-4e694113159d4e3db4a1a913894a81d829075-4536B1A42633C2B079B47BED2FB165E7;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Search for labels in other languages that do not exist in a target language
+#Can be input for Q29032512
+SELECT ?item ?itemLabel ?itemDescription WHERE {
+ ?item wdt:P31 wd:Q5.  #instance of human
+ ?item wdt:P27 wd:Q31. #country of citizenship Belgium
+
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,fr,en,de,it,es,no,pt\". }
+ FILTER(NOT EXISTS {
+   ?item rdfs:label ?lang_label.
+   FILTER(LANG(?lang_label) = \"it\") #with missing Italian label
+ })
+}
+ORDER BY ?itemLabel""" .

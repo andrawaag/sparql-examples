@@ -1,0 +1,97 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fe3d89aecbf9ead60a4462b55ba33e79> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Scratch pad with SPARQL I want to keep or find again. See Wikidata:Request a query. The following query uses these:Items: Universe (Q1)   , Earth (Q2)   Properties: image (P18)   SELECT ?item ?img 
+{ 
+  VALUES ?item { 
+     wd:Q1 
+     wd:Q2 
+  } . 
+  ?item wdt:P18 ?img
+} Try it! The following query uses these:Items: The Death of General Wolfe (Q956541)   , Q9639014 Properties: creator (P170)   , author (P50)   SELECT ?item ?creatorLabel ?authorLabel
+{ 
+  VALUES ?item { 
+
+wd:Q956541
+wd:Q9639014
+
+  } . 
+  optional{?item wdt:P170 ?creator }.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+  optional{?item wdt:P50 ?author } . Try it!}Contents 1 My items without P31 2 Taxon related 2.1 harvest BugGuideID 2.2 bad BugGuideID 2.3 look for candidates 2.4 find BugGuideID candidates 2.5 find BugGuideID candidates based on name 2.6 find BugGuideID candidates based on label 2.7 Taxons without commonscat 2.7.1 Taxon with sitelink to Commons but without P373. 2.7.2 Taxon with a file but without P373. 3 Related to categories 3.1 extra P373 3.2 missing P373 3.3 Labels ≠ Sitelink 3.4 Number of Sitelink per project (not working) 3.5 Sitelinks to old wikisource 3.6 non-unique P373 3.7 Looking for items where category saved in sitelink to Commons does not match P373 3.8 videos as images 3.9 P18s from commons category 4 People related 4.1 City of birth 4.2 Query to keep Commons Creator page (P1472) property and Commons creator templates in synch 4.3 Creator Home categories used be multiple items 5 Look up if an item is a redirect and where is it pointing 5.1 Items that have Commons Creator page (P1472) but do not have English label 5.2 frequency of nationalities or ethnic groups among Creators 6 Date related 6.1 qualifiers 6.2 Example of date using Millennium precision 6.3 items with P1472 and P650 that have year DOB 6.4 multi precision dates query 6.5 Multicalendar DOB 6.6 Multicalendar DOB 6.7 find burial date based on place of burial (P119) 6.8 find burial/baptism date based on significant event (P793) 7 Coordinate related 7.1 Commons files with multiple locations 7.2 Correct coordinate location precision 7.3 Institutions with double locations 7.4 What is Lipovica's current country? 8 Related to artworks 8.1 Get Item, collection and inventory ID 8.2 paintings without image but with a sitelink to commons 8.3 paintings pairs using the same image 8.4 explore significant event 9 get labels and descriptions 10 get Witkacy artworks with labels starting with '\"' 11 =PD-Art images 12 Redirects 13 Property exploration 13.1 value frequency 14 histogram of use 14.1 item with the most properties of some kind 14.2 thickness -> horizontal depth 15 copyright related 15.1 PD works without qualifiers 15.2 PD works without proper qualifiers whos creators died more than 100 years ago 15.3 PD works without proper qualifiers which were published more than 95 years ago 15.4 PD works without proper qualifiers which were published more than 95 years ago and whose author died more than 100 years ago 15.5 publications from before 1800 without copyright statement 15.6 paintings from before 1800 without copyright statement 15.7 Missing determination method (P459) 16 Missing applies to jurisdiction (P1001) 17 license-template items 18 explore license to template connection 19 Count unique P1001/P459 pairs for PD items 19.1 Find items where one of the authors is dead less than 100 years while claiming 100 year pma 19.2 Find items where one of the authors is dead less than 70/80/100 years while claiming 70/80/100 year pma 19.3 Find items where one of the authors is dead less than 70 years while claiming 70 year pma 19.4 X 20 Dured woodcuts 21 Append to descriptions of an item My items without P31 [edit] The following query uses these:Properties: instance of (P31)   , Commons category (P373)   SELECT ?item ?itemLabel ?commonscat
+{ 
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"random\" .
+    bd:serviceParam mwapi:list \"usercontribs\" . 
+    bd:serviceParam mwapi:ucuser \"Jarekt\" . 
+    bd:serviceParam mwapi:ucprop \"title|timestamp|comment\" .
+    bd:serviceParam mwapi:ucnamespace \"0\" .
+    bd:serviceParam mwapi:ucshow \"new\" .
+    bd:serviceParam mwapi:uclimit \"1\" .
+    ?created wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?comment wikibase:apiOutput \"//api/query/usercontribs/item/@comment\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    bd:serviceParam wikibase:limitContinuations \"249\" .
+  }
+  MINUS { ?item wdt:P31 [] }
+  OPTIONAL {?item wdt:P373 ?commonscat} . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+} Try it! Taxon related [edit] harvest BugGuideID [edit] The following query uses these:Properties: BugGuide taxon ID (P2464)   , taxon rank (P105)   , taxon name (P225)   SELECT DISTINCT ?BugGuideID ?item ?taxon ?rank
+{
+	?item wdt:P2464 ?BugGuideID .  # BugGuideID 
+    ?item wdt:P105  ?rank .
+  	?item wdt:P225  ?taxon .       # taxon name
+} Try it! bad BugGuideID [edit] The following query uses these:Items: Arthropoda (Q1360)   , phylum (Q38348)   Properties: BugGuide taxon ID (P2464)   , parent taxon (P171)   , taxon rank (P105)   SELECT ?item ?BugGuideID 
+{
+    ?item wdt:P2464 ?BugGuideID .      # has BugGuideID 
+    ?item wdt:P171  ?pItem .           # has parent item
+    MINUS {?item wdt:P171+ wd:Q1360. } # exclude items in Arthropoda tree
+    MINUS {?item wdt:P105 wd:Q38348. } # exclude Arthropoda (Q1360) itself
+} Try it! """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88309-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d88309-A959E9808167452F225367FFC74E5260;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT  ?item ?BugGuideID 
+{
+	?item wdt:P2464 ?BugGuideID .  # BugGuideID 
+    ?item wdt:P105  ?rank .
+    #VALUES ?rank {wd:Q34740 }  
+    VALUES ?rank {wd:Q35409 wd:Q36602 wd:Q2455704 wd:Q37517 wd:Q2136103 wd:Q5867959 wd:Q227936 wd:Q38348 wd:Q2889003 wd:Q3965313 wd:Q5868144 wd:Q5867051 wd:Q14817220 wd:Q2981883 wd:Q1153785 wd:Q3504061 wd:Q10861426  } .                #  	taxonomic rank
+	?item wdt:P171  ?pItem .       # parent item
+  
+    MINUS {?item wdt:P171
+  				 |wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171  
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171  
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171   
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171  
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171     
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171     
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171 
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171 
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 |wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 #|wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 #|wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171/wdt:P171
+                 wd:Q1360 . }
+   # MINUS{ ?item wdt:P105 wd:Q38348. }
+}
+Limit 20""" .

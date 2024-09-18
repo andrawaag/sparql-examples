@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3a30303d103a9271d98c7609ebb5908> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856684-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?airport ?cityLabel ?countryLabel ?iataCode ?coordinates ?regionLabel WHERE {
+  ?airport wdt:P31 wd:Q1248784;
+    wdt:P131 ?city;
+    wdt:P17 ?country;
+    wdt:P625 ?coordinates;
+    wdt:P239 ?iataCode.
+  {
+    SELECT ?city (MAX(?adminDivision) AS ?region) WHERE {
+      ?city wdt:P131 ?adminDivision.
+      FILTER(?adminDivision != ?country)
+    }
+    GROUP BY ?city
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

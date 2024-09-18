@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c2a07e5f897382a9c5e57344735e2747> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/it>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/da>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/th>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/id>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/ar>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/arz>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d813874-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d813874-B4A703505911CB313B6710637B31A0B4,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-8CC1010CA27278CA9B79EF85C9DA98CF, _:genid-4e694113159d4e3db4a1a913894a81d813874-35414A76868ACECF30F0F32EFDAADB26,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-7B4A4A2432BCD92435B5473CEC8A7B57, _:genid-4e694113159d4e3db4a1a913894a81d813874-413A1CD6428BDBC747F8879B396FA533,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-54592AA9DC5F0A3059196EB46A20192B, _:genid-4e694113159d4e3db4a1a913894a81d813874-9D0159666A2782E98DD71ADB7EA2CE9B,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-563C9C1275E438EB6FF3B9551BCC1B48, _:genid-4e694113159d4e3db4a1a913894a81d813874-A9D8754EDE14AFEEF0D8F30FDE0FC132,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-46B7434A4AFEF940A5A6E4BA4DB86C08, _:genid-4e694113159d4e3db4a1a913894a81d813874-C4D4FD70521C53DB2887D631BE8CF553,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-BC58112F9B559BB533F1A57490B47A8F, _:genid-4e694113159d4e3db4a1a913894a81d813874-E8BF4202B25C088BB6232DCF84F073E4,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-0952F6D0A68E42756E8CD3F9AD993009, _:genid-4e694113159d4e3db4a1a913894a81d813874-FD835F8A970F6D45EDC35B54EE5B7222,
+    _:genid-4e694113159d4e3db4a1a913894a81d813874-17A3D1393D10E4018EEE88A48E039EA9;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Whose birthday is today?
+SELECT ?humanLabel (YEAR(?date) as ?year)
+WHERE
+{
+    BIND(MONTH(NOW()) AS ?nowMonth)
+    BIND(DAY(NOW()) AS ?nowDay)
+
+    ?human wdt:P31 wd:Q5.
+    ?human wdt:P569 ?date .
+    FILTER (MONTH(?date) = ?nowMonth && DAY(?date) = ?nowDay)
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+    }
+}
+LIMIT 10""" .

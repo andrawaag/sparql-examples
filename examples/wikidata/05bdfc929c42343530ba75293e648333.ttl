@@ -1,0 +1,50 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-05bdfc929c42343530ba75293e648333> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/cs>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d832039-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d832039-62640A56B2854326E0AB95D9FEEDFD2C,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-F7F3AD5A9AE963FC418A12B28D8B9507, _:genid-4e694113159d4e3db4a1a913894a81d832039-631BB8BFF2CE78D55D3E2CC49F8ECB55,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-CF9365D9F949CB6A1AD167FAFDC5A4BE, _:genid-4e694113159d4e3db4a1a913894a81d832039-AABDF237CC847F737228C703812058CC,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-9414B59203B27D8CCC19F8C9990D19AB, _:genid-4e694113159d4e3db4a1a913894a81d832039-74DBF1705FB949FEA029D608869E03B0,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-FB8DF9E4BB7B6489303A35B0AC8342BA, _:genid-4e694113159d4e3db4a1a913894a81d832039-8377CD71A66E57FCB7B25EE8B64C264A,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-86EA43090B98DA5F3D4FD77777A85DE3, _:genid-4e694113159d4e3db4a1a913894a81d832039-CAE3100CA43A37BAB72C0FB44D09E042,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-EE100F04D0E6AD3D7A190964463E4DCB, _:genid-4e694113159d4e3db4a1a913894a81d832039-6F356D776F5A96C9ABAE2CDE0245E6B0;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT (COUNT(DISTINCT(?person)) AS ?countPerson)
+WHERE {
+  { # non-zero number of children matches
+    ?person wdt:P1971 ?numOfChildren .
+    {SELECT ?person (COUNT(?child) AS ?numOfChildrenComputed)
+    WHERE {
+      ?person wdt:P40 ?child 
+    }
+    GROUP BY ?person}
+    FILTER (?numOfChildren = ?numOfChildrenComputed)
+  }
+  UNION
+  { # zero number of children matches
+    ?person wdt:P1971 \"0\"^^xsd:decimal .
+    FILTER NOT EXISTS { ?person wdt:P40 ?child }
+  }
+}""" .

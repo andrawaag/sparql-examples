@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1763b2a9e8d3f4230595a4cb5798bf99> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d851608-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d851608-B39F865715F65718BF7D3ED4E0137895,
+    _:genid-4e694113159d4e3db4a1a913894a81d851608-3BB3F9A6468CFCC8E134A021A915C9B2, _:genid-4e694113159d4e3db4a1a913894a81d851608-092932248AD2E12FBFDECCFE8E0F8D3F,
+    _:genid-4e694113159d4e3db4a1a913894a81d851608-5BCDB7D3BF0ABF5B74ACAB9DB032B4C8, _:genid-4e694113159d4e3db4a1a913894a81d851608-BBE1064F43C6E98D2155E81271C9D64B,
+    _:genid-4e694113159d4e3db4a1a913894a81d851608-72C679983A1AB8955F44862312CC5B1F, _:genid-4e694113159d4e3db4a1a913894a81d851608-171858E967ED34ADAC502E46476B4BB9,
+    _:genid-4e694113159d4e3db4a1a913894a81d851608-2B40E3258B2FF28FF29076A6EBEF62F9, _:genid-4e694113159d4e3db4a1a913894a81d851608-987E3384C823E4A8ECDFA8AC835406A3,
+    _:genid-4e694113159d4e3db4a1a913894a81d851608-38D64310E3EE5A252F1741BC0E21D978, _:genid-4e694113159d4e3db4a1a913894a81d851608-81FC08B7E5B1439544266AF7F5F9EB1C;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2016-10
+SELECT ?country ?countryLabel (count(*) AS ?count)
+WHERE
+{
+	?city wdt:P31/wdt:P279* wd:Q515 . # find instances of subclasses of city
+	?city p:P6 ?statement .           # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .         # ... that has the value ?mayor
+	?mayor wdt:P21 wd:Q6581072 .      # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+	?city wdt:P17 ?country .          # Also find the country of the city
+ 	
+	# If available, get the \"ru\" label of the country, use \"en\" as fallback:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"ru,en\" .
+	}
+}
+GROUP BY ?country ?countryLabel
+ORDER BY DESC(?count)
+LIMIT 100""" .

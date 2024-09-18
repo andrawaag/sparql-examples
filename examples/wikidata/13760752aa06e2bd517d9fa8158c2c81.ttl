@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-13760752aa06e2bd517d9fa8158c2c81> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863389-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prv: <http://www.wikidata.org/prop/reference/value/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT distinct ?human ?statement19 ?ref19 ?reftype19 ?from19
+WHERE {
+  OPTIONAL { ?human wdt:P18 ?image. }
+  values ?human {wd:Q86701}.
+  ?human p:P19 ?statement19.              # ?human must have a P19 value; get its statement
+  ?statement19 ps:P19 ?place_of_birth.    # get the ps: value for the statement
+  ?statement19 prov:wasDerivedFrom ?ref19.# get the reference statement for P19
+  ?ref19 ?reftype19 ?from19.              # get the values/statements association with the reference statement
+  filter (?reftype19!=pr:P143)            # exclude where there's a value/statement such as \"imported from\"
+  filter (?reftype19!=pr:P813)            # or a date
+  filter (?reftype19!=prv:P813)""" .

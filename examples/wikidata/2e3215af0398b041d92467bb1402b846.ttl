@@ -1,0 +1,87 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-2e3215af0398b041d92467bb1402b846> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 All humans with specific label 2 Duplicate Results 3 Get most recently published example of an item 4 Checking consistency of values of P585, P580 and P582 5 List of birds on ga 6 Get only the information from statements 7 Result with more of one declaration 8 1990 WTA Tour 9 All fish 10 Filtering by city 11 Filling missing images using Federated Queries in a SPARQL query 12 List of movies released 10 years ago (dynamically with today's date) 13 Transpose multiple property statement values into columns 14 Extinction of animals 15 Cats interwiki 16 Querry for Wikimedia Commons 17 Members of the European Parliament of the first legislature 18 From Canada, has Wikitree, does not have FamilySearch 19 List of tennis player whose first singles title was at a Grand Slam tournament 20 Barchart order 21 Year of taxon publication (P574) is inconsistent with the date of birth or death of the taxon author (P405) 22 Get full name given a person 23 List of all entries in a category and subcategories 24 Is instance of, but doesn't have property 25 How many African language Wikipedias are there? 26 STR in label 27 Date details for Wikimedia Commons 28 Chains of causality 29 Optimizing query 30 Creating a link 31 Query to return a list of properties by data type 32 List of bridges of Paris 33 Upload picture free to upload it on wikidata 34 Query works, but reaches timeout when performed in Python 35 Is it possible to do a query, tryin to find for example a film by writing his name? 36 Japan politics query 37 How can I take more details of my list of films? 38 premio recibido sin ref 39 Fix queries for WD:BLP restricted properties 40 List of sportsmen by number of twitter followers they have 41 list of Wikidata items --> Wikipedia language versions for each 42 Professors at the ETH Zurich (without picture) 43 New example query for Wikidata:SPARQL federation input 44 How to search a film by name in title AND publication year? 45 I'mrust! 46 Select property in result 47 Norwegian heritage property identification number of Riksantikvaren (the Directorate for Cultural Heritage) 48 Can u give me an example of how to retrieve info from a certain Qcode? 49 Professor John R. Gregg 50 search women that dont exist in one wiki but exist in others 51 Wikidata common service | Mass editing of local language caption 52 Federated query fail All humans with specific label Could anyone make a query of all humans with the word 'Connor Blakley' and 'Anan Islam' in their label in any language? --Trade (talk) 11:07, 1 October 2020 (UTC) You can search for it: Special:Search/inlabel:\"Connor Blakley\" haswbstatement:P31=Q5. As integration into SPARQL is currently broken [1], you can't do the same on Query Server these days. --- Jura 11:20, 1 October 2020 (UTC) Duplicate Results Hello,Someone could explain me why I have so many duplicate results?Thanks in advance! #GLAM Suisse
+SELECT ?item ?itemLabel ?loc2Label
+WHERE 
+{
+  ?item wdt:P31/wdt:P279* wd:Q1030034;
+        wdt:P17 wd:Q39.
+  ?item wdt:P131 ?loc. 
+  ?loc wdt:P31 wd:Q70208; p:P131 ?decl_loc2. ?decl_loc2 ps:P131 ?loc2.?loc2 wdt:P31 wd:Q23058.
+             FILTER NOT EXISTS{?decl_loc2 ps:P131 ?loc2;pq:P582 ?datefin.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,it,en\". }
+}
+ORDER BY ?itemLabel
+ Try it! --Memoriav-bdc (talk) 11:20, 1 October 2020 (UTC) I think it probably comes from multiple parents in wdt:P279*. You can avoid it by using \"SELECT DISTINCT\" instead of \"SELECT\". --- Jura 11:24, 1 October 2020 (UTC) Thanks @Jura1:. I forgot always this fonctionnality.--Memoriav-bdc (talk) 16:46, 1 October 2020 (UTC) Get most recently published example of an item Hi all. What's the most efficient query to get the 100 most recently published instances of an item (e.g. the 100 most recently published doctoral thesis (Q187685))? T.Shafee(evo&evo) (talk) 07:03, 2 October 2020 (UTC) @Evolution and evolvability: For doctoral theses I guess it is simply: SELECT DISTINCT ?item ?publication_date
+WHERE
+{
+  ?item wdt:P31 / wdt:P279 * wd:Q187685 .
+  ?item wdt:P577 ?publication_date .
+}
+ORDER BY DESC(?publication_date)
+LIMIT 100
+ Try it! but beware there may be inaccuracies due different precisions of publication date (P577) (day, month or year). For types of work with very many items, like scholarly article (Q13442814), the query will timeout. --Dipsacus fullonum (talk) 07:55, 2 October 2020 (UTC) @Dipsacus fullonum: Thank you - I kept just using the plain \"ORDER\" and couldn't work out what I'd forgotten! Have use it to generate some links that I'll use for getting people to learn manual editing by adding main subject (P921) statements to theses via https://w.wiki/ekg. T.Shafee(evo&evo) (talk) 09:43, 2 October 2020 (UTC) Checking consistency of values of P585, P580 and P582 User:Bouzinac wrote in section #Shortest and longest wars above: \"My goal of data quality has I'd have another query for you : the items having both start time (P580) end time (P582) point in time (P585), showing those that having point in time (P585) very much not between start time (P580) and end time (P582) ?\" I have considered how to do this, and have come to these requirements for a query: If P585 have precision day P580 and P582, if present, must have same value and precision day. If P585 have precision month P580 and P582, if present, must have values in the same month with precision month or higher. If P580 and P582 both have precision day, they must be different days. If P585 have precision year P580 and P582, if present, must have values in the same year with precision year or higher. If P580 and P582 both have precisions higher than year, they must be in different months. If P585 have precision decade P580 and P582, if present, must have values in the same decade with precision decade or higher. If P580 and P582 both have precisions higher than decade, they must be in different years. If P585 have precision century P580 and P582, if present, must have values in the same century with precision century or higher. If P580 and P582 both have precisions higher than century, they must be in different decades. If P585 have precision millenia P580 and P582, if present, must have values in the same millenia with precision millenia or higher. If P580 and P582 both have precisions higher than millenia, they must be in different centuries. Before I create these queries, I had like to ask for comments on the specific requirements. Do you agree, or can they be improved? --Dipsacus fullonum (talk) 07:17, 2 October 2020 (UTC) Supposedly, one could adjust ranks based on the results of the queries. One just needs to bear in mind that conflicting dates can come from references providing conflicting information. --- Jura 07:25, 2 October 2020 (UTC) I'd like to show the use case that made me Wonder about dates : https://www.wikidata.org/w/index.php?title=Q1064335&oldid=1179975218#P585 The more I think about it, I finally start to think that if there is start time (P580) and end time (P582), then, there, in an absolute way of modelling, shouldn't be none point in time (P585) after all. If a war/country/long processus/relationship... has a beginning and an end, how come it has a simple point in time (P585) ? Bouzinac 💬●✒️●💛 08:34, 2 October 2020 (UTC) Maybe for wars it's less obvious why point in time (P585) can generally be sufficient. Check 37th Torino Film Festival (Q76087259) .. as many film festival editions, it just has the year in P585. Some editions have P580/P582, but is that really useful information for editions in the past? --- Jura 08:47, 2 October 2020 (UTC) In your example 37th Torino Film Festival (Q76087259) (that i've modified), beginning and end dates of a festival are obvious, more precise than date. And thus date should be removed. How would you sparql-query any event ocurred in 2019, be it with date=2019 or start-date>=2019>=end-date ? Bouzinac 💬●✒️●💛 08:54, 2 October 2020 (UTC) Well, unless you add start and end date to all other edition items (and keep adding them), I don't think deletion of P585 is an efficient approach. Reasonator would probably find it even without start/end date. --- Jura 09:01, 2 October 2020 (UTC) Oh .. it times-out even for not so recent years: https://reasonator.toolforge.org/?date=1780 --- Jura 09:11, 2 October 2020 (UTC) Je ne connais pas réasonator...C'est supposé faire quoi? Bouzinac 💬●✒️●💛 09:27, 2 October 2020 (UTC) A une époque, l'option ?date= faisait une jolie récapitulation basée sur P585, P580, P582, etc. --- Jura 09:30, 2 October 2020 (UTC) List of birds on ga Hi. As a continuum of 'List of living birds with an article on...' request I made a few weeks ago, I've added the code (which works on cy) onto gawiki here, but the Wikidata list does not update manually or overnight with Listeria. Any help please? Llywelyn2000 (talk) 07:27, 18 September 2020 (UTC) @Llywelyn2000: \"Overnight\" might take a couple of days. Given what is displayed when one clicks \"manual update\", it's seems to be the issue with the number of items (Topic:Vsgnh3njiw3ej3cl). Either you try to reduce \"LIMIT 1000\" to (e.g.) \"LIMIT 200\" (running the query directly on query service gives some ca. 550) or you ask Magnus to look into it. --- Jura 09:51, 20 September 2020 (UTC) Thanks Jura. Just back from a week off wiki. The odd thing is that the list works on cywiki but not on gawiki - which has a smaller number of articles on birds (650). It would be wonderful if this tool could be developed further; I used it as an alternative to 'See also'. I've left Magnus a message. Thanks again! Llywelyn2000 (talk) 11:27, 2 October 2020 (UTC) Get only the information from statements Hi,When I have a query like SELECT * WHERE {
+  ?s ?label \"optimization\"@en .
+  ?s ?p ?o
+} I would like to have only the triples I see in the Statements box and the definition(s).Best: Stoyan @StoyanDim: This query will show the triples for all statements with best rank for entities with an English label \"optimization\": SELECT ?s ?sLabel ?property ?propertyLabel ?o ?oLabel
+WHERE
+{
+  ?s rdfs:label \"optimization\"@en .
+  ?s ?p ?o .
+  ?property wikibase:directClaim ?p .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 12:21, 2 October 2020 (UTC) @Dipsacus fullonum: Thank you, it looks way better! I have two questions though: Is it possible not to leave out the identifiers, e.g. from the optimization example I need only what I see under Statements. Second, when I use the search box and type 'optimization', the first result is 'mathematical optimization', which I actually look for. How can I get this one instead of the (actually correct one) 'optimization'? Sorry if I'm too oriented to the UI, but I guess the results there also based on a SPARQL query only. @StoyanDim: The user interface may distinguish between statements and identifiers, but from a more technical point of view the identifiers are just a special type of statements. Anyway I can remove them from the results. Q24476018 is the only item with the label \"optimization\"@en, but Q141495 has it as an alias. That is the reason it is in the search. I can include aliases in the query: SELECT ?s ?sLabel ?property ?propertyLabel ?o ?oLabel
+WHERE
+{
+  ?s rdfs:label | skos:altLabel \"optimization\"@en . # Look for both labels and aliases
+  ?s ?p ?o .
+  ?property wikibase:directClaim ?p .
+  MINUS { ?property wikibase:propertyType wikibase:ExternalId . } # Remode external identifiers from the result
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?s
+ Try it! --Dipsacus fullonum (talk) 20:39, 2 October 2020 (UTC) Result with more of one declaration Hello,I want to write a query to control if in my list of item one have more that one declaration in P31. Could you help me please. Here is the basis : #Sites archéologiques en Suisse
+SELECT DISTINCT ?item ?itemLabel
+WHERE 
+{
+  ?item wdt:P17 wd:Q39;
+  wdt:P31/wdt:P279* wd:Q839954.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,it,en\". }
+}
+ORDER BY ?itemLabel
+ Try it! Thanks in advance!--2le2im-bdc (talk) 08:53, 3 October 2020 (UTC) Items used: Switzerland (Q39)   , archaeological site (Q839954)   Properties used: country (P17)   , instance of (P31)   , subclass of (P279)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>,
+    <https://www.wikidata.org//wiki/User:Memoriav-bdc/GLAM>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d828010-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d828010-B09F81724C916B4D5EADD7EAB5A2BAFB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Sites archéologiques en Suisse, avec plus qu'une valeur en P31
+SELECT DISTINCT 
+  ?item ?itemLabel
+  (COUNT(DISTINCT ?instance) as ?count)
+  (GROUP_CONCAT( DISTINCT ?instanceLabel; separator=\", \" ) as ?instances) 
+WHERE 
+{
+  ?item wdt:P17 wd:Q39;
+  wdt:P31/wdt:P279* wd:Q839954.
+  ?item wdt:P31 ?instance .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,de,it,en\".
+                         ?item rdfs:label ?itemLabel .
+                         ?instance rdfs:label ?instanceLabel .
+                         }
+}
+GROUP BY ?item ?itemLabel
+HAVING (?count > 1) 
+ORDER BY ?itemLabel""" .

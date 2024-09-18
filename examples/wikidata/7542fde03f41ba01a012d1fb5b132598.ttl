@@ -1,0 +1,378 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7542fde03f41ba01a012d1fb5b132598> a sh:SPARQLExecutable;
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS ehk Wikidata päringuteenus on võimas tööriist, mis võimaldab piiluda Wikidata telgitagustesse. See juhend õpetab päringukeskkonda kasutama. Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included.  Contents 1 Enne alustamist 2 SPARQL-i alused 3 Meie esimene päring 3.1 Automaatne täitmine 4 Keerulisemad kolmikud 5 Üksikjuht nähtusest ja klassid 5.1 Omaduste rajad 6 Täpsustajad 7 ORDER ja LIMIT 7.1 Harjutus 7.1.1 Arthur Conan Doyle'i raamatud 7.1.2 Keemilised elemendid 7.1.3 Jõed, mis suubuvad Mississippisse 7.1.4 Jõed, mis suubuvad Mississippisse II 8 OPTIONAL 9 Avaldised, FILTER ja BIND 9.1 Andmetüübid 9.2 Tehtemärgid 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Rühmitamine 10.1 Linnade rahvaarvud 10.2 Maalimisel kasutatud materjalid 10.3 Relvad tootja kaupa 10.4 Kirjastused lehekülgede arvu järgi 10.4.1 HAVING 10.5 Kokkuvõte agregeerivatest funktsioonidest 10.6 wikibase:Label ja agregeerimine 11 VALUES 12 Label in multiple languages 13 Ja nii edasi… 14 See also Enne alustamist See juhend võib tunduda pikk ja hirmutav, kuid ära ehmu! SPARQL-i aluste õppimine laob tugeva põhja. Isegi, kui lõpetad lugemise pärast meie esimest päringut, oskad juba piisavalt, et koostada palju põnevaid päringuid. Juhendi iga lõik võimaldab Sul kirjutada aina võimsamaid päringuid.Kui Sa ei ole kunagi kuulnud mõistetest Wikidata, SPARQL või WDQS, siis siin on lühiseletus: Wikidata on koondandmebaas. See sisaldab miljoneid sissekandeid, nagu “Kanada pealinn on Ottawa” või “Mona Lisa on maalitud paplile õlivärviga” või “kulla sulamistemperatuur on 1064,18 kraadi Celsiuse järgi”. SPARQL on keel, mille abil saab sõnastada küsimusi (päringuid) andmebaasidele. Sobivas andmebaas suudab SPARQL-i päring vastata küsimustele nagu “mis on muusikas enim levinud tonaalsus?” või “millist tegelaskuju on mänginud suurim arv näitlejaid?” või “mis on veregruppide jaotus?” või “milliste autorite tööd lisandusid sel aastal avalikku omandisse?”. WDQS (Wikidata Query Service) ehk Wikidata päringuteenus toob need kaks kokku: Sa sisestad SPARQL-i päringu, see käib läbi Wikidata andmete ning kuvab Sulle tulemuse.  SPARQL-i alused Lihtne SPARQL-i päring näeb välja selline: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} SELECT lause on nimekiri muutujatest, mida Sa tahad tagastada (muutujad algavad küsimärgiga), ja WHERE lause sisaldab nende muutujate kitsendusi, peamiselt kolmikute kujul. Wikidatas (ja sarnastes andmebaasides) hoitakse kogu infot kolmikutena. Kui Sa käivitad päringu, siis proovib päringuteenus täita muutujad päris väärtustega, et tulemusena tekkinud kolmikud ilmuksid andmebaasis. Seejärel tagastab ta ühe tulemuse iga leitud muutujate kombinatsiooni kohta. Kolmikut võib lugeda kui lauset (mistõttu ta lõppeb ka punktiga), milles on subjekt, predikaat ja objekt: SELECT ?puuvili
+WHERE
+{
+  ?puuvili omabVärvi kollane.
+  ?puuvili maitseb hapult.
+} Selle päringu tulemused võiksid sisaldada näiteks sidrunit. Wikidatas on enamik omadusi \"omab\" tüüpi, seega päringut võiks lugeda hoopis selliselt: SELECT ?puuvili
+WHERE
+{
+  ?puuvili värv kollane.
+  ?puuvili maitse hapu.
+} mida võib lugeda “?puuvili omab värvi kollane” (mitte “?puuvili on kollase värv” – pea seda meeles selliste omaduspaaride juures nagu “vanem”/“laps”!).See aga ei ole hea näide WDQSi jaoks. Maitse on subjektiivne, seega Wikidatas ei ole selle jaoks omadust (ingl property). Mõtleme selle asemel vanema/lapse suhetele, mis on enamasti üheti mõistetavad. Meie esimene päring Oletame, et me tahame nimekirja barokkajastu helilooja Johann Sebastian Bachi kõigist lastest. Kasutades pseudoelemente nagu ülaltoodud päringutes, kuidas Sa selle päringu kirja paneksid?Loodetavasti said midagi sellist: SELECT ?laps
+WHERE
+{
+  #  lapsel \"on vanem\" Bach
+  ?laps vanem Bach.
+  # (pane tähele: kõik, mis järgneb trellidele (‘#’) on kommentaar ning WDQS ignoreerib seda.)
+} või siis SELECT ?laps
+WHERE
+{
+  # lapsel \"on vanem\" Bach 
+  ?laps vanem Bach. 
+} või siis SELECT ?laps
+WHERE
+{
+  #  Bachil \"on laps\" laps
+  Bach laps ?laps.
+} Esimesed kaks kolmikud ütlevad, et ?laps peab omama vanemat/isa Bach; kolmas ütleb, et Bachil peab olema laps ?laps. Vaatame praegu teist varianti.Mida me peame veel tegema, et sellest korralik WDQS-i päring teha? Wikidatas ei tuvastata üksusi ja omadusi inimloetavate siltide järgi nagu \"isa\" (omadus) või \"Bach\" (üksus). (Seda põhjusega: “Johann Sebastian Bach” on ühtlasi saksa maalikunstniku nimi ja “Bach” võib tähendada hoopis perekonnanimi, Prantsuse kommuuni, Merkuuri kraatrit või muud.) Selle asemel määratakse Wikidatas üksustele ja omadustele identifikaator. Selleks, et leida kindla üksuse identifikaatorit, otsime üksust ja kopeerime Q-numbri sellelt tulemuselt, mis tundub kõige sarnasem selle üksusega, mida me otsime (otsustades näiteks kirjelduse põhjal). Omaduse identifikaatori leidmiseks teeme sama, aga otsime “otsingutermini” asemel “P:otsingutermin”, mis kitsendab tulemused omadustele. See ütleb meile, et kuulus helilooja Johann Sebastian Bach on Q1339 ja üksuse isa kirjeldamiseks kasutatav omadus on P:P22.Viimaseks peame lisama eesliited. Lihtsate WDQS-i kolmikute puhul on üksustel eesliide wd: ja omadustel wdt:. (See käib ainult fikseeritud väärtuste kohta – muutujatele ei panda eesliidet!)Pannes kokku saadud teadmised, jõuame oma esimese WDQS-i päringuni: SELECT ?laps
+WHERE
+{
+# ?laps  isa   Bach
+  ?laps wdt:P22 wd:Q1339.
+}
+ Try it! Kliki nupul \"Proovi järele\", siis vajuta WDQS-i lehel suurt sinist nuppu päringu jooksutamiseks. Mis tulemuse saad? laps wd:Q57225 wd:Q76428 … See on küll pettumus. Sa näed ainult identifikaatoreid. Neile klikkides jõuad vastavale Wikidata lehele (kus on ka inimkeelne silt), aga kas tulemuste kuvamiseks pole paremat viisi?On ikka! (Kas retoorilised küsimused pole mitte toredad?) Kui Sa lisad maagilise teksti SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } kuhugi WHERE lausesse, saad muutujaid juurde: Iga muutuja ?foo kohta Su päringus on nüüd ka muutuja ?fooLabel, mis sisaldab üksuse ?foo silti. Kui Sa lisad uue muutuja ka SELECT lausesse, saad tulemuseks nii üksuse kui selle sildi: SELECT ?laps ?lapsLabel
+WHERE
+{
+# ?laps  isa   Bach
+  ?laps wdt:P22 wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Proovi seda päringut jooksutada – peaksid nägema mitte ainult üksuste numbreid, vaid ka laste nimesid. laps lapsLabel wd:Q57225 Johann Christoph Friedrich Bach wd:Q76428 Carl Philipp Emanuel Bach …  Automaatne täitmine Seda SERVICE jupp tundub raske meelde jätta, eks? Ja päringut kirjutades iga kord õige identifikaatori otsimine on samuti tüütu. Õnneks pakub WDQS sellele hea lahenduse: automaatne täitmine. query.wikidata.org päringutoimetis saad vajutada Ctrl+Tühik (või Alt+Enter või Ctrl+Alt+Enter) mistahes hetkel päringut kirjutades. Seejärel ilmub ekraanile soovitus, mis koodijupp sinna võiks sobida; vali õige soovitus üles/alla nooltega ja vajuta Enter, et see kinnitada.Näiteks selle asemel, et iga kord välja kirjutada SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }, võid lihtsalt trükkida SERV, vajutada Ctrl+Tühik ning esimene soovitus ongi täielik service loits! Lihtsalt vajuta Enter, et valik kinnitada. (Lause formaat tuleb veidi teistsugune, kuid sellest pole vahet.)Automaatne täitmine võib ka Sinu eest otsida. Kui trükid mõne Wikidata eesliidetest, nagu wd: või wdt: ja seejärel lihtsalt kirjutad teksti, siis Ctrl+Tühik otsib seda teksti Wikidatast ja soovitab leitud tulemusi. wd: otsib üksusi, wdt: omadusi. Näiteks, selle asemel et üles otsida Johann Sebastian Bach (Q1339) ja father (P22) üksused, võid lihtsalt trükkida wd:Bach ja wdt:isa ja seejärel lihtsalt valida automaatsoovituste seast õige. (See töötab isegi siis, kui su tekstis on tühikud, näiteks wd:Johann Sebastian Bach.) Keerulisemad kolmikud Nüüd oleme näinud Johann Sebastian Bachi kõiki lapsi, täpsemalt kõiki üksusi, mille isa on Johann Sebastian Bach. Aga Bachi oli kaks naist, seega nendel üksustel on erinevad emad: mis siis, kui me tahame näha ainult Johann Sebastian Bachi lapsi esimese naise, Maria Barbara Bachiga (Q57487)? Proovi vastav päring koostada, toetudes ülaltehtule.Valmis? Vaatame lahendust! Lihtsaim viis seda teha on lisada teine kolmik vastava piiranguga: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339.
+  ?laps wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Eesti keeles saaks seda lugeda nii: Lapsel on isa Johann Sebastian Bach. Lapsel on ema Maria Barbara Bach. Kõlab natuke veidralt, kas pole? Loomulikus keeles me lühendaksime lauset: Lapsel on isa Johann Sebastian Bach ja ema Maria Barbara Bach. Tegelikkuses on võimalik sama lühivormi ka SPARQL-is kasutada: kui kirjutad kolmiku lõppu punkti asemel semikooloni (;), saad lisada veel ühe predikaadi-objekti paari. See lubab meil päringut lühendada nii: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! millel on samad tulemused, kuid vähem kordusi päringus.Nüüd oletame, et saadud tulemustest oleme huvitatud ainult neist, kus lapsed olid samuti heliloojad ja pianistid. Vastavad omadused ja üksused on occupation (P106), composer (Q36834) ja pianist (Q486748). Proovi uuendada ülaltoodud päringut, lisades need kitsendused!Siin on minu lahendus: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;
+         wdt:P106 wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! See kasutab ; lühivormi veel kaks korda, et lisada vajalikud ametid. Ometi võid endiselt märgata kordusi. Praegune päring on sama, nagu me oleksime öelnud: Lapsel on amet helilooja ja amet pianist. mida me tavaliselt lühendaksime nii: Lapsel on amet helilooja ja pianist. Ja SPARQL-il on selle jaoks samuti süntaks olemas: kui ; lubab Sul kolmikule predikaadi-objekti paari lisada (taaskasutades subjekti), siis , lubab Sul kolmikule lisada veel ühe objekti (taaskasutades nii subjekti kui ka predikaati). Selle abil saab päringut lühendada nii: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,
+                  wd:Q486748.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Pane tähele: taanded ja muud tühikud ei ole tegelikult olulised – need teevad päringu lihtaslt loetavamaks. Sa võid kirjutada ka nii: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834, wd:Q486748.
+  # mõlemad ametid ühel real
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! või vähem loetavalt: SELECT ?laps ?lapsLabel
+WHERE
+{
+  ?laps wdt:P22 wd:Q1339;
+  wdt:P25 wd:Q57487;
+  wdt:P106 wd:Q36834,
+  wd:Q486748.
+  # ilma taaneteta on raske eristada ; ja ,
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Õnneks loob päringukeskkond taanded automaatselt Sinu eest, seega Sa ei pea tavaliselt nende pärast muretsema.Teeme siin väikese kokkuvõtte. Me nägime, et päringuid ehitatakse üles nagu teksti. Iga kolmik mingi subjekti kohta lõpeb punktiga. Mitut predikaati sama subjekti kohta eraldab semikoolon ning mitut objekti sama subjekti ja predikaadi kohta võib eraldada komaga. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;
+      p2 o2;
+      p3 o31, o32, o33.
+  ?s2 p4 o41, o42.
+  ?s3 p5 o5;
+      p6 o6.
+} Nüüd tahan ma tutvustada veel üht lühendit, mida SPARQL pakub. Seega, kui lubate mul kirjeldada veel üht hüpoteetilist stsenaariumit...Oletame, et me ei ole tegelikult Bachi lastest huvitatud. (Kes teab, äkki see on Sinu puhul päriselt tõsi!) Aga meid huvitavad Bachi lapselapsed. Siin on üks probleem: lapselaps võib Bachiga seotud olla kas isa või ema kaudu. Need on kaks eri omadust, mis on ebamugav. Pöörame küsimuse ümber: Wikidatas on ka omadus “laps”, P:P40, mis osutab lapselt vanemale ja on soospetsiifiline. Kas Sa suudad selle info põhjal kirjutada päringu, mis tagastab Bachi lapselapsed?Siin on minu lahendus: SELECT ?lapselaps ?lapselapsLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?laps.
+  ?laps wdt:P40 ?lapselaps.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Loomulikus keeles ütleksime seda nii: Bachil on laps ?laps. ?laps omab last ?lapselaps. Pakun jälle, et võiksime seda eestikeelset lauset lühendada, ja seejärel tahan Sulle näidata, kuidas SPARQL sarnast lühivormi lubab. Jälgi, kuidas me ei hooli tegelikult lapsest: me kasutame seda muutujat ainult selleks, et rääkida lapselapsest. Seetõttu saaksime lauset lühendada selliselt: Bachil on keegi selline laps, kellel on laps ?lapselaps. Selle asemel, et öelda, kes Bachi laps on, ütleme lihtsalt keegi: meil pole vahet, kes ta on. Aga me saame tagantjärele talle viidata, sest me kirjutasime \"keegi selline, kellel\": see alustab relatiivlauset ja me saame selles relatiivlauses öelda asju “kellegi” kohta (näiteks et tal “on laps ?lapselaps”). Mingis mõttes on \"keegi\" eriline muutuja, mis kehtib ainult selles relatiivlauses ning millele me otseselt ei viita (me ütleme \"keegi, kes on see ja teeb seda\", mitte \"keegi, kes on see, ja keegi, kes teeb seda\" – need on kaks erinevat \"keegit\").SPARQL-is võiks selle kirja panna nii: SELECT ?lapselaps ?lapselapsLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?lapselaps ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Sa võid kasutada muutuja asemel kandilisi sulge ([]), mis käituvad nagu nimetu muutuja. Sulgude sees saad täpsustada predikaadi-objekti paare, just nagu ; järel tavalise kolmiku puhul; seekord on kaudne subjekt nimetu muutuja, mida esindavad kandilised sulud. (Märkus: täpselt nagu pärast ;, võid ka siin lisada semikoolonitega veel predikaadi-objekti paare, või samale predikaadile komade abil rohkem objekte.)Ja see on kolmikute kohta kõik! SPARQL-is on palju muud, aga kuna me hakkame lahkuma nendest osadest, mis on loomuliku keelega tugevalt analoogsed, tahaksin selle suhte veel korra kokku võtta: loomulik keel näide SPARQL näide lause Julia armastab Romeot. punkt julia armastab romeot. konjunktsioon (lause) Romeo armastab Juliat ja tapab end. semikoolon romeo armastab juliat; tapab romeo. konjunktsioon (nimisõna) Romeo tapab Tybalti ja enda. koma romeo tapab tybalti, romeo. relatiivlause Jula armastab kedagi, kes tapab Tybalti. kandilised sulud julia armastab [ tapab tybalti ].  Üksikjuht nähtusest ja klassid Mainisin varem, et enamik Wikidata omadusi on \"omama\" suhted: omab last, omab isa, omab ametit. Aga vahel (tegelikult isegi tihti) on vaja rääkida, mis miski on. Siin saab aga eristada kaht erinevat suhet: Tuulest viidud on film. Film on kunstiteos. \"Tuulest viidud\" on üks kindel film. Sellel on kindel režissöör (Victor Fleming), kestus (238 minutit), nimekiri näitlejatest (Clark Gable, Vivien Leigh, …) ja nii edasi.Film on üldine mõiste. Filmidel võivad olla režissöörid, kestused ja näitlejad, kuid mõistel \"film\" kui sellisel ei ole ühtki kindlat režissööri, kestust ega näitlejat. Ja kuigi film on kunstiteos ja kunstiteosel on tavaliselt autor, siis mõistel “film” ei ole autorit — ainult üksikjuhtudel sellest mõistest on.Selle erinevuse tõttu on Wikidatas kaks eri omadust \"on\" väljendamiseks: instance of (P31) ja subclass of (P279). Tuulest viidud on üksikjuht klassist \"film\"; klass \"film\" on alamklass (ehk täpsem klass) üldisemast klassist \"kunstiteos\".Et Sul oleks kergem vahest aru saada, võid proovida kasutada kaht erinevat tegusõna: \"on üks kindel\" ja \"on mingit tüüpi\". Kui \"on mingit tüüpi\" sobib (nt Film \"on mingit tüüpi\" kunstiteos), osutab see sellele, et Sa räägid alamklassist ning peaksid kasutama subclass of (P279). Kui \"on mingit tüüpi\" ei sobi (nt lause \"Tuulest viidud\" \"on mingit tüüpi\" film ei ole loogiline), osutab see sellele, et Sa räägid kindlast näitest ning peaksid kasutama instance of (P31).Mida see meie jaoks tähendab, kui me kirjutame SPARQL-i päringuid? Kui me tahame otsida \"kõiki kunstiteoseid\", siis ei piisa, kui me otsime üksusi, mis on üksikjuhud \"kunstiteosest\". SELECT ?töö ?tööLabel
+WHERE
+{
+  ?töö wdt:P31 wd:Q838948. # üksikjuht kunstiteosest
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Juhendi kirjutamise hetkel annab päring ainult 17937 kunstiteost – ilmselgelt on maailmas sellest rohkem kunstiteoseid! Probleem on selles, et siin on puudu üksused nagu \"Tuulest viidud\", mis on üksikjuht \"filmist\", aga mitte \"kunstiteosest\". \"Film\" on alamklass \"kunstiteosest\", aga me peame seda SPARQL-ile teada andma. Üks võimalik lahendus oleks [] süntaks, millest rääkisime: \"Tuulest viidud\" on üksikjuht mingist “kunstiteose” alamklassist. (Koosta see päring harjutamise mõttes!) Kuid sellega on endiselt probleeme: Otsing ei sisalda enam üksusi, mis on otseselt üksikjuhud kunstiteosest. Meil on endiselt puudu üksused, mis on üksikjuhud mingist alamklassist, mis on omakorda mingi muu alamklass “kunstiteosest” – näiteks Lumivalgeke ja seitse pöialpoissi on animeeritud film, mis on film, mis on omakorda kunstiteos. Sel juhul peaksime minema kahe sammu sügavusele – aga tasemeid võib olla ka kolm, neli, viis või tegelikult mistahes arv. Lahendus: ?üksus wdt:P31/wdt:P279* ?klass. See tähendab, et on ainult üks \"üksikjuht nähtusest\" ja seejärel mistahes arv \"alamklass\" avaldusi üksusi ja klassi vahel. SELECT ?töö ?tööLabel
+WHERE
+{
+  ?töö wdt:P31/wdt:P279* wd:Q838948. # üksikjuht kunstiteose mistahes alamklassist
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! (Ma ei soovita seda päringut jooksutada. WDQS ei pruugi sellega hakkama saada, sest tulemusi on nii palju.)Nüüd Sa tead, kuidas otsida kõiki kunstiteoseid või kõiki hooneid või kõiki inimasulaid: kasutades maagilist loitsu wdt:P31/wdt:P279* koos vastava klassiga. See kasutab SPARQL-i funktsioone, mida ma veel seletanud ei ole, aga ausalt-öeldes on see nende funktsioonide ainus vajalik kasutus, seega Sul ei ole vaja mõista, kuidas see töötab, et WDQS-i efektiivselt kasutada. Kui Sind huvitab, siis ma varsti seletan, aga võid ka järgmise sektsiooni vahele jätta ning meelde jätta või siit wdt:P31/wdt:P279* kopeerida-kleepida, kui seda vaja läheb. Omaduste rajad Omaduste rajad on viis lühidalt kirja panna kahe üksuse vahel olevat teekonda. Lühim teekond on üksainus omadus, mis loob tavalise kolmiku: ?item wdt:P31 ?class. Raja elemente saad lisada kaldkriipsuga (/). ?item wdt:P31/wdt:P279/wdt:P279 ?class. See on võrdväärne mõlema järgmise näitega: ?item wdt:P31 ?temp1.
+?temp1 wdt:P279 ?temp2.
+?temp2 wdt:P279 ?class. ?item wdt:P31 [ wdt:P279 [ wdt:P279 ?class ] ]. Harjutus: kirjuta ümber \"Bachi lapselaste\" päring varasemast, kasutades seda süntaksit.Tärn (*) raja elemendi järel tähendab “null või enam seda elementi”. ?item wdt:P31/wdt:P279* ?class.
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">means:</span>
+?item wdt:P31 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or</span>
+?item wdt:P31/wdt:P279/wdt:P279/wdt:P279 ?class
+# <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">or ...</span> Kui rohkem elemente rajas ei ole, siis ?miski* ?b tähendab, et ?b võib ka otseselt olla ?a, ilma, et nende vahel oleks ühtki rajaelementi. Pluss (+) on sarnane tärniga, aga tähendab “üks või enam seda elementi”. Järgnev päring leiab Bachi kõik järeltulijad: SELECT ?järeltulija ?järeltulijaLabel
+WHERE
+{
+  wd:Q1339 wdt:P40+ ?järeltulija.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Kui me kasutaksime siin plussi asemel tärni, näitaksid päringutulemused ka Bachi ennast.Küsimärk (?) on sarnane tärni ja plussiga, aga tähendab “null võik üks seda elementi”.Raja elemente saab kaldkriipsu asemel eraldada püstkriipsuga (|); see tähendab \"üks või teine\": rada võib kasutada kumbagi neist omadustest. (Aga mitte kombineeritult – \"üks või teine\" rada klapib alati rajaga, mille pikkus on üks.)Sa võid raja elemente grupeerida ka sulgudega (()) ja vabalt kombineerida kõiki süntaksi elemente (/|*+?). See tähendab, et veel üks viis Bachi järeltulijaid leida on: SELECT ?järeltulija ?järeltulijaLabel
+WHERE
+{
+  ?järeltulija (wdt:P22|wdt:P25)+ wd:Q1339.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Selle asemel, et kasutada \"lapse\" omadust, et jõuda Bachist tema järeltulijateni, kasutame \"isa\" ja \"ema\" omadusi, et minna järeltulijatest Bachini. See rada võib sisaldada kahte ema ja ühte isa, või nelja isa, või isa-ema-ema-isa, või mõnd muud kombinatsiooni. (Kuigi, kuna Bach ei saa olla kellegi ema, on viimane element alati isa.) Täpsustajad (Esmalt head uudised: selles lõigus ei lisandu uut SPARQL-i süntaksit – jee! Võta kerge hingetõmme ja lõõgastu, see peaks olema käkitegu. Eks ole?)Seni oleme rääkinud ainult lihtsatest avaldustest: subjekt, omadus, objekt. Aga Wikidata avaldused on sellest võimsamad: nad saavad sisaldada ka täpsustajaid ja viiteid. Näiteks Mona Lisal (Q12418) on kolm made from material (P186) avaldust: oil paint (Q296955), põhimaterjal; poplar wood (Q291034), täpsustajaga applies to part (P518)painting support (Q861259) – see on materjal, mille peale Mona Lisa maaliti; ja wood (Q287), täpsustajatega applies to part (P518)stretcher (Q1737943) ja start time (P580) 1951 – see osa lisati maalile hiljem. Oletame, et me tahame leida kõik maalid nende pealispinnaga, see tähendab made from material (P186) avaldused koos täpsustajaga applies to part (P518)painting support (Q861259) . Kuidas me seda teeme? See on järjekordne info, mida saab esitada üheainsa kolmikuna.Vastus on: veel kolmikuid! (Rusikareegel: Wikidata lahendust peaaegu kõigele on \"rohkem üksusi\" ja vastav WDQS-i reegel on \"rohkem kolmikuid\". Viited, numbriline täpsus, väärtusted koos ühikutega, koordinaadid jpm, millest me siin ei räägi, töötavad samamoodi.) Seni oleme kasutanud oma avalduste kolmikute jaoks eesliidet wdt:, mis osutab otse avalduse objektile. Aga siis on on ka teine eesliide: p:, mis ei osuta mitte objektile, vaid \"avalduse sõlmele\". See sõlm on omakorda teiste kolmikute subjekt: eesliide ps: (\"p\" nagu property ja \"s\" nagu statement) osutab avalduse objektile, eesliide pq: (property qualifier) täpsustajatele ja prov:wasDerivedFrom osutab viite sõlmedele (mida me praegu ei vaata).See oli pikk abstraktne tekst. Siin on konkreetne näide Mona Lisast: wd:Q12418 p:P186 ?statement1.    # Mona Lisa: material used: ?statement1
+?statement1 ps:P186 wd:Q296955.  # value: oil paint
+
+wd:Q12418 p:P186 ?statement2.    # Mona Lisa: material used: ?statement2
+?statement2 ps:P186 wd:Q291034.  # value: poplar wood
+?statement2 pq:P518 wd:Q861259.  # qualifier: applies to part: painting surface
+
+wd:Q12418 p:P186 ?statement3.    # Mona Lisa: material used: ?statement3
+?statement3 ps:P186 wd:Q287.     # value: wood
+?statement3 pq:P518 wd:Q1737943. # qualifier: applies to part: stretcher bar
+?statement3 pq:P580 1951.        # qualifier: start time: 1951 (pseudo-syntax) Me saame seda korralikult lühendada [] süntaksi abil, asendades ?avaldus muutujad: wd:Q12418 p:P186 [ ps:P186 wd:Q296955 ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q291034;
+            pq:P518 wd:Q861259
+          ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q287;
+            pq:P518 wd:Q1737943;
+            pq:P580 1951
+          ]. Kas Sa suudad nende teadmiste põhjal kirjutada päringu kõigi maalide ja nende pealispindade kohta?Siin on minu lahendus: SELECT ?maal ?maalLabel ?materjal ?materjalLabel
+WHERE
+{
+  ?maal wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?materjal; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Esiteks, me piirame muutuja ?maal painting (Q3305213) või tema alamklassi üksikjuhtudeks. Seejärel eraldame materjali p:P186 avalduse sõlmest, piirates avaldusi nendega, millel on täpsustaja applies to part (P518)painting support (Q861259) . ORDER ja LIMIT Tuleme tagasi oma tavaprogrammi juurde: veel SPARQL-i funktsioone.Seni oleme vaadanud päringuid, kus oleme huvitatud kõigist tulemustest. Kuid on üsna tavapärane hoolida ainult mõnest tulemusest: nendest, mis on mingil viisil kõige ekstreemsemad – vanimad, noorimad, varaseimad, hiliseimad, suurima rahvaarvuga, madalaima sulamistemperatuuriga, enimate lastega, suurima arvu kasutatud materjalidega ja nii edasi. Siin on ühine tegur, et tulemused on kuidagi järjestatud ja me hoolime ainult mõnest esimesest tulemusest (mis on järjekorras esimesed).Seda kontrollivad kaks lauset, mis lisatakse WHERE {} blokile (pärast loogelisi sulge, mitte enne!): ORDER BY ja LIMIT.ORDER BY something järjestab tulemused millegi järgi. See miski võib olla mistahes avaldis – praegu on ainus avaldis, mida me teame, lihtne muutuja (?miski), aga vaatame hiljem ka avaldiste teisi tüüpe. Sellele avaldisele võib lisada ASC() või DESC(), et täpsustada järjekorda (ascending ehk kasvav või descending ehk kahanev). (Kui sa kumbagi ei täpsusta, siis vaikimisi kasutatakse kasvavat järjestust, seega ASC(miski) on võrdväärne kirjapildiga miski.)LIMIT arv lõikab tulemused ära pärast arv tulemust, kust arv on mistahes naturaalarv. Näiteks LIMIT 10 piirab päringut esimese kümne tulemuseni. LIMIT 1 tagastab üheainsa tulemuse.(Sa võid kasutada LIMIT ka ilma lauseta ORDER BY. Sel juhul ei järjestata tulmeusi, seega Sa ei tea, millised tulemused saad. See on täiesti okei, kui sa tead, et tulemusi on ainult teatud arv, või kui Sind huvitab lihtsalt mingi tulemus, mitte kindel tulemus. Mõlemal juhul, LIMIT lisamine võib päringut märgatavalt kiirendada, sest WDQS saab lõpetada otsimise, kui on leidnud piisavalt, et piir täita.)Harjutamise aeg! Proovi kirjutada päring, mis tagastab kümme kõike rahvarohkemat riiki. (Riik on sovereign state (Q3624078) ja rahvaarvu omadus on P:P1082.) Võid alustada sellega, et otsid riike nende rahvaarvu järgi, ja seejärel lisada ORDER BY ja LIMIT laused.Siin on minu lahendus: SELECT ?riik ?riikLabel ?rahvaarv
+WHERE
+{
+  ?riik wdt:P31/wdt:P279* wd:Q3624078;
+           wdt:P1082 ?rahvaarv.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?population)
+LIMIT 10
+ Try it! Pane tähele, et kui me tahame suurima rahvaarvuga riike, peame järjestama kahanevas järjekorras, et esimesed tulemused oleksid suurima väärtusega. Harjutus Me oleme siiani palju õppinud – on aeg mõneks harjutuseks. (Kui Sul on kiire, võid selle sektsiooni vahele jätta.) Arthur Conan Doyle'i raamatud Kirjuta päring, mis tagastab Arthur Conan Doyle'i kõik raamatud. Vihje Asjakohased üksused ja omadused on: Arthur Conan Doyle (Q35610), author (P50). Näidislahendus SELECT ?raamat ?raamatLabel
+WHERE
+{
+  ?raamat wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Keemilised elemendid Kirjuta päring, mis tagastab kõik keemilised elemendid koos keemiliste sümbolite ja aatomnumbritega, järjestatud aatomnumbrite järgi. Vihje Asjakohased üksused ja omadused on: chemical element (Q11344), element symbol (P246), atomic number (P1086). Näidislahendus SELECT ?element ?elementLabel ?sümbol ?number
+WHERE
+{
+  ?element wdt:P31 wd:Q11344;
+           wdt:P246 ?sümbol;
+           wdt:P1086 ?number.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ORDER BY ?number
+ Try it!  Jõed, mis suubuvad Mississippisse Kirjuta päring, mis tagastab kõik jõed, mis suubuvad otse Mississipi jõkke. (Suurim väljakutse on õige omaduse leidmine...) Vihje Asjakohased üksused ja omadused on: Mississippi River (Q1497), mouth of the watercourse (P403). Näidislahendus SELECT ?jõgi ?jõgiLabel
+WHERE
+{
+  ?jõgi wdt:P403 wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it!  Jõed, mis suubuvad Mississippisse II Kirjuta päring, mis tagastab kõik jõed, mis suubuvad otse või kaudselt Mississipi jõkke. Vihje See päring on peaaegu identne eelmisega. Erinevus on selles, et seekord on kolmiku asemel vaja rada. (Kui Sa jätsid lõigu radade kohta vahele, siis jäta ka see harjutus vahele.) Näidislahendus SELECT ?jõgi ?jõgiLabel
+WHERE
+{
+  ?jõgi wdt:P403+ wd:Q1497.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! OPTIONAL Eelnevates harjutustes oli meil päring Arthur Conan Doyle'i kõigi raamatute kohta. SELECT ?book ?bookLabel
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Aga see on veidi igav. Raamatute kohta on nii palju andmeid, ometi me näitame ainult silte? Proovime kokku panna päringu, mis sisaldaks ka title (P1476), illustrator (P110), publisher (P123) ja publication date (P577).Esimene katse võib välja näha midagi sellist: SELECT ?raamat ?pealkiri ?illustreerijaLabel ?kirjastajaLabel ?avaldatud
+WHERE
+{
+  ?raamat wdt:P50 wd:Q35610;
+        wdt:P1476 ?pealkiri;
+        wdt:P110 ?illustreerija;
+        wdt:P123 ?kirjastus;
+        wdt:P577 ?avaldatud.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Jooksuta see päring. Kirjutamise hetkel tagastab see ainult üheksa tulemust – natuke napp! Miks see nii on? Me leidsime enne üle saja raamatu!Põhjus on selles, et päringuga sobimiseks peab potentsiaalne tulemus (raamat) klappime kõigi toodud kolmikutega: sellel peab olema pealkiri, illustreerija, kirjastus ja avaldamise aeg. Kui raamatul on osa neist omadustest, kuid mitte kõik, siis see ei klapi. Praegu me aga sellist tulemust ei taha: me tahame peamiselt nimekirja raamatutest – kui leidub lisaandmeid, tahaksime neid ka näha, aga me ei taha piirata oma tulemusi nende (puudumise) tõttu.Lahendus on öelda WDQS-ile, et need kolmikud on optional ehk valikulised. SELECT ?raamat ?pealkiri ?illustreerijaLabel ?kirjastusLabel ?avaldatud
+WHERE
+{
+  ?raamat wdt:P50 wd:Q35610.
+  OPTIONAL { ?raamat wdt:P1476 ?pealkiri. }
+  OPTIONAL { ?raamat wdt:P110  ?illustreerija. }
+  OPTIONAL { ?raamat wdt:P123  ?kirjastus. }
+  OPTIONAL { ?raamat wdt:P577  ?avaldatud. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! See annab meile muutujaid juurde (?pealkiri, ?kirjastus jne), kui vastav avaldus eksisteerib, aga kui avaldust ei ole olemas, siis tulemust ei visata minema – vastavat muutujat lihtsalt ei määrata.Märkus: siin on väga oluline kasutada eraldi OPTIONAL lauseid. Kui Sa paned kõik kolmikud ühte lausesse, nagu siin – SELECT <span lang=\"en\" dir=\"ltr\" class=\"mw-content-ltr\">?book ?title ?illustratorLabel ?publisherLabel ?published</span>
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  OPTIONAL {
+    ?book wdt:P1476 ?title;
+          wdt:P110 ?illustrator;
+          wdt:P123 ?publisher;
+          wdt:P577 ?published.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! – paned tähele, et enamik tulemusi ei sisalda üldse lisainfot. Põhjus on selles, et optional mitme kolmikuga lause klapib ainult siis, kui iga kolmiku tingimus on rahuldatud. Teisisõnu: kui raamatul on pealkiri, illustreerija, kirjastus ja avaldamise aeg, siis optional lause klapib ja need väärtused määratakse vastavatele muutujatele. Aga kui raamatul on näiteks pealkiri, kuid ei ole illustreerijat, siis ei klapi terve optional lause ja kuigi tulemust ei visata minema, jäävad kõik kolm muutujat tühjaks. Avaldised, FILTER ja BIND See lõik võib tunduda vähem organiseeritud kui eelnevad, sest see katab üsna laia ja mitmekülgset teemat. Põhimõte on selles, et me tahaksime midagi edasi teha nende väärtustega, mida me oleme siiani lihtsalt valinud ja tagastanud. Ja avaldised on viis väljendada neid toiminguid väärtustega. Erinevaid avaldisi on palju ja nendega saab teha nii mõndagi, kuid alustame põhitõega: andmetüübid. Andmetüübid SPARQL-is on igal väärtusel mingi tüüp, mis ütleb sulle, mis liiki väärtusega on tegemist ja mida sellega pihta saab hakata. Kõige olulisemad tüübid on: üksus, näiteks Douglas Adams (Q42) üksus on wd:Q42. tõeväärtus, millel on kaks võimalikku väärtust tõene ja väär. Tõeväärtusi ei hoita avaldustes, kuid paljud avaldised tagastavad tõeväärtuse, nt 2 < 3 (tõene) või \"a\" = \"b\" (väär). sõne, tükk teksti. Sõned ümbritsetakse jutumärkidega. ühekeelne tekst, sõne koos keeletähisega. Keeletähise saab lisada sõne järele märgiga @, nt \"Douglas Adams\"@et. arvud, täisarvud (1) või kümnendarvud (1.23). kuupäevad. Kuupäevi saab kirjutada, lisades ^^xsd:dateTime (tõstutundlik – ^^xsd:datetime ei toimi!) mingile ISO 8601 kuupäevasõnele: \"2012-10-29\"^^xsd:dateTime.  Tehtemärgid On olemas tuttavad tehtemärgid: +, -, *, / liitmiseks, lahutamiseks, korrutamiseks või jagamiseks, <, >, =, <=, >= nende võrdlemiseks. Mittevõrdust ≠ saab kirjutada !=. Võrrelda saab ka teisi andmetüüpe; näiteks \"abc\" < \"abd\" on tõene (sõnavaraline võrdlus), samuti on tõene \"2016-01-01\"^^xsd:dateTime > \"2015-12-31\"^^xsd:dateTime and wd:Q4653 != wd:Q283111. Tõeväärtuste tingimusi saab ka kombineerida, kasutades && (konjunktsioon ehk \"ning\": a && b on tõene, kui nii a kui ka b on tõesed) ja || (disjunktsioon ehk \"või\": a || b on tõene, kui vähemalt üks kahest a või b on tõene). FILTER Info For a sometimes faster alternative to FILTER, you might also look at MINUS, see example. FILTER(tingimus). on lause, mida võid sisestada oma SPARQL-i päringusse, et filtreerida tulemusi. Sulgude sisse võid panna mistahes loogilise avaldise (mis tagastab kas \"tõene\" või \"väär\"). Kasutatakse ainult neid tulemusi, kus avaldis tagastab tõene. Näiteks, et saada nimekirja kõigist 2015. aastal sündinud inimestest, võtame kõigepealt kõik inimesed koos sünniajaga – SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+} – ja seejärel kasutame filtrit, et tagastada ainult tulemused, kus sünniaasta on 2015. Selleks on kaks viisi: YEAR funktsiooniga sünniaasta välja võtta ja testida, et see on 2015 – FILTER(YEAR(?dob) = 2015). – või kontrollida, et kuupäev on Jan. 1st (k.a), 2015 ja Jan. 1st, 2016 (v.a) vahel: FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime). Minu arust on esimene variant selgem, aga tuleb välja, et teine on tunduvalt kiirem, seega kasutame teist: SELECT ?inimene ?inimeneLabel ?aasta
+WHERE
+{
+  ?inimene wdt:P31 wd:Q5;
+          wdt:P569 ?sünd.
+  FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?sünd < \"2016-01-01\"^^xsd:dateTime).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". } 
+}
+ Try it! Veel üks FILTER võimalik kasutus on seotud siltidega. Silditeenus on väga kasulik, kui Sa tahad lihtsalt kuvada muutuja sildi. Aga kui Sa tahad sildiga midagi teha – näiteks kontrollida, kas see algab \"Mr. \" – siis see ei tööta: SELECT ?human ?humanLabel
+WHERE
+{
+  ?human wdt:P31 wd:Q15632617.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  #This FILTER does not work!
+  FILTER(STRSTARTS(?humanLabel, \"Mr. \")).
+}
+ Try it! See päring leiab kõik üksikjuhud nähtusest fictional human (Q15632617) ja kontrollib, kas nende silt algab \"Mr. \" (STRSTARTS on pikemalt string starts [with] ehk \"sõne algab [millega]\"; veel on olemas STRENDS ehk \"sõne lõpeb [millega]\" ja CONTAINS ehk \"sisaldab\"). Põhjus, miks see ei tööta, on järgnev: silditeenus lisab oma muutujad päringuhindamise hilises faasis; sel hetkel, kui me proovime kasutada filtrit ?inimeneLabel peal, ei ole veel sellist muutujat loodud.Õnneks ei ole silditeenus ainus võimalus üksuse silti kätte saada. Silte hoitakse ka tavaliste kolmikutena, kasutades predikaati rdfs:label. See tähendab muidugi kõiki silte, mitte ainult ingliskeelseid; kui me tahame ainult ingliskeelseid silte, peame filtrit kasutama koos sildi keelega: FILTER(LANG(?label) = \"en\"). Funktsioon LANG tagastab ühekeelse sõne keele, ja siin me oleme valinud ainult ingliskeelsed sildid. Täielik päring on: SELECT ?inimene ?silt
+WHERE
+{
+  ?inimene wdt:P31 wd:Q15632617;
+         rdfs:label ?silt.
+  FILTER(LANG(?label) = \"[AUTO_LANGUAGE]\").
+  FILTER(STRSTARTS(?label, \"Mr. \")).
+}
+ Try it! Me saame sildi koos ?human rdfs:label ?label kolmikuga, kitsendame seda ingliskeelsete siltide peale ja siis kontrollime, kas see algab tiitliga \"Mr. \".FILTER lauset võib kasutada ka regulaaravaldisega. Järgnevas näites SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"[\\\\.q]\")) 
+}
+ Try it! Kui formaadi kitsendus ID jaoks on [A-Za-z][-.0-9A-Za-z]{1,}: SELECT ?item ?itemLabel ?bblid
+WHERE {  
+    ?item wdt:P2580 ?bblid .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }  
+    FILTER(!REGEX(STR(?bblid), \"^[A-Za-z][-.0-9A-Za-z]{1,}$\"))
+}
+ Try it! On võimalik välja filtreerida kindlaid elemente niimoodi FILTER ( ?item not in ( wd:Q4115189,wd:Q13406268,wd:Q15397819 ) ) It is possible to filter and have elements that aren't filled: FILTER ( NOT EXISTS { ?item  wdt:P21 [] } )  BIND, BOUND, IF Neid kolme funktsiooni kasutatakse tihti üheskoos, seega seletan esmalt kõik kolm ära ja seejärel näitan mõningaid näiteid.A BIND(avaldis AS ?muutuja). lauset saab kasutada, et avaldise tulemust määrata muutujale (tavaliselt uus muutuja, aga võid ka olemasolevaid muutujaid üle kirjutada).BOUND(?variable) kontrollib, et väärtusele on määratud mingi muutuja (tagastab tõene või väär). See on peamiselt kasulik muutujate puhul, mida kirjeldatakse OPTIONAL lauses.IF(tingimus,ifAvaldis,elseAvaldis) saab väärtuseks thenAvaldis kui tingimus saab väärtuseks tõene, ja elseAvaldis kui tingimus saab väärtuseks väär. See tähendab, et IF(true, \"jah\", \"ei\") saab väärtuseks \"jah\", ja IF(false, \"suurepärane\", \"kohutav\") saab väärtuseks \"kohutav\".BIND saab kasutada, et siduda mingi arvutuse tulemused uude muutujasse. See võib olla suurema arvutuse vahetulemus, kuid ka päringu otsene tulemus. Näiteks selleks, et saada surmanuhtluse ohvrite iga: SELECT ?inimene ?inimeneLabel ?vanus
+WHERE
+{
+  ?inimene wdt:P31 wd:Q5;
+          wdt:P569 ?sündis;
+          wdt:P570 ?suri;
+          wdt:P1196 wd:Q8454.
+  BIND(?suri - ?sündis AS ?vanusPäevades).
+  BIND(?vanusPäevades/365.2425 AS ?vanusAastates).
+  BIND(FLOOR(?vanusAastates) AS ?vanus).
+  # ?vanus
+  #BIND(FLOOR((?suri - ?sündis)/365.2425) AS ?vanus).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! BIND saab kasutada ka selleks, et loetavuse huvides siduda konstante muutujatesse. Näiteks, päring mis leiab kõik naissoost preestrid: SELECT ?naine ?naineLabel
+WHERE
+{
+  ?naine wdt:P31 wd:Q5;
+         wdt:P21 wd:Q6581072;
+         wdt:P106 wd:Q42603.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! võib kirjutada ümber nii: SELECT ?naine ?naineLabel
+WHERE
+{
+  BIND(wdt:P31 AS ?üksikjuhtNähtusest).
+  BIND(wd:Q5 AS ?inimene).
+  BIND(wdt:P21 AS ?sugu).
+  BIND(wd:Q6581072 AS ?naine).
+  BIND(wdt:P106 AS ?amet).
+  BIND(wd:Q42603 AS ?preester).
+  ?naine ?üksikjuhtNähtusest ?inimene;
+         ?sugu ?naine;
+         ?amet ?preester.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! Tähendusrikas osa päringust, alates ?naine kuni ?preester. on nüüd ilmselt paremini loetav. Samas, suur BIND jupp selle ees on üsna häiriv, seega seda tehnikat tehnikat tuleks mõõdukalt kasutada. (WDQS kasutajaliideses saad hiirega liikuda mõistete peal nagu wd:Q123 või wdt:P123 ja näha nende silti ja kirjeldust, seega ?naine on ainult loetavam kui wd:Q6581072, kui seda funktsionaalsust ignoreerida.)IF avaldisi kasutatakse tihti koos BOUND tingimuslausetega. Näiteks, oletame et Sa tahad teha päringu, mis näitab inimesi, ja selle asemel et näidata lihtsalt nende silti, Sa tahaksid, et kuvataks inimese pseudonym (P742) juhul kui neil see olemas on, ja vastasel juhul näidataks silti. Selle jaoks saad valida varjunime OPTIONAL lauses (see peab olema valiklause – Sa ei taha visata välja tulemusi, kus varjunimi puudub) ja seejärel kasutada BIND(IF(BOUND(…, et valida kas varjunimi või silt. SELECT ?writer ?label
+WHERE
+{
+  # French writer born in the second half of the 18th century
+  ?writer wdt:P31 wd:Q5;
+          wdt:P27 wd:Q142;
+          wdt:P106 wd:Q36180;
+          wdt:P569 ?dob.
+  FILTER(\"1751-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"1801-01-01\"^^xsd:dateTime).
+  # get the English label
+  ?writer rdfs:label ?writerLabel.
+  FILTER(LANG(?writerLabel) = \"en\").
+  # get the pseudonym, if it exists
+  OPTIONAL { ?writer wdt:P742 ?pseudonym. }
+  # bind the pseudonym, or if it doesn’t exist the English label, as ?label
+  BIND(IF(BOUND(?pseudonym),?pseudonym,?writerLabel) AS ?label).
+}
+ Try it! Veel omadusi, mida sel viisil saab kasutada, on nickname (P1449), posthumous name (P1786), and taxon common name (P1843) – kõik, kus mingisugune vaikimisi väärtus on loogiline.Sa võid ka kombineerida BOUND ja FILTER, et veenduda, et vähemalt üks mitmest OPTIONAL jupist on täidetud. Võtame näiteks kõik astronaudid, kes on käinud Kuul, lisaks Apollo 13 (Q182252) liikmed (peaaegu sama asi, eks ole?). Seda kitsendust ei saa väljendada üheainsa omadusteena, seega me vajame üht OPTIONAL lauset väljendamaks \"mingi kosmoselennu liige\" ja teist, et väljendada \"Apollo 13 liige\". Aga me tahame välja valida need tulemused, kus vähemalt üks neist kahest tingimusest on tõene. SELECT ?astronaut ?astronautLabel
+WHERE
+{
+  ?astronaut wdt:P31 wd:Q5;
+             wdt:P106 wd:Q11631.
+  OPTIONAL {
+    ?astronaut wdt:P450 ?kosmoselend.
+    ?kosmoselend wdt:P31 wd:Q495307.
+  }
+  OPTIONAL {
+    ?astronaut wdt:P450 wd:Q182252.
+    BIND(wd:Q182252 AS ?kosmoselend).
+  }
+  FILTER(BOUND(?kosmoselend)).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}
+ Try it! COALESCE COALESCE funktsiooni saab kasutada lühendina BIND(IF(BOUND(?x), ?x, ?y) AS ?z). vaikimisi väärtustega mustrile nagu ülalpool mainitud: see võtab endasse mingi arvu avaldisi ja tagastab esimese, mis jookseb ilma tõrgeteta. Näiteks, ülaltoodud \"varjunime\" vaikimisi väärtustega päringu BIND(IF(BOUND(?varjunimi),?varjunimi,?kirjanikLabel) AS ?silt). saab kirjutada lühemalt nõnda """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/et>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

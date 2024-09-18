@@ -1,0 +1,47 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-be84e661f7d0eee79909cab221610624> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , subclass of (P279)   , publication date (P577)   , followed by (P156)   , part of the series (P179)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Video_games/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d839059-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Video game series with the longest time time gap between a game and its direct sequel
+# (as games can have more than one publication date [because re-releases], we only take the earliest one [using MIN])
+SELECT ?series ?seriesLabel ?years ?interval ?game ?gameLabel ?original_date_game ?sequel ?sequelLabel ?original_date_sequel WHERE {
+  {
+    SELECT ?game ?gameLabel (MIN(?game_date) AS ?original_date_game) ?sequel ?sequelLabel (MIN(?sequel_date) AS ?original_date_sequel) ?series ?seriesLabel WHERE {
+      ?game (wdt:P31/(wdt:P279*)) wd:Q7889; # All video games...
+        wdt:P577 ?game_date.                # with their publication date(s)...
+      {
+        ?game p:P179 ?series_statement.     # (Unpacking the series statement)
+        ?series_statement ps:P179 ?series;  #   ...in a series...
+          pq:P156 ?sequel.                  #   ...with a sequel...
+      } UNION {                             # ...or...
+        ?game wdt:P156 ?sequel.             #   ...with a sequel...
+        OPTIONAL {
+          ?game wdt:P179 ?series            # ...maybe with a series
+        }
+      }
+      ?sequel wdt:P577 ?sequel_date.        # with its own publication date(s)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+    }
+    GROUP BY ?game ?gameLabel ?sequel ?sequelLabel ?series ?seriesLabel
+  }
+  BIND(?original_date_sequel - ?original_date_game AS ?interval)  # Calculating the time gap between the original releases, in days...
+  BIND(ROUND(?interval / 365 ) AS ?years)                         # ...and converting to years, for convenience...
+  FILTER(?interval > 0 )                                          # Only keeping sequels published after (filtering out some bad data)
+}
+ORDER BY DESC (?interval)                                         # Longest time gaps first""" .

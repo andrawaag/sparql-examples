@@ -1,0 +1,34 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6387051ee3b83e43e633fca9776b4335> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d82543-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# display item and label
+SELECT ?item ?itemLabel
+WHERE {
+  # instance of standard Unix utility
+  ?item wdt:P31 wd:Q18343316. 
+  # missing description in english
+  FILTER(NOT EXISTS { ?item schema:description ?lang_label. FILTER(LANG(?lang_label) = \"de\") })
+  # at least one sitelink is a WP article in any language
+  ?article schema:about ?item .  FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") .
+  # define used language, label and description for usage above
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\".
+    ?item rdfs:label ?itemLabel. 
+    ?item schema:description ?itemDescription 
+  }
+} group by ?item ?itemLabel order by ?itemLabel""" .

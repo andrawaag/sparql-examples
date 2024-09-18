@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a08490e02e067aa5d3930afe18bdbd7d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_SrpKor/Queries>,
+    <https://www.wikidata.org//wiki/Wikidata:WikiProject_ELTeC/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826219-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d826219-E33740B6817E7B5DB3491D2562C8F795;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Timeline
+SELECT DISTINCT ?novel ?novelLabel ?image ?date  ?author ?authorLabel 
+WHERE {
+  ?novel  wdt:P747 ?edition;
+          wdt:P747 ?edFirst;
+          wdt:P18 ?image.
+  ?edition wdt:P31 wd:Q3331189;
+            wdt:P1433 ?corpus.
+  ?corpus wdt:P361 wd:Q106927517.
+  ?edFirst wdt:P31 wd:Q10898227;
+            wdt:P577 ?date.
+
+  OPTIONAL { ?novel wdt:P50 ?author. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"sr,[AUTO_LANGUAGE],en\". }
+}""" .

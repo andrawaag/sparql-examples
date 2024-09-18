@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-c0d4c6b24567eade17480c9bf79f8942> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/lb>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/he>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/szl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/en-gb>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/hy>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/ja>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/ru>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/en>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846913-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d846913-477CBF2F935811A9921E1716137CE295,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-09C324A67196E1953D2BB127C3F90DF5, _:genid-4e694113159d4e3db4a1a913894a81d846913-3CB56FEAA837E4D1F0121FF36A79D5AE,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-647FA25E8367D0F0F88D41A324821A8A, _:genid-4e694113159d4e3db4a1a913894a81d846913-F0C382B0E8A655C3A462274ED1778A21,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-88CFC2AE49556420B6554D6BE21514D9, _:genid-4e694113159d4e3db4a1a913894a81d846913-0172EB3BB57984D85D68DC0C99E1737A,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-AE7AFC7C5BD6AF16B6F4CFED6CBEBF22, _:genid-4e694113159d4e3db4a1a913894a81d846913-7941E172A542705E222C83D10BFE8CF2,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-9932CCD160EEF45C4F761DF352260F87, _:genid-4e694113159d4e3db4a1a913894a81d846913-5E15BC8157371123CD42A07A659FC4CE,
+    _:genid-4e694113159d4e3db4a1a913894a81d846913-C421FF15B660BB480572754F9DC659CF;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?person ?personLabel ?age
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?born;
+          wdt:P570 ?died;
+          wdt:P1196 wd:Q8454.
+  BIND(?died - ?born AS ?ageInDays).
+  BIND(?ageInDays/365.2425 AS ?ageInYears).
+  BIND(FLOOR(?ageInYears) AS ?age).
+  # or, as one expression:
+  #BIND(FLOOR((?died - ?born)/365.2425) AS ?age).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
+}""" .

@@ -1,0 +1,52 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4dfa1ceed3faa7c6342acd0e74d3c774> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d817879-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d817879-5ABA10E4727DEA9B29657F19B0D051FA,
+    _:genid-4e694113159d4e3db4a1a913894a81d817879-E6431E31D561C59F69FDE7498D48AD29, _:genid-4e694113159d4e3db4a1a913894a81d817879-07422B75687C06715E5B5483F4581925,
+    _:genid-4e694113159d4e3db4a1a913894a81d817879-F05F6240BE2976359593C7B104814EC6, _:genid-4e694113159d4e3db4a1a913894a81d817879-53568F62655F7F03337709BD2F228B03,
+    _:genid-4e694113159d4e3db4a1a913894a81d817879-B65985B094115575E80AB2544DD67E02, _:genid-4e694113159d4e3db4a1a913894a81d817879-24BEF013BAE9AE4B2300DC251DDFCADC,
+    _:genid-4e694113159d4e3db4a1a913894a81d817879-67A37D84B588297F23FEBE5EA63570E6, _:genid-4e694113159d4e3db4a1a913894a81d817879-699AAE46FA68CF2981B4BE998608575E,
+    _:genid-4e694113159d4e3db4a1a913894a81d817879-BCF50A1517E150688E551FAA319886E3;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2016-10
+#defaultView:Map
+SELECT DISTINCT ?item ?name ?coord ?lat ?lon
+WHERE {
+   hint:Query hint:optimizer \"None\" .
+   ?item wdt:P131* wd:Q61 .
+   ?item wdt:P31/wdt:P279* wd:Q33506 .
+   ?item wdt:P625 ?coord .
+   ?item p:P625 ?coordinate .
+   ?coordinate psv:P625 ?coordinate_node .
+   ?coordinate_node wikibase:geoLatitude ?lat .
+   ?coordinate_node wikibase:geoLongitude ?lon .
+   SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+    ?item rdfs:label ?name
+   }
+}
+ORDER BY ASC (?name)""" .

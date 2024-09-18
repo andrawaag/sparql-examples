@@ -1,0 +1,61 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-565accb358b8c55a07cd3cb770d29436> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infrastruktur/Sandbox2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d816874-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Utsagn på Wikidata med referanse fra dn.no
+SELECT ?statement ?subject ?subjectLabel ?property ?propertyLabel ?object ?objectLabel ?refURL
+WITH {
+  SELECT DISTINCT ?subject
+  WHERE {
+    {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"http\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    } UNION {
+      SERVICE wikibase:mwapi {
+        bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+          wikibase:api \"Generator\";
+          mwapi:generator \"exturlusage\";
+          mwapi:geulimit \"500\";
+          mwapi:geuquery \"*.dn.no\";
+          mwapi:geuprotocol \"https\";
+          mwapi:geunamespace \"0\" .
+        ?subject wikibase:apiOutputItem mwapi:title.
+      }
+    }
+  }
+} AS %i
+WHERE {
+  INCLUDE %i .
+  
+  hint:Query hint:optimizer \"None\".
+  
+  ?subject ?p ?statement .
+  ?statement prov:wasDerivedFrom/pr:P854 ?refURL .
+  FILTER (CONTAINS(str(?refURL), 'dn.no')) .
+  
+  ?property wikibase:claim ?p .
+  ?property wikibase:statementProperty ?ps .
+  ?statement ?ps ?object .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""" .

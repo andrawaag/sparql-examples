@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-958111e9af90107c395d0ea02152049a> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Chris_Mytton/sandbox/daff_scotland/term_4_with_dates>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d83599-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d83599-974C3D6E24C5958A43C547D6C6911D5D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT (STRAFTER(STR(?item), STR(wd:)) AS ?id) (STRBEFORE(STR(?startDate), \"T\") AS ?start_date) (STRBEFORE(STR(?endDate), \"T\") AS ?end_date) WHERE {
+  ?item p:P39 ?mem .
+  ?mem ps:P39 wd:Q30580545 .
+  OPTIONAL { ?mem pq:P580 ?startDate }
+  OPTIONAL { ?mem pq:P582 ?endDate }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} ORDER by ?id""" .

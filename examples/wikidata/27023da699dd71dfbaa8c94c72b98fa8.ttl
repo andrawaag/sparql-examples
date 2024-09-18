@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-27023da699dd71dfbaa8c94c72b98fa8> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>,
+    <https://www.wikidata.org//wiki/User:Rjlabs/WikiData_Company_Data_Project>, <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Companies/Archive_1>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821779-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d821779-93EA2189CB1EAF7104840A859AF51AC0,
+    _:genid-4e694113159d4e3db4a1a913894a81d821779-2701F1EEA63FEC341471294913F560D6, _:genid-4e694113159d4e3db4a1a913894a81d821779-071E3E764CD958A90DF4B7724ED98747,
+    _:genid-4e694113159d4e3db4a1a913894a81d821779-99421E6126F3425E96040D9EA51A4013;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+select ?wd ?lab ?desc {
+  ?wd wikibase:directClaim ?wdt.
+  ?wdt a owl:DatatypeProperty 
+  filter (exists{?wd wdt:P31/wdt:P279* wd:Q19847637} # Unique Identifier
+      || exists{?wd wikibase:propertyType wikibase:ExternalId})
+  #filter exists {[?wdt []; wdt:P31/wdt:P279* wd:Q783794]} # a Company: causes timeout
+  ?wd rdfs:label ?lab filter(lang(?lab)=\"en\")
+  optional {?wd schema:description ?desc filter(lang(?desc)=\"en\")}
+}""" .

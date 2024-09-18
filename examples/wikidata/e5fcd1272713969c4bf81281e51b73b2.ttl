@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e5fcd1272713969c4bf81281e51b73b2> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819460-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?date ?count
+WHERE
+{
+	?item wdt:P569 ?date . hint:Prior hint:rangeSafe true.
+	FILTER (?date >= \"1950-01-01T00:00:00Z\"^^xsd:dateTime && ?date < \"1960-01-01T00:00:00Z\"^^xsd:dateTime)
+	FILTER( ?item NOT IN (wd:Q4617, wd:Q15397819, wd:Q13406268, wd:Q4115189) ) .
+	FILTER EXISTS { ?item wdt:P106 []. }
+	?item wikibase:sitelinks ?count. hint:Prior hint:rangeSafe true .
+	FILTER (?count > 9)
+	?item wdt:P21 wd:Q6581072 .
+	?item wdt:P31 wd:Q5 .
+	MINUS { ?item ^schema:about / schema:isPartOf <https://it.wikipedia.org/> }
+}
+ORDER BY ?date""" .

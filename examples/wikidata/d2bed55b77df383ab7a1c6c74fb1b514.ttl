@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d2bed55b77df383ab7a1c6c74fb1b514> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:country-archaeologist-index>,
+    <https://www.wikidata.org//wiki/Wikidata:Synia:country-municipality-index>, <https://www.wikidata.org//wiki/Wikidata:Synia:country-publisher-index>,
+    <https://www.wikidata.org//wiki/Wikidata:Synia:country-collection-index>, <https://www.wikidata.org//wiki/Wikidata:Synia:country-mastodon-index>,
+    <https://www.wikidata.org//wiki/Wikidata:Synia:country>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863230-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d863230-63CA4EA7779272527053B05BFD91694E,
+    _:genid-4e694113159d4e3db4a1a913894a81d863230-B2320F7B4772FF8ABBAD8AEBF9F45250, _:genid-4e694113159d4e3db4a1a913894a81d863230-D1B99B4D01517E70834A0CF8A2C5AADB,
+    _:genid-4e694113159d4e3db4a1a913894a81d863230-E5203FC01AFC85F713B6D7FC14B382CE, _:genid-4e694113159d4e3db4a1a913894a81d863230-D4691C6010F3A780D6D89D0961AB8FEB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q35>
+
+SELECT 
+  ?description ?descriptionLabel ?descriptionUrl
+
+  ?value ?valueLabel ?valueUrl
+
+  ?wikidata ?wikidataUrl
+
+  ?scholia ?scholiaUrl
+WHERE {
+  {
+    BIND(1 AS ?order)
+    BIND(wd:Q6256 AS ?description)
+    BIND(\"#country\" AS ?descriptionUrl)
+    
+    BIND(target: AS ?value)
+    BIND(CONCAT(\"#country/\", SUBSTR(STR(target:), 32)) AS ?valueUrl)
+    
+    BIND(\"Wikidata&nbsp;↗\" AS ?wikidata)
+    BIND(CONCAT(\"https://www.wikidata.org/wiki/\", SUBSTR(STR(?value), 32)) AS ?wikidataUrl)
+
+    BIND(\"Scholia&nbsp;↗\" AS ?scholia)
+    BIND(CONCAT(\"https://scholia.toolforge.org/country/\", SUBSTR(STR(?value), 32)) AS ?scholiaUrl)
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY ?order""" .

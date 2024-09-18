@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d0749bcc20e6eb170dbedbf3b5fa17ac> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/fr>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/en>,
+    <https://www.wikidata.org//wiki/Wikidata:Request_a_query/es>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858706-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d858706-09BD7DAF81AE910175F052F988952D82,
+    _:genid-4e694113159d4e3db4a1a913894a81d858706-1674DD76D90F74A2F906DC7D9C9D90EB, _:genid-4e694113159d4e3db4a1a913894a81d858706-D8444B047EE20250E9F7C504F0E6C51E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#This query favours people whose names start ABC &c over those starting XYZ &c.
+  SELECT ?person ?sitelink ?article
+                 WHERE{
+                   SERVICE bd:sample {
+                     ?person wdt:P21 wd:Q6581097 .
+                     bd:serviceParam bd:sample.limit 2000 .
+                   } 
+                   ?person wdt:P31 wd:Q5 .
+                   ?sitelink schema:about ?person ;
+                             schema:isPartOf <https://en.wikipedia.org/> ;
+                             schema:name ?article .
+                 }
+  ORDER BY ?article LIMIT 100""" .

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b56baa527dec7d1ca230a09f9efa657e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Julia.athen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812623-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d812623-DEA90C7AD95898D01C050FA6CE4E206E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+SELECT ?topic ?topicLabel (COUNT(?topic) as ?count)
+WHERE 
+{
+  VALUES ?authors { wd:Q63809637 wd:Q4484888 wd:Q63759170 wd:Q63808847 }
+  ?work wdt:P50 ?authors.
+  ?work wdt:P921 ?topic.
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?topic ?topicLabel
+ORDER BY DESC (?count)""" .

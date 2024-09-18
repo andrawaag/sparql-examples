@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a5e22b9cd5c8cc6a1f853a1616314533> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , affiliation (P1416)   , parent organization (P749)   , part of (P361)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Hospitals/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d815680-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?hospital ?hospitalLabel ?university ?universityLabel WHERE {
+   ?hospital wdt:P31 wd:Q1059324;            
+         { 
+           {?hospital wdt:P1416 ?university} # affiliation with
+           UNION 
+           {?hospital wdt:P749 ?university} # has parent organization
+         }  
+   UNION
+         {
+           ?hospital wdt:P361 ?university          
+         } .
+   ?university wdt:P31 wd:Q3918.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+ }""" .

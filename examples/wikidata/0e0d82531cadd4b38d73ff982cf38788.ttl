@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0e0d82531cadd4b38d73ff982cf38788> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pigsonthewing/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d853726-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d853726-F2CB69EC765EB54DB7E00F5EA9B7DD36;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#FRS appointed in 2019, with no ORCID iD
+SELECT ?frs ?frsLabel
+WHERE
+{
+	?frs wdt:P31 wd:Q5.
+    ?frs p:P166 ?award.
+    ?award ps:P166 wd:Q15631401.
+    ?award pq:P585 ?year.
+    FILTER (?year = \"2019-01-01T00:00:00Z\"^^xsd:dateTime) .
+    MINUS { ?frs wdt:P496 [] . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

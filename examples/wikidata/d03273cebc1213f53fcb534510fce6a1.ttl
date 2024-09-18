@@ -1,0 +1,612 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-d03273cebc1213f53fcb534510fce6a1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """PREFIX up: <http://purl.uniprot.org/core/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?gene ?geneLabel ?wdncbi ?disease_text ?disease_annotation ?sa ?mesh_iri WHERE {    
+  SERVICE <https://query.wikidata.org/sparql> {    
+    ?gene wdt:P351 ?wdncbi ;
+          wdt:P703 wd:Q15978631;
+          rdfs:label ?geneLabel ;
+          wdt:P688 ?wd_protein .
+    ?wd_protein wdt:P352 ?uniprot_id ;
+                wdt:P681 ?go_term .
+    ?go_term wdt:P686 \"GO:0016020\" .
+    FILTER (LANG(?geneLabel) = \"en\") .
+    ?disease wdt:P31 wd:Q12136 .
+    ?disease wdt:P486 ?mesh .
+    ?disease wdt:P279* wd:Q188874 .
+  }
+  BIND(IRI(CONCAT(\"http://purl.uniprot.org/uniprot/\", ?uniprot_id)) as ?protein)
+  BIND(IRI(CONCAT(\"https://id.nlm.nih.gov/mesh/\", ?mesh)) as ?mesh_iri)
+  ?protein up:annotation ?annotation .
+  ?annotation a up:Disease_Annotation .
+  ?annotation up:disease ?disease_annotation .
+  ?disease_annotation <http://www.w3.org/2004/02/skos/core#prefLabel> ?disease_text .
+  ?disease_annotation rdfs:seeAlso ?mesh_iri
+}""";
+  rdfs:comment """Contents 1 Query Wikidata with SPARQL 1.1 Drugs & Diseases 1.1.1 Find drugs that treat a disease and show a link for each supporting reference 1.1.2 Get all the drug-drug interactions for Methadone 1.1.3 Get all drug indications and their source database 1.2 Drug Repurposing 1.2.1 Drug interacts with protein encoded by gene with association to disease. Showing Metformin 1.2.2 Find drugs for cancers that target genes related to cell proliferation, where a drug physically interacts with the product of gene known to be genetically associated to a disease 1.3 Variants 1.3.1 Which variant of which gene predicts a positive prognosis in colorectal cancer 1.3.2 Given a variant ID, find drugs that may target the corresponding protein 1.3.3 Given a variant ID, find drugs that may target a protein in the same pathway 1.4 Microbial Queries 1.4.1 Request all taxa that have at least one gene and are child of the genus Chlamydia 1.4.2 Request all operons and their genes for Listeria monocytogenes EGD-e 1.4.3 Request all operons, their regulators, and their products 1.4.4 Request all organisms that are located in the female urogenital tract and that have a gene with product indole 1.4.5 Return gene counts for each bacterial genome in Wikidata 1.4.6 Return protein counts for each bacterial genome in Wikidata 1.5 Queries for microRNAs and extracellular RNAs 1.5.1 Get all mature miRNAs in Wikidata 1.5.2 Retrieve all mature miRNAs and their targets (names and NCBI entrez gene ID) 1.5.3 Retrieve all genes and mature miRNAs which are involved in the 'regulation of immune response' (GO:0050776) 1.5.4 Retrieve all genes that are involved in \"regulation of immune response\" AND that are regulated by an miRNA expressed in blood plasma or saliva 1.5.5 For these genes involved in regulation of immune reponse, are there drugs which modulate the immune response, by targeting one of these gene? 1.5.6 Biological processes impacted by hsa-miR-211-5p 1.5.7 Retrieve all human genes which are involved any immune response (as annotated by GO) AND are regulated by hsa-miR-211-5p. 1.5.8 Same query as the previous, but also retrieving small molecules interacting with these gene products. 1.6 BOSC 2017 examples 1.6.1 Get genes with GWAS association with asthma 1.6.2 ... and whose gene product is localized to membrane 1.6.3 ... where the GO localization is based on a non-IEA evidence code 1.6.4 ... with GWAS association with any respiratory disease 1.6.5 ... show associated chemical exposures 1.6.6 ... and show associated pathways 1.7 NCATS Translator Queries 1.7.1 What compensatory mutations in FA core genes confer resistance to chemotherapeutic drugs (e.g. cisplatin)? 1.7.2 Get GO Annotations for FA genes 1.7.3 Retrieve orthologs of FA-core genes 1.8 Wikidata FAIR paper 1.9 Other Example Queries 1.9.1 Retrieve an item by its external ID 1.9.2 Retrieve all items with an external ID 1.9.3 Example demonstrating GROUP BY, COUNT and ORDER BY 1.9.4 Example demonstrating how to retrieve qualifiers and references for statements 1.9.5 Example demonstrating how to retrieve determination method qualifiers 1.9.6 Example demonstrating how to retrieve references for statements that cite journal articles 1.9.7 Example demonstrating how to retrieve information about references for statements 1.9.8 Example demonstrating how to filter out unreferenced claims 1.9.9 Example demonstrating how to filter out contradictory claims 1.10 Miscellaneous Queries 1.10.1 Get mapping of Wikipedia articles to WikiData items to Entrez Gene IDs 1.10.2 Count of number of GO annotations on yeast grouped by curator 1.10.3 Retrieve reverse/\"what links here\" statements (statements where the item is the object) 1.10.4 Get all proteins with GO annotations that are a subclass of \"signaling receptor activity\", where the determination method is a type of manual assertion, and the evidence is a scientific article that was published since 2014 1.10.5 Get labels and description for Wikidata items 1.10.6 Count language labels for diseases 1.10.7 Example counting statements by their determination method 1.10.8 Get all properties and their usage counts on items that are diseases 1.10.9 Get all properties and their usage counts for statements where the values are diseases 1.11 Quality Control (QC) Queries 2 Query Wikidata using SPARQL Through R 2.1 Example Query 3 Query Wikidata using SPARQL Through Python 3.1 Example Query 4 Federated Queries 4.1 Wikidata -> Wikipathways 4.1.1 Wikipathways: Get drugs that act as channel blockers from Wikidata, get the pathways that these drugs are part of from Wikipathways 4.1.2 Get all interaction between metabolites in Pathways from Wikipathways and their individual pKa values 4.1.3 Find genes regulated by an miRNA of interest from Wikidata and retrieve pathways this gene is active in from WikiPathways 4.2 Uniprot -> Wikidata 4.2.1 Retrieve all human membrane proteins annotated for a role in colorectal cancer 4.2.2 Select all human UniProt entries with a sequence variant that leads to a 'loss of function' and also physically interact with (P129) a drug with a qualifier of \"use\" (P366) of \"enzyme inhibitor\" (Q427492) 5 Maintenance Queries Query Wikidata with SPARQL [edit] SPARQL queries can be submitted via a web form at http://query.wikidata.org/, or, for programmatic access: https://query.wikidata.org/sparql. The latter URL allows integrating Wikidata items with external SPARQL endpoints through federated queries or to integrate in data analysis packages such as R or any other platform with a SPARQL plugin.This page collects biomedical example queries to the SPARQL endpoint of Wikidata. For more general example queries, see here. Drugs & Diseases [edit] Find drugs that treat a disease and show a link for each supporting reference [edit] The following query uses these:Properties: NCI Thesaurus ID (P1748)   , formatter URL (P1630)   , drug or therapy used for treatment (P2176)   , ChEMBL ID (P592)   , NDF-RT ID (P2115)   #Find drugs that treat a disease and show a link for each supporting reference
+SELECT ?disease ?diseaseLabel ?diseaseDescription ?drug ?drugLabel ?drugDescription ?link
+WHERE {
+ ?disease wdt:P1748 'C3243' . #multiple sclerosis 
+ ?disease p:P2176 ?disease_drug .  #statement about drug used for treatment
+ ?disease_drug ps:P2176 ?drug . #which drug was it in that statement...  
+ ?disease_drug prov:wasDerivedFrom ?reference . #chemblid pr:P592 , #NDF-RT P2115        
+ optional { 
+   ?reference pr:P592 ?chemblid . 
+   wd:P592 wdt:P1630 ?url .
+   BIND (replace(?url, \"\\\\$1\", ?chemblid) AS ?link)           
+ }
+ optional {
+  ?reference pr:P2115 ?NDF_RT_ID .  
+  wd:P2115 wdt:P1630 ?url .
+  BIND (replace(?url, \"\\\\$1\", ?NDF_RT_ID ) AS ?link) 
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} Try it! Get all the drug-drug interactions for Methadone [edit] The following query uses these:Properties: ChEMBL ID (P592)   , significant drug interaction (P769)   #Get all the drug-drug interactions for Methadone
+  SELECT ?compound ?chembl ?label WHERE {
+  ?item wdt:P592 'CHEMBL651' .
+  ?item wdt:P769 ?compound .
+  ?compound wdt:P592 ?chembl .
+  OPTIONAL  {?compound rdfs:label ?label filter (lang(?label) = \"en\")}
+} Try it! Get all drug indications and their source database [edit] The following query uses these:Properties: medical condition treated (P2175)   , stated in (P248)   SELECT distinct ?drug ?drugLabel ?value ?valueLabel ?reference_stated_inLabel  WHERE {
+  ?drug p:P2175 ?statement .
+  ?statement ps:P2175 ?value .  # get the value associated with the statement
+  ?statement prov:wasDerivedFrom/pr:P248 ?reference_stated_in . #where stated
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} Try it! Drug Repurposing [edit] Drug interacts with protein encoded by gene with association to disease. Showing Metformin [edit] The following query uses these:Items: metformin (Q19484)   Properties: physically interacts with (P129)   , encoded by (P702)   , genetic association (P2293)   #Drug interacts with protein encoded by gene with association to disease. Showing Metformin
+SELECT ?gene ?geneLabel ?disease ?diseaseLabel WHERE {
+  wd:Q19484 wdt:P129 ?gene_product .   # drug (metformin) interacts with a gene_product 
+  ?gene_product wdt:P702 ?gene .  # gene_product is encoded by a gene
+  ?gene	wdt:P2293 ?disease .    # gene is genetically associated with a disease 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
+} Try it! Find drugs for cancers that target genes related to cell proliferation, where a drug physically interacts with the product of gene known to be genetically associated to a disease [edit] These cases may show opportunities to repurpose a drug for a new disease See [1] and [2]. An example that was recently validated involved a new link between metformin (Q19484) and cancer survival [3]. Query is currently set up to find drugs for cancers that target genes related to cell proliferation. Adapt by changing constraints (e.g. to 'heart disease' Q190805) or removing them The following query uses these:Items: cancer (Q12078)   , apoptotic process (Q14599311)   , cell population proliferation (Q14818032)   Properties: physically interacts with (P129)   , encodes (P688)   , genetic association (P2293)   , subclass of (P279)   , biological process (P682)   , part of (P361)   , drug or therapy used for treatment (P2176)   #Find drugs for cancers that target genes related to cell proliferation, where a drug physically interacts with the product of gene known to be genetically associated to a disease
+SELECT ?drugLabel ?geneLabel ?biological_processLabel ?diseaseLabel WHERE {
+  ?drug wdt:P129 ?gene_product .   # drug interacts with a gene_product 
+  ?gene wdt:P688 ?gene_product .  # gene_product (usually a protein) is a product of a gene (a region of DNA)
+  ?disease	wdt:P2293 ?gene .    # genetic association between disease and gene 
+  ?disease wdt:P279* wd:Q12078 .  # limit to cancers wd:Q12078 (the * operator runs up a transitive relation..)
+  ?gene_product wdt:P682 ?biological_process . #add information about the GO biological processes that the gene is related to  
+  #limit to genes related to certain biological processes (and their sub-processes):
+  		#apoptosis wd:Q14599311 
+  		#cell proliferation wd:Q14818032
+  {?biological_process wdt:P279* wd:Q14818032 } # chain down subclass
+   UNION 
+  {?biological_process wdt:P361* wd:Q14818032 } # chain down part of
+  #uncomment the next line to find a subset of the known true positives (there are not a lot of them in here yet)
+  #?disease wdt:P2176 ?drug . 	# disease is treated by a drug 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
+} Try it! Variants [edit] Which variant of which gene predicts a positive prognosis in colorectal cancer [edit] The following query uses these:Items: colorectal cancer (Q188874)   Properties: positive prognostic predictor for (P3358)   , biological variant of (P3433)   #Which variant of which gene predicts a positive prognosis in colorectal cancer
+SELECT ?geneLabel ?variantLabel WHERE {  
+  values ?disease {wd:Q188874}
+  ?variant wdt:P3358 ?disease ; # P3358 Positive prognostic predictor
+           wdt:P3433 ?gene . # P3433 biological variant of
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Manually update list This list is periodically updated by a bot. Manual changes to the list will be removed on the next update! WDQS | PetScan | TABernacle | Find images | Recent changes | Query: SELECT ?item WHERE { ?item wdt:P3358 wd:Q188874 ; wdt:P3433 ?gene . } label description biological variant of KRAS G12D genetic variant KRAS CDX2 EXPRESSION genetic variant CDX2 MIR218-1 EXPRESSION genetic variant MIR218-1 GNAS c.393T>C genetic variant GNAS DCC EXPRESSION genetic variant DCC POLE P286R genetic variant POLE POLE V411L genetic variant POLE POLE S459F genetic variant POLE BRAF Non-V600 genetic variant BRAF End of automatically generated list. Given a variant ID, find drugs that may target the corresponding protein [edit] The following query uses these:Properties: HGVS nomenclature (P3331)   , biological variant of (P3433)   , encodes (P688)   , physically interacts with (P129)   # Given a variant ID, find drugs that may target the corresponding protein
+SELECT ?variant ?variantLabel ?gene ?geneLabel ?drug ?drugLabel WHERE {
+  values ?hgvsid {\"NC_000007.13:g.140453136A>T\"}  # currently basing on HGVS ID because we don't have dbsnp IDs yet
+  ?variant wdt:P3331 ?hgvsid .
+  ?variant wdt:P3433 ?gene .
+  ?gene wdt:P688 ?protein .
+  ?protein wdt:P129 ?drug .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
+} Try it! Given a variant ID, find drugs that may target a protein in the same pathway [edit] The following query uses these:Items: biological pathway (Q4915012)   , protein (Q8054)   Properties: HGVS nomenclature (P3331)   , biological variant of (P3433)   , encodes (P688)   , has part(s) (P527)   , instance of (P31)   , physically interacts with (P129)   # Given a variant ID, find drugs that may target a protein in the same pathway
+SELECT ?gene ?geneLabel ?pathway ?pathwayLabel ?pathwayProtein ?pathwayProteinLabel ?drug ?drugLabel WHERE {
+  values ?hgvsid {\"NC_000007.13:g.140453136A>T\"}  # currently basing on HGVS ID because we don't have dbsnp IDs yet
+  ?variant wdt:P3331 ?hgvsid .
+  ?variant wdt:P3433 ?gene .
+  ?gene wdt:P688 ?protein .
+
+  ?pathway wdt:P527* ?protein .
+  ?pathway wdt:P31 wd:Q4915012 .
+  ?pathway wdt:P527* ?pathwayProtein .
+  ?pathwayProtein wdt:P31 wd:Q8054 .
+  ?pathwayProtein wdt:P129 ?drug .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .	}
+} Try it! Microbial Queries [edit] Request all taxa that have at least one gene and are child of the genus Chlamydia [edit] The following query uses these:Items: gene (Q7187)   , Chlamydia (Q846309)   Properties: instance of (P31)   , found in taxon (P703)   , parent taxon (P171)   #Request all taxa that have at least one gene and are child of the genus Chlamydia
+SELECT DISTINCT ?taxa ?taxaLabel WHERE {
+  ?gene wdt:P31 wd:Q7187 .
+  ?gene wdt:P703 ?taxa .
+  ?taxa wdt:P171* wd:Q846309 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} Try it! Request all operons and their genes for Listeria monocytogenes EGD-e [edit] This query is meant to show the structured version of data published in The Listeria transcriptional landscape from saprophytism to virulence. (Q28131414), and specifically the table starting on page 17 of the supplementary file. The following query uses these:Items: operon (Q139677)   Properties: NCBI taxonomy ID (P685)   , found in taxon (P703)   , strand orientation (P2548)   , instance of (P31)   , has part(s) (P527)   , NCBI locus tag (P2393)   , Entrez Gene ID (P351)   #Request all operons and their genes for Listeria monocytogenes EGD-e
+SELECT ?operon ?operonLabel (if(?label = \"Forward Strand\"@en, '+', '-') as ?strand)
+ (group_concat(distinct ?locustag; separator=\" \") as ?locustagG) WHERE {
+  ?strain wdt:P685 \"169963\". # NCBI Taxonomy ID for Listeria monocytogenes EGD-e
+  ?operon wdt:P703 ?strain; # get operon that is found in that genome
+          wdt:P2548 ?strand; # get strand orientation
+          wdt:P31 wd:Q139677; #instance of operon
+          wdt:P527 ?gene. # has part gene (gets all genes in operon)
+  ?gene wdt:P2393 ?locustag; # get ncbi locus tag for genes in operon
+        wdt:P351 ?entrez.  # get ncbi entrez id for genes in operon
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+   ?strand rdfs:label ?label . filter(lang(?label) = 'en')
+} GROUP BY ?operonLabel ?strandLabel ?label ?operon
+ORDER BY ?operonLabel Try it! Request all operons, their regulators, and their products [edit] The following query uses these:Items: operon (Q139677)   Properties: subclass of (P279)   , has part(s) (P527)   , product or material produced or service provided (P1056)   , regulates (molecular biology) (P128)   , Gene Ontology ID (P686)   , found in taxon (P703)   #Request all operons, their regulators, and their products 
+SELECT ?taxa_name ?regulator_name ?operon_name ?go_name ?product_name 
+WHERE {   
+?operon wdt:P279 wd:Q139677 ;
+rdfs:label ?operon_name ;
+   	wdt:P527 ?gene ;
+   	wdt:P1056 ?protein .  
+?regulator wdt:P128 ?operon  ;
+   	rdfs:label ?regulator_name .
+?protein ?function_type ?go_term ;
+ 	wdt:P1056 ?product .
+?go_term wdt:P686 ?go_id ;
+   	rdfs:label ?go_name .   
+?product rdfs:label ?product_name . 
+?gene wdt:P703 ?taxa .
+?taxa rdfs:label ?taxa_name . 
+FILTER (LANG(?taxa_name) = \"en\") .
+   	FILTER (LANG(?regulator_name) = \"en\") .
+   	FILTER (LANG(?go_name) = \"en\") 
+  	FILTER (LANG(?product_name) = \"en\") .  
+} Try it! Request all organisms that are located in the female urogenital tract and that have a gene with product indole [edit] The following query uses these:Items: vagina (Q5880)   , 1H-indole (Q319541)   Properties: habitat (P2974)   , found in taxon (P703)   , product or material produced or service provided (P1056)   #Request all operons, their regulators, and their products
+SELECT ?organism_name ?organism_item WHERE {   
+  ?organism_item wdt:P2974 wd:Q5880 ;
+    rdfs:label ?organism_name . 
+  ?gene wdt:P703 ?organism_item ; 
+    wdt:P1056 wd:Q319541 . 
+  FILTER (LANG(?organism_name) = \"en\") .    
+} Try it! Return gene counts for each bacterial genome in Wikidata [edit] The following query uses these:Items: gene (Q7187)   , bacteria (Q10876)   Properties: instance of (P31)   , found in taxon (P703)   , parent taxon (P171)   #Return gene counts for each bacterial genome in Wikidata
+SELECT ?species ?label (count (DISTINCT ?gene) as ?gene_counts) WHERE {
+  ?gene wdt:P31 wd:Q7187 .
+  ?gene wdt:P703 ?species .
+  ?species wdt:P171* wd:Q10876 .
+  ?species rdfs:label ?label FILTER (lang(?label) = \"en\") .
+} GROUP BY ?species ?label ORDER BY DESC(?gene_counts) Try it! Return protein counts for each bacterial genome in Wikidata [edit] The following query uses these:Items: protein (Q8054)   , bacteria (Q10876)   Properties: instance of (P31)   , found in taxon (P703)   , parent taxon (P171)   #Return protein counts for each bacterial genome in Wikidata
+SELECT ?species ?label (count (DISTINCT ?protein) as ?protein_counts) WHERE {
+  ?protein wdt:P31 wd:Q8054 ;
+    wdt:P703 ?species .
+  ?species wdt:P171* wd:Q10876 .
+  ?species rdfs:label ?label FILTER (lang(?label) = \"en\") .
+} GROUP BY ?species ?label ORDER BY DESC(?protein_counts) Try it! Queries for microRNAs and extracellular RNAs [edit] Get all mature miRNAs in Wikidata [edit] #Get all mature miRNAs in Wikidata 
+SELECT ?mirna ?mirnaLabel WHERE {
+  ?mirna wdt:P31 wd:Q23838648.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Retrieve all mature miRNAs and their targets (names and NCBI entrez gene ID) [edit] The following query uses these:Items: mature microRNA (Q23838648)   Properties: instance of (P31)   , regulates (molecular biology) (P128)   , Entrez Gene ID (P351)   #Retrieve all mature miRNAs and their targets (names and NCBI entrez gene ID)
+SELECT DISTINCT ?mirna ?mirnaLabel ?gene ?geneLabel ?entrez WHERE {
+  ?mirna wdt:P31 wd:Q23838648 ;
+         wdt:P128 ?gene .
+  ?gene wdt:P351 ?entrez .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! Retrieve all genes and mature miRNAs which are involved in the 'regulation of immune response' (GO:0050776) [edit] The following query uses these:Properties: biological process (P682)   , Gene Ontology ID (P686)   , encoded by (P702)   , regulates (molecular biology) (P128)   #Retrieve all genes and mature miRNAs which are involved in the 'regulation of immune response' (GO:0050776)
+SELECT DISTINCT ?gene ?geneLabel ?mir ?mirLabel WHERE {
+  ?protein wdt:P682 [wdt:P686 'GO:0050776'] . # regulation of immune response
+  ?protein wdt:P702 ?gene .
+  
+  ?mir wdt:P128 ?gene .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+} Try it! Retrieve all genes that are involved in \"regulation of immune response\" AND that are regulated by an miRNA expressed in blood plasma or saliva [edit] The following query uses these:Items: blood plasma (Q79749)   , saliva (Q155925)   Properties: biological process (P682)   , Gene Ontology ID (P686)   , encoded by (P702)   , regulates (molecular biology) (P128)   , part of (P361)   #Retrieve all genes that are involved in \"regulation of immune response\" AND that are regulated by an miRNA expressed in blood plasma or saliva
+SELECT DISTINCT ?gene ?geneLabel ?mir ?mirLabel ?fluidLabel WHERE {
+  ?protein wdt:P682 [wdt:P686 'GO:0050776'] . # regulation of immune response
+  ?protein wdt:P702 ?gene .
+  
+  ?mir wdt:P128 ?gene .
+  ?mir wdt:P361 ?fluid .
+  values ?fluid {wd:Q79749 wd:Q155925} .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+} Try it! For these genes involved in regulation of immune reponse, are there drugs which modulate the immune response, by targeting one of these gene? [edit] The following query uses these:Properties: biological process (P682)   , Gene Ontology ID (P686)   , encoded by (P702)   , physically interacts with (P129)   , regulates (molecular biology) (P128)   #For these genes involved in regulation of immune reponse, are there drugs which modulate the immune response, by targeting one of these gene?
+SELECT DISTINCT ?gene ?geneLabel ?mir ?mirLabel ?drug ?drugLabel WHERE {
+  ?x wdt:P682 [wdt:P686 'GO:0050776'] . # regulation of immune response
+  ?x wdt:P702 ?gene .
+  ?x wdt:P129 ?drug .
+  
+  ?mir wdt:P128 ?gene .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}  
+} Try it! Biological processes impacted by hsa-miR-211-5p [edit] The following query uses these:Properties: regulates (molecular biology) (P128)   , encodes (P688)   , biological process (P682)   #Biological processes impacted by hsa-miR-211-5p
+SELECT DISTINCT ?bioProcess ?bioProcessLabel WHERE {
+	?mirna rdfs:label 'hsa-miR-211-5p'@en .
+    ?mirna wdt:P128 ?gene .
+    ?gene wdt:P688 ?protein .
+    ?protein wdt:P682 ?bioProcess .
+  
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+} Try it! Retrieve all human genes which are involved any immune response (as annotated by GO) AND are regulated by hsa-miR-211-5p. [edit] The following query uses these:Properties: subclass of (P279)   , Gene Ontology ID (P686)   , encoded by (P702)   , regulates (molecular biology) (P128)   #Retrieve all human genes which are involved any immune response (as annotated by GO) AND are regulated by hsa-miR-211-5p.
+SELECT DISTINCT ?geneLabel ?goLabel ?mirLabel WHERE {
+  ?go wdt:P279* [wdt:P686 'GO:0006955'] . # immune response
+  ?p ?pr ?go .
+  ?p wdt:P702 ?gene .
+  
+  ?mir wdt:P128 ?gene .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}  
+}
+GROUP BY ?goLabel ?mirLabel ?geneLabel
+HAVING(?mirLabel = 'hsa-miR-211-5p'@en) Try it! Same query as the previous, but also retrieving small molecules interacting with these gene products. [edit] The following query uses these:Properties: subclass of (P279)   , Gene Ontology ID (P686)   , encoded by (P702)   , physically interacts with (P129)   , regulates (molecular biology) (P128)   #Same query as the previous, but also retrieving small molecules interacting with these gene products.
+SELECT DISTINCT ?gene ?geneLabel ?mir ?mirLabel ?drug ?drugLabel WHERE {
+  ?x wdt:P279* [wdt:P686 'GO:0006955'] . # regulation of immune response
+  ?p ?pr ?x .
+  ?p wdt:P702 ?gene .
+  OPTIONAL { ?p wdt:P129 ?drug . }
+  
+  ?mir wdt:P128 ?gene . 
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" .}
+}
+GROUP BY ?gene ?mir ?mirLabel ?geneLabel ?drug ?drugLabel
+HAVING(?mirLabel = 'hsa-miR-211-5p'@en) Try it! BOSC 2017 examples [edit] Get genes with GWAS association with asthma [edit] Demonstrates basic retrieval of GWAS catalog data Result (as of 2017-07-22): 39 genes The following query uses these:Items: asthma (Q35869)   , gene (Q7187)   Properties: genetic association (P2293)   , instance of (P31)   #Get genes with GWAS association with asthma
+SELECT DISTINCT ?gene ?geneLabel where {
+  ?gene wdt:P2293 wd:Q35869 .  # gene has genetic association to \"asthma\"
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! ... and whose gene product is localized to membrane [edit] Demonstrates basic integration w/ Gene Ontology Result (as of 2017-07-22): 22 genes The following query uses these:Items: asthma (Q35869)   , gene (Q7187)   , membrane (Q14349455)   Properties: genetic association (P2293)   , instance of (P31)   , encodes (P688)   , cell component (P681)   , subclass of (P279)   , part of (P361)   #... and whose gene product is localized to membrane
+SELECT DISTINCT ?gene ?geneLabel where {
+  ?gene wdt:P2293 wd:Q35869 .  # gene has genetic association to \"asthma\"
+  
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+
+  ?gene wdt:P688 ?protein .                # gene encodes a protein
+  ?protein wdt:P681 ?cc .                  # protein has a cellular component
+  ?cc wdt:P279*|wdt:P361* wd:Q14349455 .   # cell component is 'part of' or 'subclass of' membrane
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! ... where the GO localization is based on a non-IEA evidence code [edit] Demonstrates computing on provenance Result (as of 2017-07-22): 15 genes The following query uses these:Items: asthma (Q35869)   , gene (Q7187)   , IEA (Q23190881)   , membrane (Q14349455)   Properties: genetic association (P2293)   , instance of (P31)   , encodes (P688)   , subclass of (P279)   , part of (P361)   , cell component (P681)   , determination method (P459)   #... and whose gene product is localized to membrane
+SELECT DISTINCT ?gene ?geneLabel where {
+  ?gene wdt:P2293 wd:Q35869 .  # gene has genetic association to \"asthma\"
+  
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+
+  ?gene wdt:P688 ?protein .                        # gene encodes a protein
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! ... with GWAS association with any respiratory disease [edit] Demonstrates leveraging ontology structure Result (as of 2017-07-22): 31 genes over 8 diseases The following query uses these:Items: respiratory disease (Q3286546)   , gene (Q7187)   , IEA (Q23190881)   , membrane (Q14349455)   Properties: genetic association (P2293)   , subclass of (P279)   , instance of (P31)   , encodes (P688)   , part of (P361)   , cell component (P681)   , determination method (P459)   #... with GWAS association with any respiratory disease
+SELECT ?diseaseGALabel (count (DISTINCT ?gene) as ?gene_counts) 
+(group_concat(DISTINCT ?geneLabel; separator=\", \") as ?geneList) WHERE {
+  ?gene wdt:P2293 ?diseaseGA .        # gene has genetic association
+  ?diseaseGA wdt:P279* wd:Q3286546 .  # to a type of respiratory system disease
+  
+  ?gene wdt:P31 wd:Q7187 ; wdt:P688 ?protein ;    # gene is subclass of \"gene\" and encodes protein
+        rdfs:label ?geneLabel . 
+  FILTER (lang(?geneLabel) = \"en\")
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} 
+GROUP BY ?diseaseGALabel ?geneList ORDER BY DESC(?gene_counts) Try it! ... show associated chemical exposures [edit] Demonstrates opportunistic integration with independent community contribution Result (as of 2017-07-22): 4 diseases / 6 chemical hazards The following query uses these:Items: respiratory disease (Q3286546)   , gene (Q7187)   , IEA (Q23190881)   , membrane (Q14349455)   , chemical hazard (Q21167512)   Properties: genetic association (P2293)   , subclass of (P279)   , instance of (P31)   , encodes (P688)   , part of (P361)   , has effect (P1542)   , cell component (P681)   , determination method (P459)   #... show associated chemical exposures
+SELECT DISTINCT ?diseaseGA ?diseaseGALabel ?exposure ?exposureLabel where {
+  ?gene wdt:P2293 ?diseaseGA .        # gene has genetic association
+  ?diseaseGA wdt:P279* wd:Q3286546 .  # to a type of respiratory system disease
+  
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+
+  ?gene wdt:P688 ?protein .                        # gene encodes a protein
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  ?exposure wdt:P1542 ?diseaseGA .  # something causes disease
+  ?exposure wdt:P279 wd:Q21167512 . # and that something is a chemical hazard
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! ... and show associated pathways [edit] Demonstrates opportunistic integration with other community contributions Result (as of 2017-07-22): 59 gene-pathway combos The following query uses these:Items: respiratory disease (Q3286546)   , gene (Q7187)   , IEA (Q23190881)   , membrane (Q14349455)   , biological pathway (Q4915012)   Properties: genetic association (P2293)   , subclass of (P279)   , instance of (P31)   , encodes (P688)   , part of (P361)   , has part(s) (P527)   , cell component (P681)   , determination method (P459)   #... and show associated pathways
+SELECT DISTINCT ?gene ?geneLabel ?pathwayLabel where {
+  ?gene wdt:P2293 ?diseaseGA .        # gene has genetic association
+  ?diseaseGA wdt:P279* wd:Q3286546 .  # to a type of respiratory system disease
+  
+  ?gene wdt:P31 wd:Q7187 .     # gene is subclass of \"gene\"
+
+  ?gene wdt:P688 ?protein .                        # gene encodes a protein
+  ?protein p:P681 ?s .                             # protein's cell component statement
+    ?s ps:P681 ?cp .                               # get statement value
+    FILTER NOT EXISTS {?s pq:P459 wd:Q23190881 .}  # determination method is not IEA
+    ?cp wdt:P279*|wdt:P361* wd:Q14349455 .         # statement value is 'part of' or 'subclass of' membrane
+
+  ?pathway wdt:P31 wd:Q4915012 ;                   # instance of a biological pathway
+           wdt:P527 ?gene .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! NCATS Translator Queries [edit] What compensatory mutations in FA core genes confer resistance to chemotherapeutic drugs (e.g. cisplatin)? [edit] See here for more information. The following query uses these:Items: cancer (Q12078)   Properties: HGNC gene symbol (P353)   , biological variant of (P3433)   , PubChem CID (P662)   , subclass of (P279)   , negative therapeutic predictor for (P3355)   , reference URL (P854)   , medical condition treated (P2175)   #What compensatory mutations in FA core genes confer resistance to chemotherapeutic drugs (e.g. cisplatin)?
+select ?geneLabel ?variantLabel ?variant ?drugLabel ?cid ?diseaseLabel ?ref where {
+  values ?hgnc {\"FANCA\" \"FANCB\" \"FANCC\" \"FANCE\" \"FANCF\" \"FANCG\" \"FANCL\" \"FANCM\" \"FANCD2\" \"FANCI\" \"UBE2T\" \"BRCA2\" \"BRIP1\" \"PALB2\" \"RAD51C\" \"SLX4\" \"ERCC4\" \"RAD51\" \"BRCA1\" \"MAD2L2\" \"XRCC2\" \"RFWD3\"}
+  ?gene wdt:P353 ?hgnc .
+  ?variant wdt:P3433 ?gene .
+  ?variant p:P3355 ?s .
+  ?s ps:P3355 ?drug .
+  ?s prov:wasDerivedFrom/pr:P854 ?ref .
+  ?drug wdt:P662 ?cid .
+  ?s pq:P2175 ?disease .
+  ?disease wdt:P279* wd:Q12078 .
+  SERVICE wikibase:label {  bd:serviceParam wikibase:language \"en\" }
+} Try it! Get GO Annotations for FA genes [edit] The following query uses these:Properties: HGNC gene symbol (P353)   , encodes (P688)   , molecular function (P680)   , cell component (P681)   , biological process (P682)   , Gene Ontology ID (P686)   #Get GO Annotations for FA genes
+SELECT ?hgnc ?protein ?go ?goLabel ?goId WHERE {
+  values ?hgnc {\"FANCA\" \"FANCB\" \"FANCC\" \"FANCE\" \"FANCF\" \"FANCG\" \"FANCL\" \"FANCM\" \"FANCD2\" \"FANCI\" \"UBE2T\" \"BRCA2\" \"BRIP1\" \"PALB2\" \"RAD51C\" \"SLX4\" \"ERCC4\" \"RAD51\" \"BRCA1\" \"MAD2L2\" \"XRCC2\" \"RFWD3\"}
+  ?gene wdt:P353 ?hgnc .  # get gene items with these HGNC symbols
+  ?gene wdt:P688 ?protein . # get the protein
+  ?protein wdt:P680|wdt:P681|wdt:P682 ?go . # get GO terms
+  ?go wdt:P686 ?goId
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Retrieve orthologs of FA-core genes [edit] Used for part of the competency question here. The following query uses these:Properties: HGNC gene symbol (P353)   , ortholog (P684)   , found in taxon (P703)   #Retrieve orthologs of FA-core genes
+SELECT ?hgnc ?gene ?geneLabel ?ortho ?orthoLabel ?taxonLabel WHERE
+{
+  values ?hgnc {\"FANCA\" \"FANCB\" \"FANCC\" \"FANCE\" \"FANCF\" \"FANCG\" \"FANCL\" \"FANCM\" \"FANCD2\" \"FANCI\" \"UBE2T\" \"BRCA2\" \"BRIP1\" \"PALB2\" \"RAD51C\" \"SLX4\" \"ERCC4\" \"RAD51\" \"BRCA1\" \"MAD2L2\" \"XRCC2\" \"RFWD3\"}
+  ?gene wdt:P353 ?hgnc . 
+  ?gene wdt:P684 ?ortho .
+  ?ortho wdt:P703 ?taxon
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Wikidata FAIR paper [edit] Consider a pulmonologist who is interested in identifying candidate chemical compounds for testing in disease models. She may start by identifying genes with a genetic association to any respiratory disease, with a particular interest in genes that encode membrane-bound proteins (for ease in cell sorting). She may then look for chemical compounds that either directly inhibit those proteins, or finding none, compounds that inhibit another protein in the same pathway. Because she has collaborators with relevant expertise, she may specifically filter for proteins containing a serine-threonine kinase domain. The following query uses these:Items: gene (Q7187)   , respiratory disease (Q3286546)   , membrane (Q14349455)   , biological pathway (Q4915012)   , serine/threonine-protein kinase, active site (Q24787419)   , chemical compound (Q11173)   , enzyme inhibitor (Q427492)   Properties: instance of (P31)   , genetic association (P2293)   , subclass of (P279)   , encodes (P688)   , cell component (P681)   , part of (P361)   , has part(s) (P527)   , physically interacts with (P129)   , has use (P366)   SELECT DISTINCT ?compound ?compoundLabel where {
+
+  # gene has genetic association with a respiratory disease  
+  ?gene       wdt:P31    wd:Q7187 .
+  ?gene       wdt:P2293  ?diseaseGA .
+  ?diseaseGA  wdt:P279*  wd:Q3286546 .
+
+  # gene product is localized to the membrane
+  ?gene     wdt:P688             ?protein .
+  ?protein  wdt:P681             ?cc .
+  ?cc       wdt:P279*|wdt:P361*  wd:Q14349455 .
+
+  # gene is involved in a pathway with another gene (gene2)
+  ?pathway  wdt:P31   wd:Q4915012 ;
+            wdt:P527  ?gene ;
+            wdt:P527  ?gene2 .
+  ?gene2    wdt:P31   wd:Q7187 . 
+
+  # gene2 product has a Ser/Thr protein kinase domain AND known enzyme inhibitor  
+  ?gene2     wdt:P688  ?protein2 .
+  ?protein2  wdt:P129  ?compound ;
+             wdt:P527  wd:Q24787419 ;
+             p:P129    ?s2 .
+  ?s2        ps:P129   ?cp2 .
+  ?compound  wdt:P31   wd:Q11173 .
+  FILTER EXISTS {?s2 pq:P366 wd:Q427492 .}
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! Other Example Queries [edit] Retrieve an item by its external ID [edit] Get the item that has the Disease Ontology ID \"DOID:8577\" The following query uses these:Properties: Disease Ontology ID (P699)   #Retrieve an item by its external ID
+SELECT ?item ?itemLabel WHERE {
+   ?item wdt:P699 \"DOID:8577\" .
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} Try it! Retrieve all items with an external ID [edit] Get all items with a Disease Ontology ID The following query uses these:Properties: Disease Ontology ID (P699)   #Get all items with a Disease Ontology ID
+SELECT ?item ?doid WHERE {
+   ?item wdt:P699 ?doid .
+} Try it! Example demonstrating GROUP BY, COUNT and ORDER BY [edit] Count the number of genes in each taxon by NCBI Tax ID, sort by the count The following query uses these:Properties: NCBI taxonomy ID (P685)   , found in taxon (P703)   , Entrez Gene ID (P351)   #Count the number of genes in each taxon by NCBI Tax ID
+
+SELECT (COUNT(?gene) as ?count) ?taxon ?taxonLabel ?taxids WHERE {
+  values ?taxids {\"559292\" \"6239\" \"7227\" \"7955\" \"10090\" \"10116\" \"9606\"}
+  ?taxon wdt:P685 ?taxids .
+  ?gene wdt:P703 ?taxon .
+  ?gene wdt:P351 ?en
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} GROUP BY ?taxon ?taxonLabel ?taxids
+ORDER BY DESC(?count) Try it! Example demonstrating how to retrieve qualifiers and references for statements [edit] Get Gene Ontology subcellular localization information, with evidence codes, and references for Reelin The following query uses these:Items: ISS (Q23175558)   , IEA (Q23190881)   Properties: UniProt protein ID (P352)   , cell component (P681)   , stated in (P248)   , retrieved (P813)   , reference URL (P854)   , determination method (P459)   #Get Gene Ontology subcellular localization information, with evidence codes, and references for Reelin
+SELECT distinct ?proteinLabel ?value ?valueLabel ?determination ?determinationLabel ?reference_stated_inLabel ?reference_retrieved ?reference_URL WHERE {
+  ?protein wdt:P352 \"P78509\" . # get a protein by uniprot id 
+  ?protein p:P681 ?statement . # get the cell component statements
+  ?statement ps:P681 ?value .  # get the value associated with the statement
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  # change ?determination to wd:Q23175558 for ISS (Inferred from Sequence or structural Similarity)
+  # or e.g. wd:Q23190881 for IEA (Inferred from Electronic Annotation)
+  #add reference links 
+  ?statement prov:wasDerivedFrom/pr:P248 ?reference_stated_in . #where stated
+  ?statement prov:wasDerivedFrom/pr:P813 ?reference_retrieved . #when retrieved
+  ?statement prov:wasDerivedFrom/pr:P854 ?reference_URL 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} ORDER BY ?value Try it! Example demonstrating how to retrieve determination method qualifiers [edit] Get all genetic association claims linking gene to disease, along with the determination method (GWAS, TAS, etc). The following query uses these:Properties: genetic association (P2293)   , determination method (P459)   #Get all genetic association claims linking gene to disease, along with the determination method (GWAS, TAS, etc).
+SELECT distinct ?geneLabel ?gene ?diseaseLabel ?disease ?determinationLabel WHERE {
+  ?gene p:P2293 ?statement . # all gene disease genetic associations
+  ?statement ps:P2293 ?disease .  # get the value associated with the statement
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} Try it! Example demonstrating how to retrieve references for statements that cite journal articles [edit] Get Gene Ontology subcellular localization information and references for proteins The following query uses these:Items: scholarly article (Q13442814)   Properties: UniProt protein ID (P352)   , instance of (P31)   , PubMed publication ID (P698)   , PMC publication ID (P932)   , cell component (P681)   , stated in (P248)   #Get Gene Ontology subcellular localization information and references for proteins
+
+SELECT ?proteinLabel ?uniprot ?valueLabel ?paperLabel ?PMID ?PMCID WHERE {
+  ?protein wdt:P352 ?uniprot .
+  ?protein p:P681 ?statement .
+  ?statement ps:P681 ?value . 
+  ?statement prov:wasDerivedFrom/pr:P248 ?paper .
+  ?paper wdt:P31 wd:Q13442814 .
+  OPTIONAL { ?paper wdt:P698 ?PMID . }
+  OPTIONAL { ?paper wdt:P932 ?PMCID . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} limit 10 Try it! Example demonstrating how to retrieve information about references for statements [edit] Get all Gene Ontology information and references for proteins, but only show statements where the refernece is a journal article published in Nature, Cell, or Science The following query uses these:Items: Science (Q192864)   , Nature (Q180445)   , Cell (Q655814)   Properties: UniProt protein ID (P352)   , instance of (P31)   , PubMed publication ID (P698)   , published in (P1433)   , molecular function (P680)   , cell component (P681)   , biological process (P682)   , stated in (P248)   #Get all Gene Ontology information and references for proteins, but only show statements where the refernece is a journal article published in Nature, Cell, or Science
+SELECT ?proteinLabel ?uniprot ?valueLabel ?goTypeLabel ?paperLabel ?PMID ?PMCID WHERE {
+  ?protein wdt:P352 ?uniprot .
+  ?protein p:P680|p:P681|p:P682 ?statement .
+  ?statement ps:P680|ps:P681|ps:P682 ?value . 
+  ?value wdt:P31 ?goType .
+  ?statement prov:wasDerivedFrom/pr:P248 ?paper .
+  ?paper wdt:P698 ?PMID .
+  ?paper wdt:P1433 ?journal .
+  values ?journal {wd:Q192864 wd:Q180445 wd:Q655814}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} limit 1000 Try it! Example demonstrating how to filter out unreferenced claims [edit] Get all \"drug used for treatment of disease\" claims with a column that indicates whether a reference exists for the claim. The following query uses these:Items: disease (Q12136)   Properties: instance of (P31)   , drug or therapy used for treatment (P2176)   , stated in (P248)   SELECT DISTINCT ?disease ?diseaseLabel ?drug ?drugLabel ?hasRef ?stated_inLabel WHERE {
+  ?disease wdt:P31 wd:Q12136 ;  # find items that are in instance of disease
+        p:P2176 ?id .  # get \"drug used for treatment\" statements
+  ?id ?b ?drug .  # get the object used in these statements
+  FILTER(regex(str(?b), \"http://www.wikidata.org/prop/statement\" ))
+  # FILTER NOT EXISTS { ?id prov:wasDerivedFrom ?provenance }  # filter out statements with no references
+  # ?id prov:wasDerivedFrom ?provenance  # only keep statements with a references
+  BIND(EXISTS {?id prov:wasDerivedFrom ?provenance } as ?hasRef) # tag statements with whether or not a ref exists
+  OPTIONAL {?id prov:wasDerivedFrom ?prov .
+            ?prov pr:P248 ?stated_in }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Example demonstrating how to filter out contradictory claims [edit] Get \"positive therapeutic predictor\" claims, filtering out claims that are \"disputed by\" anything The following query uses these:Properties: CIViC variant ID (P3329)   , positive therapeutic predictor for (P3354)   , statement disputed by (P1310)   SELECT DISTINCT ?item ?itemLabel ?civic ?value ?valueLabel ?disputed_by WHERE {
+  ?item wdt:P3329 ?civic ;  # find items that have a civic id
+        p:P3354 ?id .  # get \"positive therapeutic predictor\" statements
+  ?id ?b ?value .  # get the object used in these statements
+  FILTER(regex(str(?b), \"http://www.wikidata.org/prop/statement\" ))
+  # FILTER NOT EXISTS {?id pq:P1310 ?disputed_by } # filter out statements that have a disputing qualifier
+  BIND(EXISTS {?id pq:P1310 [] } as ?disputed_by)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Miscellaneous Queries [edit] Get mapping of Wikipedia articles to WikiData items to Entrez Gene IDs [edit] The following query uses these:Items: Homo sapiens (Q15978631)   Properties: Entrez Gene ID (P351)   , found in taxon (P703)   SELECT ?entrez_id ?cid ?article ?label WHERE {
+    ?cid wdt:P351 ?entrez_id .
+  	?cid wdt:P703 wd:Q15978631 . 
+    OPTIONAL { ?cid rdfs:label ?label filter (lang(?label) = \"en\") . }
+    ?article schema:about ?cid .
+    ?article schema:inLanguage \"en\" .
+    FILTER (SUBSTR(str(?article), 1, 25) = \"https://en.wikipedia.org/\") . 
+    FILTER (SUBSTR(str(?article), 1, 38) != \"https://en.wikipedia.org/wiki/Template\")
+} limit 10 Try it! Count of number of GO annotations on yeast grouped by curator [edit] The following query uses these:Items: Saccharomyces cerevisiae S288c (Q27510868)   Properties: found in taxon (P703)   , biological process (P682)   SELECT ?curatorLabel (COUNT(?ref) AS ?count) WHERE {
+	?item wdt:P703 wd:Q27510868 .
+    ?item p:P682 Try it! Retrieve reverse/\"what links here\" statements (statements where the item is the object) [edit] The following query uses these:Items: night blindness (Q7758678)   , color blindness (Q133696)   SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?id
+WHERE {
+  values ?value {wd:Q7758678 wd:Q133696}
+  ?item ?propertyclaim ?id .
+  ?property wikibase:propertyType wikibase:WikibaseItem .
+  ?property wikibase:claim ?propertyclaim .
+  ?id ?b ?value .
+  FILTER(regex(str(?b), \"http://www.wikidata.org/prop/statement\" ))
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Get all proteins with GO annotations that are a subclass of \"signaling receptor activity\", where the determination method is a type of manual assertion, and the evidence is a scientific article that was published since 2014 [edit] The following query uses these:Items: signaling receptor activity (Q21109843)   , Homo sapiens (Q15978631)   , manual assertion (Q28955254)   , scholarly article (Q13442814)   Properties: Gene Ontology ID (P686)   , subclass of (P279)   , found in taxon (P703)   , UniProt protein ID (P352)   , molecular function (P680)   , instance of (P31)   , publication date (P577)   , PubMed publication ID (P698)   , stated in (P248)   , curator (P1640)   , determination method (P459)   SELECT distinct ?uniprot ?determinationLabel ?curatorLabel ?reference_stated_inLabel ?pmid ?publication_date ?go_id ?sig_rec_goLabel WHERE  {
+  
+  ?sig_rec_go wdt:P686 ?go_id . # get GO IDs
+  ?sig_rec_go wdt:P279* wd:Q21109843 . # that are subclasses of \"signaling receptor activity\"
+  
+  ?protein wdt:P703 wd:Q15978631 . # get items that are \"found in taxon\" human
+  ?protein wdt:P352 ?uniprot . # and have a uniprot ID
+  
+  ?protein wdt:P680 ?sig_rec_go . # proteins where the MF a signaling receptor activity subclass
+  ?protein p:P680 ?statement . # get statements
+  
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  ?determination wdt:P31 wd:Q28955254 . # filter where the determination method is a \"manual assertion\"
+  
+  ?statement prov:wasDerivedFrom/pr:P248 ?reference_stated_in . # get the \"stated in\" reference
+  ?reference_stated_in wdt:P31 wd:Q13442814 . # stated in a \"scientific article\"
+  ?reference_stated_in wdt:P577 ?publication_date . # get the publication date
+  ?reference_stated_in wdt:P698 ?pmid . # get the pubmed id
+  FILTER (?publication_date >= \"2014-01-01T00:00:00Z\"^^xsd:dateTime) . # filter where publication date is after 2014
+  
+  ?statement prov:wasDerivedFrom/pr:P1640 ?curator . # get the curator
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+  
+} limit 50 Try it! Get labels and description for Wikidata items [edit] Get label, synonyms, description for for a selected list of diseases as DOID The following query uses these:Properties: Disease Ontology ID (P699)   SELECT DISTINCT ?item ?doid ?itemLabel (group_concat(distinct ?itemaltLabel; separator=\"|\") as ?altLabel) ?itemDesc WHERE {
+  ?item wdt:P699 ?doid .
+  values ?doid {\"DOID:0050602\" \"DOID:0060308\" \"DOID:0060728\" \"DOID:10595\" \"DOID:11589\" \"DOID:2476\" \"DOID:5212\"}
+  OPTIONAL{
+  ?item skos:altLabel ?itemaltLabel .
+    FILTER(LANG(?itemaltLabel) = \"en\")
+  ?item schema:description ?itemDesc .
+    FILTER(LANG(?itemDesc) = \"en\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+group by ?item ?doid ?itemLabel ?itemDesc Try it! Count language labels for diseases [edit] The following query uses these:Properties: Disease Ontology ID (P699)   SELECT ?disease ?doid ?enLabel (count(?language) as ?languages) WHERE {
+	?disease wdt:P699 ?doid ;
+             rdfs:label ?label ;
+             rdfs:label ?enLabel .
+    FILTER (lang(?enLabel) = \"en\")
+    BIND (lang(?label) AS ?language)
+} group by ?disease ?doid ?enLabel
+order by desc(?languages) Try it! Example counting statements by their determination method [edit] Get all \"genetic association\" (P2293) claims linking gene to disease, how many are from GWAS versus other methods? The following query uses these:Properties: genetic association (P2293)   , determination method (P459)   SELECT distinct (COUNT(*) as ?c) ?determinationLabel WHERE {
+  ?gene p:P2293 ?statement . # all gene disease genetic associations
+  ?statement ps:P2293 ?disease .  # get the value associated with the statement
+  ?statement pq:P459 ?determination . # get 'determination method' qualifiers associated with the statements
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+} GROUP BY ?determinationLabel Try it! Get all properties and their usage counts on items that are diseases [edit] The following query uses these:Items: disease (Q12136)   Properties: instance of (P31)   SELECT ?propertyLabel ?propertyDescription ?pt ?count WHERE {
+  {
+    SELECT ?propertyclaim (COUNT(*) AS ?count) WHERE {
+      ?item wdt:P31 wd:Q12136 .
+	  ?item ?propertyclaim [] .
+	} GROUP BY ?propertyclaim
+  }
+  ?property wikibase:propertyType ?pt .
+  ?property wikibase:claim ?propertyclaim .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} ORDER BY DESC (?count) Try it! Get all properties and their usage counts for statements where the values are diseases [edit] i.e. these properties have values that are diseases The following query uses these:Items: disease (Q12136)   Properties: instance of (P31)   SELECT ?propertyLabel ?propertyDescription ?pt ?count WHERE {
+  {
+    SELECT ?propertyclaim (COUNT(*) AS ?count) WHERE {
+      ?id ?b ?item .
+      ?item wdt:P31 wd:Q12136 .
+	  [] ?propertyclaim ?id .
+	} GROUP BY ?propertyclaim
+  }
+  ?property wikibase:propertyType ?pt .
+  ?property wikibase:claim ?propertyclaim .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} ORDER BY DESC (?count) Try it! Quality Control (QC) Queries [edit] See here for more info. Query Wikidata using SPARQL Through R [edit] Example Query [edit] library(SPARQL)
+sparql <- \"https://query.wikidata.org/bigdata/namespace/wdq/sparql\"
+query <- \"PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P279 wd:Q1049021 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' . }
+}
+\"
+results <- SPARQL(sparql, query)
+View(as.matrix(results$results)) Query Wikidata using SPARQL Through Python [edit] Example Query [edit] from wikidataintegrator.wdi_core import WDItemEngine
+import pandas as pd
+r = WDItemEngine.execute_sparql_query(\"\"\"SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P279 wd:Q1049021 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}\"\"\")['results']['bindings']
+df = pd.DataFrame([{k:v['value'] for k,v in item.items()} for item in r]) Federated Queries [edit] Wikidata -> Wikipathways [edit] Wikipathways: Get drugs that act as channel blockers from Wikidata, get the pathways that these drugs are part of from Wikipathways [edit] The following query uses these:Items: nuclear receptor (Q422500)   , protein (Q8054)   , agonist (Q389934)   Properties: subclass of (P279)   , part of (P361)   , instance of (P31)   , physically interacts with (P129)   , subject has role (P2868)   PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wp:      <http://vocabularies.wikipathways.org/wp#> 
+PREFIX dcterms:  <http://purl.org/dc/terms/>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/> 
+
+SELECT DISTINCT ?metabolite ?wikidatadrug ?wikidatadrugLabel ?title ?wpIdentifier WHERE {
+    {?protein wdt:P279* wd:Q422500 .}
+     UNION
+    {?protein wdt:P361* wd:Q422500 .}
+  ?protein wdt:P31 wd:Q8054 .
+  ?wikidatadrug wdt:P129 ?protein .
+  ?wikidatadrug p:P129/pq:P2868 wd:Q389934 .
+  SERVICE <http://sparql.wikipathways.org/> {
+  ?metabolite a wp:Metabolite ;
+    wp:bdbWikidata ?wikidatadrug ;
+    dcterms:isPartOf ?pathway .
+   ?pathway a wp:Pathway .
+    ?pathway dc:title ?title .
+    ?pathway dc:identifier ?wpIdentifier .
+  }
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Get all interaction between metabolites in Pathways from Wikipathways and their individual pKa values [edit] The following query uses these:Properties: pKa (P1117)   #defaultView:Dimensions
+PREFIX wp:      <http://vocabularies.wikipathways.org/wp#>
+PREFIX dcterms:  <http://purl.org/dc/terms/>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/> 
+SELECT DISTINCT ?pwTitle ?metabolite1Label ?pKa1 ?pKa2 ?metabolite2Label WHERE {
+  ?metabolite2 wdt:P1117 ?pKa2 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  {SELECT * WHERE {
+    ?metabolite1 wdt:P1117 ?pKa1 .
+    {SELECT * WHERE {
+       SERVICE <http://sparql.wikipathways.org/> {
+         ?pathway dc:identifier ?pw ;
+                  dc:title ?pwTitle ;
+                   wp:organismName \"Homo sapiens\"^^xsd:string .
+         ?interaction rdf:type wp:Interaction ;
+                wp:participants ?wpmb1, ?wpmb2 ;
+                dcterms:isPartOf ?pathway .
+          ?wpmb1 wp:bdbWikidata ?metabolite1 .
+          ?wpmb2 wp:bdbWikidata ?metabolite2 .
+         FILTER (?wpmb1 != ?wpmb2)}
+     }
+    }
+   }
+  }
+} Try it! Find genes regulated by an miRNA of interest from Wikidata and retrieve pathways this gene is active in from WikiPathways [edit] Submit through Wikipathways endpoint PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?mirna ?gene ?pathway ?pLabel WHERE {
+  ?target dc:identifier ?exact .
+    ?target dcterms:isPartOf ?pathway .
+    ?pathway a wp:Pathway .
+    ?pathway <http://purl.org/dc/elements/1.1/title> ?pLabel .
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?mirna rdfs:label 'hsa-miR-211-5p'@en .
+    ?mirna wdt:P128 ?gene .
+    ?gene wdt:P2888 ?exact filter (?exact = <http://identifiers.org/ncbigene/1234>)
+  }
+} LIMIT 10 Try it! Uniprot -> Wikidata [edit] Retrieve all human membrane proteins annotated for a role in colorectal cancer [edit] Submit through uniprot endpoint """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

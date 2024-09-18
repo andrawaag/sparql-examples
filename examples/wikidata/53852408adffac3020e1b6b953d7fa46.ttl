@@ -1,0 +1,134 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-53852408adffac3020e1b6b953d7fa46> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Unification of distances in the stars 2 Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors 3 Weird football statistics (2 queries) 3.1 Top 10 of the youngest and the oldest goal scorers and players in tournament history 3.2 Places of birth of soccer players on a world map 4 Nigeria women biographies without photos on Wikipedia 5 Renaming label variables 6 Project country coverage stats 7 How to query all places within a place? 8 How to show only unique values when using several GROUP_CONCAT? 9 List of IATA airport codes with geo coords, city, country, continent 10 Get a list of lexemes with sense 11 Timeline US news 12 List of 1000 female with the highest number of interwikis, but without a be:interwiki 13 Query no longer working 14 Simple request (Participants to the 2016 Olympics) 15 Getting the lexeme for a given form 15.1 How many words to check 15.2 List words 15.3 Cross-check against existing lexemes 15.4 Article titles and corresponding lexemes (or \"placeholder\") 16 \"has part/part of\" tree 17 Every 'instance of' X which has more than one 'instance of' statement and a list of values of these 'instance of' stataments 18 Catalan label and Roman people 19 Timeout, but has been running two weeks ago every day. 20 Revenue: Newest Number and Qualifier 21 Items with more than 30 sitelinks 22 Pageviews of a given item in a given endpoint 23 Playing with references 24 List of city residents, with street names 25 All Encompassing Query 26 Wikipedia categories and sub-categories 27 Instance of (P31) Disease Outbreak (Q3241045) of (P642) COVID-19 (Q84263196) 28 List of the websites of all cities in Germany 29 Abfrage der Bürgermeister ein Stadt in zeitlicher Reihenfolge 30 List of Oscar Best Movies 31 Thousands separator 32 Searching for a specific property from a list of items 33 Upper case titles 34 Article titles about persons that contain a certain string 35 Mayors 36 Part of string with P973 37 Spelling out the language of a Wikimedia page from sitelink 38 Query on qualifier and display it on results 39 ORDER BY Family name 40 FILTER NOT EXISTS 41 Better query for P301 inverse constraint? 42 electoral district of a political position held? 43 Many wikiquote entries, but few wikipedia entries 44 List of artists in City of Pori art collection 45 Select Australian women who have an infobox with the parameter \"image =\" (and possibly therefore an image) where there is no image in wikidata Unification of distances in the stars By running the following query: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance
+WHERE
+{
+	?star wdt:P31 wd:Q523 ;
+	      wdt:P2583 ?distance;
+    FILTER( ?distance < 19 )
+		SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?distance
+ Try it! The logical thing would be to think that the first result should be Alpha Centauri A (Q2090157) (since it is the closest to Earth), but in reality is COSMOS2015 489026 (Q75031832) which is 0.15 kiloparsec. Is there any way to detect the distances expressed in parsec and kiloparsec to convert them to light years? Otherwise, the distance from Earth (P2583) should be added in each star both in light years and in (kilo)parsecs and choose from the query which to use.--190.139.216.64 02:25, 20 February 2020 (UTC) There are two possibilities. One is the built-in normalization of units: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+      ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?statement.
+      ?statement wikibase:quantityUnit ?unit.
+      ?statement wikibase:quantityAmount ?distance.
+      ?statement wikibase:quantityNormalized/wikibase:quantityAmount ?distanceNormalized. # convert to normalized unit (meter)
+      BIND (?distanceNormalized / 9460800000000000  AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100
+ Try it! You can also explicit convert the units: # Stars up to 18 light years away sorted by the nearest
+SELECT ?star ?starLabel ?distance ?unit ?unitLabel ?lightyears
+WHERE
+{
+  {
+    SELECT ?star ?distance ?unit ?lightyears
+    WHERE
+    {
+	  ?star wdt:P31 wd:Q523.
+	  ?star p:P2583/psv:P2583 ?d.
+      ?d wikibase:quantityUnit ?unit.
+      ?d wikibase:quantityAmount ?distance.
+      BIND(
+        COALESCE(
+          IF(?unit = wd:Q531, ?distance, 1/0), # lightyear
+          IF(?unit = wd:Q12129, ?distance*3.2616, 1/0), # paresc
+          IF(?unit = wd:Q11929860, ?distance*3261.6, 1/0), # kiloparsec
+          IF(?unit = wd:Q3773454, ?distance*3261600, 1/0), # megaparsec
+          -1
+      ) AS ?lightyears)
+      FILTER( ?lightyears < 19)
+    }
+    LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ORDER BY ?lightyears
+LIMIT 100
+ Try it! I have limited both queries to 100 results before sorting because theywill timeout without a limit. There are 1,542,325 stars in Wikidata. I think it is impossible to search them all and convert the units in 60 seconds using SPARQL. --Dipsacus fullonum (talk) 05:15, 20 February 2020 (UTC) The most time-consuming part of the queries is the FILTER function (when removed its run almost instantaneously). Ideally, all these distances (light-year (Q531), parsec (Q12129), kiloparsec (Q11929860) and megaparsec (Q3773454)) should be stored in the database instead of being calculated on the fly and that everyone chooses the unit they prefer, I think that would improve the execution times of the query.--190.139.216.64 13:18, 20 February 2020 (UTC) Probably it's better to use \"wdt:P31/wdt:P279* wd:Q523\" as not all the stars have preferred \"Q523\" value. Also do you want e.g. brown dwarf (Q101600) (one is very close to the Sun)? They are even technically not stars... --Infovarius (talk) 10:14, 3 March 2020 (UTC) Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors Hi allI'm not sure exactly what query I'm looking for but I'm working on schemas and other instructions for new contributors and I really like some information on common kinds of items so I know what people want to work on. What I would like to know is what are the most common 'kinds' of items are, as these, I guessing, are probably what they will want to create an item for. I guess this could be measured in a couple of different ways Most common statements overall (this will be useful for quick instructions for themed editathons etc) Most common 'instance of' Other very common statements and the most common values for those statements I assume there are a lot of people on Wikidata, to break this down a bit, what are the most common statements for people and what are the most common values? Once there's a list of the most common 'kinds' of items what are the most common statements for them e.g What are the most common statements for scientists? (I assume the professional would be more granular than 'scientist' but would have very similar instructions to create Thanks very much--John Cummings (talk) 19:56, 28 February 2020 (UTC) @John Cummings: There's some statistics info at the bottom of Wikidata:Statistics, and you can get an idea of common properties for kinds of items from the WD:Recoin tool. --Yair rand (talk) 19:51, 2 March 2020 (UTC) Weird football statistics (2 queries) I just added full individual statistics for the UEFA Super Cup (Q484028) (example1example2). Top 10 of the youngest and the oldest goal scorers and players in tournament history Every player has dates of his first & last game and goal. Given their dates of births, I need to get the maximum and minimum differences with the dates of goals and games. Сидик из ПТУ (talk) 19:01, 1 March 2020 (UTC) @ Сидик из ПТУ: 10 youngest and 10 oldest goal scorers: SELECT ?player ?playerLabel ?dob ?goal_date ?goal_age_days ?goal_age_years
+WITH
+{
+  SELECT ?player ?dob ?date_first ?date_latest ?age_first ?age_latest
+  WHERE
+  {
+    ?player p:P6509 ?p6509stm . # goals
+    ?p6509stm pq:P7124 ?date_first .
+    ?p6509stm pq:P7125 ?date_latest .
+    ?p6509stm pq:P642 wd:Q484028 . # for UEFA Super Cup
+    ?player wdt:P569 ?dob . # Date of birth
+    BIND(?date_first - ?dob AS ?age_first)
+    BIND(?date_latest - ?dob AS ?age_latest)
+  }
+} as %query
+WHERE
+{
+  {
+    SELECT ?player ?dob (?date_first AS ?goal_date) (?age_first AS ?goal_age_days)
+    {
+      INCLUDE %query
+    }
+    ORDER BY ASC(?goal_age_days)
+    LIMIT 10
+  }
+  UNION
+  {
+    SELECT ?player ?dob (?date_latest AS ?goal_date) (?age_latest AS ?goal_age_days)
+    {
+      INCLUDE %query
+    }
+    ORDER BY DESC(?goal_age_days)
+    LIMIT 10
+  }
+  BIND(?goal_age_days/365.25 AS ?goal_age_years)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ASC(?goal_age_days)
+ Try it! --Dipsacus fullonum (talk) 21:00, 1 March 2020 (UTC) Great! Thanks! Сидик из ПТУ (talk) 21:16, 1 March 2020 (UTC) Places of birth of soccer players on a world map Can I mark on the map with circles the places of births of all goal scorers in the tournament history? They must have more than 0 goals scored. Сидик из ПТУ (talk) 19:01, 1 March 2020 (UTC) @Сидик из ПТУ: Something like this maybe: #defaultView:Map{\"hide\":\"?coord\"}
+SELECT ?itemLabel ?birthplaceLabel ?coord ?layer {
+  ?item p:P6509 ?p6509stm .
+  ?p6509stm ps:P6509 ?layer .
+  FILTER(?layer > 0)
+  ?p6509stm pq:P642 wd:Q484028 .
+  ?item wdt:P19 ?birthplace .
+  ?birthplace wdt:P625 ?coord .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Larske (talk) 19:59, 1 March 2020 (UTC) Great! Thanks! Сидик из ПТУ (talk) 20:03, 1 March 2020 (UTC) Nigeria women biographies without photos on Wikipedia HiGreetings,I need a query on Wikidata for the list of Nigerian's women biography on Wikipedia without photos.Thanks as I await your help.Olaniyan Olushola (talk) 13:21, 2 March 2020 (UTC) @Olaniyan Olushola: I sorry to say that it is impossible to query on Wikidata the details of articles on a Wikipedia. I can easily write a query for Nigerian women without an image on Wikidata, but not a query for Wikipedia biographies without image. There may be other tools which can do that, but I cannot help with that. Maybe others can. --Dipsacus fullonum (talk) 19:34, 2 March 2020 (UTC) Items used: Nigeria (Q1033)   , female (Q6581072)   Properties used: country of citizenship (P27)   , place of birth (P19)   , country (P17)   , place of death (P20)   , sex or gender (P21)   , image (P18)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d845932-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+{
+    { ?item wdt:P27 wd:Q1033 } UNION { ?item wdt:P19/wdt:P17 wd:Q1033 } UNION { ?item wdt:P20/wdt:P17 wd:Q1033 } 
+    ?item wdt:P21 wd:Q6581072 .
+    FILTER NOT EXISTS { ?item wdt:P18 [] }
+    [] schema:about ?item . 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

@@ -1,0 +1,162 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-da49cfe456111c0ce330a5ea6061314e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of all Bart Simpson prank call alter egos 2 Minor issue regarding Humans per DoD query 3 Access to QID or creation date 4 List of German Research Foundation Applicants (with GEPRIS Historisch-ID) (1920 - 1945) with living descendents 5 Number of sitelinks based on Wikipedia article name (English) 6 How to get a list of people who have name in native language (P1559) in a particular language 7 STRSTARTS (URL) 8 List unique value violations for a particular P131 9 instance of (P31) scholarly article (Q13442814) with no description in English 10 Straightening out a bowl of spaghetti on subway lines 11 Help with a query of physical geography elements of a region 12 Mountain range names in national / local languages 13 How to find physicists with many articles in different languages (at least 20) 14 Query returning pages with non-empty talk pages 15 Complementary spouses 16 All places in the Great Catalan Encyclopedia that are not part of the Catalan Countries 17 Searching only one-way railway stations 18 How to query and filter among ranks 19 list of all games on wikidata 20 Metadata about every human in English Wikipedia 21 pubmed from a given list of QIDs 22 Days with no photos 23 Politicians by country (USA; UK; CAN; IN) in English and Hindi Wikipedias 24 Items whose article in Wikipedia contain a given string 25 Homonyms inside same subway List of all Bart Simpson prank call alter egos I'd like to have a timeline of all Bart Simpson prank call alter egos (e.g. Seymour Butz (Q105974063)). Thank you very much! ★ → Airon 90 07:49, 30 November 2021 (UTC) #defaultView:Timeline
+SELECT ?item ?itemLabel ?epiLabel ?pub
+WHERE { 
+  ?item p:P31 ?st.
+  ?st ps:P31 wd:Q65048168;
+      pq:P642 wd:Q5480.
+  OPTIONAL {
+    ?epi wdt:P674 ?item;
+         wdt:P577 ?pub.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?pub
+ Try it! These are the ones Wikidata knows about. Enjoy. --Infrastruktur (T | C) 00:08, 1 December 2021 (UTC) Minor issue regarding Humans per DoD query Hi, @Quesotiotyo: has helped me tremendously creating a query that I'm using as we speak (context). However, there seems to be a small issue regarding persons of which multiple death dates exist in Wikidata. For instance: Evelyn Laye has two DoD's connected to her. Therefore she shows up in the query results with both DoD-parameter \"+1996-02-16\" and \"+1996-02-17\". This is what we want. However, regarding Robert Kühner this does not happen: connected DoD's to him are '27 February 1996' and '28 February 1996' but Robert does not show up in the results with DoD-parameter \"+1996-02-27\". Does someone know what's going on? Regards, Mill 1 (talk) 17:07, 28 November 2021 (UTC) SELECT
+  ?item ?articlename ?itemLabel ?itemDescription ?sl ?dob
+  ?dod ?dod_refs ?cod ?mod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod
+    (GROUP_CONCAT(CONCAT(?dod_ref_propLabel, \": \", ?dod_ref_valueLabel); SEPARATOR=\"~!\") AS ?dod_refs)
+  WHERE
+  {
+    VALUES ?dod {\"+1996-02-27\"^^xsd:dateTime}
+    ?dod ^wdt:P570 ?item .
+    ?item wdt:P31 wd:Q5 .
+    OPTIONAL
+    {
+      ?item p:P570 ?dod_stm .
+      ?dod_stm ps:P570 ?dod ;
+               psv:P570 [wikibase:timePrecision ?dod_precision].
+      FILTER( ?dod_precision >= \"11\"^^xsd:integer )
+      OPTIONAL
+      {
+        ?dod_stm prov:wasDerivedFrom ?dod_ref .
+        ?dod_ref ?dod_ref_pr ?dod_ref_value .
+        ?dod_ref_prop wikibase:reference ?dod_ref_pr .
+      }
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?dod_ref_prop rdfs:label ?dod_ref_propLabel .
+      ?dod_ref_value rdfs:label ?dod_ref_valueLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod
+} AS %get_dod_refs
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs (GROUP_CONCAT(?codLabel; SEPARATOR=\", \") AS ?cod)
+  WHERE
+  {
+    INCLUDE %get_dod_refs
+    OPTIONAL
+    {
+      ?item p:P509 ?cod_stm .
+      ?cod_stm ps:P509 ?cod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?cod rdfs:label ?codLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs
+} AS %get_cod
+WITH
+{
+  SELECT
+    ?item ?dod_stm ?dod ?dod_refs ?cod (SAMPLE(?modLabel) AS ?mod)
+  WHERE
+  {
+    INCLUDE %get_cod
+    OPTIONAL
+    {
+      ?item p:P1196 ?mod_stm .
+      ?mod_stm ps:P1196 ?mod .
+    }
+    SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?mod rdfs:label ?modLabel .
+    }
+  }
+  GROUP BY ?item ?dod_stm ?dod ?dod_refs ?cod
+} AS %get_mod
+WHERE
+{
+  INCLUDE %get_mod
+  ?item wikibase:sitelinks ?sl .
+  ?item ^schema:about ?article .
+  ?article schema:isPartOf <https://en.wikipedia.org/> ;
+           schema:name ?articlename .
+  OPTIONAL { ?item wdt:P569 ?dob ;
+                   p:P569 ?dob_stm .
+             ?dob_stm ps:P569 ?dob .
+             ?dob_stm a wikibase:BestRank
+           }
+  SERVICE wikibase:label
+    {
+      bd:serviceParam wikibase:language \"en\" .
+      ?item rdfs:label ?itemLabel .
+      ?item schema:description ?itemDescription .
+    }
+  BIND(REPLACE(?itemLabel, \"^.*(?<! [Vv][ao]n| [Dd][aeiu]| [Dd][e][lns]| [Ll][ae]) (?!([SJ]r\\\\.?|[XVI]+)$)\", \"\") AS ?sortname)  
+} ORDER BY ASC(UCASE(?sortname)) ASC(UCASE(?itemLabel))
+ Try it! The query is for the best ranked date of death. Robert Kühner (Q2226482) has two values for date of death (P570). One is normal rank, and one is preferred rank, so the query will only show the date with preferred rank. --Dipsacus fullonum (talk) 18:36, 28 November 2021 (UTC) Ah, thanks for clearing that up. Where can I find the data on 'normal/preferred ranked' for this date of death (P570)? Having trouble locating it in the item Robert Kühner (Q2226482). Mill 1 (talk) 18:52, 28 November 2021 (UTC) @Mill 1: When you go to Q2226482#P570 you can see 3 figures immediately to the left of each date. If the top figure is completely filled in, the value has preferred rank. If the middle figure is completely filled in, the value has normal rank. And if the bottom figure is filled in, the value has deprecated rank. You can read more about ranking at Help:Ranking. --Dipsacus fullonum (talk) 14:10, 2 December 2021 (UTC) @Dipsacus fullonum: Thank you clearing that up. I never would've guessed! Mill 1 (talk) 17:14, 2 December 2021 (UTC) Access to QID or creation date I use SELECT ?item
+WHERE 
+{
+  ?item wikibase:statements 0 ; wikibase:sitelinks ?sitelinks .
+  FILTER EXISTS {[] schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> . }
+}
+ Try it! to get items without any statements that have at least a german wikipedia sitelink.I want to accelerate this query to restrict it to certain QIDs. How can I filter the QID or the creation date of this item?I know FILTER(xsd:integer(strafter(str(?item),\"Q\")) < 2000000) but this is not very fast - is it possible to access the QID number diretly?I know ?item schema:dateModified ?date FILTER (?date < \"2015-01-01T00:00:00Z\"^^xsd:dateTime) - is there an alternative to schema:dateModified like schema:dateCreated ?--Fidoez (talk) 14:57, 29 November 2021 (UTC) Items used: QID milestone (Q38074555)   Properties used: quantity (P1114)   , point in time (P585)   #defaultView:AreaChart
+SELECT ?date ?cumulativecount 
+{
+    hint:Query hint:optimizer \"None\".
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
+        WHERE
+        {
+          { SELECT ?item { ?item wikibase:statements 0 . [] schema:about ?item ; schema:isPartOf <https://de.wikipedia.org/> } }
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+          wd:Q38074555 p:P1114 ?milestonep .
+          ?milestonep ps:P1114 ?milestone 
+          FILTER( ?milestone > ?qid ) 
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date
+} Try it! Gets you a chart comparing QIDs to milestones in item creation. It suggests that items without claims with a sitelink to dewiki are either very old or recent. --- Jura 15:03, 29 November 2021 (UTC)\"It suggests that items without claims with a sitelink to dewiki are either very old or recent.\" YES, you are right. It is because I am working on these item and started at item numbers < 105000000. Now I reached number around 1500000.Your proposal is a nice presentation but is not a solution for my problem. How can I restrict the query?--Fidoez (talk) 16:43, 29 November 2021 (UTC) SELECT * 
+{
+   ?item wikibase:statements 0 .
+   FILTER( REGEX(str(?item), \"^http://www.wikidata.org/entity/Q109\\\\d{6}\") ) 
+}
+LIMIT 100Try it! I don't think there is other than comparing with a qid you are already using. The filter above might be slightly quicker. --- Jura 17:36, 29 November 2021 (UTC)OK, so far thanks for the comments related to QID.But do you have any idea for schema:dateModified? --Fidoez (talk) 20:10, 29 November 2021 (UTC) If you are looking for very new pages, you might get a query to work that checks first only recently modified pages (and then for QID) --- Jura 20:22, 29 November 2021 (UTC) @Fidoez: The creation date for items is not stored in WDQS. You can access it by making an MWAPI call to www.wikidata.org, but that is only feasible for small groups of already selected items, not for a general search. As pointed out the QID number is ordered by creation date (but beware that merges can disturb the picture), but they AFAIK are not accessible indexed for searching in WDQS, so a FILTER using the numeric value is slow. --Dipsacus fullonum (talk) 15:32, 2 December 2021 (UTC) List of German Research Foundation Applicants (with GEPRIS Historisch-ID) (1920 - 1945) with living descendents I'd like to have a list of living descentants of applicants in the GEPRIS Historisch Database (compare GEPRIS Historisch person ID (P9044)). It would also be nice to have a genealogy graph of this cases. Nice to have would also be a network of all applicants with kinship ties to each other. My SPARQL knowledge is only basic, so I would be happy about some help! More information and some related SPARQL can be found here: https://www.wikidata.org/wiki/Wikidata:GEPRIS_Historisch_(DFG)/de Richirikken (talk) 09:05, 30 November 2021 (UTC) Items used: human (Q5)   Properties used: GEPRIS Historisch person ID (P9044)   , child (P40)   , instance of (P31)   , date of birth (P569)   , date of death (P570)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833173-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?value ?descendant ?descendantLabel ?descendantDescription ?dob
+{
+  ?item wdt:P9044 ?value .
+  ?item wdt:P40+ ?descendant . 
+  ?descendant wdt:P31 wd:Q5 . 
+  FILTER NOT EXISTS { ?descendant p:P570 [] } 
+  OPTIONAL { ?descendant wdt:P569 ?dob }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+}""" .

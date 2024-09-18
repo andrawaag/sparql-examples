@@ -1,0 +1,42 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ff7a067bf1f96a6b7bdafeb479a0a4df> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Stefan_K%C3%BChn/altesdresden>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d851689-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#---------------------------------------------------------------------------------------
+# Objekte erbaut vor 1945, ohne altesdresden
+#---------------------------------------------------------------------------------------
+#defaultView:Table;Map;
+SELECT distinct ?item ?itemLabel ?itemDescription ?erbaut ?streetLabel ?housenumber ?image  ?coordinate
+#?value ?valueLabel  (URI(CONCAT(\"https://www.altesdresden.de/index.htm?get_object=\", ?value)) as ?altesDDurl)
+WHERE
+{
+  #?item wdt:P11855 ?value .
+  ?item wdt:P131 wd:Q1731.  # in Dresden
+  MINUS { ?item wdt:P11855 [] } . # kein altesdresden
+  ?item wdt:P571 ?erbaut.         # Erbaut am
+  FILTER (?erbaut <= \"1946-01-01T00:00:00Z\"^^xsd:dateTime)  # vor 1945
+  
+  MINUS { ?item wdt:P31 wd:Q3305213 }. # kein Gemälde
+  
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL { ?item wdt:P625 ?coordinate . }
+  OPTIONAL { ?item wdt:P669 ?street.  }                     # Straße
+  OPTIONAL { ?item p:P669 [  pq:P670 ?housenumber ]  . }    # Hausnummer  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en\"  }
+}
+order by ?streetLabel ?housenumber ?erbaut""" .

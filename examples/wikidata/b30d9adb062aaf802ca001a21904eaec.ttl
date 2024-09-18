@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b30d9adb062aaf802ca001a21904eaec> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Contents 1 Queries 1.1 count number of obituaries 1.2 find more obituaries 1.3 find more obituaries (\"in memoriam\") 1.4 articles about obituaries 2 Discussion Queries [edit] count number of obituaries [edit] SELECT (COUNT(*) as ?ct)  WHERE { ?item wdt:P136 wd:Q309481 ; wdt:P31 wd:Q13442814 }
+ Try it! SELECT (COUNT(*) as ?ct)  WHERE { ?item wdt:P136 wd:Q309481 }
+ Try it! find more obituaries [edit] SELECT DISTINCT ?item ?itemLabel ?title (\"P??\" as ?pr) (\"Q309481\" as ?value)
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"obituary haswbstatement:P31=Q13442814 -haswbstatement:P136=Q309481 -haswbstatement:P138=Q309481 -haswbstatement:P921=Q309481\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! One may want to differentiate: genre (P136) = obituary (Q309481) - a biographical text about a person. Use main subject (P921) to link to the item about the person main subject (P921) = obituary (Q309481) - a work about obituaries named after (P138) = obituary (Q309481) - something that is called \"obituary\", but isn't necessarily a biographical text about a person find more obituaries (\"in memoriam\") [edit] SELECT DISTINCT ?item ?itemLabel ?title (\"P??\" as ?pr) (\"Q309481\" as ?value)
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"memoriam haswbstatement:P31=Q13442814 -haswbstatement:P825 -haswbstatement:P136=Q309481 -haswbstatement:P138=Q309481 -haswbstatement:P921=Q309481\".
+    ?title wikibase:apiOutput mwapi:title.
+  }
+  BIND(IRI(CONCAT(STR(wd:), ?title)) AS ?item)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}
+ Try it! One may want to differentiate: obituaries genre (P136) = obituary (Q309481) - a biographical text about a person main subject (P921) = <name of a person> - obituary about this person dedication dedicated to (P825) = <name of a person> - article about <some topic> dedicated to <name of a person> main subject (P921) = <some topic> articles about obituaries [edit] Items used: obituary (Q309481)   Properties used: main subject (P921)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Talk:Q309481>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d815674-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription
+{
+	?item wdt:P921 wd:Q309481 . 
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

@@ -1,0 +1,56 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-832a6a2814dc31eff112da3a7e7b9c22> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/pl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/it>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/da>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/th>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/id>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/ar>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/arz>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/human>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d816286-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d816286-869D164AF68A44FD6433EED72F629A59,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-760F28D69B39AA7658BF57D42140838B, _:genid-4e694113159d4e3db4a1a913894a81d816286-041D039F05196F714F301FD62B8BF296,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-E5C9AB4C10D999FC53B87F963A090DB9, _:genid-4e694113159d4e3db4a1a913894a81d816286-58711E0A71EE31F7B9F65CFEC7DA3A44,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-9018D5AE0D48BB68DF766B7E788EE9FE, _:genid-4e694113159d4e3db4a1a913894a81d816286-498504C2A31228683729CB6C85F73C58,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-352DBEB83308E222E042057166583677, _:genid-4e694113159d4e3db4a1a913894a81d816286-0FAFAA956176EEA6C18B437C0DDE92B9,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-9DCA3C549958764FE5FD5853811C3A2B, _:genid-4e694113159d4e3db4a1a913894a81d816286-5F15A70BEE57109C7E9BF9F0F8493923,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-D688D4BAB843605B5CC59AD55D71245E, _:genid-4e694113159d4e3db4a1a913894a81d816286-1FE00D195EE4B92071C988141A7234B9,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-0D35E393C2DD04A6DC3ECC3B1ABBC374, _:genid-4e694113159d4e3db4a1a913894a81d816286-C00616A16E9DB0963957A363F4FBA2C9,
+    _:genid-4e694113159d4e3db4a1a913894a81d816286-CA04B18F569B438E5B7FA4C40C839C6D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:LineChart
+SELECT ?yearstr (AVG( ?_number_of_children ) AS ?count) WHERE {
+  ?item wdt:P31 wd:Q5.
+  ?item wdt:P1971 ?_number_of_children.
+  ?item p:P569/psv:P569 [
+                wikibase:timePrecision ?precision ;
+                wikibase:timeValue ?_date_of_birth ;
+              ] .
+  FILTER( ?_number_of_children >= 0 )
+  FILTER( ?precision >= \"10\"^^xsd:integer ) # precision of at least year
+  FILTER( ?year > 1900 )
+  BIND( year(?_date_of_birth) as ?year ).
+  BIND( str(?year) AS ?yearstr ).
+} GROUP BY ?yearstr""" .

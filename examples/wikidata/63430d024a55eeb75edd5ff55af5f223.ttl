@@ -1,0 +1,190 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-63430d024a55eeb75edd5ff55af5f223> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Instances of website (Q35127) that do not have privacy policy (P7101) 2 List of works entering the public domain in a given year 3 find an artist by the signing date of an art work and the initials of the artist 4 P31=Q11173 with missing german description 5 One condition works fine, two time out 6 Norwegians date of death 7 Look for continent first and then country 8 Query about women artists in Latin America 9 Need help with request 10 Struggling to import strings via quickstatements 11 refine a stats query 12 Search for text string with accompanying main subject (P921) 13 Items with existing it.wiki article but without wikidata Italian label 14 People that died on January 2021 15 Searching for result by matching item label with request parameter 16 Get items where \"instance of\" is a subclass of another item 17 Places near the sea 18 quick question about querying for qualifiers 19 List of data for stars with distance from Earth of less than 30 LY or parallax > 100 milli arc seconds. 19.1 What units do normalised values use 20 Get wikis statistics from a query 21 youtube videos published by The Great War (Q30598122) 22 wikipedia page name 23 Ranking airports by their biggest fall / smallest fall patronage (P3872) 24 Brothers and sisters without P3373 25 Query all triples of a page 26 Wikidata list 27 ?COUNT and ?BIND 28 hint:Query hint:optimizer \"Runtime\" . hint:Query hint:maxParallel 50 29 Continent of a city 30 The wrong reference 31 Unconnected pages (SQL) 32 Count gender in a list Instances of website (Q35127) that do not have privacy policy (P7101) AntisocialRyan (talk) 06:58, 1 January 2021 (UTC) @AntisocialRyan: Lots of them. SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q35127.
+  FILTER NOT EXISTS {?item wdt:P7101 [] .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 07:47, 1 January 2021 (UTC) This is what I needed! Thanks! AntisocialRyan (talk) 18:13, 1 January 2021 (UTC) But if you mean website items where it is explicitly stated with a novalue values that no privacy policy exists there are currently none: SELECT ?item ?itemLabel 
+WHERE 
+{
+  ?item wdt:P31 wd:Q35127 .
+  ?item a wdno:P7101 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 14:06, 1 January 2021 (UTC) List of works entering the public domain in a given year Inspired by this, I'd like a query for creative works entering the public domain in the US on the account of the date of publication/release. So for this year, that would mean works published in 1925. But next year, 1926. I'd like to see a query that will not need to be tweaked every year and will always be current. NMaia (talk) 12:54, 1 January 2021 (UTC) I'm going to duck the larger question of the list of works based on publication date, for now, and just focus on \"not need to be tweaked every year\", which for the example query looks something like this: # Find works with a public domain date (P3893) in the calendar year in which the query is run
+SELECT ?work ?workLabel ?type ?typeLabel ?date ?articles ?now ?then WHERE {
+  ?work p:P3893/psv:P3893 ?date_node .
+  ?date_node wikibase:timeValue ?date .
+  BIND(xsd:dateTime(concat(str(year(now())),\"-01-01T00:00:00Z\")) as ?now) 
+  BIND(xsd:dateTime(concat(str(year(now()+\"P1Y\"^^xsd:duration)),\"-01-01T00:00:00Z\")) as ?then) 
+#  FILTER( ?date >= \"2021-01-01T00:00:00\"^^xsd:dateTime && ?date < \"2022-01-01T00:00:00\"^^xsd:dateTime )
+  FILTER( ?date >= ?now && ?date < ?then )
+  ?work wdt:P31 ?type ;
+           wikibase:sitelinks ?articles .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr,en,de,it,es,nl\" . }
+}
+# Order by number or articles on Wikimedia sites
+ORDER BY DESC(?articles)
+ Try it! --Tagishsimon (talk) 17:14, 1 January 2021 (UTC) Thank you! The issue is that public domain date (P3893) is not (yet) widespread, so publication date seems like it would catch nearly all cases. NMaia (talk) 04:41, 2 January 2021 (UTC) @NMaia: I don't have my copyright thinking hat on, but, is publication date the key, or is date of death of the author? I vaguely thought copyright in written works was life+nn years. If so, the query would find people who died in the pertinent year, and then list their works? Something like this. SELECT ?item ?itemLabel ?person ?personLabel ?dod WITH {
+  SELECT DISTINCT ?item ?person ?dod WHERE {
+  ?person wdt:P570 ?dod .
+  BIND(xsd:dateTime(?dod + \"P96Y\"^^xsd:duration) as ?date)
+  BIND(xsd:dateTime(concat(str(year(now())),\"-01-01T00:00:00Z\")) as ?now) 
+  BIND(xsd:dateTime(concat(str(year(now()+\"P1Y\"^^xsd:duration)),\"-01-01T00:00:00Z\")) as ?then) 
+  FILTER( ?date >= ?now && ?date < ?then )
+  ?item wdt:P50 ?person .
+    }  } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ Try it! If instead we want to assess by publication date (P577) I regret to inform there are quite a lot of those, and we'd probably need to select subsets of the written work (Q47461344) class tree in order to get the query to run without timeout. We'd also need to be savvy about the difference between works and editions ... P31 values for written works (scholarly articles and some others aside) are a hotching great mess, which is why I'm not mad keen to dive in. --Tagishsimon (talk) 05:23, 2 January 2021 (UTC) find an artist by the signing date of an art work and the initials of the artist I have tried this: # find an artist by the signing date of an art work and the initials of the artist.
+SELECT ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel WITH {
+  SELECT DISTINCT ?item WHERE {
+    ?item wdt:P31 wd:Q5.
+    ?item wdt:P106/wdt:P279* wd:Q21148249 . #wd:Q3391743 . #Q483501 
+    ?item wdt:P569 [].
+    ?item wdt:P735 [].
+    ?item wdt:P734 [].
+}
+} AS %subquery1 WHERE {
+  INCLUDE %subquery1 .
+    BIND (1670 as ?yearOfWork). # year on the work of art
+    BIND (\"^J.*\" as ?firstnamePattern). # first letter of initials, assuming firstname
+    BIND (\"^B.*\" as ?lastnamePattern). # second letter of initials, assuming lastname
+
+    #?item wdt:P31 wd:Q5.
+    #?item wdt:P106/wdt:P279* wd:Q21148249 . #Q3391743 . #Q483501 
+    ?item wdt:P569 ?birthDate .
+    bind (year(?birthDate) as ?yearOfBirth)
+    Filter (?yearOfBirth+20 < ?yearOfWork) # assuming was not creative before the age of 20
+    optional {?item wdt:P570 ?deathDate .
+              bind (year(?deathDate) as ?yearOfDeath)
+              Filter (?yearOfDeath >= ?yearOfWork)
+             }
+    ?item wdt:P735 ?firstname.
+    ?item wdt:P734 ?lastname.
+    ?firstname rdfs:label ?firstnameLabel .
+    ?lastname rdfs:label ?lastnameLabel .
+    FILTER(LANG(?firstnameLabel) = 'de' && LANG(?lastnameLabel) = 'de'
+                && regex(?firstnameLabel, ?firstnamePattern, \"i\") && regex(?lastnameLabel, ?lastnamePattern, \"i\")) .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} GROUP BY ?item ?itemLabel ?itemDescription ?yearOfBirth ?yearOfDeath $firstnameLabel ?lastnameLabel ORDER BY ASC(?lastnameLabel)
+ limit 100
+ Try it! It works for small sets of matches, but runs into timeout when e.g. changing from enameler (Q21148249) to visual artist (Q3391743) (which I really want). Any hints on how to improve the performance? --Herzi Pinki (talk) 16:23, 1 January 2021 (UTC) See Wikidata:Request_a_query/Archive/2020/11#publications_from_a_particular_year_and_place about the date queries. Instead of rdfs:label for the name, you might want to use the native label statement. commenting out '?firstname rdfs:label ?firstnameLabel' and the following (as ?firstnameLabel is predefined anyway), will be fast, but not return any result. I do not understand why this makes a difference, but it obviously does. --Herzi Pinki (talk) 20:18, 1 January 2021 (UTC) Possibly, year of death is more frequently available than date of birth. Some artists also have only work period specified. There is a tradeoff with artists still living. Who will not have a date of death. But date of birth should be optional too. --Herzi Pinki (talk) 20:18, 1 January 2021 (UTC) After \"?item wdt:P106/wdt:P279* wd:Q21148249\" you might want to add hint:Prior hint:gearing \"forward\". . --- Jura 17:39, 1 January 2021 (UTC) @Herzi Pinki: I would first filter for the least common initial in a new named subquery, and then for the other initial in another new named subquery, and then for the other conditions (years) in other subqueries. The goal would be to reduce the result set as fast as possible so you can avoid using time to process the last name and compare with the last name initial if first name doesn't match the first name initial, or inverse, and so on. But I doubt that timeout can be avoided even with the best possible optimization for visual artist (Q3391743) because there are too many (around 423900 distinct items) of these. --Dipsacus fullonum (talk) 18:52, 1 January 2021 (UTC) Your last statement says: Wikidata does not scale well? This will be an ever growing problem as more and more data get put into wikidata. I was thinking that '&& regex(?firstnameLabel, ?firstnamePattern, \"i\") && regex(?lastnameLabel, ?lastnamePattern, \"i\")' will only evaluate the second condition, if and only if the first one evaluates to true. Is this correct (like in C)? --Herzi Pinki (talk) 20:18, 1 January 2021 (UTC) @Herzi Pinki: SELECT (COUNT(*) as ?count) 
+{
+    ?item wdt:P569 ?d1 ; wdt:P570 ?d2 . 
+    hint:Prior hint:rangeSafe true .
+    FILTER( ?d1 < \"1670-00-00\"^^xsd:dateTime
+            && ?d2 > \"1671-00-00\"^^xsd:dateTime )
+    ?item wdt:P735 / wdt:P1705 ?nl0 . FILTER( REGEX(?nl0, \"^J\" ) )
+    ?item wdt:P734 / wdt:P1705 ?nl1 . FILTER( REGEX(?nl1, \"^B\" ) )
+}
+ Try it! Counts 325 in a few seconds --- Jura 20:33, 1 January 2021 (UTC)@Jura1: helped a lot. thx. Now my query looks like this (with visual artist (Q3391743) and with null-values for missing dates): SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?profLabel; SEPARATOR=', ') AS ?profLabels) ?yearOfBirth ?yearOfDeath ?firstnameLabel ?lastnameLabel where 
+{
+    ### variable search parameters
+    BIND (1960 as ?dateOfWork) .
+    BIND (\"^D\" as ?firstnamePattern). # first letter of initials, assuming firstname
+    BIND (\"^K\" as ?lastnamePattern). # second letter of initials, assuming lastname
+    ###
+  
+    optional {?item wdt:P569 ?d1.}
+    optional {?item wdt:P570 ?d2.}
+    BIND(IF(BOUND(?d1), year(?d1), 0) AS ?yearOfBirth) . # use null value
+    BIND(IF(BOUND(?d2), year(?d2), 3000) AS ?yearOfDeath) .
+    hint:Prior hint:rangeSafe true .
+    ?item wdt:P106/wdt:P279* wd:Q3391743 . #Q483501 
+    ?item wdt:P106 ?prof.
+    OPTIONAL {
+      ?prof rdfs:label ?profLiteral .
+      FILTER(LANG(?profLiteral) = 'de') .
+    }
+
+    BIND(IF(BOUND(?prof), IF(BOUND(?profLiteral), ?profLiteral, STRAFTER(STR(?prof), 'entity/')), 'no Prof') AS ?profLabel) .
+
+    FILTER( ?yearOfBirth+20 <= ?dateOfWork && ?yearOfDeath >= ?dateOfWork )
+    ?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, \"^D\" ) ) # ok
+    ?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, \"^K\" ) )
+    #?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, ?firstnamePattern ) ) # not ok
+    #?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, ?lastnamePattern ) )
+    OPTIONAL { ?firstname rdfs:label ?firstnameLabel . FILTER(LANG(?firstnameLabel) = 'de') . }
+    OPTIONAL { ?lastname rdfs:label ?lastnameLabel . FILTER(LANG(?lastnameLabel) = 'de') . }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} group by ?item ?itemLabel ?itemDescription ?profLabels ?yearOfBirth ?yearOfDeath ?firstnameLabel ?lastnameLabel
+ Try it!and finishes in time. I tried something else:SELECT ?item ?itemLabel ?itemDescription (GROUP_CONCAT(DISTINCT ?profLabel; SEPARATOR=', ') AS ?profLabels) ?yearOfBirth ?yearOfDeath ?firstnameLabel ?lastnameLabel where 
+{
+    ### variable search parameters
+    BIND (1960 as ?dateOfWork) .
+    BIND (\"^D\" as ?firstnamePattern). # first letter of initials, assuming firstname
+    BIND (\"^K\" as ?lastnamePattern). # second letter of initials, assuming lastname
+    ###
+  
+    optional {?item wdt:P569 ?d1.}
+    optional {?item wdt:P570 ?d2.}
+    BIND(IF(BOUND(?d1), year(?d1), 0) AS ?yearOfBirth) . # use null value
+    BIND(IF(BOUND(?d2), year(?d2), 3000) AS ?yearOfDeath) .
+    hint:Prior hint:rangeSafe true .
+    ?item wdt:P106/wdt:P279* wd:Q3391743 . #Q483501 
+    ?item wdt:P106 ?prof.
+    OPTIONAL {
+      ?prof rdfs:label ?profLiteral .
+      FILTER(LANG(?profLiteral) = 'de') .
+    }
+
+    BIND(IF(BOUND(?prof), IF(BOUND(?profLiteral), ?profLiteral, STRAFTER(STR(?prof), 'entity/')), 'no Prof') AS ?profLabel) .
+
+    FILTER( ?yearOfBirth+20 <= ?dateOfWork && ?yearOfDeath >= ?dateOfWork )
+    #?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, \"^D\" ) ) # ok
+    #?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, \"^K\" ) )
+    ?item wdt:P735 / wdt:P1705 ?firstname . FILTER( REGEX(?firstname, ?firstnamePattern ) ) # not ok
+    ?item wdt:P734 / wdt:P1705 ?lastname . FILTER( REGEX(?lastname, ?lastnamePattern ) )
+    OPTIONAL { ?firstname rdfs:label ?firstnameLabel . FILTER(LANG(?firstnameLabel) = 'de') . }
+    OPTIONAL { ?lastname rdfs:label ?lastnameLabel . FILTER(LANG(?lastnameLabel) = 'de') . }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language '[AUTO_LANGUAGE,de,en]' }
+} group by ?item ?itemLabel ?itemDescription ?profLabels ?yearOfBirth ?yearOfDeath ?firstnameLabel ?lastnameLabel
+ Try it! (filtering names via patterns set in advance - the only diff is the 2 lines doing the filtering with regex near the end) and this again runs into timeout. As far as I understand, BIND is the sparql equivalent for setting a local variable. Seems to be a bug, that using the same regular pattern as a literal will finish in time, and using the same regular pattern set via a variable will fail.One more question / problem: running the query with D and K will yield also Theodor Kelter (Q2417843) (and others, all with Initials T & K), where the firstname is shown as Dr. Theodor (this explains the match). I have no idea where the title in the first name comes from and how to skip those matches.The hint:Prior hint:rangeSafe true . does not seem to make much difference now. best --Herzi Pinki (talk) 12:24, 2 January 2021 (UTC) for the initial problem to identify DK on File:1160 Neulerchenfelder Straße 10 - Wandrelief Gründung der Gemeinde Neulerchenfeld IMG 3110.jpg I failed --Herzi Pinki (talk) 12:28, 2 January 2021 (UTC) SELECT DISTINCT ?item ?d1 ?d2 ?nl0 ?nl1 ?itemDescription
+{
+    ?item wdt:P569 ?d1 ; wdt:P570 ?d2 .
+    hint:Prior hint:rangeSafe true .
+    FILTER( ?d1 > \"1880-00-00\"^^xsd:dateTime &&
+             ?d2 > \"1964-00-00\"^^xsd:dateTime &&
+            ?d1 < \"1944-00-00\"^^xsd:dateTime
+          )
+    ?item wdt:P735 / wdt:P1705 ?nl0 . FILTER( REGEX(?nl0, \"^D\" ) )
+    ?item wdt:P734 / wdt:P1705 ?nl1 . FILTER( REGEX(?nl1, \"^K\" ) )
+    ?item wdt:P106/wdt:P279* wd:Q3391743 .
+     hint:Prior hint:gearing \"forward\".   
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! @Herzi Pinki: I think once saw a bug report about the BIND problem. It's slower than directly setting the regex. \"hint:Prior hint:rangeSafe true\" probably wont work in your sample if I understood Dipsacus fullonum's explanation at Wikidata:Request_a_query/Archive/2020/11#publications_from_a_particular_year_and_place correctly. \"Dr. Theodor\" is from @Geertivp:'s edit. I hope they eventually clean it up (it happened on other names as well). Above one for DK in 1964. Maybe you need to add more P734 to make it work. --- Jura 13:24, 2 January 2021 (UTC)  Items used: visual artist (Q3391743)   Properties used: occupation (P106)   , subclass of (P279)   , given name (P735)   , family name (P734)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826375-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# completeness P735/734 for visual artists
+SELECT
+  (COUNT(DISTINCT ?item) as ?all)
+  (COUNT(DISTINCT ?hasP735) as ?P735)
+  (COUNT(DISTINCT ?hasP734) as ?P734)
+WHERE
+{
+    ?item wdt:P106/wdt:P279* wd:Q3391743 .
+    hint:Prior hint:gearing \"forward\".   
+    OPTIONAL { ?item wdt:P735 [] . BIND(?item as ?hasP735) } 
+    OPTIONAL { ?item wdt:P734 [] . BIND(?item as ?hasP734) } 
+}""" .

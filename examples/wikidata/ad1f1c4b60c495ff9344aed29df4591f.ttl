@@ -1,0 +1,127 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-ad1f1c4b60c495ff9344aed29df4591f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Contents 1 Queries 1.1 Basic query building on Wikidata using paintings as the subject 1.1.1 Taking away criteria from your search using MINUS function 1.2 Using FILTER to specify results must be this or this 1.3 Using OPTIONAL to find statements that don't apply to all results 1.4 Using P, PS, to find nodes (multiple statement values) Queries [edit] Basic query building on Wikidata using paintings as the subject [edit] \"Find all of one thing\" So, \"Find all paintings on Wikidata\". SELECT ?item #the labels for the things in the query
+
+WHERE { ?item wdt:P31 wd:Q3305213 #instance of paintings, no labels.
+      
+      }
+ Try it! \"Find all of one thing, with this quality\" Find all paintings on Wikidata by Paul Cezanne. SELECT ?item ?itemLabel #added a Label here
+
+WHERE { ?item wdt:P31 wd:Q3305213  . #instance of paintings, 
+        ?item wdt:P170 wd:Q35548 . #creator is Paul Cezanne     
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! \"Find all of one thing, with this quality, and something about them\" Find all paintings on Wikidata, that are Impressionist, and their creators. SELECT ?item ?itemLabel ?artistLabel #added a Label here for artist as well.
+
+WHERE { ?item wdt:P31 wd:Q3305213  . #instance of paintings, 
+        ?item wdt:P135 wd:Q40415 . #movement is Impressionism
+        ?item wdt:P170 ?artist #asking for the creator statement of the results.
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! Taking away criteria from your search using MINUS function [edit] \"Find all of one thing, with this quality, information, but not these things\" Find all paintings on Wikidata, that are Impressionist, and their creators, but not by Monet. SELECT ?item ?itemLabel ?artist ?artistLabel #Item label here
+
+WHERE { ?item wdt:P31 wd:Q3305213  . #instance of paintings, 
+        ?item wdt:P135 wd:Q40415 . #movement is Impressionism
+        ?item wdt:P170 ?artist #show me the artists
+              
+              MINUS { ?item wdt:P170 wd:Q296 . } #the \"items\" (paintings) should be \"minus\" creator = Monet
+       
+       
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! \"Find all of one thing, with this quality, information, but not these things\" Find all paintings on Wikidata, that are Impressionist, and their creators, and their locations, but not by Monet. SELECT ?item ?itemLabel ?artist ?artistLabel ?locationLabel ?coordsLabel #Added labels up here for coordinates and locations
+
+WHERE { ?item wdt:P31 wd:Q3305213  . #instance of paintings, 
+        ?item wdt:P135 wd:Q40415 . #movement is Impressionism
+        ?item wdt:P170 ?artist . #show me the artists
+              
+        ?item wdt:P276 ?location . #show me the location of the items (e.g galleries)
+        ?location wdt:P625 ?coords . #show me the coordinates of those locations
+        
+              
+              MINUS { ?item wdt:P170 wd:Q296 . } #the \"items\" (paintings) should be \"minus\" creator = Monet
+       
+       
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! Same as above but show me a map. #defaultView:Map
+
+SELECT ?item ?itemLabel ?artist ?artistLabel ?locationLabel ?coords ?coordsLabel 
+#Added labels up here for coords, coordinates and locations otherwise map doesn't show
+
+WHERE { ?item wdt:P31 wd:Q3305213  . #instance of paintings, 
+        ?item wdt:P135 wd:Q40415 . #movement is Impressionism
+        ?item wdt:P170 ?artist . #show me the artists
+              
+        ?item wdt:P276 ?location . #show me the location of the items (e.g galleries)
+        ?location wdt:P625 ?coords . #show me the coordinates of those locations
+        
+              
+              MINUS { ?item wdt:P170 wd:Q296 . } #the \"items\" (paintings) should be \"minus\" creator = Monet
+       
+       
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } #added labelservice here
+      
+      }
+ Try it! Using FILTER to specify results must be this or this [edit] \"Show me paintings by Anthony Van Dyck that are in either the Louvre or Rijksmuseum\" The following query uses these:Items: visual artwork (Q4502142)   , Anthony van Dyck (Q150679)   , Rijksmuseum (Q190804)   , Louvre Museum (Q19675)   Properties: instance of (P31)   , subclass of (P279)   , creator (P170)   , location (P276)   SELECT DISTINCT ?item ?itemLabel ?location ?locationLabel ?creator ?creatorLabel 
+
+WHERE { ?item (wdt:P31/wdt:P279*) wd:Q4502142 .
+        #using broader \"visual artwork\" here and both \"instance of\" and \"subclass of\" to include paintings/prints etc
+        ?item wdt:P170 wd:Q150679 . #creator is Anthony Van Dyck 
+        ?item wdt:P276 ?location . #define location
+        ?item wdt:P170 ?creator . #define creator
+        
+       
+       FILTER ( ?location = wd:Q190804 || ?location = wd:Q19675 ) #location defined earlier is either...
+               
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+              
+              } Try it! \"Show me fictional characters that are in Grey's Anatomy, or its spin offs\" The following query uses these:Items: Grey's Anatomy (Q438406)   , Private Practice (Q283393)   , fictional character (Q95074)   Properties: instance of (P31)   , subclass of (P279)   , present in work (P1441)   SELECT ?item ?itemLabel ?workLabel
+
+WHERE { 
+  VALUES ?work {wd:Q438406 wd:Q283393} # Grey's anatomy or Private Practice
+  
+  ?item wdt:P31/wdt:P279? wd:Q95074 . #a fictional character or subclass of a fictional character
+        ?item wdt:P1441 ?work #present in work
+      
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+} Try it! Using OPTIONAL to find statements that don't apply to all results [edit] Finding characters in The Wire that have a cause of death but not all of them have a killer The following query uses these:Items: fictional character (Q95074)   , The Wire (Q478360)   Properties: instance of (P31)   , subclass of (P279)   , present in work (P1441)   , cause of death (P509)   , killed by (P157)    Features: Graph (Q24515287)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Battleofalma/Building_queries_BL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854821-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#who killed who in The Wire, and cause of death
+
+#defaultView:Graph
+
+SELECT DISTINCT ?person ?personLabel ?death ?deathLabel ?killer ?killerLabel 
+
+WHERE { ?person (wdt:P31 / wdt:P279) wd:Q95074 . #instance of subclass of fictional character
+        ?person wdt:P1441 wd:Q478360 . #present in The Wire
+        ?person wdt:P509 ?death #cause of death
+                
+                OPTIONAL { ?person wdt:P157 ?killer . } #person has \"killed by\"
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }""" .

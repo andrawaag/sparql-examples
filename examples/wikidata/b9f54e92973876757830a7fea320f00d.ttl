@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b9f54e92973876757830a7fea320f00d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/zh>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/es>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
+    <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d83227-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d83227-83F0038CBD0C7ADBC78567BBCE53AF02,
+    _:genid-4e694113159d4e3db4a1a913894a81d83227-7195A202ED597C7EF8821E0E1FA89AE3, _:genid-4e694113159d4e3db4a1a913894a81d83227-CB18141BCD33EE164A724AB22710ED98;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Search for missing descriptions in a target language.
+#Can be input for Q29032512
+SELECT ?item ?itemLabel ?genderLabel ?occupationLabel ?domainLabel ?positionLabel ?itemDescription WHERE {
+  ?item wdt:P31 wd:Q5.  # instance of human
+  ?item wdt:P27 wd:Q31. # country of citizenship Belgium
+optional{ ?item wdt:P21 ?gender.}
+optional{ ?item wdt:P106 ?occupation.}
+optional{ ?item wdt:P101 ?domain.}
+optional{ ?item wdt:P39 ?position.}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl,fr,en,de,it,es,pt,no\". }
+  FILTER(NOT EXISTS {
+    ?item schema:description ?itemdesc.
+    FILTER(LANG(?itemdesc) = \"nl\") # with missing Dutch description
+  })
+}
+order by ?itemLabel""" .

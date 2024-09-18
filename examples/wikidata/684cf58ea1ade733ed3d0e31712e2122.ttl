@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-684cf58ea1ade733ed3d0e31712e2122> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d831649-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d831649-C7AAE0838BDFC579FF2DD00BEF62ADE0,
+    _:genid-4e694113159d4e3db4a1a913894a81d831649-38E3C14C98D69C5001D9C6B5C504222E, _:genid-4e694113159d4e3db4a1a913894a81d831649-3A4526B3DD008FD1F428EFF94D8DF852,
+    _:genid-4e694113159d4e3db4a1a913894a81d831649-3EDBB88A9F76755FF0866388FB1364B7, _:genid-4e694113159d4e3db4a1a913894a81d831649-C00BD0FD71F8D70F0B0DE0B19A1C7C93,
+    _:genid-4e694113159d4e3db4a1a913894a81d831649-8177459B4FA30EEF4EFCB9B826B595CD, _:genid-4e694113159d4e3db4a1a913894a81d831649-CABD35C62A93F7953683C938E90B914E,
+    _:genid-4e694113159d4e3db4a1a913894a81d831649-1F8C0BD139B714766B5BF6E17495C70A, _:genid-4e694113159d4e3db4a1a913894a81d831649-1734ED7847F6DD07647AFE3C41BE4E59,
+    _:genid-4e694113159d4e3db4a1a913894a81d831649-26EA69FEED375ADE66D9E256A3D0D779, _:genid-4e694113159d4e3db4a1a913894a81d831649-586857DF45FF764ABD9F682A55750A31;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2016-10
+#TEMPLATE={\"template\":\"Largest ?c with ?sex head of government\",\"variables\":{\"?sex\":{\"query\":\" SELECT ?id WHERE { ?id wdt:P31 wd:Q48264 .  } \"},\"?c\":{\"query\":\"SELECT DISTINCT ?id WHERE {  ?c wdt:P31 ?id.  ?c p:P6 ?mayor. }\"} } }
+SELECT DISTINCT ?city ?cityLabel ?mayor ?mayorLabel
+WHERE
+{
+  BIND(wd:Q6581072 AS ?sex)
+  BIND(wd:Q515 AS ?c)
+
+	?city wdt:P31/wdt:P279* ?c .  # find instances of subclasses of city
+	?city p:P6 ?statement .            # with a P6 (head of goverment) statement
+	?statement ps:P6 ?mayor .          # ... that has the value ?mayor
+	?mayor wdt:P21 ?sex .       # ... where the ?mayor has P21 (sex or gender) female
+	FILTER NOT EXISTS { ?statement pq:P582 ?x }  # ... but the statement has no P582 (end date) qualifier
+	
+	# Now select the population value of the ?city
+	# (wdt: properties use only statements of \"preferred\" rank if any, usually meaning \"current population\")
+	?city wdt:P1082 ?population .
+	# Optionally, find English labels for city and mayor:
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" .
+	}
+}
+ORDER BY DESC(?population)
+LIMIT 10""" .

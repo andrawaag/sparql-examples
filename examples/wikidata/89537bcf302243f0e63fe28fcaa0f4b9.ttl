@@ -1,0 +1,94 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-89537bcf302243f0e63fe28fcaa0f4b9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>,
+    <https://www.wikidata.org//wiki/User:Duesentrieb/WDQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834541-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d834541-8ECB8B34FFD5A444C930E7A545FB9D62,
+    _:genid-4e694113159d4e3db4a1a913894a81d834541-4E647590B4813EA363170D3C2A84AF9E, _:genid-4e694113159d4e3db4a1a913894a81d834541-B4F7D6CEA1781BE0C356319EDFB6B7C8,
+    _:genid-4e694113159d4e3db4a1a913894a81d834541-8DFB980705B25CAFAD0FD0EFC98C56BB, _:genid-4e694113159d4e3db4a1a913894a81d834541-11F46B4F6C484A0C7123295C68257F71,
+    _:genid-4e694113159d4e3db4a1a913894a81d834541-785E780F8D05C67275955343F28B7375, _:genid-4e694113159d4e3db4a1a913894a81d834541-B135A220D22F44B2D28132842D3CA57E,
+    _:genid-4e694113159d4e3db4a1a913894a81d834541-2BC3C6751013EDE977241E7912CEA1F6, _:genid-4e694113159d4e3db4a1a913894a81d834541-5000B3FC9C1D78EF831A62E6B69B5DC6,
+    _:genid-4e694113159d4e3db4a1a913894a81d834541-E3BB0F92A7BE42F090AF63697208DD2F, _:genid-4e694113159d4e3db4a1a913894a81d834541-633AA84872C92A28AE9521C7B5E096C4;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX entity: <http://www.wikidata.org/entity/>
+
+#  In addition to the original query this one comes with some advantages:
+#  - You will get only literals as results, (even if the values are stored as IRI in wikibase)
+#  - That means you will also get properties as birth date, alphanumeric identifier and so on.
+#  - The list is ordered numerically by property number. (So P19 comes before P100) 
+#  - All label, altLabel and description in a given Language are included.
+#  You may open a separate column ?valUrl if you need also the IRI
+#
+#  Please advise, if there is an option to put the Q-Number  and/or the Language 
+#  code into a runtime variable. 
+
+SELECT ?propNumber ?propLabel ?val
+WHERE
+{
+	hint:Query hint:optimizer 'None' .
+	{	BIND(entity:Q42 AS ?valUrl) .
+		BIND(\"N/A\" AS ?propUrl ) .
+		BIND(\"Name\"@de AS ?propLabel ) .
+       entity:Q42 rdfs:label ?val .
+      
+        FILTER (LANG(?val) = \"de\") 
+	}
+    UNION
+    {   BIND(entity:Q42 AS ?valUrl) .
+      
+        BIND(\"AltLabel\"@de AS ?propLabel ) .
+        optional{entity:Q42 skos:altLabel ?val}.
+        FILTER (LANG(?val) = \"de\") 
+    }
+    UNION
+    {   BIND(entity:Q42 AS ?valUrl) .
+      
+        BIND(\"Beschreibung\"@de AS ?propLabel ) .
+        optional{entity:Q42 schema:description ?val}.
+        FILTER (LANG(?val) = \"de\") 
+    }
+   	UNION
+	{	entity:Q42 ?propUrl ?valUrl .
+		?property ?ref ?propUrl .
+		?property rdf:type wikibase:Property .
+		?property rdfs:label ?propLabel.
+     	FILTER (lang(?propLabel) = 'de' )
+        filter  isliteral(?valUrl) 
+        BIND(?valUrl AS ?val)
+	}
+	UNION
+	{	entity:Q42 ?propUrl ?valUrl .
+		?property ?ref ?propUrl .
+		?property rdf:type wikibase:Property .
+		?property rdfs:label ?propLabel.
+     	FILTER (lang(?propLabel) = 'de' ) 
+        filter  isIRI(?valUrl) 
+        ?valUrl rdfs:label ?valLabel 
+		FILTER (LANG(?valLabel) = \"de\") 
+         BIND(CONCAT(?valLabel) AS ?val)
+	}
+        BIND( SUBSTR(str(?propUrl),38, 250) AS ?propNumber)
+}
+ORDER BY xsd:integer(?propNumber)""" .

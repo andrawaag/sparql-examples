@@ -1,0 +1,296 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9015c25edf09e45b18a3fcf2fc8224b1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to adjust the title? 2 Article unsing P2100 that have coordinate souyh of the 45th North 3 Get sitelinks for list of items 4 Subcategory 5 Need help to find items without description in special language 6 Airports that have subways 7 Items *not* in a P131 hierarchy 8 P131:Q5700 in combination with P17:Q34? 9 Filtering locations for statements with reference URLs 10 Adding a fixed administrative level in a located in the administrative territorial entity (P131) tree 11 Randomly expected and unexpected results 12 Populated places 13 List of specific items 14 Searching author name strings 15 Map of cities 16 Optimization? 17 Search for most recent items 18 search items by altlabel 19 Need help with query 20 Graph view not showing all images? 21 Searching for items with disambig-links 22 Image URL from Commons via Wikidata 23 Wikisource authors without Wikipedia articles 24 Items referencing Wikipedia w/o Wikipedia article 25 Matching \"Similar to\" items 26 Dictionary of Welsh Biography ID but no link to enwiki 27 Distribution of highes classes 28 Non-English scientific articles 29 No description of scientific article in german 30 Map of streets in the Netherlands that might be named after a painter 31 multi precision dates query 32 Property with more than one values, the first value is specific How to adjust the title? For a normal query the outcome gives something like wd:Qxxx. How to remove the wd: prefix? Or make it something different? I know that with Bind(?variable as str) is possible, but that is only for adding things to the variable. Q.Zanden questions? 23:02, 24 June 2017 (UTC) (STRAFTER(STR(?item), STR(wd:)) AS ?1) --Edgars2007 (talk) 04:28, 25 June 2017 (UTC) Thanks, Edgars2007! And when I do not want the suffix? for example the query gives Page/Sub and I want only the Page part? Q.Zanden questions? 20:43, 25 June 2017 (UTC) @QZanden: Hmm, could you give some (real) example? Didn't quite understand, what you want. --Edgars2007 (talk) 07:13, 26 June 2017 (UTC) SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q14204246.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+LIMIT 50
+ Try it!@Edgars2007: This query gives all the Wikimedia project page (Q14204246) items and some of them are within some namespace like Project:Village pump (Q16503), I want only the part of the title until the colon(:) so Q16503 should have as outcome only Project. I hope this makes more sense! Q.Zanden questions? 09:56, 26 June 2017 (UTC)@QZanden: subqueries. d1g (talk) 06:12, 4 July 2017 (UTC) The following query uses these:Items: Wikimedia project page (Q14204246)   Properties: instance of (P31)   SELECT ?item ?itemLabel (STRBEFORE(?itemLabel, \":\") as ?a) WHERE {
+SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q14204246.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+LIMIT 50
+} Try it! @D1gggg: thanks! Q.Zanden questions? 13:45, 4 July 2017 (UTC) Article unsing P2100 that have coordinate souyh of the 45th North Hi, Laddo made me see that a bug of Mix'n'Match added coordinate wrongly. Like it put 7°12'54.000\"N [1] instead of 47°12'54.000\"N for Lac Tête Rouge (Q31916350). It's posibble to make a query for having all the items using Banque de noms de lieux du Québec ID (P2100) who use coordinates south of 45th North? (Or maybe just 10th North for this case) It will help me to correct them. --Fralambert (talk) 02:29, 5 July 2017 (UTC) SELECT ?item ?latitude ?longitude { ?item wdt:P2100 []; p:P625 [ psv:P625 [ wikibase:geoLatitude ?latitude; wikibase:geoLongitude ?longitude ] ] . } ORDER BY ASC(?latitude)
+ Try it!—MisterSynergy (talk) 04:57, 5 July 2017 (UTC)Thanks, all the errors are corrected. :) --Fralambert (talk) 22:42, 5 July 2017 (UTC) Get sitelinks for list of items I am trying to add (optional) Wikipedia sitelinks to a list of people for an article writing contest. The base query is: SELECT ?item ?itemLabel ?image ?birthDate ?deathDate ?birthPlaceLabel ?deathPlaceLabel ?citizenshipLabel WHERE {
+  VALUES (?item) { 
+    (wd:Q2059942)(wd:Q1894824)(wd:Q28503684)(wd:Q6773400)(wd:Q6698168)(wd:Q89137)(wd:Q584832)
+    (wd:Q11708569)(wd:Q2802434)(wd:Q2278761)(wd:Q226122)(wd:Q31819218)(wd:Q32786159)
+    (wd:Q27452283)(wd:Q254858)(wd:Q2377908)(wd:Q12279745)(wd:Q12274957)(wd:Q20717303)
+    (wd:Q159876)(wd:Q3574447)(wd:Q3065252)(wd:Q6417417)(wd:Q19830022)(wd:Q1496757)
+    (wd:Q19593654)(wd:Q233584)(wd:Q7145701)(wd:Q20268943)(wd:Q20732235)(wd:Q15731842)
+    (wd:Q15733755)(wd:Q18001239)(wd:Q459081)(wd:Q457705)(wd:Q9026469)(wd:Q127328)
+    (wd:Q20795960)(wd:Q13574559)(wd:Q4225202)(wd:Q5441759)(wd:Q3393862)(wd:Q5697580)
+    (wd:Q12017742)(wd:Q12756492)(wd:Q1136761)(wd:Q16429109)(wd:Q18706087)(wd:Q1568145)
+    (wd:Q17627766)(wd:Q970044)(wd:Q457418)(wd:Q6485256)(wd:Q5414994)(wd:Q19893493)
+    (wd:Q19892940)(wd:Q4117209)(wd:Q24285964)(wd:Q782501)(wd:Q18001140)(wd:Q7934819)
+    (wd:Q1226805)(wd:Q16732998)(wd:Q22583016)(wd:Q526932)(wd:Q51772)(wd:Q853932)(wd:Q949744)
+    (wd:Q6558163)(wd:Q20717409)(wd:Q6288450)(wd:Q281501)(wd:Q32786223)(wd:Q354476)(wd:Q69810)
+    (wd:Q32638574)(wd:Q267335)(wd:Q32640912)(wd:Q18207033)(wd:Q5252903)(wd:Q5363475)
+    (wd:Q27978652)(wd:Q23701408)(wd:Q32655397)(wd:Q32663033)(wd:Q32662312)(wd:Q1907896)
+    (wd:Q30583472)(wd:Q553943)(wd:Q2967768)(wd:Q26436220)(wd:Q12326428)(wd:Q26791455)
+    (wd:Q12040314)(wd:Q4980986)(wd:Q4173120)(wd:Q936422)(wd:Q94108)(wd:Q538068)(wd:Q242608)
+  }
+  OPTIONAL { ?item wdt:P18 ?image . }
+  OPTIONAL { ?item wdt:P19 ?birthPlace . }
+  OPTIONAL { ?item wdt:P20 ?deathPlace . }
+  OPTIONAL { ?item wdt:P569 ?birthDate . }
+  OPTIONAL { ?item wdt:P570 ?deathDate . }
+  #OPTIONAL { ?place wdt:P625 ?coord . }
+  OPTIONAL { ?item wdt:P625 ?coord . }
+  OPTIONAL { ?item wdt:P27 ?citizenship . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! I tried a number of ways to get the Wikpeida sitelinks for en, es, ca, vi, tr, hu, uk, ru, sv, de, pl, da, cz, it. Is is possible to avoid the timeout to fetch all those optional sitelinks? Also it seems not possible to get the coordinats of the birthplace, which seems funny, given that only 100 items are queried. --Tobias1984 (talk) 15:44, 9 July 2017 (UTC) I haven't looked at the sitelinks yet, but ?place is not used anywhere else, so ?place wdt:P625 ?coord . will try to fetch all coordinates in the entire database. As well as changing it to ?birthPlace, you need to move it inside the optional section for ?birthPlace (i.e. OPTIONAL { ?item wdt:P19 ?birthPlace . OPTIONAL { ?birthPlace wdt:P625 ?coord . } }) because you want it to only try to fetch those coordinates when ?birthPlace refers to a specific item. - Nikki (talk) 20:41, 9 July 2017 (UTC) For sitelinks, adding optional { hint:Query hint:optimizer 'None' . ?sitelink schema:about ?item ; schema:inLanguage ?lang ; schema:isPartOf/wikibase:wikiGroup \"wikipedia\" . filter (?lang in (\"en\", \"es\", \"ca\", \"vi\", \"tr\", \"hu\", \"uk\", \"ru\", \"sv\", \"de\", \"pl\", \"da\", \"cs\", \"it\")) . } seems to work. (I assume you mean \"cs\" not \"cz\") - Nikki (talk) 21:26, 9 July 2017 (UTC) Subcategory Hi, I'm struggling for finding a way to get all subcat of a given cat, something like Petscan - Subcat – The preceding unsigned comment was added by Eliabntt94 (talk • contribs) at 30. 3. 2017, 08:57‎ (UTC). SELECT ?item ?title WHERE {
+   SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"en.wikipedia.org\" .
+     bd:serviceParam mwapi:gcmtitle \"Category:Culture\" .
+     bd:serviceParam mwapi:generator \"categorymembers\" .
+     bd:serviceParam mwapi:gcmprop \"title\" .
+     bd:serviceParam mwapi:gcmlimit \"max\" .
+     bd:serviceParam mwapi:gcmnamespace \"14\" .
+     ?title wikibase:apiOutput mwapi:title  .
+     ?item wikibase:apiOutputItem mwapi:item .
+  }
+}
+ Try it! --Pasleim (talk) 19:12, 10 July 2017 (UTC) Need help to find items without description in special language Moin Moin together, the SPARQL and I, long story. All I want is to find items without description but with a property in a language, this is my example, could somebody help me? (I find too few objects!) SELECT DISTINCT ?item ?itemLabel
+WHERE
+{
+	?item wdt:P31 wd:Qxxxxxxx .
+	OPTIONAL { ?item schema:description ?itemDescription  }
+	FILTER (!BOUND(?itemDescription))
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\"}
+}
+LIMIT 100
+ Try it! Ragards --Crazy1880 (talk) 17:24, 9 July 2017 (UTC) If you want to find items without a German description, try changing the \"OPTIONAL\" line to OPTIONAL { ?item schema:description ?itemDescription filter (lang(?itemDescription) = \"de\") }. At the moment you're filtering out items with a description in any language. - Nikki (talk) 20:31, 9 July 2017 (UTC) Moin Moin Nikki, when I run this, comes a little later a timeout with limit reached. Coult this statement be optimized? Ragards --Crazy1880 (talk) 16:18, 10 July 2017 (UTC) This is now SELECT DISTINCT ?item ?itemLabel
+WHERE
+{
+	?item wdt:P31 wd:Q13442814 .
+	OPTIONAL { ?item schema:description ?itemDescription filter (lang(?itemDescription) = \"de\") }
+	FILTER (!BOUND(?itemDescription))
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\"}
+}
+LIMIT 100
+ Try it! Airports that have subways Hello sparqlers, it'd be nice getting a query that would return list of airports that are directly connected to their main city with a subway or a train line, such as CDG, JFK,LHR etc. Thanks!--Bouzinac (talk) 18:59, 10 July 2017 (UTC)@Bouzinac: Query is easy, but not data. The following query uses these:Items: airport (Q1248784)   , city (Q515)   Properties: instance of (P31)   , subclass of (P279)   , connects with (P2789)   SELECT ?a ?b ?aLabel ?bLabel {
+  ?a  wdt:P31/wdt:P279  wd:Q1248784. #... something that is Airport
+  ?a  wdt:P2789+          ?b.        #^ eventually connected to V
+  ?b  wdt:P31/wdt:P279  wd:Q515      #... something is a city
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+LIMIT 1000 Try it! d1g (talk) 06:32, 11 July 2017 (UTC) More correct and complex solution with located in the administrative territorial entity (P131) d1g (talk) 06:58, 11 July 2017 (UTC) The following query uses these:Items: airport (Q1248784)   , city (Q515)   Properties: instance of (P31)   , subclass of (P279)   , connects with (P2789)   , located in the administrative territorial entity (P131)   SELECT ?a ?b {
+  ?a  wdt:P31/wdt:P279  wd:Q1248784. #... something that is an Airport
+  ?a  wdt:P2789+          ?b.        # ^ eventually connected to b
+  ?b  wdt:P131*           ?c.        # b eventyally located in ...
+  ?c  wdt:P31/wdt:P279  wd:Q515      #... is a city
+} LIMIT 1000 Try it! No data... too bad ^^ --Bouzinac (talk) 10:57, 11 July 2017 (UTC) Items *not* in a P131 hierarchy This query shows me all Members of the Scottish Parliament who were born in Scotland (they were born in a place which is in Scotland using the located in the administrative territorial entity (P131) hierarchy; country (P17) doesn't work here). SELECT DISTINCT ?person ?personLabel ?born ?bornLabel ?coord {
+  ?position wdt:P279* wd:Q1711695 .          # 1. find all the MSP positions
+  ?person wdt:P39 ?position .                # 2. did they hold any MSP position
+  ?person wdt:P19 ?born .                    # 3. where were they born
+  ?born wdt:P131* wd:Q22 .                   # 4. this bit filters down to just \"in Scotland\"
+  OPTIONAL { ?born wdt:P625 ?coord . }       # 5. coordinates if available
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+#defaultView:Map
+ Try it! However, what I'd like to do would be to get this to output anyone born in a place that is not in Scotland - ie the place of birth (P19) value does not hit Scotland (Q22) if you work up the chain. I can't seem to work out how to put a negative filter in line 4. Any ideas? Andrew Gray (talk) 22:33, 10 July 2017 (UTC) I've also found when testing that switching in England (Q21) - which should produce a couple of dozen results as against ~200 for Scotland - causes a timeout. I guess there are more things under England but it seems odd, as presumably the system is only testing the ones it's already returned... Andrew Gray (talk) 22:38, 10 July 2017 (UTC) You might want to re-write in a way to avoid using \"*\" twice. It tends to time-out otherwise. --- Jura 22:46, 10 July 2017 (UTC) Use MINUS in line 4. SELECT DISTINCT ?person ?personLabel ?born ?bornLabel ?coord {
+  ?position wdt:P279* wd:Q1711695 .          # 1. find all the MSP positions
+  ?person wdt:P39 ?position .                # 2. did they hold any MSP position
+  ?person wdt:P19 ?born .                    # 3. where were they born
+  MINUS { ?born wdt:P131* wd:Q22 . }         # 4. this bit filters down to just \"not in Scotland\"
+  OPTIONAL { ?born wdt:P625 ?coord . }       # 5. coordinates if available
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+#defaultView:Map
+ Try it! --Pasleim (talk) 04:07, 11 July 2017 (UTC) @Pasleim: Amazing - thanks! For some reason I'd never spotted that one. @Jura: thanks for the pointer - in this case they're all only one level of P279 deep so it seems I didn't actually need the first asterisk after all. Will revise my stock query. Andrew Gray (talk) 11:44, 11 July 2017 (UTC) P131:Q5700 in combination with P17:Q34? Lapland (Q5700) is located in Finland (Q33) while Lapland (Q212640) is located in Sweden (Q34). They have the same name, are neighbours, and was in fact a common entity until the treaty of Fredrikshamn. It is therefor easy to mix these two up, I have done it myself a number of times. I think I have found all my mistakes, but how about the rest? -- Innocent bystander (talk) 08:02, 12 July 2017 (UTC) SELECT ?item WHERE {
+  ?item wdt:P131 wd:Q5700;
+        wdt:P17 wd:Q34
+}
+ Try it! and SELECT ?item WHERE {
+  ?item wdt:P131 wd:Q212640;
+        wdt:P17 wd:Q33
+}
+ Try it! --Pasleim (talk) 08:38, 12 July 2017 (UTC) I did a slightly different query. There are some items which are in both countries (hence the \"minus\" line) and the P131* follows the P131 statements until it finds Q5700 in case somewhere is marked as being in another place which is in Q5700: select * {
+  ?item wdt:P17 wd:Q34 .
+  ?item wdt:P131* wd:Q5700 .
+  minus { ?item wdt:P17 wd:Q33 }
+}
+ Try it! - Nikki (talk) 08:42, 12 July 2017 (UTC) Two found, thanks!!! It looks like the limited numbers of entities (two bridges, some lakes and a river) located at the Lappland-Lappland-border do not have much statements, if they exists at all here at Wikidata. Three-Country Cairn (Q1139153) for example has no P131-claim and I do not know if we have any item for the lake it is located in. -- Innocent bystander (talk) 09:01, 12 July 2017 (UTC) Filtering locations for statements with reference URLs Hi, I'm creating a ListeriaBot list which includes coordinates: w:en:User:MartinPoulter/Hillforts. When I get coordinate location (P625), it is displayed as a latitude/ longitude pair. Sometimes there are two or three for each result. I want to only show the coordinates for which there is a reference URL. So my query is: SELECT ?item ?type ?loc WHERE {
+?item wdt:P31/wdt:P279? wd:Q744099 ; wdt:P31 ?type ; wdt:P131 wd:Q23183 ; wdt:P4102 ?atlas ; p:P625 ?locstatement .
+?locstatement ps:P625 ?loc FILTER EXISTS { ?locstatement prov:wasDerivedFrom/pr:P854 ?locref } .
+?type wdt:P279? wd:Q744099
+}
+ Try it! This generates the right list, but the co-ordinates are now shown in the form \"Point(-1.9871 51.1255)\". How do I query to return ?loc in the form of latitude/ longitude pairs? Thanks in advance, MartinPoulter (talk) 11:41, 12 July 2017 (UTC) SELECT ?item ?type (CONCAT(STR(?lat),' / ',STR(?long)) AS ?loc) WHERE {
+?item wdt:P31/wdt:P279? wd:Q744099 ; wdt:P31 ?type ; wdt:P131 wd:Q23183 ; wdt:P4102 ?atlas ; p:P625 ?locstatement .
+FILTER EXISTS { ?locstatement prov:wasDerivedFrom/pr:P854 ?locref } .
+?locstatement psv:P625 ?coordinate_node .
+?coordinate_node wikibase:geoLatitude ?lat .
+?coordinate_node wikibase:geoLongitude ?long .
+?type wdt:P279? wd:Q744099
+}
+ Try it! --Pasleim (talk) 12:08, 12 July 2017 (UTC) Adding a fixed administrative level in a located in the administrative territorial entity (P131) tree The following query gives me all the churches in Brittany (Q12130) with their commune of France (Q484170) (the lowest located in the administrative territorial entity (P131) in France (Q142)). I'd like to add the department of France (Q6465) to which the commune belongs to but I don't know how. Could you help me please? Thanks. SELECT DISTINCT ?item ?itemLabel ?commune ?communeLabel
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P131+ wd:Q12130.
+  ?item (wdt:P31/wdt:P279*) wd:Q16970.
+  ?item wdt:P131 ?commune.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ Try it! — Ayack (talk) 15:15, 12 July 2017 (UTC) Have a look at Wikidata:Lists/cathedrals in France. I noticed it fails sometimes when a commune is part of some cross-departmental organization and people added that in P131. --- Jura 22:28, 12 July 2017 (UTC) Thanks Jura, it works. Unfortunately, as you said, there are some errors: around 50 results with two departments. SELECT DISTINCT ?item ?itemLabel ?commune ?communeLabel ?dep ?depLabel
+WHERE {
+  hint:Query hint:optimizer \"None\".
+  ?item wdt:P131+ wd:Q12130.
+  ?item (wdt:P31/wdt:P279*) wd:Q16970.
+  ?item wdt:P131 ?commune.
+  ?item wdt:P131* ?dep . ?dep wdt:P31 wd:Q6465
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+ Try it! — Ayack (talk) 06:28, 13 July 2017 (UTC) You can fix it by setting the department on the commune with preferred rank. --- Jura 06:30, 13 July 2017 (UTC) Do I understand this right: you want to add the department to every church? I think that's unnecessary since the commune item should have the department information, which is unambiguous given the strictly logic subdivision of France. --Anvilaquarius (talk) 07:17, 13 July 2017 (UTC) nope: \"setting the department on the commune with preferred rank\" > \"définir le département sur l'entité de la commune avec rang préféré\". --- Jura 07:45, 13 July 2017 (UTC) Randomly expected and unexpected results The following query should throw 13 results: SELECT ?item ?itemLabel
+WHERE {
+  ?item wdt:P195 wd:Q812285 .
+  OPTIONAL { ?item p:P217 ?invnostatement .
+             ?invnostatement ps:P217 ?invno . }
+  FILTER( !bound(?invno) )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,de,fr,it,es,pt,ca,la\" . }
+}
+
+#somestring
+ Try it! Unfortunately, if I change something that should not influence the syntax – like replacing somestring by anything else – it throws randomly 13, 14 or sometimes even 36 results where 0, 1 or 13 respectively of them are wrong. (I hope you can reproduce it!) Where is the mistake? Thanks in advance, --Marsupium (talk) 21:49, 12 July 2017 (UTC) I could reproduce it. Maybe because there are several servers and they don't always hold the same data. --- Jura 22:31, 12 July 2017 (UTC) Populated places I was hoping to get a query in places such as Turkey, India, Pakistan, and Kazakhstan. Thanks. MechQuester (talk) 14:47, 13 July 2017 (UTC) That will return a lot of results, but the basics of such a query (here, for Turkey) would be: select * {
+  ?item wdt:P31/wdt:P279* wd:Q486972 .
+  ?item wdt:P17 wd:Q43 .
+} limit 1000
+ Try it! If you want something more specific, your request needs to be more specific too. :) - Nikki (talk) 18:58, 13 July 2017 (UTC) Like a good way to replace a \"populated place\" or \"human settlement\" description with something more meaningful ? --- Jura 11:04, 14 July 2017 (UTC) List of specific items Pretty simple. For example, I have Q1111111, Q2222222 and Q33333333. I need a query returning me those three items. Could someone help me? Thanks! Strakhov (talk) 12:02, 14 July 2017 (UTC) The following query uses these:Items: Antonio Carestia (Q1111111)   , Jan van Genderen (Q2222222)   , Morphological changes due to Lead exposure and the influence of DMSA on the gill tissues of the freshwater fish, Catla catla. (Q33333333)   SELECT ?item ?itemLabel 
+WHERE
+{
+    VALUES ?item {
+wd:Q1111111
+wd:Q2222222
+wd:Q33333333
+    }   
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it! Maybe the above? --- Jura 12:10, 14 July 2017 (UTC) Thanks! Exactly the above. Much appreciated! :) Strakhov (talk) 12:23, 14 July 2017 (UTC) Searching author name strings I'd like to able able to search author name string (P2093). For example, find all items whose author name is \"Fred Smith\". But I'd also like something slightly more fuzzy, so if the search string is \"Jane Z. Doe\", it would find items with the author name string \"Jane Doe\" or \"J. X. Doe\" (or for the former, vice versa). Is this achievable? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 15:00, 15 July 2017 (UTC) The former is quite easy: SELECT ?item {
+  ?item wdt:P2093 \"Fred Smith\" .
+}
+ Try it! For the latter, you would have to play with the REGEX function. I believe some more specific matching should be possible, like \"first name starts with the same letter and surnames are same\". Matěj Suchánek (talk) 18:12, 15 July 2017 (UTC) Map of cities I'd like to plot a map with all cities whose name ends with \"pol\" and which are located in Russia. Is that possible with a single query? Thank you in advance, --Arnd (talk) 13:54, 17 July 2017 (UTC) This uses the English labels to determine the names, but it can be switched to other languages by replacing the 'en'. #defaultView:Map
+SELECT ?item ?itemLabel ?coords WHERE {
+  ?item wdt:P31 / wdt:P279* wd:Q515;
+        wdt:P17 wd:Q159;
+        wdt:P625 ?coords;
+        rdfs:label ?itemLabel FILTER( LANG( ?itemLabel ) = 'en' ) .
+  FILTER ( strEnds( ?itemLabel, 'pol' ) ) .
+}
+ Try it! --Yair rand (talk) 02:12, 18 July 2017 (UTC) Optimization? Could the following query be optimized to not time out? SELECT ?item ?itemLabel (GROUP_CONCAT(?p31Label; separator=\"; \") as ?p31s)
+WHERE {
+    ?item wdt:P830 [] .
+    OPTIONAL { ?item wdt:P31 ?p31 }
+    MINUS { ?item wdt:P31 wd:Q16521 . }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} 
+GROUP BY ?item ?itemLabel
+ORDER BY ?itemLabel
+ Try it! --XXN, 10:02, 19 July 2017 (UTC) This one does not : https://query.wikidata.org/#SELECT%20%3Fitem%20%3Fp31%0AWHERE%20%7B%0A%20%20%20%20%3Fitem%20wdt%3AP830%20%5B%5D%20.%0A%20%20%20%20OPTIONAL%20%7B%20%3Fitem%20wdt%3AP31%20%3Fp31%20filter%20%28wd%3AQ16521%20%21%3D%20%3Fp31%29.%20%20%7D%20%0A%0A%7D%20%0A but is already long. That one takes forever … : https://query.wikidata.org/#SELECT%20%3Fitem%20%28count%28%3Fp31%29%20as%20%3Fnum%29%0AWHERE%20%7B%0A%20%20%20%20%3Fitem%20wdt%3AP830%20%5B%5D%20.%0A%20%20%20%20OPTIONAL%20%7B%20%3Fitem%20wdt%3AP31%20%3Fp31%20filter%20%28wd%3AQ16521%20%21%3D%20%3Fp31%29.%20%20%7D%20%0A%7D%20%0Agroup%20by%20%3Fitem I’d suggest to break the dataset into smaller chunks - check only with animals, … – The preceding unsigned comment was added by TomT0m (talk • contribs). Querying only for items of animals isn't a solution for me. I'm trying to search if there are some erroneously harvested values - in items where they shouldn't be. XXN, 20:35, 19 July 2017 (UTC) SELECT ?item ?itemLabel (GROUP_CONCAT(?p31Label; separator=\"; \") as ?p31s) WHERE{
+  {
+    SELECT ?item ?p31 WHERE {
+        ?item wdt:P830 [];
+              wdt:P31 ?p31
+        FILTER ( ?p31 != wd:Q16521 )
+    }
+  }
+  MINUS {?item wdt:P31/wdt:P279* wd:Q16521}
+  SERVICE wikibase:label {
+	bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+	?p31 rdfs:label ?p31Label           
+  }
+} GROUP BY ?item ?itemLabel ORDER BY ?itemLabel
+ Try it! --Pasleim (talk) 21:26, 19 July 2017 (UTC) Thank you, Pasleim. This one works fine. --XXN, 22:45, 19 July 2017 (UTC) Search for most recent items So I have this query. SELECT ?item ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q4167836.
+}
+LIMIT 100
+ Try it! bHowever, I want the 100 most recent items. How would I do this? PokestarFan • Drink some tea and talk with me • Stalk my edits • I'm not shouting, I just like this font! 14:48, 19 July 2017 (UTC) By recent, I assume you mean the most recent created items. The following query may not return you 100 results because it takes the last 500 created items and only then filters on P31=Q4167836 SELECT ?item WHERE {
+  hint:Query hint:optimizer \"None\" .
+  SERVICE wikibase:mwapi {
+	 bd:serviceParam wikibase:api \"Generator\" .
+     bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+     bd:serviceParam mwapi:generator \"recentchanges\" .
+     bd:serviceParam mwapi:grcprop \"ids|title\" .
+     bd:serviceParam mwapi:grclimit \"max\" .
+     bd:serviceParam mwapi:grcnamespace \"0\" .
+     bd:serviceParam mwapi:grctype \"new\" .
+     ?qid wikibase:apiOutput mwapi:title  .
+  }
+  BIND(URI(CONCAT('http://www.wikidata.org/entity/', ?qid)) AS ?item)
+  ?item wdt:P31 wd:Q4167836 .
+} ORDER BY DESC(?item) LIMIT 100
+ Try it! --Pasleim (talk) 16:20, 19 July 2017 (UTC) search items by altlabel Hi, I try to search item by alternative label and it does not work for some reason.when searching according to labels it does work: SELECT DISTINCT ?s ?sLabel ?sAltLabel WHERE {
+  ?s wdt:P19 wd:Q844930.
+  ?s rdfs:label ?sLabel .
+  FILTER(?sLabel=\"Plato\"@en).
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} limit 100
+ Try it! But when searching according to altLabel I get no results: SELECT DISTINCT ?s ?sLabel ?sAltLabel WHERE {
+  ?s wdt:P19 wd:Q844930.
+  ?s skos:altLabel ?sAltLabel. 
+  FILTER(CONTAINS(?sAltLabel, \"Bolatu\"@en)). 
+ 
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} limit 100
+ Try it! why is that and how to fix it? thanks — Preceding unsigned comment added by 31.168.180.89 (talk) 08:33, 21 July 2017 (UTC) If you wrap the part with skos in \"OPTIONAL\" you will get a hit. SELECT DISTINCT ?s ?sLabel ?sAltLabel WHERE {
+  ?s wdt:P19 wd:Q844930.
+ OPTIONAL { ?s skos:altLabel ?sAltLabel. }
+ FILTER(CONTAINS(?sAltLabel, \"Bolatu\"@en)) 
+ 
+ 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} limit 100
+ Try it! Need help with query I need a simple query looking for items that have Commons Creator page (P1472) but do not have English label. I started at SELECT ?item  {
+  ?item wdt:P1472 ?creator .
+  ?item rdfs:label ?label .
+  FILTER(false = (LANG(?label) = 'en')) .
+} LIMIT 10
+ Try it! but it is not working. I can poke at it until I get it but I suspect someone might just see where my problem is. --Jarekt (talk) 18:49, 21 July 2017 (UTC) SELECT ?item  {
+  ?item wdt:P1472 ?creator .
+  FILTER NOT EXISTS {
+    ?item rdfs:label ?label .
+    FILTER((LANG(?label) = 'en')) .
+  }
+} LIMIT 10
+ Try it! Shinnin (talk) 18:59, 21 July 2017 (UTC) Great. Thanks --Jarekt (talk) 20:32, 21 July 2017 (UTC) Graph view not showing all images? Hi folks, when using the Graph mode for a query, is there a reason why not all the images are showing up? Cannot find in the documentation why if image (P18) is set, the images may not be showing up. Thanks. -- Fuzheado (talk) 13:22, 15 June 2017 (UTC) #Show firearms cartridges and which they are based on
+#defaultView:Graph
+SELECT ?item ?itemLabel ?other ?otherLabel ?image
+WHERE
+{
+    ?item wdt:P279+ wd:Q37144 .   # cartridges
+    ?item wdt:P144 ?other .       # if the cartridge is based on another
+    ?item wdt:P18 ?image .        # grab images
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}
+ Try it! @Fuzheado: first step is to understand that issue is systematic (every terminal image is shown); then... d1g (talk) 06:18, 22 July 2017 (UTC) The following query uses these:Items: cartridge (Q37144)   Properties: subclass of (P279)   , based on (P144)   , image (P18)    Features: Graph (Q24515287)  """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d859507-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d859507-51D620D37800AE6CE4659221364EA3F6;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Show firearms cartridges and which they are based on
+#defaultView:Graph
+SELECT 
+?item ?itemLabel ?image 
+?other ?otherLabel ?image2
+WHERE
+{
+    ?item  wdt:P279+ wd:Q37144 .   # cartridges
+    ?item  wdt:P144    ?other  .   # if the cartridge is based on another
+    ?item  wdt:P18     ?image  .   # grab image
+    ?other wdt:P18     ?image2 .   # grab image
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

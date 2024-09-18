@@ -1,0 +1,51 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f1501d2bb0af54448918de0d8be4b8c9> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846541-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d846541-4CE4BE7948BC29A8F50DFB8B76B1DFCE,
+    _:genid-4e694113159d4e3db4a1a913894a81d846541-8F3E14B19CAA043E392381A318BA546D, _:genid-4e694113159d4e3db4a1a913894a81d846541-2D2DA58579AD35BE575E7BC7EBA0A573,
+    _:genid-4e694113159d4e3db4a1a913894a81d846541-ED356CD285464113D40AA60341B99370, _:genid-4e694113159d4e3db4a1a913894a81d846541-F547E6688A5730ADA0A8029238F8A50F,
+    _:genid-4e694113159d4e3db4a1a913894a81d846541-E845CB257F4E81E915E68146D54F2E40, _:genid-4e694113159d4e3db4a1a913894a81d846541-AF22769EFEAD20FC7E746CC653F17C44,
+    _:genid-4e694113159d4e3db4a1a913894a81d846541-CD2CCF24F3CDE01A573E4463B91BD013, _:genid-4e694113159d4e3db4a1a913894a81d846541-394FCFF9AF79DD4937243AF154A47D14,
+    _:genid-4e694113159d4e3db4a1a913894a81d846541-86E9199D8918E8F5130ABEB2ECC0B448;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:LineChart
+SELECT ?country ?year ?AVGpopulation ?countryLabel WHERE {
+  {
+    SELECT ?country ?year (AVG(?population) AS ?AVGpopulation) WHERE {
+      {
+        SELECT ?country (str(YEAR(?date)) AS ?year) ?population WHERE {
+          ?country wdt:P47 wd:Q1009;  # shares border with Cameroon
+                   p:P1082 ?populationStatement.
+          ?populationStatement ps:P1082 ?population;
+                               pq:P585 ?date.
+        }
+      }
+    }
+    GROUP BY ?country ?year
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

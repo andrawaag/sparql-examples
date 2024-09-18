@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-698102fa6175f6911f115d0c82b354ad> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: Commons Creator page (P1472)   , Commons category (P373)   , date of birth (P569)   , date of death (P570)   , instance of (P31)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863149-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d863149-33E7DA2AC5A476C6E50149620D13DBCE;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item1 ?item1Label ?dob1 ?dod1 ?item2 ?item2Label ?dob2 ?dod2 ?value
+{
+    ?item1 wdt:P1472 [] .
+	?item1 wdt:P373 ?value .
+	?item2 wdt:P373 ?value .
+    OPTIONAL {?item1 wdt:P569 ?dob1} .
+    OPTIONAL {?item1 wdt:P570 ?dod1} .
+    OPTIONAL {?item2 wdt:P569 ?dob2} .
+    OPTIONAL {?item2 wdt:P570 ?dod2} .
+    FILTER(?item1 != ?item2) .
+    MINUS{ ?item2 wdt:P31 wd:Q4167836 . }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\" } .
+} LIMIT 500""" .

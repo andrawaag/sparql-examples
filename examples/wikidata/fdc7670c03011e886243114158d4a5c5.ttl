@@ -1,0 +1,40 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fdc7670c03011e886243114158d4a5c5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , property constraint (P2302)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Realworldobject/ShowTell>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d855577-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Example constraint violations for various types
+SELECT ?example ?itemLabel ?p ?numOccurs ?constraint ?constraintTypeLabel
+WHERE {
+  {
+    SELECT (SAMPLE(?item) AS ?item) ?p ?constraint (COUNT(?stmt) AS ?numOccurs)
+    WHERE {
+      ?stmt wikibase:hasViolationForConstraint ?constraint.
+      ?item ?p ?stmt ;
+#          wdt:P31 wd:Q5 .
+#          wdt:P31 wd:Q43229 .
+            wdt:P31 wd:Q515 . # city
+    } 
+    GROUP BY ?p ?constraint
+#    ORDER BY DESC(?numOccurs)
+#    LIMIT 30
+  }
+  ?constraint ps:P2302 ?constraintType .
+  BIND(URI(CONCAT(STR(?item), \"#\", STRAFTER(STR(?p), STR(p:)))) AS ?example)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?numOccurs)""" .

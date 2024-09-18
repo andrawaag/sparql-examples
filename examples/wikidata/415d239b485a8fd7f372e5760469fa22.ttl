@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-415d239b485a8fd7f372e5760469fa22> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , subclass of (P279)   , dissolved, abolished or demolished date (P576)   , official website (P856)   , award received (P166)   , point in time (P585)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d811444-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d811444-6476788B7E7F81A7E4ACD6F3F7422A32;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?award ?enwp ?url (MAX(?time) as ?latest) WHERE {
+?award wdt:P31/wdt:P279+ wd:Q618779.
+MINUS { ?award wdt:P576 [] } # Exclude abolished
+ [] p:P166 ?statement.
+       ?statement ps:P166 ?award.
+       ?statement pq:P585 ?time.
+OPTIONAL{ ?award wdt:P856 ?url }
+FILTER (YEAR(?time)<2016)
+FILTER (YEAR(?time)>1960)
+?enwp schema:about ?award; schema:isPartOf <https://en.wikipedia.org/>
+} GROUP BY ?award ?enwp ?url
+ORDER BY DESC(?latest)""" .

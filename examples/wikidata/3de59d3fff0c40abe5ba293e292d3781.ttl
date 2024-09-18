@@ -1,0 +1,322 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-3de59d3fff0c40abe5ba293e292d3781> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 All humans with an image and a sitelink to a Commons category 2 Preferred / deprecated 3 MWAPI Woe 4 Wikidata items I created 5 Query labels in multiple languages in one request 6 Help needed with Commons query 7 Female form of label 8 Oldest male living tennis players who won a Grand Slam singles title 9 Using Wikipedia category in query 10 Property usage 11 Find missing articles in language Wikipedia given a list of article names in another language 12 Edit a date 13 Query all coordinate locations 14 Current US legislators sorted by age and schools in the Philippines named after persons 15 Hebrew WP subset of Israeli Women in Red 16 Query for games with Steam App IDs that have platform qualifiers but no corresponding platform 17 querying all the objects having a qualified property with a subject 18 Return all subcategories from a category 19 Interwiki import 20 Items with published in (P1433), but without a page(s) (P304) qualifier 21 Query all battles with war and geo coords 22 Articles that are missing in a certain language 23 Taxa, Wikispecies links and synonymy 24 For an International Women's Day campaign: A long list of high quality photos used on Wikipedia articles about women 25 ESRB game ID (P8303) 26 Italian municipalities with latest population figures not set to preferred rank 27 Show only the references that have a specific role 28 Map in defined language 29 GROUP_CONCAT 30 Value without reference 31 Wikipedia articles with identifier here but no authority control template there 32 Query for events on days or array of years 33 All articles of a specific Wikipedia with their QIDs and current sitelinks 34 Women and LGBTQ+ Cartoonists with Stub, Start, or C Class Articles on English Wikipedia 35 Wikimedia Commons Query Service 36 Match a string in the description 37 The First Human and the Label Service: What's going on here? 38 Question 39 Items satisfying one property statement, but not having one qualifier 40 Query not returning data for one object out of thousands 41 Bilingual URL-syntaxes for Yle Topic ID P8309 42 Finding all organizations in a geographical area (how to fix a query) 43 Updating data that was imported in 2018/ adding references 44 Alumnae/alumni query 45 Finding the Wikipedia URL 46 Query overcounts when grouping All humans with an image and a sitelink to a Commons category Hi, i already tried myself but it seems that the resultset is to big since i run into a timeout. Could anyone please give it a try. Tank you in advance, --Arnd (talk) 10:27, 31 January 2021 (UTC) @Aschroet: No wonder it times out. I got 100,000 results in 23 seconds with this query. Do you really need more than that? SELECT *
+WHERE
+{
+  ?item wdt:P18 ?image .
+  ?commons schema:about ?item .
+  ?commons schema:isPartOf <https://commons.wikimedia.org/> .
+  ?item wdt:P31 wd:Q5 .
+  ?commons schema:name ?commons_title .
+  FILTER STRSTARTS (?commons_title, \"Category:\")
+}
+limit 100000
+ Try it! -- @Aschroet: Here is a variant that only lists humans with more than one image once. It gave a little over 100,000 results in 30+ seconds. I doubt you can get all without timeout. SELECT *
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P18 ?image .
+    ?item wdt:P31 wd:Q5 .
+  }
+  limit 180000
+}
+AS %humans_with_image
+WHERE
+{
+  INCLUDE %humans_with_image
+  ?commons schema:about ?item .
+  ?commons schema:isPartOf <https://commons.wikimedia.org/> .
+  ?commons schema:name ?commons_title .
+  FILTER STRSTARTS (?commons_title, \"Category:\")
+}
+limit 110000
+ Try it! (This time I remembered my signature, so the ping should work now) --Dipsacus fullonum (talk) 11:17, 31 January 2021 (UTC) Thank you Dipsacus fullonum, actually i want all results but i did not expect that there are so many. Maybe i need to parse a dump of Wikidata for that. --Arnd (talk) 14:06, 31 January 2021 (UTC)@Aschroet: There are 453,468 people with a Commons category and an image: [1]. This can be compared with c:Category:People_by_name that has 661,674 subcategories. --- Jura 14:46, 31 January 2021 (UTC) @Aschroet: You can get them in 10 slices with this query: SELECT *
+WITH
+{
+  SELECT DISTINCT ?item
+  WHERE
+  {
+    ?item wdt:P18 ?image .
+    ?item wdt:P31 wd:Q5 .
+    FILTER STRENDS(STR(?item), \"2\")
+  }
+LIMIT 150000
+}
+AS %humans_with_image
+WHERE
+{
+  INCLUDE %humans_with_image
+  ?commons schema:about ?item .
+  ?commons schema:isPartOf <https://commons.wikimedia.org/> .
+  ?commons schema:name ?commons_title .
+  FILTER STRSTARTS (?commons_title, \"Category:\")
+}
+LIMIT 70000
+ Try it! Run it 10 times where you change the number in FILTER STRENDS(STR(?item), \"2\") from 0 to 9. Each query will give about 50,000 results with items ending with that digit. --Dipsacus fullonum (talk) 18:12, 31 January 2021 (UTC) THANK YOU. --Arnd (talk) 18:11, 1 February 2021 (UTC) Preferred / deprecated Is it possible to query all statements that have qualifier reason for deprecated rank (P2241) or reason for preferred rank (P7452), but are actually neither deprecated nor preferred, respectively? Or even worse, have reason for deprecated rank (P2241), but are preferred (or vice versa)? Steak (talk) 09:16, 1 February 2021 (UTC) @Steak: Sure: SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?rank ?reason ?reasonLabel
+WHERE 
+{
+  hint:Query hint:optimizer \"None\" .
+  ?statement pq:P2241 ?reason .
+  {?statement wikibase:rank wikibase:NormalRank .}
+  UNION
+  {?statement wikibase:rank wikibase:PreferredRank .}
+  ?statement wikibase:rank ?rank .
+  ?item ?ppp ?statement .
+  ?property wikibase:claim ?ppp .
+  ?property wikibase:statementProperty ?vvv .
+  ?statement ?vvv ?value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it\" . }
+}
+ Try it! SELECT ?item ?itemLabel ?property ?propertyLabel ?value ?valueLabel ?rank ?reason ?reasonLabel
+WHERE 
+{
+  hint:Query hint:optimizer \"None\" .
+  ?statement pq:P7452 ?reason .
+  {?statement wikibase:rank wikibase:NormalRank .}
+  UNION
+  {?statement wikibase:rank wikibase:DeprecatedRank .}
+  ?statement wikibase:rank ?rank .
+  ?item ?ppp ?statement .
+  ?property wikibase:claim ?ppp .
+  ?property wikibase:statementProperty ?vvv .
+  ?statement ?vvv ?value .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,it\" . }
+}
+ Try it! --Tagishsimon (talk) 10:11, 1 February 2021 (UTC) Certainly SELECT ?item ?itemLabel ?property ?propertyLabel ?rank ?reason_for_deprecationLabel
+WHERE
+{
+  VALUES ?rank { wikibase:NormalRank wikibase:PreferredRank }
+  ?statement pq:P2241 ?reason_for_deprecation .
+  ?statement wikibase:rank ?rank .
+  OPTIONAL 
+  {
+    ?item ?claim ?statement .
+    ?property wikibase:claim ?claim .
+    ?property wikibase:statementProperty ?ps .
+    ?statement ?ps ?value .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! and SELECT ?item ?itemLabel ?property ?propertyLabel ?rank ?reason_for_preferred_rankLabel
+WHERE
+{
+  VALUES ?rank { wikibase:DeprecatedRank wikibase:NormalRank }
+  ?statement pq:P7452 ?reason_for_preferred_rank .
+  ?statement wikibase:rank ?rank .
+  OPTIONAL 
+  {
+    ?item ?claim ?statement .
+    ?property wikibase:claim ?claim .
+    ?property wikibase:statementProperty ?ps .
+    ?statement ?ps ?value .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . }
+}
+ Try it! --Dipsacus fullonum (talk) 10:21, 1 February 2021 (UTC) I see that Tagishsimon and I essentially made the same two queries. The main difference, as I see it, is that Tagishsimon used query hints to prevent the optimizer from doing unwanted reorderings of the queries, while I inserted seemingly unnecessary OPTIONAL clauses with the same purpose. Both methods are fine. --Dipsacus fullonum (talk) 10:37, 1 February 2021 (UTC) Thank you both for the queries. 3300 results for the first and 60 for the second, uff! I will look at the 60 results and maybe resolve them, but for the 3300 I think a bot is necessary. Steak (talk) 11:58, 1 February 2021 (UTC) Hmm. How will the bot know whether to change the rank or remove the reason? --Tagishsimon (talk) 12:11, 1 February 2021 (UTC) Good question :) Let's not bother us with such problems, may someone else clean up this mess. ;) Steak (talk) 15:08, 1 February 2021 (UTC) MWAPI Woe Joost van den Vondel (Q312673) - a human with an English label turns up in SELECT ?item ?itemLabel ?typeLabel WHERE {
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"Search\";
+                      mwapi:srsearch \"Vondel\".                   
+      ?item wikibase:apiOutputItem mwapi:title.
+      }
+      ?item (wdt:P279|wdt:P31) ?type.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ASC(?typeLabel)
+ Try it! but not in SELECT ?item ?itemLabel ?typeLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                      wikibase:api \"EntitySearch\";
+                      mwapi:search \"Vondel\";
+                      mwapi:language \"en\".
+      ?item wikibase:apiOutputItem mwapi:item.
+      ?num wikibase:apiOrdinal true.}
+      ?item (wdt:P279|wdt:P31) ?type.
+} 
+ORDER BY ASC(?typeLabel)
+ Try it! What exactly is the wikibase:api \"EntitySearch\"; searching, that it finds a bunch of Vondels but not Joost? I've failed to find the answer from https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI#Supported_services or https://www.mediawiki.org/wiki/Wikibase/API#wbsearchentities --Tagishsimon (talk) 23:25, 1 February 2021 (UTC) Ah. M'learned colleague @generalising points to a limit of 50 on EntitySearch, which err, probably answers most of the question. --Tagishsimon (talk) 00:00, 2 February 2021 (UTC) @Tagishsimon: EntitySearch uses the API function \"action=wbsearchentities\" which has the documentation page https://www.wikidata.org/w/api.php?action=help&modules=wbsearchentities As the doc says the max number of results (the \"limit\" parameter which is set to \"max\" as default) is 50. But the real problem is that MWAPI doesn't make continuation calls to get the next results, as it does with other types of services. The API does offer continuation calls for wbsearchentities but the syntax is different from that used by the \"Generator\", \"Categories\" and \"Search\" services which all is built on the \"action=query\" type API call, and MWAPI isn't coded to do wbsearchentities continuation calls. You could file a wish to make wbsearchentities continuation calls on Phabricator. --Dipsacus fullonum (talk) 01:28, 2 February 2021 (UTC) Wikidata items I created Is it possible to get a list of items I created? —Michael Z. 00:32, 2 February 2021 (UTC) @Mzajac: Yes, but it wouldn't be possible with the query service if you had created many items. SELECT ?item ?timestamp ?comment ?size
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:limitContinuations \"70\".
+
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"allpages\" .
+    bd:serviceParam mwapi:gaplimit \"1\" .
+
+    bd:serviceParam mwapi:list \"usercontribs\" .
+    bd:serviceParam mwapi:ucuser \"Mzajac\" .
+    bd:serviceParam mwapi:ucshow \"new\" .
+    bd:serviceParam mwapi:ucnamespace \"0\" .
+    bd:serviceParam mwapi:uclimit \"1\" .
+    bd:serviceParam mwapi:ucprop \"title|timestamp|comment|size\" .
+    ?item wikibase:apiOutputItem \"//api/query/usercontribs/item/@title\" .
+    ?timestamp wikibase:apiOutput \"//api/query/usercontribs/item/@timestamp\" .
+    ?comment wikibase:apiOutput \"//api/query/usercontribs/item/@comment\" .
+    ?size wikibase:apiOutput \"//api/query/usercontribs/item/@size\" .
+  }
+  FILTER BOUND(?item)
+}
+ Try it! --Dipsacus fullonum (talk) 02:18, 2 February 2021 (UTC) Thank you. That is great! —Michael Z. 03:49, 2 February 2021 (UTC) Query labels in multiple languages in one request Hi there,I am new to sparql and struggling with finding a query that outputs the labels of an item in several lunges in one result set, including the related language code. I know how to indicate a language code in a query, e.g. 'en' OR 'fr'. However I'd like to receive both 'en' AND 'fr' in one result. Ideal would be a query, returning the labels in all available languages.I did see https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Basics_-_Understanding_Prefixes - this only seems to return one language at a request.Thanks for your help! Hi. This query shows how to get labels in English and French for two items: SELECT ?item ?label_fr ?label_en
+WHERE
+{
+  VALUES ?item { wd:Q3736439 wd:Q34384 }
+  OPTIONAL { ?item rdfs:label ?label_fr . FILTER (LANG(?label_fr) = \"fr\") }
+  OPTIONAL { ?item rdfs:label ?label_en . FILTER (LANG(?label_en) = \"en\") }
+}
+ Try it! And this query shows how to get all labels with corresponding language code for an item: SELECT ?item ?label ?language_code
+WHERE
+{
+  VALUES ?item { wd:Q3736439 }
+  ?item rdfs:label ?label .
+  BIND (LANG(?label) AS ?language_code)
+}
+ Try it! --Dipsacus fullonum (talk) 10:51, 2 February 2021 (UTC) Thank you very much! This works great :) Help needed with Commons query I have a query for looking for files on commons that have multiple coordinates of the point of view (P1259) statements: SELECT ?file (COUNT(?coord) AS ?count) {
+	?file wdt:P1259 ?coord .
+} 
+GROUP BY ?file 
+HAVING ( ?count > 1 ) 
+LIMIT 100
+ Try it! Unfortunately it is timing out. Is there some way to fix it? I also tried: SELECT DISTINCT ?item  ?statement WHERE {
+	?statement wikibase:hasViolationForConstraint wds:P1259-fd02cded-4d91-994a-43c1-2c983a1f0a23 .
+	?item ?p ?statement .
+}
+ Try it! To see if I can query for constraint violations. It does not work and I am not sure how to fix it. --Jarekt (talk) 19:00, 2 February 2021 (UTC) @Jarekt: 1) Note that if multiple truthy statements have the same property and value, there will only be one triple with the wdt: prefix, so the query above wouldn't find all files with multiple P1259 statements even if it didn't timeout. For instance c:File:Castanet le Haut Croix de Mounis Espinouse.JPG with 2 of each statement would never be found by the query. 2) Next, there are p.t. 13,286,112 triples with p:P1259, and 13,262,721 triples with wdt:P1259 in WCQS. The high numbers makes it hard to avoid timeouts. I doubt it is possible to do a \"GROUP BY\" as above with so many statements. A query like this SELECT ?file ?coord1 ?coord2
+{
+	?file wdt:P1259 ?coord1 , ?coord2 .
+    FILTER (?coord1 != ?coord2)
+} 
+LIMIT 100
+ Try it! runs in approx. 45 seconds, while SELECT ?file ?coord1 ?coord2
+{
+	?file p:P1259 ?coord1 , ?coord2 .
+    FILTER (?coord1 != ?coord2)
+} 
+LIMIT 100
+ Try it! runs in 2 seconds. The latter is so much faster because there are many more cases (because of point 1) so much fewer files have to be looked at to find 100 cases. --Dipsacus fullonum (talk) 20:46, 2 February 2021 (UTC) I was today years old when I discovered that ?item wdt:P31 ?thing1, ?thing2 was a thing. --Tagishsimon (talk) 20:56, 2 February 2021 (UTC) Really? That use of comma, called object lists, can be a nice shorthand form, but is never necessary to use. It is no secret though. See for instance wikibooks:SPARQL/Sentences#Comma, Semicolon and Period or Wikidata:SPARQL tutorial#Advanced triple patterns. In the official SPARQL definition it is found in the section https://www.w3.org/TR/sparql11-query/#objLists --Dipsacus fullonum (talk) 21:15, 2 February 2021 (UTC) Much of what I know comes from lurking on this board. Cannot say I've ever spotted the comma being used here. Thx, btw, for a couple of other of your answers on MWAPI and hint:maxParallel 50, both appreciated. And the 'Wikidata items I created' query, which has moved my understanding of wikibase:api \"Generator\" . on /very/ slightly. --Tagishsimon (talk) 22:14, 2 February 2021 (UTC) Dipsacus fullonum that is quite disturbing news as each file is supposed to have a single coordinates of the point of view (P1259) statement, and we seem to have multiple thousands. Thank you for your help identifying the issue. I to have never seen coma in SPARQL query. --Jarekt (talk) 02:43, 3 February 2021 (UTC) Female form of label Hi, in this sample I like to show, in a single colum, the P106 label when P21 = male (Q6581097), or the ca lang of P2521 (if exists) when P21 = female (Q6581072). #female form of label
+SELECT ?item ?itemLabel ?gender ?genderLabel ?profession ?professionLabel ?female_form_of_label WHERE {
+  ?item wdt:P106 wd:Q1281618;
+    wdt:P135 wd:Q34636.
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P19 ?place. }
+  OPTIONAL { ?item wdt:P569 ?date. }
+  OPTIONAL { ?item wdt:P106 ?profession. }
+  OPTIONAL { ?profession wdt:P2521 ?female_form_of_label. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca,[AUTO_LANGUAGE]\". }
+}
+ Try it! Thanks ! Amadalvarez (talk) 09:04, 3 February 2021 (UTC) @Amadalvarez: You didn't say what to show when P21 is something other than Q6581097 or Q6581072, nor what to show when P2521 doesn't have a value in Catalan. I made it fallback on ?professionLabel in both cases. If you wish to do something else, please say. #female form of label
+SELECT ?item ?itemLabel ?gender ?genderLabel ?profession ?professionText WHERE {
+  ?item wdt:P106 wd:Q1281618;
+    wdt:P135 wd:Q34636.
+  OPTIONAL { ?item wdt:P21 ?gender. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?item wdt:P19 ?place. }
+  OPTIONAL { ?item wdt:P569 ?date. }
+  OPTIONAL
+  {
+    ?item wdt:P106 ?profession.
+    OPTIONAL
+    {
+      ?profession wdt:P2521 ?female_form_of_label.
+      FILTER (LANG(?female_form_of_label) = \"ca\")
+    }
+    OPTIONAL
+    {
+      ?profession rdfs:label ?professionLabel.      
+      FILTER (LANG(?professionLabel) = \"ca\")
+    }
+  }
+  BIND (IF(?gender IN (wd:Q6581072, wd:Q1052281, wd:Q43445) && BOUND(?female_form_of_label),
+           ?female_form_of_label, ?professionLabel) AS ?professionText)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ca,[AUTO_LANGUAGE]\". }
+}
+ Try it! --Dipsacus fullonum (talk) 10:48, 3 February 2021 (UTC) @Dipsacus fullonum: It looks nice. Sorry, I forgot part of the requirements. We use to handle female label for \"Q6581072\", \"Q1052281\" or \"Q43445\"; well, talking about profession, female organism (Q43445) seems excessive, but never you know, may be we have a monkey pianist. If there is no female label for ca, professionLabel is good. May you add it?. Thanks a lot, Amadalvarez (talk) 14:22, 3 February 2021 (UTC) @Amadalvarez: I have updated the query above to test for all 3 female values. The only change is in the expression in the BIND( expression AS ?professionText) variable assignment.--Dipsacus fullonum (talk) 07:43, 4 February 2021 (UTC) Oldest male living tennis players who won a Grand Slam singles title While ago I requested a query on oldest living tennis players (limit 110 years) which resulted in: SELECT ?item ?itemLabel ?birth ?genderLabel ?age WHERE {
+  ?item wdt:P106 wd:Q10833314 ; wdt:P569 ?birth ; wdt:P21 ?gender .
+  MINUS { ?item wdt:P570 [] } .
+  BIND(YEAR(now())-YEAR(?birth) as ?age) .
+  FILTER ( ?age < 110 )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?age)
+LIMIT 100
+ Try it! Can this query be udpated to list the oldest living male tennis players who won a singles title at a Grand Slam event? Thx. --Wolbo (talk) 20:29, 4 February 2021 (UTC) @Wolbo: Clues or examples of how \"won a singles title at a Grand Slam event\" is represented in wikidata would be helpful. We're not subject-matter experts :( --Tagishsimon (talk) 20:36, 4 February 2021 (UTC) Sure, Q102113 = Grand Slam event which has several parts (men's singles, women's singles, men's doubles, etc). Q16893072 = men's singles event. Example: Roger Federer won the men's singles title at the 2018 Australian Open (Q46993124).--Wolbo (talk) 20:52, 4 February 2021 (UTC) @Wolbo: I edited your query above to only include winners of a men's single event in a grand slam. If any person won the women's single and later became a transgender man, they will not be found by the query. SELECT DISTINCT ?item ?itemLabel ?birth ?genderLabel ?age WHERE {
+  ?item wdt:P106 wd:Q10833314 ; wdt:P569 ?birth ; wdt:P21 ?gender .
+  MINUS { ?item wdt:P570 [] }
+  BIND(YEAR(now())-YEAR(?birth) as ?age)
+  FILTER ( ?age < 110 )
+  ?tournament wdt:P1346 ?item . 
+  ?tournament wdt:P2094 wd:Q16893072 . # men's single
+  ?tournament wdt:P361 / wdt:P31 / wdt:P361 wd:Q102113 . # part of / instance of / part of Grand Slam
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?age)
+LIMIT 100
+ Try it! --Dipsacus fullonum (talk) 22:08, 4 February 2021 (UTC) Dipsacus fullonum, thanks! Had a look at the query results and it looks spot on. One day I would like to be able to make these queries myself but I'm not quite there yet.--Wolbo (talk) 22:13, 4 February 2021 (UTC) Dipsacus fullonum, there does seem to be a rounding issue with the age calculation. If I change men's singles (Q16893072) to women's singles (Q16893403), it shows Shirley Fry at age 94 but she is currently 93 (will turn 94 on June 30). Can this be corrected? Thx.--Wolbo (talk) 21:53, 5 February 2021 (UTC) @Wolbo: Here's an approach to fixing that: SELECT DISTINCT ?item ?itemLabel ?birth ?genderLabel ?age WHERE {
+  ?item wdt:P106 wd:Q10833314 ; wdt:P569 ?birth ; wdt:P21 ?gender .
+  MINUS { ?item wdt:P570 [] }
+#  BIND(YEAR(now())-YEAR(?birth) as ?age)
+  BIND( YEAR(now()) - YEAR(?birth) - 
+              IF(MONTH(now())<MONTH(?birth) || 
+                 (MONTH(now())=MONTH(?birth) && DAY(now())<DAY(?birth)),1,0) AS ?age )
+  FILTER ( ?age < 110 )
+  ?tournament wdt:P1346 ?item . 
+  ?tournament wdt:P2094 wd:Q16893403 . # men's single
+  ?tournament wdt:P361 / wdt:P31 / wdt:P361 wd:Q102113 . # part of / instance of / part of Grand Slam
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?age)
+LIMIT 100
+ Try it! --Tagishsimon (talk) 22:38, 5 February 2021 (UTC) Looks like that did the trick. Thanks!.--Wolbo (talk) 23:09, 5 February 2021 (UTC) Here's my EC. I'm a bit concerned there may be a diversity of ways in which \"won a singles title at a Grand Slam event\" is represented; here's the pattern established for the 2018 Australian Open – men's singles (Q46993124) which is part of 2018 Australian Open (Q42557150) which is an instance of 2018 Australian Open (Q42557150) which is part of Grand Slam of tennis (Q102113). If other competitions don't have this part of/instance of/part of path, then their winner will not turn up in the report. This is not an update of your report; there was little in that to be salvaged. SELECT distinct ?person ?personLabel ?age
+WHERE 
+{
+  {                                              # find events and winners
+  ?event wdt:P31 wd:Q46190676 .                  # tennis event 
+  ?event wdt:P361/wdt:P31/wdt:P361 wd:Q102113 .  # part of grans slam
+  ?event wdt:P1346 ?person .                     # winner
+  ?event wdt:P2094 wd:Q16893072 .                # competition class - mens singles
+  }
+UNION
+  {                                              # find people who won stuff
+  ?person wdt:2522 ?won .                        # we have a winner 
+  ?won wdt:P361/wdt:P31/wdt:P361 wd:Q102113 .    # part of grans slam
+  ?won wdt:P2094 wd:Q16893072 .                   # competition class - mens singles
+  }
+  ?person wdt:P569 ?birth .                      #dob
+  MINUS { ?person wdt:P570 [] } .                #not dead
+  BIND(YEAR(now())-YEAR(?birth) as ?age) .       #calculate age in years
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} order by desc(?age)
+ Try it! --Tagishsimon (talk) 22:18, 4 February 2021 (UTC) It doesn't look like the second part of the UNION has any results at all. --Dipsacus fullonum (talk) 22:54, 4 February 2021 (UTC) Tagishsimon, thanks for the effort! The relationship as you describe it is correct apart from your second mention of 2018 Australian Open (Q42557150), which should be Australian Open (Q60874). That pattern should be the same for all four Grand Slams events (Australian Open, French Open, Wimbledon, US Open).The result of your query seems to be identical.--Wolbo (talk) 23:09, 4 February 2021 (UTC) Items used: tennis player (Q10833314)   , men's singles (Q16893072)   , Grand Slam of tennis (Q102113)   Properties used: occupation (P106)   , date of birth (P569)   , winner (P1346)   , point in time (P585)   , competition class (P2094)   , part of (P361)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d853864-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Oldest when winning, variation on Dipsacus fullonum's query
+
+SELECT DISTINCT ?item ?itemLabel ?birth ?d ?age 
+WHERE
+{
+  ?item wdt:P106 wd:Q10833314 ; wdt:P569 ?birth  .
+  BIND(YEAR(?d)-YEAR(?birth) as ?age)
+  ?tournament wdt:P1346 ?item ; wdt:P585 ?d .
+  ?tournament wdt:P2094 wd:Q16893072 . # men's single
+  ?tournament wdt:P361 / wdt:P31 / wdt:P361 wd:Q102113 . # part of / instance of / part of Grand Slam
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?age)
+LIMIT 100""" .

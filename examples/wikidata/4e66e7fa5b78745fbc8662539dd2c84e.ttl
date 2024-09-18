@@ -1,0 +1,41 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4e66e7fa5b78745fbc8662539dd2c84e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812452-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d812452-31656B83E4672DF3EA86E402CBF91AD0,
+    _:genid-4e694113159d4e3db4a1a913894a81d812452-54F8FAE7DC0CB84DE1C307AE5C273619, _:genid-4e694113159d4e3db4a1a913894a81d812452-9744CC25BCF2DB2E3FE629A38E391145;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?país
+  ?paísLabel
+  ?instancia_deLabel
+  ?cosa
+  ?cosaLabel
+  ?peruano
+  ?peruanoLabel
+{
+  {?peruano wdt:P27 wd:Q419 }
+  UNION
+  {?peruano wdt:P19/wdt:P131* wd:Q419 }
+
+  ?cosa wdt:P138 ?peruano;
+        wdt:P17 ?país;
+        wdt:P31 ?instancia_de.
+  
+  FILTER(?país != wd:Q419)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+}
+ORDER BY ?paísLabel""" .

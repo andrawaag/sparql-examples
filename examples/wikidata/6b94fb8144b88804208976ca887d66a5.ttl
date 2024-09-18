@@ -1,0 +1,947 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-6b94fb8144b88804208976ca887d66a5> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Clubs in league 2 Finding relations on OSM pointing to Wikidata 3 Multi-level localisation 4 Help Teachers in Europe use Football History 4.1 THE CONTEXT 4.2 THE REQUEST 4.2.1 On the level of the Tournament: 4.2.2 On the level of the Team: 4.2.3 On the level of the Players: 4.2.4 On the level of the Clubs where the Players played: 5 Official website with no language 6 Value of a coord according to reference 7 Malfunctionning query 8 Which default view to use 9 Newly created items on tennis players 10 Concat all authors of article 11 QUERY FOR EXACT SEARCH OF ENTITY LABEL 12 Need a Query to pull all Parent Organization to Subsidiary listings 13 Finding place items by labels 14 Antigua And Barbuda ATLU 15 Query to retrieve all known words of a language including their phonetic representation 16 Fetch Industry from Wikipedia API 17 Need a query that list Q23397 18 A recursive belongs-to query 19 Putting coordinates back together 20 Author of taxon 21 dateCreated instead of dateModified? 21.1 Query optimization (milestones) 22 Niger(ia)/Dominica(n Republic)/(Democratic )Republic of the Congo/ .. 22.1 Items linking to both 22.2 Label of one country included in description of item linked to other 22.3 Label of one country included in label of item linked to other 22.4 Additional checks? 23 P27 without start/end time propertites 24 Query to get all the properties of an item 25 Airports that have P3872 for 2017 but not for 2018 26 query for humans with P27 inconsistent with date of birth 27 Five-letter words beginning with \"f\" 28 Spain not in query country by ISO code 29 Query dates with instance of statement with Gregorian date earlier than 1584 30 List of NGMDb Prod ID (P6693) sorted with leading zeroes? 31 PPP GDP per capita (P2299) 32 Showing citizenship of a creator of a certain set of items 33 P31/wdt:P279* wd:Q16917 in wdt:P131/wdt:P131* wd:Q25 (query optimization) 34 Addition of unitLabel to Q42 modified example 35 evenement france 20th century 36 Query to get all the events in a specific city between 2 time points? 37 Extract infromation from one specific QID? 38 Filter double months 39 List of Wikidata id of all French municipalities 40 Column with QID 41 Multiple properties to 1 value 42 Mapping from all the items to all the Italian Wikipedia's articles 43 US not part of Common Wealth 44 all instances of libraries (and subclasses of libraries) in North Carolina 45 Interstate 70 - has part (P527) - Maplink template raw query 46 Statistics total passengers per countries 47 Fusion d’éléments 48 Q's for P27 49 Improve sorting of coordinates 50 Search in formulas 51 Elements with Wikipedia articles with Authority control 52 Living entomologists with no picture 53 List of People 54 Problem to filter countries by official language Clubs in league I am looking for all clubs that played in the 1964–65 Fußball-Bundesliga (Q704091). Somehow I am to silly to query the statements of participating team (P1923) in this item. 92.75.209.157 18:03, 31 May 2019 (UTC) Try this query: SELECT ?item ?itemLabel {
+  wd:Q704091 wdt:P1923 ?item .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ORDER BY ?itemLabel
+ Try it! --Larske (talk) 19:04, 31 May 2019 (UTC) Aaaah, by exchanging the wdt and wd arguments, did not try that^^. Now I would like to combine these results with this query that gives me all players that played in Bundesliga: SELECT ?item ?itemLabel {
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ Try it! So I would like to have only those Bundesliga players that have played for one of those clubs of the first query result. I think this query does the basic job: SELECT DISTINCT ?item ?club ?clubLabel ?itemLabel {
+   wd:Q704091 wdt:P1923 ?club .
+
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  ?item wdt:P54 ?club .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ORDER BY DESC(?item)
+ Try it! However, players that played for more than one team are listed twice, despite using \"SELECT DISTINCT\". How to get rid of the double entries? 92.75.209.157 20:25, 31 May 2019 (UTC) If you need the clubs, try using GROUP_CONCAT, like this: SELECT ?item (GROUP_CONCAT(?clublabel;SEPARATOR=', ') AS ?clubs) ?itemLabel {
+  wd:Q704091 wdt:P1923 ?club .
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  ?item wdt:P54 ?club . ?club rdfs:label ?clublabel . FILTER(lang(?clublabel)='de' )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?item)
+ Try it! If you don't need the clubs, just skip the club and clubLabel columns. --Larske (talk) 20:45, 31 May 2019 (UTC) Thank you! 147.142.63.186 07:49, 1 June 2019 (UTC) Finding relations on OSM pointing to Wikidata Maybe this would need to be done with Sophox, but I'd like to see a query which returns to me all items on Wikidata without OpenStreetMap relation ID (P402) but who at the same time are relations (so not nodes or ways) on OSM and have a link to Wikidata. @Yurik, would you know? NMaia (talk) 00:18, 2 June 2019 (UTC) Multi-level localisation Since located in the administrative territorial entity (P131) may be a lower level entity, how can we show upper level entities ? For example, Drummondville (Q141940) have P131 Drummond (Q1261297) who has P131 Centre-du-Québec (Q764294). What would be the query to list the municipality name, the regional county municipality (Q204613) name and the administrative region of Quebec (Q55998242) name of an entity. --Yanik B 15:12, 28 May 2019 (UTC)  Items used: Drummondville (Q141940)   , administrative region of Quebec (Q55998242)   , regional county municipality (Q204613)   Properties used: instance of (P31)   , located in the administrative territorial entity (P131)   SELECT ?item ?itemLabel ?county ?countyLabel ?region ?regionLabel WHERE {
+  VALUES ?item { wd:Q141940 }
+  ?region wdt:P31 wd:Q55998242 .
+  ?county wdt:P31 wd:Q204613.
+  ?county wdt:P131* ?region .
+  ?item wdt:P131* ?county.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! @YanikB: see if this fits your requirements. --99of9 (talk) 07:16, 29 May 2019 (UTC) @99of9: Well done ! Very interresting those \"*\". Thank's a lot. --Yanik B 11:16, 29 May 2019 (UTC) I tried to add a level but it does't work. Items used: manorialism (Q1550557)   , Canada (Q16)   , administrative region of Quebec (Q55998242)   , regional county municipality (Q204613)   , local municipality of Quebec (Q3327873)   Properties used: instance of (P31)   , country (P17)   , located in the administrative territorial entity (P131)   SELECT ?item ?itemLabel ?munLabel ?countyLabel ?regionLabel WHERE {
+  ?item wdt:P31 wd:Q1550557 .
+  ?item wdt:P17 wd:Q16 .
+  ?region wdt:P31 wd:Q55998242 .
+  ?county wdt:P31 wd:Q204613.
+  ?mun wdt:P31 wd:Q3327873 .
+  ?county wdt:P131* ?region .
+  ?mun wdt:P131* ?county .
+  ?item wdt:P131* ?mun .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! --Yanik B 11:38, 31 May 2019 (UTC) Items used: human settlement (Q486972)   , Canada (Q16)   , local municipality of Quebec (Q3327873)   , regional county municipality (Q204613)   , administrative region of Quebec (Q55998242)   Properties used: instance of (P31)   , subclass of (P279)   , country (P17)   , located in the administrative territorial entity (P131)   SELECT DISTINCT ?item ?itemLabel ?mun ?munLabel ?county ?countyLabel ?region ?regionLabel 
+WHERE
+{
+  ?item wdt:P31/wdt:P279* wd:Q486972 .
+  ?item wdt:P17 wd:Q16 .
+
+  ?item wdt:P131/wdt:P131* ?mun .
+  ?mun wdt:P31/wdt:P279* wd:Q3327873 .
+  
+  OPTIONAL
+  {
+    ?mun wdt:P131/wdt:P131* ?county .
+    ?county wdt:P31/wdt:P279* wd:Q204613.
+  }
+  OPTIONAL
+  { 
+      ?mun wdt:P131/wdt:P131* ?region .
+      ?region wdt:P31/wdt:P279* wd:Q55998242 .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!Maybe like this? municipalities seem to be instances of a subclass and not direct instances of local municipality of Quebec (Q3327873). the level between region and local municipality of Quebec (Q3327873) might need some work. I left it optional. --- Jura 13:07, 2 June 2019 (UTC) Help Teachers in Europe use Football History THE CONTEXT As part of a European education project called \"Football makes History\", I am working with history teachers to create an educational activity about nationality, citizenship and history. In this activity, students will be invited to study the multinational composition of football teams. Because the project seeks to be ready before the upcoming UEFA European Championship in June 2020, we want to help the students by offering them a dataset which contains all basic information about all football players who took part in all UEFA European Championship (since 1960). The teacher will ask the students to build fictional football teams who would have participated in fictional football tournaments in the past (e.g. Ottoman Empire, Poland with different borders, etc.) as well as research how nationality and citizenship developed differently.We would be very happy if somebody could help us gather this data from WikiData, because: The teachers involved will have a lot more time to design the activity to be of high quality The students will be able to work with a very large data set, which means they can peer-learn about more contexts. The UEFA Tournament in 2020 will be able to highlight it's rich history of diversity THE REQUEST In order for the educational activity to work, we would need for all national teams who participated in the UEFA European Championships the following data: On the level of the Tournament: Host country Year On the level of the Team: Tournament in which it participated Country (at the time of the Tournament) On the level of the Players: Full Name Date of birth Place of birth Country of birth (at the time of birth) Playing position Clubs where they played On the level of the Clubs where the Players played: Name Place Country (at the time that the player played there) – The preceding unsigned comment was added by Evenzoharj (talk • contribs). @Evenzoharj: a vast part of the data seems to be missing, but even with incomplete data you can have some good results to start (and you have almost a year to improve the data ). Here are the query corresponding to your needs : Tournament level: SELECT ?tournament ?tournamentLabel ?hostCountryLabel (year(?date) AS ?year ) WHERE {
+  ?tournament wdt:P3450 wd:Q260858 ; wdt:P17 ?hostCountry ; wdt:P585 ?date .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year
+ Try it! Teams level (here it is very incomplete): SELECT ?team ?teamLabel WHERE {
+  ?team wdt:P1344/wdt:P3450 wd:Q260858 ; wdt:P31 wd:Q46135307 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Players level: SELECT ?player ?playerLabel ?placeofB ?dateofB ?positionLabel WHERE {
+  ?player wdt:P1344/wdt:P3450 wd:Q260858 ; wdt:P31 wd:Q5 .
+  OPTIONAL { ?player wdt:P19 ?placeofB }
+  OPTIONAL { ?player wdt:P569 ?dateofB }
+  OPTIONAL { ?player wdt:P413 ?position }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Cheers, VIGNERON (talk) 12:08, 2 June 2019 (UTC) WFC Fawkesfr Xaris333 A.Bernhard Cekli829 Japan Football HakanIST Jmmuguerza H4stings Unnited meta Grottem Petro Сидик из ПТУ Sakhalinio Gonta-Kun CanadianCodhead Laszaroh Sherifkkvtm Nicholas Gemini TiagoLubiana MythsOfAesop BalûNotified participants of WikiProject Association football@VIGNERON: Thanks so much for this! Already an amazing help!! I am sorry for asking super noob questions, but is there any way in which the data can be linked? So that I get to use the data to sort players on teams and tournaments? Thanks for thinking with me! Another question is on the possibility to get for the locations some kind of geo-ref data? Thanks again! Official website with no language Hi! I would like to have a query with all items having official website (P856) without language of work or name (P407) qualifier. Thank you! --Epìdosis 17:07, 31 May 2019 (UTC) As the following query shows, almost 900,000 of the more than 1,000,000 official website (P856) don't have a language of work or name (P407) qualifier. It is not feasible to list them all. Can we limit the request to items that are instance of (P31) of some class? SELECT (COUNT(?item) AS ?number_of_P856) (SUM(?no_P407) as ?without_P407) {
+  ?item p:P856 ?p856stm .
+  OPTIONAL { ?p856stm pq:P407 ?p407 }
+ BIND(IF(BOUND(?p407),0,1) AS ?no_P407 )
+}
+ Try it! --Larske (talk) 18:59, 31 May 2019 (UTC) @Larske: Let's try with instance of (P31)human (Q5) . Thank you, --Epìdosis 14:46, 2 June 2019 (UTC) Still more than 100,000, but here is a list: SELECT ?item {
+  ?item p:P856 ?p856stm .
+  OPTIONAL { ?p856stm pq:P407 ?p407 }
+  FILTER(!BOUND(?p407))
+  ?item wdt:P31 wd:Q5 .
+}
+ Try it! --Larske (talk) 15:29, 2 June 2019 (UTC) Value of a coord according to reference Hi,I'm trying to get all commune of France (Q484170) with coordinates having for reference imported from Wikimedia project (P143) Cebuano Wikipedia (Q837615) to check them. I manage to do have the list of items but I would like to have the value of the coordinate itself too (to then build more complex queryies, such as comparing with other coordinates on the same item, filtering by distance, etc. all sort of things I already know how to do). Here is where I stuck: SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! If I do this I have the statement and not the value (which is useless to do a map for visual checking): SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 ?coord ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! And if I do this, I have all coordinates of the item (and not just the one imported from Wikimedia project (P143) Cebuano Wikipedia (Q837615), which again is useless in my case) SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; wdt:P625 ?coord ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! What am I missing/doing wrong?Cheers, VIGNERON (talk) 11:16, 2 June 2019 (UTC) SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 [ ps:P625 ?coord ; prov:wasDerivedFrom [  pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! probably. --Tagishsimon (talk) 16:44, 2 June 2019 (UTC) Thanks @Tagishsimon:, that's was I was looking for. I was both close and not looking in the right direction. Now I can start my work of checking. Cheers, VIGNERON (talk) 18:26, 2 June 2019 (UTC) Malfunctionning query Hello, this query worked well and for an unknown reason, it no longer works ; I suspect a pb on the fr labels . Any thoughts? Thanks ! Bouzinac (talk) 19:46, 2 June 2019 (UTC) SELECT ?item ?itemLabel (max(?number) as ?passengers) 
+?year
+with {
+select ?item ?itemLabel ?statement ?year 
+?timevalue ?numberperperiod{
+?item wdt:P238 ?IATA
+VALUES ?IATA {\"LIM\" \"IQT\" \"PIU\" \"CUZ\"}.
+?item p:P3872 ?statement.
+?statement pqv:P585 ?timevalue
+; ps:P3872 ?numberperperiod.
+?timevalue wikibase:timeValue ?date .
+optional { ?statement pq:P518 ?applies .}
+filter(bound(?applies)=false || ?applies = wd:Q2165236 )
+bind(if(bound(?applies)=false,\"no applies\",\"everywhere\") as ?where )
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+bind (YEAR(?date) AS ?year)
+FILTER (?year >1985) .
+FILTER (?year < year(now())).
+}
+} as %airport
+where {
+{
+select ?item ?itemLabel ?year (sum(?numberperperiod) as ?number) {
+include %airport .
+?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
+} group by ?item ?itemLabel  ?year
+} union {
+?timevalue wikibase:timePrecision 9 .
+bind (?numberperperiod as ?number)
+include %airport
+} .
+} group by ?item ?itemLabel ?year
+order by ?item desc (?year)
+ Try it! For me, it throws: Lexical error at line 27, column 29. Encountered: \"\\u00a0\" (160), after : \"\" → There is a non-breaking space between ?itemLabel and ?year at line 27. Is this what you are struggling with? --Matěj Suchánek (talk) 12:03, 3 June 2019 (UTC) Hi, no, there is a frequent trouble with the copy-paste of SPARQL code: it fills the original spaces with non breaking spaces Template:=S You can check the original SPARQL code there [1] (fr wiki, just hit the \"Voir la requête brute sur Wikidata.\" to see the original SPARQL code. You will notice that the labels which where available in french are no longer available, for an unknown reason. Thank you for your help ! Bouzinac (talk) 12:21, 3 June 2019 (UTC) It's corrected :) The SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". } would function better if put latter in the end of the code (weirdo because it functionned before). Thanks anyway ! Bouzinac (talk) 12:31, 3 June 2019 (UTC) Which default view to use I'm contemplating a query that would display the lithostratigraphic unit (Q3550897) of the Grand Canyon (Q118841). Ultimately, I'd like to \"see\" this query displayed as a stratigraphic column (Q3815198) such that units most recently deposited are listed at the top, oldest at the bottom. Is there a way I can better portray this? I've started with the horses query example (thanks to whomever posted it) and ended with this. I've limited it to located in the administrative territorial entity (P131)=Arizona (Q816), but ultimately I would update units that are in location (P276) Grand Canyon (Q118841). I am not sure how to display them by time period (P2348) (by their relative age in years). Currently, time period (P2348) isn't in all items. Maybe overlies (P568) / underlies (P567) can help sort it. Suggestions? SELECT DISTINCT ?unit ?unitLabel ?haspart ?haspartLabel ?partof ?partofLabel ?GeolexID WHERE {
+  ?unit (wdt:P31/(wdt:P279*)) wd:Q3550897.
+  OPTIONAL { ?unit wdt:P527 ?haspart. }
+  OPTIONAL { ?unit wdt:P361 ?partof. }
+  OPTIONAL { ?unit wdt:P6202 ?GeolexID. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\". }
+  ?unit wdt:P131 wd:Q816.
+}
+ORDER BY (?unitLabel)
+LIMIT 5000
+ Try it! Thanks. Trilotat (talk) 15:37, 3 June 2019 (UTC) Newly created items on tennis players Hi, looking for an overview of all wikidata items created on male or female tennis players (occupation (P106) = tennis player (Q10833314)) within the last 60 days and showing first name, last name, gender, country of citizenship and creation date.--Wolbo (talk) 12:06, 19 May 2019 (UTC) The information about when an item was created is not available to queries. Without this constraint, the query will look like this: SELECT ?item ?itemLabel ?nameLabel ?surnameLabel ?sexLabel ?countryLabel WHERE {
+  ?item wdt:P106 wd:Q10833314 .
+  OPTIONAL { ?item wdt:P735 ?name } .
+  OPTIONAL { ?item wdt:P734 ?surname } .
+  OPTIONAL { ?item wdt:P21 ?sex } .
+  OPTIONAL { ?item wdt:P27 ?country } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+} LIMIT 1000
+ Try it! On the other hand, if you knew the identifier of some item which was created 60 days ago, you could amend this query with FILTER( STR(?item) > STR(wd:Q[identifier]) ) (hack™) and remove the limit. There is also Wikidata:History Query Service but I really don't know how and whether it can be used. Matěj Suchánek (talk) 17:39, 20 May 2019 (UTC) Surprised the creation date of an item can not be queried, that was key to the list I was looking for. Nevertheless, thanks for the help! --Wolbo (talk) 21:05, 20 May 2019 (UTC) @Wolbo: with the regular service, you can have the date of last modification like this: SELECT ?date ?item ?itemLabel ?nameLabel ?surnameLabel ?sexLabel ?countryLabel WHERE {
+  ?item wdt:P106 wd:Q10833314 ; schema:dateModified ?date .
+  FILTER ( ?date > \"2019-04-01T00:00:00Z\"^^xsd:dateTime )
+  OPTIONAL { ?item wdt:P735 ?name } .
+  OPTIONAL { ?item wdt:P734 ?surname } .
+  OPTIONAL { ?item wdt:P21 ?sex } .
+  OPTIONAL { ?item wdt:P27 ?country } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+ORDER BY ?date
+ Try it! @Tpt: who built and knows the History Query Service. Cheers, VIGNERON (talk) 12:29, 2 June 2019 (UTC) Sadly the History Query Service is not live updated yet so I do not think it would be very helpful for this use case. But it is something I have on my roadmap so it should be doable in the futur. Tpt (talk) 07:17, 4 June 2019 (UTC) Concat all authors of article Hi there,I'm trying to get column with concated names of all authors for article. The problem is there are two property for authors: how concat labels of authors from statements within property author (P50) and names from statements within author name string (P2093). --Julia.athen (talk) 18:44, 2 June 2019 (UTC)So that what I've now (concated names within author (P50)). #defaultView:Table
+SELECT ?any_article ?any_articleLabel (GROUP_CONCAT(?result_label; separator=\", \") AS ?authors)
+WHERE {
+  BIND(wd:Q48589333 as ?any_article)
+  ?any_article p:P50 ?full_st_author.
+  
+  #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+  ?full_st_author ps:P50 ?element_author.
+  ?element_author rdfs:label ?element_author_label.
+  FILTER(LANG(?element_author_label) = \"en\").
+
+  OPTIONAL {?full_st_author pq:P1932 ?short_author.}
+  BIND(IF(BOUND(?short_author), ?short_author, ?element_author_label) as ?result_label)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }  
+}
+GROUP BY ?any_article ?any_articleLabel
+ Try it! #defaultView:Table
+SELECT ?any_article ?any_articleLabel (GROUP_CONCAT(?result_label; separator=\", \") AS ?authors)
+WHERE {
+  BIND(wd:Q48589333 as ?any_article)
+  {
+    ?any_article p:P50 ?full_st_author.
+    #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+    ?full_st_author ps:P50 ?element_author.
+    ?element_author rdfs:label ?element_author_label.
+    FILTER(LANG(?element_author_label) = \"en\").
+  } UNION {
+    ?any_article p:P2093 ?full_st_author.
+    #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+    ?full_st_author ps:P2093 ?element_author_label.
+  } .
+  OPTIONAL {?full_st_author pq:P1932 ?short_author.}
+  BIND(IF(BOUND(?short_author), ?short_author, ?element_author_label) as ?result_label)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }  
+}
+GROUP BY ?any_article ?any_articleLabel
+ Try it! --Matěj Suchánek (talk) 12:05, 3 June 2019 (UTC) So nice! Thank you! --Julia.athen (talk) 23:29, 3 June 2019 (UTC) QUERY FOR EXACT SEARCH OF ENTITY LABEL Hi,Can you please provide the query for the following:1.Query to check If a WORD is an ENTITY- like 'MUTUAL FUND' IS AN ENTITY OR NOT? EXACT MATCH 2.ALL the ENTITES DATA EXPORT FOR financeIt will be a great help.Thanks in Advance.Anubhav Singh – The preceding unsigned comment was added by 150.129.237.154 (talk • contribs) at 18:27, 17 April 2019‎ (UTC).– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Need a Query to pull all Parent Organization to Subsidiary listings I found this good example query example below online for just the Walt Disney Company but I need it to include a column that shows the Parent Organization in addition the subsidiary and I need it to pull every Parent Organization, not just the one.Is this possible? Can anyone help me? SELECT DISTINCT ?item ?itemLabel WHERE {
+  {
+    SELECT ?item WHERE { ?item (wdt:P31/wdt:P279*) wd:Q43229. }
+  }
+  ?item (wdt:P127|^wdt:P199|wdt:P749|^wdt:P1830|^wdt:P355)+ wd:Q7414.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Finding place items by labels I am building a dynamic query executed with SPARQLWrapper in Python 3 to find multiple possible matches for a place, given name (label), type, country, and location. My script loops through a large number of database records and for each builds a query like the below for \"Paris.\" This query is successful but takes 17-21 seconds! So I need some help to optimize it. I've tried various things; those that don't error out or produce no result end in timeouts. For example, I've moved the type (P31) constraint from a filter to the first line in WHERE, like e.g. ?place (wdt:P31/wdt:P279*) wd:Q486972; rdfs:label ?placeLabel . The speed is in the same range.I'm not a sparql newbie, but not expert and could use a hand figuring out if this will be viable. One of my first batches of records to match is ~13k rows, which would take around 65+ hours at this rate. Thanks.  SELECT distinct ?place ?location ?placeLabel ?countryLabel ?tgnid ?gnid ?nameLabel 
+      (group_concat(distinct ?parentName; SEPARATOR=\", \") as ?parentNames)
+   WHERE {
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+   ?place rdfs:label ?placeLabel ; (wdt:P31/wdt:P279*) ?placeType .
+   OPTIONAL {?place wdt:P131 ?parent .} 
+   OPTIONAL {?parent wdt:P1448 ?parentName .}
+   OPTIONAL {?place wdt:P1448 ?name .}
+   OPTIONAL {?place wdt:P17 ?country .}
+   # external IDs
+   OPTIONAL {?place wdt:P1667 ?tgnid .}
+   OPTIONAL {?place wdt:P1566 ?gnid .}
+   FILTER (STR(?placeLabel) in (\"Paris\")) .
+   FILTER (?country in (wd:Q142)) .
+ 
+   SERVICE wikibase:box {
+     ?place wdt:P625 ?location .
+       bd:serviceParam wikibase:cornerWest \"POINT(1.3508 47.8567)\"^^geo:wktLiteral .
+       bd:serviceParam wikibase:cornerEast \"POINT(3.3508 49.8567)\"^^geo:wktLiteral .}
+   FILTER (?placeType in (wd:Q486972)) .
+   } GROUP BY ?place ?location ?placeLabel ?countryLabel ?tgnid ?gnid ?nameLabel
+   ORDER BY ?placeLabel – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC) Antigua And Barbuda ATLU Is there a group photo of The Antigua and Barbuda Trades and Labour Union? I'm trying to locate an image for a group of people from Antigua. It's in black & white & may date back to the mid 1900's or later. Not sure.– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Query to retrieve all known words of a language including their phonetic representation Hi everyone, As stated in the title I am looking for data of languages with their phonetic representation. Wiktionary has alot of that information, but I don't know how to retrieve it. Would be nice if someone could help me - anyways thanks!!– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Fetch Industry from Wikipedia API Is there a way to fetch Industry for a given company from the Wiki API. Please see attached pic the info i needed. Please see below link for my post with exampleMY POST AT STACK WITH IMAGEI Tried this but this one will result in parsing the text to get the industry type. Any help is greatly appreciatedhttps://en.wikipedia.org/w/api.php?action=opensearch&search=FEDEX&limit=1&format=json– The preceding unsigned comment was added by 198.245.241.21 (talk • contribs) at 4 juni 2019 kl. 04.49‎ (UTC). I don't know if this is what you are asking for, but still: To get the industry (P452) property for object TNT Express (Q1105744) use this: https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&entity=Q1105744&property=P452 Note: Object FedEx (Q459477) does not have any industry (P452) set in Wikidata so I use TNT Express (Q1105744) in the example. To get the English label for the property value from the above (i.e. Q1447463) use this: https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=Q1447463&titles=&props=labels&languages=en The result from these two API-calls is \"CEP service\". If you want to get the parameter value for a certain parameter (e.g. industry) in a certain template (e.g. Infobox company) for a specific article, (e.g. FedEx) at a certain Wikipedia (e.g. enwp), I guess there must be some tool that can be used to \"harvest\" template parameters like this? Anyone? --Larske (talk) 12:22, 5 June 2019 (UTC) @Larske Can I use the above with passing company name as opposed QID? Also, I remember seeing a way this will auto convert to Phython library.. do you have the reference for it? Need a query that list Q23397 I need help making a Query that list all P31 Q23397 in country P17 Q20 Norway that dont have a value in P5079Andber08 (talk) 15:39, 5 June 2019 (UTC) SELECT ?item ?itemLabel
+WHERE 
+{
+  ?item wdt:P31 wd:Q23397 ;
+        wdt:P17 wd:Q20 .
+  filter not exists { ?item wdt:P5079 [] . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no\". }
+}
+ Try it! --Tagishsimon (talk) 16:22, 5 June 2019 (UTC) Thank You Andber08 (talk) 18:00, 5 June 2019 (UTC) A recursive belongs-to query Hi, I'm authoring a site called social-cartography.net with the goal of providing a visual map of society, in 3D graph form. I have the 3D graph, and I have a UI for populating it, but I was hoping to get some data to start with, and so I found wikidata.I was wondering if you could give me a query that returns json in the following form:``` { persons: [{
+     id: some id,
+     name: 'their full name',
+     from: 'their date of birth',
+     until: 'their date of death'
+     links: [sources for this information],
+   },
+   ...
+ ],
+ groups: [{
+     id: some id,
+     name: \"the group's name\",
+     from: 'the date the group first met'
+     until: 'the date the group got dissolved',
+     links: [sources for this information]
+   },
+   ...
+ ],
+ roles: [{
+     id: some id,
+     sub_id: 'the person or group id of the entity belonging to another group'
+     super_id: 'the group to which the sub_id belongs',
+     from: 'the date this membership became effective',
+     until: 'the date this membership ended',
+   },
+   ...
+ ] } ```It seems like wikidata might have this sort of information on governments, I was thinking the US government, then the European Union. I was hoping to fetch this data for both entities, then create a visualization for its citizens. – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs).– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC) Putting coordinates back together I can see how to decompose a coordinate value into separate latitude and longitude values: ?item                 p:P625         ?statementnode.
+ ?statementnode      psv:P625         ?valuenode.
+ ?valuenode     wikibase:geoLatitude  ?lat.
+ ?valuenode     wikibase:geoLongitude ?long. However, is it possible to take known values for ?lat and ?long and make them into a set of coordinates? Ideally I'd like to be able to take these two values and then compare them to a P625 value in Wikidata, then find the distance between them. Andrew Gray (talk) 19:05, 6 June 2019 (UTC) @Andrew Gray: This, maybe: SELECT ?item ?itemLabel ?coord ?lat ?long ?newcoord ?dist
+WHERE 
+{
+  values ?item {wd:Q1199924}
+  ?item wdt:P625 ?coord.
+  ?item p:P625 ?statementnode.
+  ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?lat.
+  ?valuenode  wikibase:geoLongitude ?long.
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?newcoord) 
+  BIND(geof:distance(\"Point(0 0)\"^^geo:wktLiteral, ?newcoord) as ?dist) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 19:55, 6 June 2019 (UTC)  (ec) You can specify locations directly, eg: #defaultView:Map
+SELECT ?place ?placeLabel ?location WHERE
+{
+  VALUES ?centre { \"Point(-0.1280 51.5077)\"^^geo:wktLiteral } .
+  SERVICE wikibase:around { 
+      ?place wdt:P625 ?location . 
+      bd:serviceParam wikibase:center ?centre . 
+      bd:serviceParam wikibase:radius \"0.5\" . 
+  } 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . 
+  }
+}
+ Try it! gives all items within a half-kilometre radius of Nelson's column.Similarly BIND(geof:distance(?location, ?centre) as ?dist) for distance between your target centre and a location of an item in Wikidata. Jheald (talk) 20:12, 6 June 2019 (UTC) @Tagishsimon, Jheald: Thanks! This is actually for a fiddly federated query, hence why I wanted to take lat/long as values rather than hardcode them. Behold... Andrew Gray (talk) 20:17, 6 June 2019 (UTC) # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?lat ?long ?parlcoord ?item ?itemLabel ?wdcoord ?dist WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+          { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+            ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+            bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) 
+  # now find out the distance (in kms)
+}
+ Try it! Useful. Worthing West moved to Harpenden. --Tagishsimon (talk) 20:21, 6 June 2019 (UTC) Yes, definitely some ... impressive ... errors there. I'll leave them in place for the talk I'm writing this for, and fix them up in a bit :-) Andrew Gray (talk) 20:49, 6 June 2019 (UTC) Taken from en-wiki, where it seems it was originally added in Sept 2009, diff. Jheald (talk) 21:39, 6 June 2019 (UTC) @Tagishsimon: I am quite surprised the \")\"^^geo:wktLiteral worked. I was expecting you would have to do BIND(STRDT(?str, geo:wktLiteral) AS ?point) to do the type conversion from string to wkt. Jheald (talk) 21:45, 6 June 2019 (UTC) @Jheald: I was hopeful based on a BIND I found here - https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Distance_function - although like you I had anticipated it'd be a bit harder & hadn't got around to working out what I'd do next if that failed. --Tagishsimon (talk) 21:58, 6 June 2019 (UTC) @Tagishsimon: Using ^^geo:wktLiteral to specify the type of a literal is just what one would expect. But using it bare within a CONCAT, a function which operates on strings -- and then getting the right type out at the end -- I am quite surprised by. I suspect that's a Blazegraph bug. Jheald (talk) 22:19, 6 June 2019 (UTC) I take your point. An illustration of the competitive advantages of my thoroughgoing SPARQL & general coding ignorance ;) --Tagishsimon (talk) 22:51, 6 June 2019 (UTC) For those following along at home, the orthodox formulation would beBIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\") , geo:wktLiteral) as ?newcoord)as in SELECT ?item ?itemLabel ?coord ?lat ?long ?newcoord ?dist
+WHERE 
+{
+  values ?item {wd:Q1199924}
+  ?item wdt:P625 ?coord.
+  ?item p:P625 ?statementnode.
+  ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?lat.
+  ?valuenode  wikibase:geoLongitude ?long.
+  BIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\") , geo:wktLiteral)  as ?newcoord)
+  BIND(geof:distance(\"Point(0 0)\"^^geo:wktLiteral, ?newcoord) as ?dist) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! And doing the job properly solves an issue we discussed on Twitter - https://twitter.com/generalising/status/1136740485706522632. Andrew put this together to show every constituency in the UK where both Wikidata and Parliament Data disagree on the coordinates by more than ~10km, and we noted that ?wdcoord gave us points on the map where ?parlcoord did not: # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?parlcoord ?item ?itemLabel ?wdcoord ?dist ?line WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+    { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+      ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+      bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) . filter (?dist >= 10)
+  # now find out the distance (in kms)
+  ?item p:P625 ?statementnode. ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?wikilat . ?valuenode wikibase:geoLongitude ?wikilon.
+  BIND(CONCAT('LINESTRING (', STR(?wikilon), ' ', STR(?wikilat), ',', STR(?long), ' ', STR(?lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+}
+#defaultView:Map
+ Try it! Using orthodox SPARQL, both of the variables give us points. Yay! # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?parlcoord ?item ?itemLabel ?wdcoord ?dist ?line WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+    { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+      ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+      bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"),geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) . filter (?dist >= 10)
+  # now find out the distance (in kms)
+  ?item p:P625 ?statementnode. ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?wikilat . ?valuenode wikibase:geoLongitude ?wikilon.
+  BIND(CONCAT('LINESTRING (', STR(?wikilon), ' ', STR(?wikilat), ',', STR(?long), ' ', STR(?lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+}
+#defaultView:Map
+ Try it!--Tagishsimon (talk) 23:39, 6 June 2019 (UTC)@Tagishsimon: Yes. It would seem that the geof:distance function does no type checking, so removing all the geo:wktLiteral stuff, and just comparing two strings, it still returns the same result [2]. Whereas the map-view in the GUI does check on the type of a column, to decide whether it should be plotted on the map or not. It's interesting that nothing complains at \")\"^^geo:wktLiteral that \")\" isn't a valid form for a geo:wktLiteral, but from the standard it would appear that \"The query processor does not have to have any understanding of the values in the space of the datatype\" -- as far as the query processor need be concerned, a datatype is just an arbitrary tag associated with the literal. Jheald (talk) 20:19, 7 June 2019 (UTC) Author of taxon Hi. I'm requesting the query for list the author of taxon (P405) --which is the qualifier of taxon name (P225)-- from the parent taxon (P171) of Begonia (Q158617). Thank you. Albertus Aditya (talk) 04:28, 9 June 2019 (UTC) @Albertus Aditya: Try this query: SELECT ?taxon ?taxonLabel ?parent_taxon ?parent_taxonLabel ?parent_taxon_name ?author ?authorLabel {
+  VALUES ?taxon { wd:Q158617 }
+  ?taxon wdt:P171 ?parent_taxon .
+  ?parent_taxon p:P225 [ ps:P225 ?parent_taxon_name; pq:P405 ?author ] . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Larske (talk) 07:10, 9 June 2019 (UTC) @Larske: Hi. Thanks for your help. But, what I need is to get the list of all Begonia, such in this list: SELECT ?Begonia ?BegoniaLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+}
+LIMIT 100
+ Try it! I need another column which access the value of P405. Thanks. Albertus Aditya (talk) 07:14, 9 June 2019 (UTC) Like this?: SELECT ?Begonia ?BegoniaLabel ?p225 ?p405 ?p405Label WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?p405 ] .
+ }
+ORDER BY ?p225
+ Try it! Please note that you get one row for each taxon author (P405). It is possible to concatenate them per taxon if you want just one row per taxon. --Larske (talk) 07:26, 9 June 2019 (UTC) Like this: SELECT ?Begonia ?BegoniaLabel ?p225 (GROUP_CONCAT(?p405label;SEPARATOR=', ') AS ?authors) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?p405 ] .
+  ?p405 rdfs:label ?p405label . FILTER(lang(?p405label)='en')
+ }
+GROUP BY ?Begonia ?BegoniaLabel ?p225
+ORDER BY ?p225
+ Try it! --Larske (talk) 07:29, 9 June 2019 (UTC) And if you are interested in Begonia taxons per author, try this: SELECT ?author ?authorLabel (GROUP_CONCAT(?p225;SEPARATOR=', ') AS ?taxons) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?author ] .
+ }
+GROUP BY ?author ?authorLabel
+ORDER BY ?authorLabel
+ Try it! --Larske (talk) 07:43, 9 June 2019 (UTC) Yes, both of them are very helpful. Thank you! Albertus Aditya (talk) 10:44, 9 June 2019 (UTC) dateCreated instead of dateModified? I was trying to adapt this query to make a histogram of when items were created rather than when they were last modified, but I can't seem to find the right schema. Do we have this info? If not, why not? #defaultView:BarChart
+SELECT (SAMPLE(?date) AS ?date) (count(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+  ?item wdt:P17 wd:Q408 ; schema:dateModified ?date .
+  BIND (xsd:integer(( NOW() - ?date )) AS ?daysago)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+GROUP BY ?daysago
+ORDER BY DESC(?daysago)
+ Try it! Thanks.--99of9 (talk) 00:45, 7 June 2019 (UTC) No, there's just this proposal. --Matěj Suchánek (talk) 07:13, 7 June 2019 (UTC) @Matěj Suchánek: Thanks for the link. Subscribed. Disappointingly long wait time! --99of9 (talk) 11:06, 10 June 2019 (UTC) You could try to calculate approximate dates with [3]. --- Jura 08:56, 7 June 2019 (UTC)  Items used: Australia (Q408)   , QID milestone (Q38074555)   Properties used: country (P17)   , quantity (P1114)   , point in time (P585)   #defaultView:AreaChart
+SELECT ?date ?cumulativecount 
+{
+    hint:Query hint:optimizer \"None\".
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
+        WHERE
+        {
+          { SELECT ?item { ?item wdt:P17 wd:Q408 }  LIMIT 190000 }
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+          wd:Q38074555 p:P1114 ?milestonep .
+          ?milestonep ps:P1114 ?milestone .
+          FILTER( ?milestone > ?qid ) 
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date
+} Try it!Above a sample that works for 180000, up to the last milestone. --- Jura 12:37, 8 June 2019 (UTC) @Jura1: nice idea, thanks. --99of9 (talk) 11:06, 10 June 2019 (UTC)  Query optimization (milestones) How it could be made to work for Q142 (currently 470000 items)? It works up to 400000. --- Jura 13:39, 8 June 2019 (UTC) #defaultView:LineChart
+SELECT (SAMPLE(?date) AS ?date) (SUM(?count) AS ?cumulative_count) ?milestone
+{
+
+  { SELECT ?qid_rounded (count(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+      ?item wdt:P17 wd:Q142  .
+      BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+      BIND(xsd:integer(?qid/20000) as ?qid_cut)
+      BIND(?qid_cut*20000 as ?qid_rounded)
+               
+      #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+    }
+    GROUP BY ?qid_rounded
+  }
+  wd:Q38074555 p:P1114 ?milestonep .
+  ?milestonep ps:P1114 ?milestone .
+  FILTER(?milestone > ?qid_rounded) .
+  ?milestonep pq:P585 ?date .
+}
+GROUP BY ?milestone
+ Try it! @Jura1: Got it. Here's a solution by batching them into chunks before comparing to the milestones. Change the batch size (currently 20000) to balance the tradeoff between runtime and resolution for even bigger sets. --99of9 (talk) 14:30, 11 June 2019 (UTC) For example this catches all items with *any* property=France (Q142), not just country (P17). --99of9 (talk) 14:40, 11 June 2019 (UTC) Clever! Thanks. I included the first query in the property documentation page. I think I will try to add this one too. It seems to work up to ca. 5 million items (sample: P932 ). --- Jura 14:52, 11 June 2019 (UTC) Niger(ia)/Dominica(n Republic)/(Democratic )Republic of the Congo/ .. When trying to determine countries from text, I usually avoid confusing the above. Even if everybody else gets them right, maybe it's worth to set up a few database reports/queries to check that places or people between these two countries don't get mixed-up. --- Jura 08:07, 10 June 2019 (UTC) Items linking to both One way could be to check items that link to both, e.g. Items used: Niger (Q1032)   , Nigeria (Q1033)   SELECT ?item ?itemLabel ?itemDescription ?prop_aLabel ?prop_bLabel 
+WHERE
+{
+    ?item ?a wd:Q1032 .
+    ?item ?b wd:Q1033 .
+    ?prop_a wikibase:directClaim ?a .
+    ?prop_b wikibase:directClaim ?b . 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!--- Jura 08:07, 10 June 2019 (UTC) Label of one country included in description of item linked to other Items used: Nigeria (Q1033)   , Niger (Q1032)   Properties used: country (P17)   SELECT *
+{
+    BIND( wd:Q1033 as ?longer )     BIND( wd:Q1032 as ?shorter )   
+    
+    ?longer rdfs:label ?longername . FILTER(lang( ?longername) = \"en\") 
+    
+   ?item wdt:P17 ?shorter ; schema:description ?tocheck . FILTER(lang(?tocheck)=\"en\" && CONTAINS ( ?tocheck, ?longername )  )
+} Try it! Label of one country included in label of item linked to other Items used: Nigeria (Q1033)   , Niger (Q1032)   Properties used: country (P17)   """@en,
+    """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Clubs in league 2 Finding relations on OSM pointing to Wikidata 3 Multi-level localisation 4 Help Teachers in Europe use Football History 4.1 THE CONTEXT 4.2 THE REQUEST 4.2.1 On the level of the Tournament: 4.2.2 On the level of the Team: 4.2.3 On the level of the Players: 4.2.4 On the level of the Clubs where the Players played: 5 Official website with no language 6 Value of a coord according to reference 7 Malfunctionning query 8 Which default view to use 9 Newly created items on tennis players 10 Concat all authors of article 11 QUERY FOR EXACT SEARCH OF ENTITY LABEL 12 Need a Query to pull all Parent Organization to Subsidiary listings 13 Finding place items by labels 14 Antigua And Barbuda ATLU 15 Query to retrieve all known words of a language including their phonetic representation 16 Fetch Industry from Wikipedia API 17 Need a query that list Q23397 18 A recursive belongs-to query 19 Putting coordinates back together 20 Author of taxon 21 dateCreated instead of dateModified? 21.1 Query optimization (milestones) 22 Niger(ia)/Dominica(n Republic)/(Democratic )Republic of the Congo/ .. 22.1 Items linking to both 22.2 Label of one country included in description of item linked to other 22.3 Label of one country included in label of item linked to other 22.4 Additional checks? 23 P27 without start/end time propertites 24 Query to get all the properties of an item 25 Airports that have P3872 for 2017 but not for 2018 26 query for humans with P27 inconsistent with date of birth 27 Five-letter words beginning with \"f\" 28 Spain not in query country by ISO code 29 Query dates with instance of statement with Gregorian date earlier than 1584 30 List of NGMDb Prod ID (P6693) sorted with leading zeroes? 31 PPP GDP per capita (P2299) 32 Showing citizenship of a creator of a certain set of items 33 P31/wdt:P279* wd:Q16917 in wdt:P131/wdt:P131* wd:Q25 (query optimization) 34 Addition of unitLabel to Q42 modified example 35 evenement france 20th century 36 Query to get all the events in a specific city between 2 time points? 37 Extract infromation from one specific QID? 38 Filter double months 39 List of Wikidata id of all French municipalities 40 Column with QID 41 Multiple properties to 1 value 42 Mapping from all the items to all the Italian Wikipedia's articles 43 US not part of Common Wealth 44 all instances of libraries (and subclasses of libraries) in North Carolina 45 Interstate 70 - has part (P527) - Maplink template raw query 46 Statistics total passengers per countries 47 Fusion d’éléments 48 Q's for P27 49 Improve sorting of coordinates 50 Search in formulas 51 Elements with Wikipedia articles with Authority control 52 Living entomologists with no picture 53 List of People 54 Problem to filter countries by official language Clubs in league I am looking for all clubs that played in the 1964–65 Fußball-Bundesliga (Q704091). Somehow I am to silly to query the statements of participating team (P1923) in this item. 92.75.209.157 18:03, 31 May 2019 (UTC) Try this query: SELECT ?item ?itemLabel {
+  wd:Q704091 wdt:P1923 ?item .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ORDER BY ?itemLabel
+ Try it! --Larske (talk) 19:04, 31 May 2019 (UTC) Aaaah, by exchanging the wdt and wd arguments, did not try that^^. Now I would like to combine these results with this query that gives me all players that played in Bundesliga: SELECT ?item ?itemLabel {
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ Try it! So I would like to have only those Bundesliga players that have played for one of those clubs of the first query result. I think this query does the basic job: SELECT DISTINCT ?item ?club ?clubLabel ?itemLabel {
+   wd:Q704091 wdt:P1923 ?club .
+
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  ?item wdt:P54 ?club .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+ORDER BY DESC(?item)
+ Try it! However, players that played for more than one team are listed twice, despite using \"SELECT DISTINCT\". How to get rid of the double entries? 92.75.209.157 20:25, 31 May 2019 (UTC) If you need the clubs, try using GROUP_CONCAT, like this: SELECT ?item (GROUP_CONCAT(?clublabel;SEPARATOR=', ') AS ?clubs) ?itemLabel {
+  wd:Q704091 wdt:P1923 ?club .
+  ?item wdt:P106 wd:Q937857 .
+  ?item wdt:P118 wd:Q82595 .
+  ?item wdt:P54 ?club . ?club rdfs:label ?clublabel . FILTER(lang(?clublabel)='de' )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?item)
+ Try it! If you don't need the clubs, just skip the club and clubLabel columns. --Larske (talk) 20:45, 31 May 2019 (UTC) Thank you! 147.142.63.186 07:49, 1 June 2019 (UTC) Finding relations on OSM pointing to Wikidata Maybe this would need to be done with Sophox, but I'd like to see a query which returns to me all items on Wikidata without OpenStreetMap relation ID (P402) but who at the same time are relations (so not nodes or ways) on OSM and have a link to Wikidata. @Yurik, would you know? NMaia (talk) 00:18, 2 June 2019 (UTC) Multi-level localisation Since located in the administrative territorial entity (P131) may be a lower level entity, how can we show upper level entities ? For example, Drummondville (Q141940) have P131 Drummond (Q1261297) who has P131 Centre-du-Québec (Q764294). What would be the query to list the municipality name, the regional county municipality (Q204613) name and the administrative region of Quebec (Q55998242) name of an entity. --Yanik B 15:12, 28 May 2019 (UTC)  Items used: Drummondville (Q141940)   , administrative region of Quebec (Q55998242)   , regional county municipality (Q204613)   Properties used: instance of (P31)   , located in the administrative territorial entity (P131)   SELECT ?item ?itemLabel ?county ?countyLabel ?region ?regionLabel WHERE {
+  VALUES ?item { wd:Q141940 }
+  ?region wdt:P31 wd:Q55998242 .
+  ?county wdt:P31 wd:Q204613.
+  ?county wdt:P131* ?region .
+  ?item wdt:P131* ?county.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! @YanikB: see if this fits your requirements. --99of9 (talk) 07:16, 29 May 2019 (UTC) @99of9: Well done ! Very interresting those \"*\". Thank's a lot. --Yanik B 11:16, 29 May 2019 (UTC) I tried to add a level but it does't work. Items used: manorialism (Q1550557)   , Canada (Q16)   , administrative region of Quebec (Q55998242)   , regional county municipality (Q204613)   , local municipality of Quebec (Q3327873)   Properties used: instance of (P31)   , country (P17)   , located in the administrative territorial entity (P131)   SELECT ?item ?itemLabel ?munLabel ?countyLabel ?regionLabel WHERE {
+  ?item wdt:P31 wd:Q1550557 .
+  ?item wdt:P17 wd:Q16 .
+  ?region wdt:P31 wd:Q55998242 .
+  ?county wdt:P31 wd:Q204613.
+  ?mun wdt:P31 wd:Q3327873 .
+  ?county wdt:P131* ?region .
+  ?mun wdt:P131* ?county .
+  ?item wdt:P131* ?mun .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! --Yanik B 11:38, 31 May 2019 (UTC) Items used: human settlement (Q486972)   , Canada (Q16)   , local municipality of Quebec (Q3327873)   , regional county municipality (Q204613)   , administrative region of Quebec (Q55998242)   Properties used: instance of (P31)   , subclass of (P279)   , country (P17)   , located in the administrative territorial entity (P131)   SELECT DISTINCT ?item ?itemLabel ?mun ?munLabel ?county ?countyLabel ?region ?regionLabel 
+WHERE
+{
+  ?item wdt:P31/wdt:P279* wd:Q486972 .
+  ?item wdt:P17 wd:Q16 .
+
+  ?item wdt:P131/wdt:P131* ?mun .
+  ?mun wdt:P31/wdt:P279* wd:Q3327873 .
+  
+  OPTIONAL
+  {
+    ?mun wdt:P131/wdt:P131* ?county .
+    ?county wdt:P31/wdt:P279* wd:Q204613.
+  }
+  OPTIONAL
+  { 
+      ?mun wdt:P131/wdt:P131* ?region .
+      ?region wdt:P31/wdt:P279* wd:Q55998242 .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!Maybe like this? municipalities seem to be instances of a subclass and not direct instances of local municipality of Quebec (Q3327873). the level between region and local municipality of Quebec (Q3327873) might need some work. I left it optional. --- Jura 13:07, 2 June 2019 (UTC) Help Teachers in Europe use Football History THE CONTEXT As part of a European education project called \"Football makes History\", I am working with history teachers to create an educational activity about nationality, citizenship and history. In this activity, students will be invited to study the multinational composition of football teams. Because the project seeks to be ready before the upcoming UEFA European Championship in June 2020, we want to help the students by offering them a dataset which contains all basic information about all football players who took part in all UEFA European Championship (since 1960). The teacher will ask the students to build fictional football teams who would have participated in fictional football tournaments in the past (e.g. Ottoman Empire, Poland with different borders, etc.) as well as research how nationality and citizenship developed differently.We would be very happy if somebody could help us gather this data from WikiData, because: The teachers involved will have a lot more time to design the activity to be of high quality The students will be able to work with a very large data set, which means they can peer-learn about more contexts. The UEFA Tournament in 2020 will be able to highlight it's rich history of diversity THE REQUEST In order for the educational activity to work, we would need for all national teams who participated in the UEFA European Championships the following data: On the level of the Tournament: Host country Year On the level of the Team: Tournament in which it participated Country (at the time of the Tournament) On the level of the Players: Full Name Date of birth Place of birth Country of birth (at the time of birth) Playing position Clubs where they played On the level of the Clubs where the Players played: Name Place Country (at the time that the player played there) – The preceding unsigned comment was added by Evenzoharj (talk • contribs). @Evenzoharj: a vast part of the data seems to be missing, but even with incomplete data you can have some good results to start (and you have almost a year to improve the data ). Here are the query corresponding to your needs : Tournament level: SELECT ?tournament ?tournamentLabel ?hostCountryLabel (year(?date) AS ?year ) WHERE {
+  ?tournament wdt:P3450 wd:Q260858 ; wdt:P17 ?hostCountry ; wdt:P585 ?date .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY ?year
+ Try it! Teams level (here it is very incomplete): SELECT ?team ?teamLabel WHERE {
+  ?team wdt:P1344/wdt:P3450 wd:Q260858 ; wdt:P31 wd:Q46135307 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Players level: SELECT ?player ?playerLabel ?placeofB ?dateofB ?positionLabel WHERE {
+  ?player wdt:P1344/wdt:P3450 wd:Q260858 ; wdt:P31 wd:Q5 .
+  OPTIONAL { ?player wdt:P19 ?placeofB }
+  OPTIONAL { ?player wdt:P569 ?dateofB }
+  OPTIONAL { ?player wdt:P413 ?position }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Cheers, VIGNERON (talk) 12:08, 2 June 2019 (UTC) WFC Fawkesfr Xaris333 A.Bernhard Cekli829 Japan Football HakanIST Jmmuguerza H4stings Unnited meta Grottem Petro Сидик из ПТУ Sakhalinio Gonta-Kun CanadianCodhead Laszaroh Sherifkkvtm Nicholas Gemini TiagoLubiana MythsOfAesop BalûNotified participants of WikiProject Association football@VIGNERON: Thanks so much for this! Already an amazing help!! I am sorry for asking super noob questions, but is there any way in which the data can be linked? So that I get to use the data to sort players on teams and tournaments? Thanks for thinking with me! Another question is on the possibility to get for the locations some kind of geo-ref data? Thanks again! Official website with no language Hi! I would like to have a query with all items having official website (P856) without language of work or name (P407) qualifier. Thank you! --Epìdosis 17:07, 31 May 2019 (UTC) As the following query shows, almost 900,000 of the more than 1,000,000 official website (P856) don't have a language of work or name (P407) qualifier. It is not feasible to list them all. Can we limit the request to items that are instance of (P31) of some class? SELECT (COUNT(?item) AS ?number_of_P856) (SUM(?no_P407) as ?without_P407) {
+  ?item p:P856 ?p856stm .
+  OPTIONAL { ?p856stm pq:P407 ?p407 }
+ BIND(IF(BOUND(?p407),0,1) AS ?no_P407 )
+}
+ Try it! --Larske (talk) 18:59, 31 May 2019 (UTC) @Larske: Let's try with instance of (P31)human (Q5) . Thank you, --Epìdosis 14:46, 2 June 2019 (UTC) Still more than 100,000, but here is a list: SELECT ?item {
+  ?item p:P856 ?p856stm .
+  OPTIONAL { ?p856stm pq:P407 ?p407 }
+  FILTER(!BOUND(?p407))
+  ?item wdt:P31 wd:Q5 .
+}
+ Try it! --Larske (talk) 15:29, 2 June 2019 (UTC) Value of a coord according to reference Hi,I'm trying to get all commune of France (Q484170) with coordinates having for reference imported from Wikimedia project (P143) Cebuano Wikipedia (Q837615) to check them. I manage to do have the list of items but I would like to have the value of the coordinate itself too (to then build more complex queryies, such as comparing with other coordinates on the same item, filtering by distance, etc. all sort of things I already know how to do). Here is where I stuck: SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! If I do this I have the statement and not the value (which is useless to do a map for visual checking): SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 ?coord ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! And if I do this, I have all coordinates of the item (and not just the one imported from Wikimedia project (P143) Cebuano Wikipedia (Q837615), which again is useless in my case) SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; wdt:P625 ?coord ; p:P625 [ prov:wasDerivedFrom [ pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! What am I missing/doing wrong?Cheers, VIGNERON (talk) 11:16, 2 June 2019 (UTC) SELECT ?item ?coord
+WHERE {
+  ?item wdt:P31 wd:Q484170 ; p:P625 [ ps:P625 ?coord ; prov:wasDerivedFrom [  pr:P143 wd:Q837615 ] ] .
+}
+LIMIT 10
+ Try it! probably. --Tagishsimon (talk) 16:44, 2 June 2019 (UTC) Thanks @Tagishsimon:, that's was I was looking for. I was both close and not looking in the right direction. Now I can start my work of checking. Cheers, VIGNERON (talk) 18:26, 2 June 2019 (UTC) Malfunctionning query Hello, this query worked well and for an unknown reason, it no longer works ; I suspect a pb on the fr labels . Any thoughts? Thanks ! Bouzinac (talk) 19:46, 2 June 2019 (UTC) SELECT ?item ?itemLabel (max(?number) as ?passengers) 
+?year
+with {
+select ?item ?itemLabel ?statement ?year 
+?timevalue ?numberperperiod{
+?item wdt:P238 ?IATA
+VALUES ?IATA {\"LIM\" \"IQT\" \"PIU\" \"CUZ\"}.
+?item p:P3872 ?statement.
+?statement pqv:P585 ?timevalue
+; ps:P3872 ?numberperperiod.
+?timevalue wikibase:timeValue ?date .
+optional { ?statement pq:P518 ?applies .}
+filter(bound(?applies)=false || ?applies = wd:Q2165236 )
+bind(if(bound(?applies)=false,\"no applies\",\"everywhere\") as ?where )
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+bind (YEAR(?date) AS ?year)
+FILTER (?year >1985) .
+FILTER (?year < year(now())).
+}
+} as %airport
+where {
+{
+select ?item ?itemLabel ?year (sum(?numberperperiod) as ?number) {
+include %airport .
+?timevalue wikibase:timePrecision ?prec filter ( ?prec > 9 )
+} group by ?item ?itemLabel  ?year
+} union {
+?timevalue wikibase:timePrecision 9 .
+bind (?numberperperiod as ?number)
+include %airport
+} .
+} group by ?item ?itemLabel ?year
+order by ?item desc (?year)
+ Try it! For me, it throws: Lexical error at line 27, column 29. Encountered: \"\\u00a0\" (160), after : \"\" → There is a non-breaking space between ?itemLabel and ?year at line 27. Is this what you are struggling with? --Matěj Suchánek (talk) 12:03, 3 June 2019 (UTC) Hi, no, there is a frequent trouble with the copy-paste of SPARQL code: it fills the original spaces with non breaking spaces Template:=S You can check the original SPARQL code there [1] (fr wiki, just hit the \"Voir la requête brute sur Wikidata.\" to see the original SPARQL code. You will notice that the labels which where available in french are no longer available, for an unknown reason. Thank you for your help ! Bouzinac (talk) 12:21, 3 June 2019 (UTC) It's corrected :) The SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". } would function better if put latter in the end of the code (weirdo because it functionned before). Thanks anyway ! Bouzinac (talk) 12:31, 3 June 2019 (UTC) Which default view to use I'm contemplating a query that would display the lithostratigraphic unit (Q3550897) of the Grand Canyon (Q118841). Ultimately, I'd like to \"see\" this query displayed as a stratigraphic column (Q3815198) such that units most recently deposited are listed at the top, oldest at the bottom. Is there a way I can better portray this? I've started with the horses query example (thanks to whomever posted it) and ended with this. I've limited it to located in the administrative territorial entity (P131)=Arizona (Q816), but ultimately I would update units that are in location (P276) Grand Canyon (Q118841). I am not sure how to display them by time period (P2348) (by their relative age in years). Currently, time period (P2348) isn't in all items. Maybe overlies (P568) / underlies (P567) can help sort it. Suggestions? SELECT DISTINCT ?unit ?unitLabel ?haspart ?haspartLabel ?partof ?partofLabel ?GeolexID WHERE {
+  ?unit (wdt:P31/(wdt:P279*)) wd:Q3550897.
+  OPTIONAL { ?unit wdt:P527 ?haspart. }
+  OPTIONAL { ?unit wdt:P361 ?partof. }
+  OPTIONAL { ?unit wdt:P6202 ?GeolexID. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,ar,be,bg,bn,ca,cs,da,de,el,en,es,et,fa,fi,he,hi,hu,hy,id,it,ja,jv,ko,nb,nl,eo,pa,pl,pt,ro,ru,sh,sk,sr,sv,sw,te,th,tr,uk,yue,vec,vi,zh\". }
+  ?unit wdt:P131 wd:Q816.
+}
+ORDER BY (?unitLabel)
+LIMIT 5000
+ Try it! Thanks. Trilotat (talk) 15:37, 3 June 2019 (UTC) Newly created items on tennis players Hi, looking for an overview of all wikidata items created on male or female tennis players (occupation (P106) = tennis player (Q10833314)) within the last 60 days and showing first name, last name, gender, country of citizenship and creation date.--Wolbo (talk) 12:06, 19 May 2019 (UTC) The information about when an item was created is not available to queries. Without this constraint, the query will look like this: SELECT ?item ?itemLabel ?nameLabel ?surnameLabel ?sexLabel ?countryLabel WHERE {
+  ?item wdt:P106 wd:Q10833314 .
+  OPTIONAL { ?item wdt:P735 ?name } .
+  OPTIONAL { ?item wdt:P734 ?surname } .
+  OPTIONAL { ?item wdt:P21 ?sex } .
+  OPTIONAL { ?item wdt:P27 ?country } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+} LIMIT 1000
+ Try it! On the other hand, if you knew the identifier of some item which was created 60 days ago, you could amend this query with FILTER( STR(?item) > STR(wd:Q[identifier]) ) (hack™) and remove the limit. There is also Wikidata:History Query Service but I really don't know how and whether it can be used. Matěj Suchánek (talk) 17:39, 20 May 2019 (UTC) Surprised the creation date of an item can not be queried, that was key to the list I was looking for. Nevertheless, thanks for the help! --Wolbo (talk) 21:05, 20 May 2019 (UTC) @Wolbo: with the regular service, you can have the date of last modification like this: SELECT ?date ?item ?itemLabel ?nameLabel ?surnameLabel ?sexLabel ?countryLabel WHERE {
+  ?item wdt:P106 wd:Q10833314 ; schema:dateModified ?date .
+  FILTER ( ?date > \"2019-04-01T00:00:00Z\"^^xsd:dateTime )
+  OPTIONAL { ?item wdt:P735 ?name } .
+  OPTIONAL { ?item wdt:P734 ?surname } .
+  OPTIONAL { ?item wdt:P21 ?sex } .
+  OPTIONAL { ?item wdt:P27 ?country } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+ORDER BY ?date
+ Try it! @Tpt: who built and knows the History Query Service. Cheers, VIGNERON (talk) 12:29, 2 June 2019 (UTC) Sadly the History Query Service is not live updated yet so I do not think it would be very helpful for this use case. But it is something I have on my roadmap so it should be doable in the futur. Tpt (talk) 07:17, 4 June 2019 (UTC) Concat all authors of article Hi there,I'm trying to get column with concated names of all authors for article. The problem is there are two property for authors: how concat labels of authors from statements within property author (P50) and names from statements within author name string (P2093). --Julia.athen (talk) 18:44, 2 June 2019 (UTC)So that what I've now (concated names within author (P50)). #defaultView:Table
+SELECT ?any_article ?any_articleLabel (GROUP_CONCAT(?result_label; separator=\", \") AS ?authors)
+WHERE {
+  BIND(wd:Q48589333 as ?any_article)
+  ?any_article p:P50 ?full_st_author.
+  
+  #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+  ?full_st_author ps:P50 ?element_author.
+  ?element_author rdfs:label ?element_author_label.
+  FILTER(LANG(?element_author_label) = \"en\").
+
+  OPTIONAL {?full_st_author pq:P1932 ?short_author.}
+  BIND(IF(BOUND(?short_author), ?short_author, ?element_author_label) as ?result_label)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }  
+}
+GROUP BY ?any_article ?any_articleLabel
+ Try it! #defaultView:Table
+SELECT ?any_article ?any_articleLabel (GROUP_CONCAT(?result_label; separator=\", \") AS ?authors)
+WHERE {
+  BIND(wd:Q48589333 as ?any_article)
+  {
+    ?any_article p:P50 ?full_st_author.
+    #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+    ?full_st_author ps:P50 ?element_author.
+    ?element_author rdfs:label ?element_author_label.
+    FILTER(LANG(?element_author_label) = \"en\").
+  } UNION {
+    ?any_article p:P2093 ?full_st_author.
+    #IF author have qualifier \"stated as\" then its value used in result else the label of the author
+    ?full_st_author ps:P2093 ?element_author_label.
+  } .
+  OPTIONAL {?full_st_author pq:P1932 ?short_author.}
+  BIND(IF(BOUND(?short_author), ?short_author, ?element_author_label) as ?result_label)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }  
+}
+GROUP BY ?any_article ?any_articleLabel
+ Try it! --Matěj Suchánek (talk) 12:05, 3 June 2019 (UTC) So nice! Thank you! --Julia.athen (talk) 23:29, 3 June 2019 (UTC) QUERY FOR EXACT SEARCH OF ENTITY LABEL Hi,Can you please provide the query for the following:1.Query to check If a WORD is an ENTITY- like 'MUTUAL FUND' IS AN ENTITY OR NOT? EXACT MATCH 2.ALL the ENTITES DATA EXPORT FOR financeIt will be a great help.Thanks in Advance.Anubhav Singh – The preceding unsigned comment was added by 150.129.237.154 (talk • contribs) at 18:27, 17 April 2019‎ (UTC).– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Need a Query to pull all Parent Organization to Subsidiary listings I found this good example query example below online for just the Walt Disney Company but I need it to include a column that shows the Parent Organization in addition the subsidiary and I need it to pull every Parent Organization, not just the one.Is this possible? Can anyone help me? SELECT DISTINCT ?item ?itemLabel WHERE {
+  {
+    SELECT ?item WHERE { ?item (wdt:P31/wdt:P279*) wd:Q43229. }
+  }
+  ?item (wdt:P127|^wdt:P199|wdt:P749|^wdt:P1830|^wdt:P355)+ wd:Q7414.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Finding place items by labels I am building a dynamic query executed with SPARQLWrapper in Python 3 to find multiple possible matches for a place, given name (label), type, country, and location. My script loops through a large number of database records and for each builds a query like the below for \"Paris.\" This query is successful but takes 17-21 seconds! So I need some help to optimize it. I've tried various things; those that don't error out or produce no result end in timeouts. For example, I've moved the type (P31) constraint from a filter to the first line in WHERE, like e.g. ?place (wdt:P31/wdt:P279*) wd:Q486972; rdfs:label ?placeLabel . The speed is in the same range.I'm not a sparql newbie, but not expert and could use a hand figuring out if this will be viable. One of my first batches of records to match is ~13k rows, which would take around 65+ hours at this rate. Thanks.  SELECT distinct ?place ?location ?placeLabel ?countryLabel ?tgnid ?gnid ?nameLabel 
+      (group_concat(distinct ?parentName; SEPARATOR=\", \") as ?parentNames)
+   WHERE {
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+   ?place rdfs:label ?placeLabel ; (wdt:P31/wdt:P279*) ?placeType .
+   OPTIONAL {?place wdt:P131 ?parent .} 
+   OPTIONAL {?parent wdt:P1448 ?parentName .}
+   OPTIONAL {?place wdt:P1448 ?name .}
+   OPTIONAL {?place wdt:P17 ?country .}
+   # external IDs
+   OPTIONAL {?place wdt:P1667 ?tgnid .}
+   OPTIONAL {?place wdt:P1566 ?gnid .}
+   FILTER (STR(?placeLabel) in (\"Paris\")) .
+   FILTER (?country in (wd:Q142)) .
+ 
+   SERVICE wikibase:box {
+     ?place wdt:P625 ?location .
+       bd:serviceParam wikibase:cornerWest \"POINT(1.3508 47.8567)\"^^geo:wktLiteral .
+       bd:serviceParam wikibase:cornerEast \"POINT(3.3508 49.8567)\"^^geo:wktLiteral .}
+   FILTER (?placeType in (wd:Q486972)) .
+   } GROUP BY ?place ?location ?placeLabel ?countryLabel ?tgnid ?gnid ?nameLabel
+   ORDER BY ?placeLabel – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC) Antigua And Barbuda ATLU Is there a group photo of The Antigua and Barbuda Trades and Labour Union? I'm trying to locate an image for a group of people from Antigua. It's in black & white & may date back to the mid 1900's or later. Not sure.– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Query to retrieve all known words of a language including their phonetic representation Hi everyone, As stated in the title I am looking for data of languages with their phonetic representation. Wiktionary has alot of that information, but I don't know how to retrieve it. Would be nice if someone could help me - anyways thanks!!– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC)  Fetch Industry from Wikipedia API Is there a way to fetch Industry for a given company from the Wiki API. Please see attached pic the info i needed. Please see below link for my post with exampleMY POST AT STACK WITH IMAGEI Tried this but this one will result in parsing the text to get the industry type. Any help is greatly appreciatedhttps://en.wikipedia.org/w/api.php?action=opensearch&search=FEDEX&limit=1&format=json– The preceding unsigned comment was added by 198.245.241.21 (talk • contribs) at 4 juni 2019 kl. 04.49‎ (UTC). I don't know if this is what you are asking for, but still: To get the industry (P452) property for object TNT Express (Q1105744) use this: https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&entity=Q1105744&property=P452 Note: Object FedEx (Q459477) does not have any industry (P452) set in Wikidata so I use TNT Express (Q1105744) in the example. To get the English label for the property value from the above (i.e. Q1447463) use this: https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=Q1447463&titles=&props=labels&languages=en The result from these two API-calls is \"CEP service\". If you want to get the parameter value for a certain parameter (e.g. industry) in a certain template (e.g. Infobox company) for a specific article, (e.g. FedEx) at a certain Wikipedia (e.g. enwp), I guess there must be some tool that can be used to \"harvest\" template parameters like this? Anyone? --Larske (talk) 12:22, 5 June 2019 (UTC) @Larske Can I use the above with passing company name as opposed QID? Also, I remember seeing a way this will auto convert to Phython library.. do you have the reference for it? Need a query that list Q23397 I need help making a Query that list all P31 Q23397 in country P17 Q20 Norway that dont have a value in P5079Andber08 (talk) 15:39, 5 June 2019 (UTC) SELECT ?item ?itemLabel
+WHERE 
+{
+  ?item wdt:P31 wd:Q23397 ;
+        wdt:P17 wd:Q20 .
+  filter not exists { ?item wdt:P5079 [] . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],no\". }
+}
+ Try it! --Tagishsimon (talk) 16:22, 5 June 2019 (UTC) Thank You Andber08 (talk) 18:00, 5 June 2019 (UTC) A recursive belongs-to query Hi, I'm authoring a site called social-cartography.net with the goal of providing a visual map of society, in 3D graph form. I have the 3D graph, and I have a UI for populating it, but I was hoping to get some data to start with, and so I found wikidata.I was wondering if you could give me a query that returns json in the following form:``` { persons: [{
+     id: some id,
+     name: 'their full name',
+     from: 'their date of birth',
+     until: 'their date of death'
+     links: [sources for this information],
+   },
+   ...
+ ],
+ groups: [{
+     id: some id,
+     name: \"the group's name\",
+     from: 'the date the group first met'
+     until: 'the date the group got dissolved',
+     links: [sources for this information]
+   },
+   ...
+ ],
+ roles: [{
+     id: some id,
+     sub_id: 'the person or group id of the entity belonging to another group'
+     super_id: 'the group to which the sub_id belongs',
+     from: 'the date this membership became effective',
+     until: 'the date this membership ended',
+   },
+   ...
+ ] } ```It seems like wikidata might have this sort of information on governments, I was thinking the US government, then the European Union. I was hoping to fetch this data for both entities, then create a visualization for its citizens. – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs).– The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). random signature for archiving --- Jura 01:01, 1 June 2019 (UTC) Putting coordinates back together I can see how to decompose a coordinate value into separate latitude and longitude values: ?item                 p:P625         ?statementnode.
+ ?statementnode      psv:P625         ?valuenode.
+ ?valuenode     wikibase:geoLatitude  ?lat.
+ ?valuenode     wikibase:geoLongitude ?long. However, is it possible to take known values for ?lat and ?long and make them into a set of coordinates? Ideally I'd like to be able to take these two values and then compare them to a P625 value in Wikidata, then find the distance between them. Andrew Gray (talk) 19:05, 6 June 2019 (UTC) @Andrew Gray: This, maybe: SELECT ?item ?itemLabel ?coord ?lat ?long ?newcoord ?dist
+WHERE 
+{
+  values ?item {wd:Q1199924}
+  ?item wdt:P625 ?coord.
+  ?item p:P625 ?statementnode.
+  ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?lat.
+  ?valuenode  wikibase:geoLongitude ?long.
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?newcoord) 
+  BIND(geof:distance(\"Point(0 0)\"^^geo:wktLiteral, ?newcoord) as ?dist) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Tagishsimon (talk) 19:55, 6 June 2019 (UTC)  (ec) You can specify locations directly, eg: #defaultView:Map
+SELECT ?place ?placeLabel ?location WHERE
+{
+  VALUES ?centre { \"Point(-0.1280 51.5077)\"^^geo:wktLiteral } .
+  SERVICE wikibase:around { 
+      ?place wdt:P625 ?location . 
+      bd:serviceParam wikibase:center ?centre . 
+      bd:serviceParam wikibase:radius \"0.5\" . 
+  } 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" . 
+  }
+}
+ Try it! gives all items within a half-kilometre radius of Nelson's column.Similarly BIND(geof:distance(?location, ?centre) as ?dist) for distance between your target centre and a location of an item in Wikidata. Jheald (talk) 20:12, 6 June 2019 (UTC) @Tagishsimon, Jheald: Thanks! This is actually for a fiddly federated query, hence why I wanted to take lat/long as values rather than hardcode them. Behold... Andrew Gray (talk) 20:17, 6 June 2019 (UTC) # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?lat ?long ?parlcoord ?item ?itemLabel ?wdcoord ?dist WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+          { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+            ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+            bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) 
+  # now find out the distance (in kms)
+}
+ Try it! Useful. Worthing West moved to Harpenden. --Tagishsimon (talk) 20:21, 6 June 2019 (UTC) Yes, definitely some ... impressive ... errors there. I'll leave them in place for the talk I'm writing this for, and fix them up in a bit :-) Andrew Gray (talk) 20:49, 6 June 2019 (UTC) Taken from en-wiki, where it seems it was originally added in Sept 2009, diff. Jheald (talk) 21:39, 6 June 2019 (UTC) @Tagishsimon: I am quite surprised the \")\"^^geo:wktLiteral worked. I was expecting you would have to do BIND(STRDT(?str, geo:wktLiteral) AS ?point) to do the type conversion from string to wkt. Jheald (talk) 21:45, 6 June 2019 (UTC) @Jheald: I was hopeful based on a BIND I found here - https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Distance_function - although like you I had anticipated it'd be a bit harder & hadn't got around to working out what I'd do next if that failed. --Tagishsimon (talk) 21:58, 6 June 2019 (UTC) @Tagishsimon: Using ^^geo:wktLiteral to specify the type of a literal is just what one would expect. But using it bare within a CONCAT, a function which operates on strings -- and then getting the right type out at the end -- I am quite surprised by. I suspect that's a Blazegraph bug. Jheald (talk) 22:19, 6 June 2019 (UTC) I take your point. An illustration of the competitive advantages of my thoroughgoing SPARQL & general coding ignorance ;) --Tagishsimon (talk) 22:51, 6 June 2019 (UTC) For those following along at home, the orthodox formulation would beBIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\") , geo:wktLiteral) as ?newcoord)as in SELECT ?item ?itemLabel ?coord ?lat ?long ?newcoord ?dist
+WHERE 
+{
+  values ?item {wd:Q1199924}
+  ?item wdt:P625 ?coord.
+  ?item p:P625 ?statementnode.
+  ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?lat.
+  ?valuenode  wikibase:geoLongitude ?long.
+  BIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\") , geo:wktLiteral)  as ?newcoord)
+  BIND(geof:distance(\"Point(0 0)\"^^geo:wktLiteral, ?newcoord) as ?dist) 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! And doing the job properly solves an issue we discussed on Twitter - https://twitter.com/generalising/status/1136740485706522632. Andrew put this together to show every constituency in the UK where both Wikidata and Parliament Data disagree on the coordinates by more than ~10km, and we noted that ?wdcoord gave us points on the map where ?parlcoord did not: # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?parlcoord ?item ?itemLabel ?wdcoord ?dist ?line WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+    { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+      ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+      bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"^^geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) . filter (?dist >= 10)
+  # now find out the distance (in kms)
+  ?item p:P625 ?statementnode. ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?wikilat . ?valuenode wikibase:geoLongitude ?wikilon.
+  BIND(CONCAT('LINESTRING (', STR(?wikilon), ' ', STR(?wikilat), ',', STR(?long), ' ', STR(?lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+}
+#defaultView:Map
+ Try it! Using orthodox SPARQL, both of the variables give us points. Yay! # compare lat/long of Parliament and Wikidata constituency records
+PREFIX parliament:<https://id.parliament.uk/schema/>
+
+SELECT DISTINCT ?constituency ?parlcoord ?item ?itemLabel ?wdcoord ?dist ?line WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  SERVICE <https://api.parliament.uk/sparql> 
+    { ?constituency parliament:constituencyGroupHasConstituencyArea ?area .
+      ?area parliament:latitude ?lat . ?area parliament:longitude ?long . 
+      bind(SUBSTR(str(?constituency),26) as ?parlid) . }
+  BIND(strdt(concat(\"Point(\",str(?long),\" \",str(?lat),\")\"),geo:wktLiteral) as ?parlcoord) 
+  # get constituencies from Parliament with coordinates
+  ?item wdt:P6213 ?parlid . ?item wdt:P31 wd:Q27971968 . ?item wdt:P625 ?wdcoord . 
+  # now get them from Wikidata with coordinates
+  BIND(geof:distance(?parlcoord, ?wdcoord) as ?dist) . filter (?dist >= 10)
+  # now find out the distance (in kms)
+  ?item p:P625 ?statementnode. ?statementnode psv:P625 ?valuenode.
+  ?valuenode wikibase:geoLatitude ?wikilat . ?valuenode wikibase:geoLongitude ?wikilon.
+  BIND(CONCAT('LINESTRING (', STR(?wikilon), ' ', STR(?wikilat), ',', STR(?long), ' ', STR(?lat), ')') AS ?str) .
+  BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+}
+#defaultView:Map
+ Try it!--Tagishsimon (talk) 23:39, 6 June 2019 (UTC)@Tagishsimon: Yes. It would seem that the geof:distance function does no type checking, so removing all the geo:wktLiteral stuff, and just comparing two strings, it still returns the same result [2]. Whereas the map-view in the GUI does check on the type of a column, to decide whether it should be plotted on the map or not. It's interesting that nothing complains at \")\"^^geo:wktLiteral that \")\" isn't a valid form for a geo:wktLiteral, but from the standard it would appear that \"The query processor does not have to have any understanding of the values in the space of the datatype\" -- as far as the query processor need be concerned, a datatype is just an arbitrary tag associated with the literal. Jheald (talk) 20:19, 7 June 2019 (UTC) Author of taxon Hi. I'm requesting the query for list the author of taxon (P405) --which is the qualifier of taxon name (P225)-- from the parent taxon (P171) of Begonia (Q158617). Thank you. Albertus Aditya (talk) 04:28, 9 June 2019 (UTC) @Albertus Aditya: Try this query: SELECT ?taxon ?taxonLabel ?parent_taxon ?parent_taxonLabel ?parent_taxon_name ?author ?authorLabel {
+  VALUES ?taxon { wd:Q158617 }
+  ?taxon wdt:P171 ?parent_taxon .
+  ?parent_taxon p:P225 [ ps:P225 ?parent_taxon_name; pq:P405 ?author ] . 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Larske (talk) 07:10, 9 June 2019 (UTC) @Larske: Hi. Thanks for your help. But, what I need is to get the list of all Begonia, such in this list: SELECT ?Begonia ?BegoniaLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+}
+LIMIT 100
+ Try it! I need another column which access the value of P405. Thanks. Albertus Aditya (talk) 07:14, 9 June 2019 (UTC) Like this?: SELECT ?Begonia ?BegoniaLabel ?p225 ?p405 ?p405Label WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?p405 ] .
+ }
+ORDER BY ?p225
+ Try it! Please note that you get one row for each taxon author (P405). It is possible to concatenate them per taxon if you want just one row per taxon. --Larske (talk) 07:26, 9 June 2019 (UTC) Like this: SELECT ?Begonia ?BegoniaLabel ?p225 (GROUP_CONCAT(?p405label;SEPARATOR=', ') AS ?authors) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?p405 ] .
+  ?p405 rdfs:label ?p405label . FILTER(lang(?p405label)='en')
+ }
+GROUP BY ?Begonia ?BegoniaLabel ?p225
+ORDER BY ?p225
+ Try it! --Larske (talk) 07:29, 9 June 2019 (UTC) And if you are interested in Begonia taxons per author, try this: SELECT ?author ?authorLabel (GROUP_CONCAT(?p225;SEPARATOR=', ') AS ?taxons) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+  ?Begonia wdt:P171 wd:Q158617.
+  ?Begonia p:P225 [ ps:P225 ?p225; pq:P405 ?author ] .
+ }
+GROUP BY ?author ?authorLabel
+ORDER BY ?authorLabel
+ Try it! --Larske (talk) 07:43, 9 June 2019 (UTC) Yes, both of them are very helpful. Thank you! Albertus Aditya (talk) 10:44, 9 June 2019 (UTC) dateCreated instead of dateModified? I was trying to adapt this query to make a histogram of when items were created rather than when they were last modified, but I can't seem to find the right schema. Do we have this info? If not, why not? #defaultView:BarChart
+SELECT (SAMPLE(?date) AS ?date) (count(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+  ?item wdt:P17 wd:Q408 ; schema:dateModified ?date .
+  BIND (xsd:integer(( NOW() - ?date )) AS ?daysago)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+}
+GROUP BY ?daysago
+ORDER BY DESC(?daysago)
+ Try it! Thanks.--99of9 (talk) 00:45, 7 June 2019 (UTC) No, there's just this proposal. --Matěj Suchánek (talk) 07:13, 7 June 2019 (UTC) @Matěj Suchánek: Thanks for the link. Subscribed. Disappointingly long wait time! --99of9 (talk) 11:06, 10 June 2019 (UTC) You could try to calculate approximate dates with [3]. --- Jura 08:56, 7 June 2019 (UTC)  Items used: Australia (Q408)   , QID milestone (Q38074555)   Properties used: country (P17)   , quantity (P1114)   , point in time (P585)   #defaultView:AreaChart
+SELECT ?date ?cumulativecount 
+{
+    hint:Query hint:optimizer \"None\".
+    {   SELECT ?milestonep (COUNT(?item) as ?cumulativecount)
+        WHERE
+        {
+          { SELECT ?item { ?item wdt:P17 wd:Q408 }  LIMIT 190000 }
+          BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+          wd:Q38074555 p:P1114 ?milestonep .
+          ?milestonep ps:P1114 ?milestone .
+          FILTER( ?milestone > ?qid ) 
+        }
+        GROUP BY ?milestonep
+    }          
+    ?milestonep pq:P585 ?date
+} Try it!Above a sample that works for 180000, up to the last milestone. --- Jura 12:37, 8 June 2019 (UTC) @Jura1: nice idea, thanks. --99of9 (talk) 11:06, 10 June 2019 (UTC)  Query optimization (milestones) How it could be made to work for Q142 (currently 470000 items)? It works up to 400000. --- Jura 13:39, 8 June 2019 (UTC) #defaultView:LineChart
+SELECT (SAMPLE(?date) AS ?date) (SUM(?count) AS ?cumulative_count) ?milestone
+{
+
+  { SELECT ?qid_rounded (count(?item) AS ?count) (SAMPLE(?item) AS ?exampleitem) WHERE {
+      ?item wdt:P17 wd:Q142  .
+      BIND( xsd:integer( substr(str(?item), 33)) as ?qid)
+      BIND(xsd:integer(?qid/20000) as ?qid_cut)
+      BIND(?qid_cut*20000 as ?qid_rounded)
+               
+      #SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" } .
+    }
+    GROUP BY ?qid_rounded
+  }
+  wd:Q38074555 p:P1114 ?milestonep .
+  ?milestonep ps:P1114 ?milestone .
+  FILTER(?milestone > ?qid_rounded) .
+  ?milestonep pq:P585 ?date .
+}
+GROUP BY ?milestone
+ Try it! @Jura1: Got it. Here's a solution by batching them into chunks before comparing to the milestones. Change the batch size (currently 20000) to balance the tradeoff between runtime and resolution for even bigger sets. --99of9 (talk) 14:30, 11 June 2019 (UTC) For example this catches all items with *any* property=France (Q142), not just country (P17). --99of9 (talk) 14:40, 11 June 2019 (UTC) Clever! Thanks. I included the first query in the property documentation page. I think I will try to add this one too. It seems to work up to ca. 5 million items (sample: P932 ). --- Jura 14:52, 11 June 2019 (UTC) Niger(ia)/Dominica(n Republic)/(Democratic )Republic of the Congo/ .. When trying to determine countries from text, I usually avoid confusing the above. Even if everybody else gets them right, maybe it's worth to set up a few database reports/queries to check that places or people between these two countries don't get mixed-up. --- Jura 08:07, 10 June 2019 (UTC) Items linking to both One way could be to check items that link to both, e.g. Items used: Niger (Q1032)   , Nigeria (Q1033)   SELECT ?item ?itemLabel ?itemDescription ?prop_aLabel ?prop_bLabel 
+WHERE
+{
+    ?item ?a wd:Q1032 .
+    ?item ?b wd:Q1033 .
+    ?prop_a wikibase:directClaim ?a .
+    ?prop_b wikibase:directClaim ?b . 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} Try it!--- Jura 08:07, 10 June 2019 (UTC) Label of one country included in description of item linked to other Items used: Nigeria (Q1033)   , Niger (Q1032)   Properties used: country (P17)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d84556-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d84556-1C570AD0F4E0CA0ECC79C890FE019DE5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT *
+{
+    BIND( wd:Q1033 as ?longer )     BIND( wd:Q1032 as ?shorter )   
+    
+    ?longer rdfs:label ?longername . FILTER(lang( ?longername) = \"en\") 
+    
+   ?item wdt:P17 ?shorter ; schema:description ?tocheck . FILTER(lang(?tocheck)=\"en\" && CONTAINS ( ?tocheck, ?longername )  )
+}""" .

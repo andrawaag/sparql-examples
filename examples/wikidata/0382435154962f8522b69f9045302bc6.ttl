@@ -1,0 +1,48 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-0382435154962f8522b69f9045302bc6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89776-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
+  
+   WHERE {
+     {
+    SELECT ?work WHERE {
+  {?work wdt:P161 wd:Q220308.}
+  UNION
+  {?work wdt:P725 wd:Q220308.}
+    } }
+     {?work wdt:P161 ?coworker.}
+     UNION
+     {?work wdt:P725 ?coworker.}
+     ?coworker wikibase:sitelinks ?sitelinks.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" } .
+}
+ORDER BY desc(?sitelinks)""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?coworker ?coworkerLabel ?sitelinks
+  WITH {
+    SELECT ?work WHERE {
+  {?work wdt:P161 wd:Q220308.}
+  UNION
+  {?work wdt:P725 wd:Q220308.}
+    } } AS %1
+   WHERE {
+     INCLUDE %1
+     {?work wdt:P161 ?coworker.}
+     UNION
+     {?work wdt:P725 ?coworker.}
+     ?coworker wikibase:sitelinks ?sitelinks.
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en\" } .
+}
+ORDER BY desc(?sitelinks)""" .

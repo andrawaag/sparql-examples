@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b194b2a37899351722fe733a7bab16de> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826249-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?paysLabel (MAX(year(?p585)) AS ?latest_year) WHERE {
+  ?item wdt:P31/wdt:P279* wd:Q1248784; p:P3872 [pq:P585 ?p585] . #all objects that are instance of airport of subclass thereof, with *at least* one P3872 with a P585
+  OPTIONAL { 
+  ?item p:P3872 [pq:P585 ?year2018 ] . 
+   FILTER((\"2017-12-31\"^^xsd:dateTime < ?year2018) && (\"2019-00-00\"^^xsd:dateTime > ?year2018))
+  }
+   FILTER(!(BOUND(?year2018) && !(?year2018=0)))                         # get only airports that don't have a P3872 for 2018 or a P3872 for 2018 with value 0
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr\". }
+  OPTIONAL { ?item wdt:P17 ?pays }
+}
+GROUP BY ?item ?itemLabel ?paysLabel
+ORDER BY ?itemLabel""" .

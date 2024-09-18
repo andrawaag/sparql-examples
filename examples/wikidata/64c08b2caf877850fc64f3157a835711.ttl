@@ -1,0 +1,30 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-64c08b2caf877850fc64f3157a835711> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834667-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?yob (COUNT(?item) as ?count) (AVG(?dod - ?dob)/365.25 AS ?avgAge)
+WHERE
+{
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q49757 .
+  ?item p:P569/psv:P569 [wikibase:timePrecision \"11\"^^xsd:integer ; wikibase:timeValue ?dob ] .
+  ?item p:P570/psv:P570 [wikibase:timePrecision \"11\"^^xsd:integer ; wikibase:timeValue ?dod ] .
+  BIND (YEAR(?dob) AS ?yob)
+}
+GROUP BY ?yob
+HAVING (?count >= 50)
+ORDER BY ?yob""" .

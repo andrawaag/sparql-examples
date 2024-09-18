@@ -1,0 +1,334 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-9c43c212d781eb0fbfcccc928c5397b1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Biographical reference work 2 Bug somewhere? 3 Biographies for the Asian Month 4 excluding Q-IDs 5 Taxa described first time in year... 6 Nuclear power plants 7 Articles about females from one category in the English and Arabic Wikipedias 8 Units conversion 9 help with timing out query 10 Pakistan people 11 Cities in Russia on the map 12 List of Chopin works with catalogue numbers 13 Search by label on a distinct set (Dutch painters) 14 Efficient query, based on a string, to find Wikidata pages 15 Query to select a type of item (Building) or subtype, located in a city 16 Nearest places to a set of query results 17 Problem with Qualifiers 18 Gender queries (again) 19 People born on november 16th for Listeria 20 using substring in order to filter results 21 Why do some results appear twice? 22 Filter on description 23 People not born in... 24 N° of biographies by year of birth and sex 25 Query for namespaces 26 P131 values without P131 set 27 Query for all Q objects that have an English Wikipedia associated with them Biographical reference work Would anybody be so kind as to help me with a query? I have no experience with them and don't know SPARQL (yet), but I'd like to learn.What I'm trying to do is get all Wikidata items that have Teuchos ID (P2018) with a string starting with \"P-\", then add described by source (P1343)Philologisches Schriftsteller-Lexikon (Q27357514) to all of them, with page number and reference URL (linking to a digital facsimile).How do you translate this into a query? Jonathan Groß (talk) 10:03, 17 October 2016 (UTC) Using SPARQL, you can just get all items which need to be processed, e.g. by using this query: SELECT ?item ?itemLabel ?teuchos WHERE {
+	?item wdt:P2018 ?teuchos .
+  	FILTER REGEX(?teuchos, '^P\\\\-.*')
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! . In principle you can use tools such as QuickStatements to add data to items. Download the results from the Query Service, prepare a valid QuickStatments input (the tool provides instructions), and add the data using this tool. However, described by source (P1343)Philologisches Schriftsteller-Lexikon (Q27357514) is very unprecise and you would probably like to add additional information such as a page in this work. The first example in the first box on Property talk:P1343 provides a good starting point, although I don’t know which qualifiers are actually necessary here. —MisterSynergy (talk) 10:57, 17 October 2016 (UTC) Addl. information: valid QuickStatements input would be: Q123 P1343 Q27357514 P304 \"xxx\" P854 \"http://...\" (separated by tabulators, not spaces). Therein, Q123 is the item which the data is added to, xxx the page within Philologisches Schriftsteller-Lexikon (Q27357514) and http://... the reference URL. You need one of these lines per item you’d like to process, thus software such as Excel would be extremely useful for preparation of the input. —MisterSynergy (talk) 11:06, 17 October 2016 (UTC) @MisterSynergy: Thank you for the pointer. I'll look into it as soon as I have the time. Jonathan Groß (talk) 09:45, 1 November 2016 (UTC) Bug somewhere? I think there is an error in this query: #defaultView:Map
+SELECT ?item ?itemLabel ?coord
+WHERE
+{
+	?item wdt:P31/wdt:P279* wd:Q486972;
+    	      wdt:P17 wd:Q38;
+    	      rdfs:label ?itemLabel;
+    	      wdt:P625 ?coord;
+    	 FILTER (lang(?itemLabel) = \"it\"). 
+    	 FILTER regex (?itemLabel, \"(ate|ago|aco|asco|asca)$\").
+}
+ Try it! I just adapted the code of the third query of this list of query to the Northern Italian case (because of Ancient Celts (Q35966)). See Etymology of Italian toponymies (Q3885847) for more information.It doesn't show every information (e.g. Canegrate (Q581) and Parabiago (Q42629) are not shown). Does someone know why? -- ★ → Airon 90 09:02, 31 October 2016 (UTC) @Airon90: commune of Italy (Q747074) isn't a subclass of human settlement (Q486972). Matěj Suchánek (talk) 15:25, 1 November 2016 (UTC) Biographies for the Asian Month In a similar way to the 10th example listed in the article 10 cool queries for Wikidata that will blow your mind. Number 7 will shock you., \"Women born in Suriname who are lacking an article in English Wikipedia\", I was thinking about listing the biographies that would qualify for the Asian Month, which are biographies of people from any Asian country lacking an article in a given language in Wikipedia.In some cases, there is an additional country restriction. For instance, in the Spanish language Wikipedia, this would translate to \"People born in Asia, excluding the Philippines, lacking an article in the Spanish language Wikipedia\". Note that in the case of transcontinental countries only the Asian part counts, for example, the European part of Russia wouldn't qualify, but the Asian part would. Sabbut (talk) 06:05, 2 November 2016 (UTC) Good to hear you liked my Welsh query ;) Reminds I should fix it. Wikidata:Bistro/Archive/2016/01#Spqarql_et_WikiLovesWomen.3F has a selection based on continent and nationality. --- Jura 14:19, 2 November 2016 (UTC) Thanks, Jura! By modifying a few things, I came up with this: PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?count ?pers ?persLabel ?desc ?paysLabel WHERE {
+  {
+    SELECT ?pers ?pays (COUNT(DISTINCT ?art) AS ?count) WHERE {
+      ?pers wdt:P31 wd:Q5.
+      ?pers wdt:P27 ?pays.
+      ?pers wdt:P106 wd:Q82955.
+      ?pays wdt:P30 wd:Q48.
+      OPTIONAL {
+        ?persfrwart schema:about ?pers.
+        ?persfrwart schema:inLanguage \"es\".
+      }
+      ?art schema:about ?pers.
+      FILTER(NOT EXISTS {
+        ?pays wdt:P30 ?continent.
+        FILTER(?continent != wd:Q48)
+      })
+      FILTER(!BOUND(?persfrwart))
+    }
+    GROUP BY ?pers ?pays
+  }
+  OPTIONAL {
+    ?pers schema:description ?desc.
+    FILTER((LANG(?desc)) = \"es\")
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es,en\". }
+}
+ORDER BY DESC(?count)
+ Try it! It has the additional restriction that the occupation (P106) is politician (Q82955). Without this or a similar restriction, I just get a \"query timeout limit reached\" message. Sabbut (talk) 05:57, 3 November 2016 (UTC) excluding Q-IDs Hi. Is it possible with to exclude some Q-IDs in a query ? Something like MINUS {?item ?xx wd:Q12345} ? Cheers. --H4stings (talk) 10:16, 4 November 2016 (UTC) FILTER ( ?item not in ( wd:Q4115189,wd:Q13406268,wd:Q15397819 ) )
+ Try it! There are several ways. If you just want to exclude specific QIDs, the above can work. --- Jura 10:25, 4 November 2016 (UTC) Great, it works. Thanks a lot. --H4stings (talk) 10:55, 4 November 2016 (UTC) Taxa described first time in year... I would like to make automatic lists of articles of taxa for categorization based on description year. For example, year of publication of scientific name for taxon (P574) for Canis (Q149892) is 1758. It would be great to have all species, genus, families... for the year 1758. But I'm quite stuck with this. -Theklan (talk) 16:19, 5 November 2016 (UTC) SELECT ?item ?itemLabel WHERE {
+    ?item p:P225/pq:P574 ?publicationdate.
+    FILTER(year(?publicationdate) = 1758)
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! --Pasleim (talk) 16:28, 5 November 2016 (UTC) Thanks! Would it be possible to have only the articles in the language you choose? -Theklan (talk) 17:04, 5 November 2016 (UTC) It's a little bit more complicate: SELECT ?item ?taxonName WHERE {
+    ?item wdt:P225 ?taxonName .
+    ?item p:P225/pq:P574 ?publicationdate.
+    FILTER(year(?publicationdate) = 1758)
+    OPTIONAL{ ?item wdt:P566 ?basionym } .
+    OPTIONAL{ ?item wdt:P1403 ?firstcombination } .
+    OPTIONAL{ ?item wdt:P694 ?replacedsynonym } .
+    FILTER(!bound(?basionym) && !bound(?firstcombination) && !bound(?replacedsynonym))  
+}
+ORDER BY ASC(?taxonName)
+ Try it! Because we are lacking a lot of information provided by basionym (P566), original combination (P1403) and replaced synonym (for nom. nov.) (P694) this list is not very reliable. --Succu (talk) Not that idea! It was receiving only the items that are in, let's say, Basque Wikipedia. If I query: SELECT ?item ?itemLabel WHERE {
+    ?item p:P225/pq:P574 ?publicationdate.
+    FILTER(year(?publicationdate) = 1758)
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu\" }
+}
+ Try it! I'm getting both basque labels and articles without label. So it's a very concise list, but it can't be used for categorizing, as this articles does not exist. (Well, in fact yes, I can use them, because pywikibot is not going to categorize something that doesn't exist) -Theklan (talk) 17:29, 5 November 2016 (UTC) SELECT ?item ?taxonName WHERE {
+    ?item wdt:P225 ?taxonName .
+    ?item p:P225/pq:P574 ?publicationdate.
+    FILTER(year(?publicationdate) = 1758)
+    OPTIONAL{ ?item wdt:P566 ?basionym } .
+    OPTIONAL{ ?item wdt:P1403 ?firstcombination } .
+    OPTIONAL{ ?item wdt:P694 ?replacedsynonym } .
+    FILTER(!bound(?basionym) && !bound(?firstcombination) && !bound(?replacedsynonym))  
+    OPTIONAL {
+          ?article schema:about ?item .
+          ?article schema:inLanguage \"eu\" .
+          FILTER (SUBSTR(str(?article), 1, 25) = \"https://eu.wikipedia.org/\")
+    }
+    FILTER(bound(?article))  
+}
+ORDER BY ASC(?taxonName)
+ Try it! --Succu (talk) 17:36, 5 November 2016 (UTC) Nuclear power plants I was trying to display all the nuclear power plants on a map using this query SELECT ?item ?itemLabel ?_coordinate_location WHERE {
+  ?item wdt:P31 wd:Q134447.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+  OPTIONAL { ?item wdt:P625 ?_coordinate_location. }
+}
+ Try it! However the option to display the map appears greyed out. Any idea why? --Micru (talk) 17:30, 5 November 2016 (UTC) @Micru: It seems \"Map\" option went off after new visualizations were deployed. There are people trying to fix this. Strakhov (talk) 17:50, 5 November 2016 (UTC) @Strakhov: Ok, thanks for following up on this.--Micru (talk) 18:03, 5 November 2016 (UTC) Articles about females from one category in the English and Arabic Wikipedias Hi! I need to get a list of 100 articles about female figures from the category culture. The articles have to exist in both the English and Arabic Wikipedias. Thank you--Reem Al-Kashif (talk) 02:34, 1 November 2016 (UTC) We can’t query for categories in different Wikipedias in a single step. With PetScan one can crawl the result for each of the relevant Wikipedias, but one needs to intersect the two results sets manually or with a small script. Unfortunately your request to get the list \"from the category culture\" is too vage to provide anything useful here, but this might change if you tell us the exact categories in both Wikipedias and whether you want to crawl in subcategories as well. —MisterSynergy (talk) 06:02, 1 November 2016 (UTC) Yes from your description, it's not clear, what exactly you want. I can think of several scenarious, but a little bit more detailed description would definetily help. --Edgars2007 (talk) 08:55, 1 November 2016 (UTC) Thank you for your replies :) Sorry for the vagueness. I've been thinking and maybe I need to change the way I'm going about compiling this data. Below is what I thought of. Kindly let me know if you think if this makes sense or can be done through a query or a query then a script. find 100 people in the English Wikipedia, who are female, who have the same occupation (any occupation, not a specific one) in the info box (is this doable? or specifying occupations is a must?), Exclude articles that do not exist in the Arabic Wikipedia--Reem Al-Kashif (talk) 12:34, 1 November 2016 (UTC) Still not sure whether I get it correctly, but let’s give it a try. female (Q6581072) physicist (Q169470) (or subclass of (P279) thereof) with sitelink to both enwiki and arwiki: SELECT ?item ?itemLabel ?sitelinkAr ?sitelinkEn WHERE {
+	?item wdt:P106/wdt:P279* wd:Q169470 .
+  	?item wdt:P21 wd:Q6581072 .
+  	?sitelinkAr schema:about ?item;
+  			    schema:isPartOf <https://ar.wikipedia.org/> .
+    ?sitelinkEn schema:about ?item;
+  			    schema:isPartOf <https://en.wikipedia.org/> .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ Try it! . This does not include information from the categorization in Wikipedias, but relies on data stored in Wikidata by occupation (P106) instead. Thus we are able to provide such a result with a simple query. —MisterSynergy (talk) 12:51, 1 November 2016 (UTC) Perfect! Thank you so much. Just one more question, I understand that \"Q169470\" is for physicist, so is there a list of codes for the other professions? I mean I know I can get the code from the Wikidata entry page, but I was just wondering if there is a list somewhere.--Reem Al-Kashif (talk) 00:33, 4 November 2016 (UTC) There’s not a real list, but one can query for anything else as well. If you for instance replace \"Q169470\" by \"Q901\" (which is scientist (Q901)), you’ll get a larger results set. You can simply look up an occupation with using the search box in the upper right side, and put it into the query. And if there are no results, then it wasn’t a valid occupation… —MisterSynergy (talk) 06:15, 4 November 2016 (UTC) Thank you very much for your help :)--Reem Al-Kashif (talk) 14:51, 6 November 2016 (UTC) Units conversion I have this query, listing companies by its revenue: SELECT ?item ?revenue ?itemLabel
+WHERE
+{
+    ?item wdt:P31 wd:Q4830453 .
+    ?item wdt:P2139 ?revenue . 
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?revenue)
+ Try it! But revenues are set-up (correctly) with currencies as units. So my request is to order (by United States dollar (Q4917)) them taking account currency rate (price (P2284), may be set up at United States dollar (Q4917) or source currency item). I am not sure if this is possible, but something like that is essential for list construction. --Jklamo (talk) 10:12, 4 November 2016 (UTC) I think it depends if you want naive conversion (e.g. convert 2012 by 2016 rates) or conversion at historic rates. The later might require quite a lot of rates we are currently lacking. --- Jura 10:22, 4 November 2016 (UTC) Of course the best will conversion using appropriate historic rate (point in time (P585) qualifier of total revenue (P2139) vs point in time (P585) qualifier of price (P2284)), but even using \"current\" (preferred rank) is still more useful than ranking without regardless the currency unit.--Jklamo (talk) 17:42, 7 November 2016 (UTC) help with timing out query I am new to SPARQL so to learn more about it I was experimenting with the following query to count number of category items with Commons category (P373) that violate Unique_value Constraint and where P373 links to the same page as the Commons sitelink. I come up with: SELECT (count(DISTINCT ?categoryItem ) as ?total)
+WHERE {
+    # ?article and ?category share the same P373 (\"Commons Category\")
+    ?articleItem  wdt:P373 ?commonsCategory .
+    ?categoryItem wdt:P373 ?commonsCategory .
+    #FILTER(?categoryItem != ?articleItem) 
+
+    # ?article is an \"article\" item and ?category is an \"category\" item
+    ?category wdt:P31 wd:Q4167836 .
+    MINUS {?articleItem wdt:P31 wd:Q4167836 } .
+  
+    # P301 and P910 are set properly
+    ?articleItem  wdt:P910 ?categoryItem .
+    ?categoryItem wdt:P301 ?articleItem  .
+  
+    # sitelink to Commons points to the same category as property P373
+    ?commonsSitelink schema:about ?categoryItem .
+    BIND (REPLACE(REPLACE(REPLACE(SUBSTR(str(?commonsSitelink),47,200), \"%20\", \" \", \"i\"), \"%28\", \"(\", \"i\"), \"%29\", \")\", \"i\") AS ?commonslink) 
+    FILTER(STRSTARTS(str(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\"))
+    FILTER(?commonslink = ?commonsCategory)
+}
+ Try it! The above query is timing out. Can someone figure out what might be wrong with it? One Inefficiency is my comparison of commonsCategory to commonsSitelink. It is very messy and there must be some better way to handle it. For one, I am implementing poor man URL encoding as 3 replacements but that will not cover all the cases. Wow do we compare sitelinks to strings? --Jarekt (talk) 16:45, 7 November 2016 (UTC) To speed it up, you can skip the tests that ?article is an article item and ?category is an category item. P910 is only used on article items and P301 only on category items. To compare ?commonsSitelink with ?commonsCategory use STRENDS. That should be pretty save and you don't need the substr and URL encoding stuff. SELECT (count(DISTINCT ?categoryItem ) as ?total) WHERE {
+    # ?article and ?category share the same P373 (\"Commons Category\")
+    ?articleItem  wdt:P373 ?commonsCategory .
+    ?categoryItem wdt:P373 ?commonsCategory .
+  
+    # P301 and P910 are set properly
+    ?articleItem  wdt:P910 ?categoryItem .
+    ?categoryItem wdt:P301 ?articleItem  .
+  
+    # sitelink to Commons points to the same category as property P373
+    ?commonsSitelink schema:about ?categoryItem .
+    FILTER(STRSTARTS(STR(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\"))
+    FILTER(STRENDS(STR(?commonsSitelink), ?commonsCategory))
+}
+ Try it! --Pasleim (talk) 17:38, 7 November 2016 (UTC) Pasleim, yes that is better, however the line FILTER(STRENDS(STR(?commonsSitelink), ?commonsCategory))
+ is not working right your query returns 62,293 pages but changing it to FILTER(STRENDS(STR(?commonsSitelink), REPLACE(?commonsCategory, \" \", \"%20\", \"i\")))
+ will give you 138,675 pages. The difference is that the first set are categories that have only one word and the second are categories that have more the one word since in the sitelink the space is encoded as %20. My original query also took care of parenthesis () -> %28 %29. However to get this query right I would need to use some URL encode function that will be able to handle other special letters and characters. That is why I was wandering how other queries deal with comparing sitelinks to strings. I am sure I am not the first one to try it. --Jarekt (talk) 18:59, 7 November 2016 (UTC) I see. In this case you can use FILTER(STRENDS(STR(?commonsSitelink), ENCODE_FOR_URI(?commonsCategory)))
+ This gives 173,136 results. --Pasleim (talk) 19:48, 7 November 2016 (UTC) Thank you. That is what I was looking for. --Jarekt (talk) 02:41, 8 November 2016 (UTC) Pakistan people I need to get a list of Pakistani people who have pages on English WP. --Saqib (talk) 08:17, 9 November 2016 (UTC) Assuming “Pakistani people” means country of citizenship (P27) Pakistan (Q843), you’ll find 3425 results: SELECT ?item ?itemLabel ?itemDescription ?sitelink WHERE {
+  ?item wdt:P27 wd:Q843 .
+  ?sitelink schema:about ?item;
+            schema:isPartOf <https://en.wikipedia.org/> .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} ORDER BY ASC(?itemLabel)
+ Try it! . —MisterSynergy (talk) 11:26, 9 November 2016 (UTC) Cities in Russia on the map Please help me in a query creation. I need all Russian cities with population > 100 000 on the map with their names (labels) in Russian. --Azgar (talk) 10:42, 9 November 2016 (UTC) This is a little difficult, since we apparently do not yet have enough data. Following de:Liste der Städte in Russland, there should be ~160–170 cities with more than 100 000 inhabitants (164 in 2010 according to this dewiki list). The query would be: #defaultView:Map
+SELECT ?cityLabel ?coord WHERE {
+  ?city wdt:P131* wd:Q159;
+        wdt:P625 ?coord;
+        wdt:P1082 ?population;
+        wdt:P31 wd:Q515 .
+  FILTER(?population > 100000) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"ru\" }
+}
+ Try it! . There are just 50 results due to incomplete data. If you’d like to fix this, you could try to work down the dewiki list and add claims population (P1082), coordinate location (P625), located in the administrative territorial entity (P131) as well as instance of (P31)city (Q515) whereever this information is missing. —MisterSynergy (talk) 11:18, 9 November 2016 (UTC) Thank you. --Azgar (talk) 12:07, 9 November 2016 (UTC) List of Chopin works with catalogue numbers Inspired by Wikidata:WikiProject Movies/Filmography/Liam Neeson, I would like to create a list for works by Frédéric Chopin (Q1268) (only subclass of musical work, because there are some movies, and ballets that do not belong to the list) showing instance of, inception, publication date, instrumentation, tonality, 4x catalogue codes, and count of wikis. My biggest question is how to display the different catalogue code (opus number (Q385271), Brown catalog (Q16749676), Chomiński catalog (Q16749680) or Kobylańska Katalog (Q16747642)), as the type of catalogue code is stored as qualifiers (for an example see Waltz No. 9 in A-flat major, Op. posth. 69, No. 1 (Q4008434)).--Micru (talk) 08:21, 9 November 2016 (UTC) The query for WDQS could look like this: SELECT ?work ?workLabel ?typeLabel ?inception ?published ?instruments ?tonalityLabel ?external ?sitelinks {
+  { SELECT
+   ?work
+   (SAMPLE(?type) AS ?type)
+   (MIN(?inception) AS ?inception)
+   (MIN(?published) AS ?published)
+   (GROUP_CONCAT(DISTINCT ?instrumentLabel; separator=', ') AS ?instruments)
+   (SAMPLE(?tonality) AS ?tonality)
+   (COUNT(DISTINCT ?wdt) + COUNT(DISTINCT ?catalogue) AS ?external)
+   {
+     ?work wdt:P86 wd:Q1268;
+           wdt:P31 ?type .
+     ?type wdt:P279* wd:Q2188189 .
+     OPTIONAL { ?work wdt:P571 ?inception } .
+     OPTIONAL { ?work wdt:P577 ?published } .
+     OPTIONAL { ?work wdt:P826 ?tonality } .
+     OPTIONAL { ?work wdt:P870 ?instrument } .
+     SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\" .
+       ?instrument rdfs:label ?instrumentLabel .
+     } .
+     OPTIONAL {
+       ?work p:P528 [ pq:P972 ?catalogue ] .
+       FILTER( ?catalogue IN ( wd:Q385271, wd:Q16749676, wd:Q16749680, wd:Q16747642 ) ) .
+     } .
+     OPTIONAL {
+       ?work ?wdt [] .
+       ?wdt ^wikibase:directClaim/wikibase:propertyType wikibase:ExternalId .
+     } .
+   } GROUP BY ?work } .
+  OPTIONAL { ?work wikibase:sitelinks ?sitelinks } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY ?inception
+ Matěj Suchánek (talk) 21:35, 9 November 2016 (UTC) @Matěj Suchánek: Thanks for the work you put on it. It is almost perfect, however I noticed that the catalogue codes are not shown in different columns (?opus ?brown ?chominski ?kobylanska). Would that be possible? --Micru (talk) 07:20, 10 November 2016 (UTC) Yes: SELECT ?work ?workLabel ?type ?incept ?published ?instruments ?tonality ?external ?sitelinks ?opus ?brown ?chominski ?kobylanska {
+  { SELECT
+   ?work
+   (GROUP_CONCAT(DISTINCT ?typeLabel; separator=', ') AS ?type)
+   (MIN(?inception) AS ?incept)
+   (MIN(?published) AS ?published)
+   (GROUP_CONCAT(DISTINCT ?instrumentLabel; separator=', ') AS ?instruments)
+   (GROUP_CONCAT(DISTINCT ?tonalityLabel; separator=', ') AS ?tonality)
+   (COUNT(DISTINCT ?wdt) + COUNT(DISTINCT ?catalogue) AS ?external)
+   (SAMPLE(?opus) AS ?opus) (SAMPLE(?brown) AS ?brown) (SAMPLE(?chominski) AS ?chominski) (SAMPLE(?kobylanska) AS ?kobylanska)
+   {
+     ?work wdt:P86 wd:Q1268;
+           wdt:P31 ?type .
+     ?type wdt:P279* wd:Q2188189 .
+     OPTIONAL { ?work wdt:P571 ?inception } .
+     OPTIONAL { ?work wdt:P577 ?published } .
+     OPTIONAL { ?work wdt:P826 ?tonality } .
+     OPTIONAL { ?work wdt:P870 ?instrument } .
+     SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"en\" .
+       ?type rdfs:label ?typeLabel .
+       ?instrument rdfs:label ?instrumentLabel .
+       ?tonality rdfs:label ?tonalityLabel .
+     } .
+     OPTIONAL {
+       ?work p:P528 ?statement .
+       ?statement pq:P972 ?catalogue .
+       OPTIONAL { FILTER( ?catalogue = wd:Q385271 ) . ?statement ps:P528 ?opus } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16749676 ) . ?statement ps:P528 ?brown } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16749680 ) . ?statement ps:P528 ?chominski } .
+       OPTIONAL { FILTER( ?catalogue = wd:Q16747642 ) . ?statement ps:P528 ?kobylanska } .
+     } .
+     OPTIONAL {
+       ?work ?wdt [] .
+       ?wdt ^wikibase:directClaim/wikibase:propertyType wikibase:ExternalId .
+     } .
+   } GROUP BY ?work } .
+  OPTIONAL { ?work wikibase:sitelinks ?sitelinks } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } .
+} ORDER BY DESC(?incept)
+ Try it! If your screen is wide enough, you should still see the columns next to each other. Matěj Suchánek (talk) 14:04, 10 November 2016 (UTC) @Matěj Suchánek: Wow, now it works perfectly well! Thanks a lot! --Micru (talk) 22:42, 10 November 2016 (UTC) Search by label on a distinct set (Dutch painters) Hey, what would be the best way to search for an object by label in a certain set? For example, let's say i want to query all Dutch painters, and find a painter called 'Rembrandt'. Right now i have this: SELECT ?item ?itemLabel ?itemDescription where { 
+	?item wdt:P31 wd:Q5 . 
+  	?item wdt:P106 wd:Q1028181 .
+	FILTER(CONTAINS(LCASE(?itemLabel), \"rembrandt\"))
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl\" }    
+}
+ Try it! But this gives no result. Unfortunately, running the query without the filter times out. Husky (talk) 20:04, 11 November 2016 (UTC) ?itemLabel etc. can be used only for presentation purposes unless explicitly bound inside the SERVICE closure (see above). So the correct way to achieve that is: select ?item ?itemLabel ?itemDescription where { 
+	?item wdt:P31 wd:Q5; wdt:P106 wd:Q1028181; rdfs:label ?label .
+	FILTER( LANG(?label) = \"nl\" ) .
+	FILTER( CONTAINS(LCASE(?label), \"rembrandt\") ) .
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"nl\" } .
+}
+ Try it! Matěj Suchánek (talk) 21:27, 11 November 2016 (UTC) Excellent! Thank you so much! I never would have found out without your example. Husky (talk) 23:20, 11 November 2016 (UTC) Efficient query, based on a string, to find Wikidata pages To find a Wikidata page/article, the normal way is certainly to call the API with \"action=wbsearchentities\".But here I am trying to find pages/articles doing SPARQL queries, in order to better tailor the results, asking for instance pages where the name is exactly a string, or begins with a string, or just contains a string.I am aware that the efficiency of string queries in SPARQL strongly depends on the back-end and how those queries are enhanced (for instance using Lucene, etc.). I have also heard that \"regex\" queries in SPARQL are often discouraged, for performance reason.However I saw in the examples some queries that make use of STRSTARTS [1], CONTAINS [2], or regex [3]. It seems some of them no more work, but this might be related to the use of \"SERVICE wikibase:label\". Then the performance of those queries seems acceptable, but they do not query all articles but only specific ones (rock bands, etc.)So my questions is: is it possible and efficient to use the SPARQL end-point to search for pages using some text operations, and if yes what would be a sample query ?For instance I tried this query to find items with a label that starts with \"suisse\" but it does a time-out: SELECT  ?item ?label
+WHERE
+{
+ ?item rdfs:label ?label .
+ FILTER(lang(?label) = \"fr\") .
+ FILTER regex (str(?label), \"^suisse\", \"i\").
+}
+LIMIT 10
+ Try it! To be noted that here I do not know how to explicitly state that ?item is not any resource but a wikidata page.Thank you for any help or to point me to more specific documentation about this.[1] https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples#Rock_bands_that_start_with_.22M.22 [2] https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples#Wikidata_scientific_articles_that_contain_.22zika.22_in_the_title [3] https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples#Distribution_of_names_of_human_settlements_ending_in_.22-ow.22_or_.22-itz.22_in_Germany– The preceding unsigned comment was added by Fabian Cretton (talk • contribs) at 12:26, 2 November 2016 (UTC). The only way to query for labels is indeed rdfs:label. A label contains both the string and the language which has negative impact on performance. In the example above, you could use FILTER( STRSTARTS( LCASE( STR( ?label ) ), \"suisse\" ) ) but AFAIK there is nothing more you could to improve performance but working on a smaller set of items. Matěj Suchánek (talk) 18:21, 12 November 2016 (UTC) Query to select a type of item (Building) or subtype, located in a city My Specific problem is that I have a place called \"Beacon Theater\". What I want to find is the best match for this in Wikidata. A Wikidata Search will give me three results: Live at the Beacon Theater (Q6656601) Beacon Theatre (Q264186): performing arts venue Beacon Theaters (Q19110809) The first one is a movie, the second it the correct result, and the third is a Supreme Court decision.Using this API call, I can find the id's for all three: https://www.wikidata.org/w/api.php?action=query&format=json&list=search&srsearch=Beacon TheaterNext step is getting the details for each of these. I use this call to get the information for all three entities \"https://www.wikidata.org/w/api.php?action=wbgetentities&props=descriptions%7Clabels%7Cclaims&ids=Q6656601%7CQ264186%7CQ19110809&languages=en&format=json\"At this point, I want to iterate over them and find the one that is a building. I may also later want to add a way to find the one located in New York.My problem is that the correct answer is not a building (Q41176). The P31 value is Q3469910, which is a Performance Arts Venue, so I can't really sort on that (Imagine in the future I use this code to search for a museum. A museum is also a building, but not a Performing Arts Venue. The search for Beacon Theater is just an example.So question: Is there a SPARQL query that can do all this in one search, OR is there a SPARQL query that can do this after I already have the list of IDs from the query call above? – The preceding unsigned comment was added by 70.173.17.109 (talk • contribs) at 22:52, 2 November 2016 (UTC). If you want to check that an item (Performance Arts Venue) is a subclass of another (building), you can try a query like this: SELECT ?item { BIND( wd:Q3469910 AS ?item ) . ?item wdt:P279* wd:Q41176 }
+ Try it! If it is, you get one result, otherwise no result. Matěj Suchánek (talk) 18:14, 12 November 2016 (UTC) Nearest places to a set of query results Hi, this is a query to abandoned settlements in the Czech Republic without article. They were imported but some of them have a counterpart on Wikipedia that just wasn't matched. Is it possible to run a query for nearest (let's say <1km) geocoordinated items to all the results of that above-mentioned query? We would then use it for manual merging. Thanks, --Vojtěch Dostál (talk) 18:11, 12 November 2016 (UTC) @Vojtěch Dostál: Although WDQS does provide a service for this, it's very hard to get under the time limit with any results. One possibility which seems to return different results each time is: SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+  {
+    SELECT ?item ?place ?distance WHERE {
+      ?item wdt:P3003 []; wdt:P625 ?coord .
+      MINUS { ?item ^schema:about/schema:IsPartOf <https://cs.wikipedia.org/> } .
+      SERVICE wikibase:around {
+        ?place wdt:P625 ?location .
+        bd:serviceParam wikibase:center ?coord .
+        bd:serviceParam wikibase:radius \"1\" .
+        bd:serviceParam wikibase:distance ?distance .
+      } .
+      FILTER ( ?item != ?place ) .
+    } LIMIT 10
+  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" } .
+}
+ Try it! Or try this hacky one: SELECT ?item ?itemLabel ?place ?placeLabel ?distance WHERE {
+  {
+    SELECT ?item ?coord {
+      BIND( (19 - 12) * RAND() + 12 AS ?rand ) .
+      ?item wdt:P3003 []; p:P625 [ ps:P625 ?coord; psv:P625/wikibase:geoLongitude ?long ] .
+      FILTER ( ABS( ?long - ?rand ) < 1 ) . # feel free to play with this...
+      MINUS { ?item ^schema:about/schema:IsPartOf <https://cs.wikipedia.org/> } .
+    } LIMIT 50 # or this
+  } .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location .
+    bd:serviceParam wikibase:center ?coord .
+    bd:serviceParam wikibase:radius \"1\" . # or this value
+    bd:serviceParam wikibase:distance ?distance .
+  } .
+  FILTER ( ?item != ?place ) .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"cs\" } .
+}
+ Try it! Matěj Suchánek (talk) 19:54, 13 November 2016 (UTC) Thank you Matěj- the 2nd is quicker and works perfect for me. --Vojtěch Dostál (talk) 21:36, 13 November 2016 (UTC) Problem with Qualifiers Hello,i have got a Problem with qualifiers. I wrote a Sparql, where the Catalogue-Text starts with NGC. It works. But i want to see it only, when it has no Qualifier. How can i do that ? SELECT ?item ?itemLabel ?text
+WHERE
+{
+  ?item wdt:P528 ?text.
+  FILTER(STRSTARTS(?text, \"NGC\")).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". }
+  
+}
+ Try it! Thanks for helping :-)--McSearch (talk) 14:34, 15 November 2016 (UTC) SELECT ?item ?itemLabel ?text WHERE {
+  ?item p:P528 ?statement .
+  ?statement ps:P528 ?text .
+  FILTER(STRSTARTS(?text, \"NGC\")) .
+  MINUS { ?statement ?pq [] . [] wikibase:qualifier ?pq } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" } .
+}
+ Try it! Matěj Suchánek (talk) 15:07, 15 November 2016 (UTC) Thanks you very much :-) --McSearch (talk) 15:53, 15 November 2016 (UTC) Gender queries (again) Thanks for the examples (now archived)! I am still working on collecting the data with SPARQL and keep getting timeouts now. See for example this query to find how many items are gendered male in English Wikipedia: SELECT (COUNT(?item) AS ?cnt) WHERE {
+  ?item wdt:P21 wd:Q6581097.
+  FILTER EXISTS { ?wen schema:about ?item; schema:isPartOf <https://en.wikipedia.org/> . }
+}
+ Try it! Any tips how I can split this up? Thanks in advance. Jane023 (talk) 18:20, 15 November 2016 (UTC) People born on november 16th for Listeria Is it possible to make a query to look for the people born (or death) on any particular day for Listeria? -Theklan (talk) 11:12, 16 November 2016 (UTC) @Theklan: Have you seen Wikidata:Database reports/birthday today? Matěj Suchánek (talk) 08:13, 19 November 2016 (UTC) Thanks, @Matěj Suchánek:! -Theklan (talk) 12:03, 19 November 2016 (UTC) How would be the correct sintax? FILTER (year(?date) > 1 && day(?date) = day(16) && month(?date) = month(11)) Is not working. -Theklan (talk) 13:14, 19 November 2016 (UTC) Why day(16)? day(?date) converts the value to a number, so it should be compared with a number (16). Matěj Suchánek (talk) 21:44, 19 November 2016 (UTC) using substring in order to filter results The goal is to have a result with only participants to a man's tournament, or to a woman's tournament, for participants lacking a gender. I got the below query that will give a true/false result, but the filter itself doesn't work. Does anyone know how to apply that? Edoderoo (talk) 10:17, 20 November 2016 (UTC) """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840925-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d840925-27D2E1CF6162B19B5BF5F7A80F6781AB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?participantLabel (contains(?participantLabel,\"Women's\") as ?x)  WHERE {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q13141064 .
+  ?item wdt:P1344 ?participant .
+  
+        
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }     
+   
+  FILTER NOT EXISTS { ?item wdt:P21 ?sexe } .
+         
+}""" .

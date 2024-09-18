@@ -1,0 +1,54 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-bd83b99e84e90a80f48fc1f2cb447ae3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d861058-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?film ?filmLabel ?count
+
+WHERE
+{
+  {
+  SELECT ?film (COUNT(?wikipage) AS ?count)
+  WHERE
+  {
+    hint:Query hint:optimizer \"None\" .
+    ?film wdt:P31 wd:Q11424 .
+    ?wikipage schema:about ?film .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" .
+  }
+  GROUP BY ?film HAVING (?count > 50)
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?count
+WITH
+{
+  SELECT ?film (COUNT(?wikipage) AS ?count)
+  WHERE
+  {
+    hint:Query hint:optimizer \"None\" .
+    ?film wdt:P31 wd:Q11424 .
+    ?wikipage schema:about ?film .
+    ?wikipage schema:isPartOf/wikibase:wikiGroup \"wikipedia\" .
+  }
+  GROUP BY ?film HAVING (?count > 50)
+} AS %get_films
+WHERE
+{
+  INCLUDE %get_films
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}
+ORDER BY DESC(?count)""" .

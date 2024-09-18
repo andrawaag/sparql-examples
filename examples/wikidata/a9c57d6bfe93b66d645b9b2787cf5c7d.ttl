@@ -1,0 +1,67 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a9c57d6bfe93b66d645b9b2787cf5c7d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:exhibition>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860524-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?artworks
+
+  ?collection ?collectionLabel 
+  (CONCAT(\"#collection/\", SUBSTR(STR(?collection), 32)) AS ?collectionUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+
+WHERE {
+  {
+  SELECT
+    (COUNT(?artwork) AS ?artworks)
+    ?collection
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork wdt:P608 target: ;
+             wdt:P195 ?collection .
+  }
+  GROUP BY ?collection
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fr,jp,nb,nl,nn,sv,zh\". }
+}
+ORDER BY DESC(?artworks)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q128933830>
+
+SELECT 
+  ?artworks
+
+  ?collection ?collectionLabel 
+  (CONCAT(\"#collection/\", SUBSTR(STR(?collection), 32)) AS ?collectionUrl)
+
+  ?example_artwork ?example_artworkLabel
+  (CONCAT(\"#artwork/\", SUBSTR(STR(?example_artwork), 32)) AS ?example_artworkUrl)
+WITH {
+  SELECT
+    (COUNT(?artwork) AS ?artworks)
+    ?collection
+    (SAMPLE(?artwork) AS ?example_artwork)
+  WHERE {
+    ?artwork wdt:P608 target: ;
+             wdt:P195 ?collection .
+  }
+  GROUP BY ?collection
+} AS %collections
+WHERE {
+  INCLUDE %collections
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en,cz,da,de,es,fr,jp,nb,nl,nn,sv,zh\". }
+}
+ORDER BY DESC(?artworks)""" .

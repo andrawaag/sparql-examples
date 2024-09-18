@@ -1,0 +1,39 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1b142d87517cce8a12b0556e0e71dcfc> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/12>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842677-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?P244 WITH { SELECT ?item ?P244
+WHERE 
+{
+  ?item wdt:P244 ?P244 . 
+  filter not exists {?item wdt:P7859 [].}
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  filter(regex(?P244,\"(gf|n|nb|nr|no|ns|sj)([4-9][0-9]|00|20[0-2][0-9])[0-9]{6}\"))
+ # SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?P244 WITH { SELECT ?item ?P244
+WHERE 
+{
+  ?item wdt:P244 ?P244 . 
+  filter not exists {?item wdt:P7859 [].}
+} } as %i
+WHERE
+{
+  INCLUDE %i
+  filter(regex(?P244,\"(gf|n|nb|nr|no|ns|sj)([4-9][0-9]|00|20[0-2][0-9])[0-9]{6}\"))
+ # SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } 
+}""" .

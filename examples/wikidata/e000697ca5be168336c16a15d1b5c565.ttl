@@ -1,0 +1,114 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e000697ca5be168336c16a15d1b5c565> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Query multiple given names 2 Searching for p31=Q13442814 with title that begin with \"Erratum\" that have no P31=Q1348305 3 How to get data from wikidata using the QID 4 How to add subject to this query 5 A list of OSM wiki pages without links to Wikidata 6 timeout 7 License 8 Find an author who created an item 9 Finding items that does not have a frwiki 10 Most statements, instance of (P31) = human (Q5), no en wiki 11 Nigerian women 12 Combined age of podium F1 13 Ordering items in dimensions view 14 How to include Reference URL for Wikidata SPARQL queries? 15 Beautify this query 16 Persons from a certain time period and country 17 SPARQL query to get wikipedia sitelink to article by wikipedia item id in Wikidata 18 I want to exclude items from a query if an 'instance of' claim is included in a VALUES list. 19 Help for freeing data from wikipedia to wikidata 20 Searching for people with a residence within X km from a given location 21 Bilingual place name sign (P1766) 22 Male tennis players who won a Grand Slam singles title 23 Timing out 24 Wikimedia Commons Query Service 25 Is there a way to get just the QIDs and not their respective URL? 26 Erdos number 27 Get Wikipedia URLs (sitelinks) in Wikidata SPARQL query 28 Is it possible to have an array or list of values for a column? 29 Scholarly articles with images on Commons 30 Several query requests in one 31 Last names for Norwegian citizens 32 Get all qualifiers and unit of a property 33 Request to get a list of all the paintings and all the properties of the painting. 34 Last wovel for Italians 35 SPARQL request leads to JSONDecodeError once the requested timeframe is expanded 36 IMDB people with no English label 37 querying for information about a given item 38 Male artists active in the 20th century 39 Cebuano filter for Wikishootme 40 Getting all statements pointing to a specific item 41 Breadcrumbs for a class 42 Check for duplicates of evolutionary lines 43 Consistency of evolutionary lines 44 All sources referenced as \"stated in\" for \"cites work\" property 45 cited articles that have been retracted 46 cited articles that have an erratum 47 Mountains in Møre og Romsdal 48 Pokélist 49 Biodiversity quantification 50 Items having both country (P17) : Republic of Artsakh (Q244165) and Azerbaijan (Q227) 51 List of conflicts in Canada 52 One time list needed 53 Commons Query Service-Missing Labels and descriptions 54 All settlement names and wikipedia articles in Hebrew and Yiddish 55 Shortest and longest wars Query multiple given names Hi there! I am new to SPARQL. So I am sorry for the case, I am asking a stupid question: How do I query multiple givenNames of a person? I tried something like this:SELECT ?human ?humanLabel ?familyNameLabel ?givenNameLabel ?givenName2Label ?birthName ?countryOfCitizenShipLabel WHERE { ?human wdt:P31 wd:Q5;
+ OPTIONAL { ?human wdt:P734 ?familyName. }
+ OPTIONAL { ?human wdt:P735 ?givenName. }
+ OPTIONAL { ?human wdt:P735 ?givenName2. }
+ OPTIONAL { ?human wdt:P1477 ?birthName. }
+ OPTIONAL { ?human wdt:P27 ?countryOfCitizenShip. }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\". } }Do you have an idea, how to select a second or third given name? Or even better: How to query for any given name. Thanks in advance! You don't need to use ?givenName2, you'll get all given names in ?givenName. Or do you mean series ordinal (P1545)? If you want specific name, just use wd:Qnnn instead of variable. --Infovarius (talk) 21:04, 1 September 2020 (UTC) Searching for p31=Q13442814 with title that begin with \"Erratum\" that have no P31=Q1348305 I hope to run a search for instance of (P31)=scholarly article (Q13442814) with that have (en) title (P1476) that begin with the word \"Erratum\" but also have no instance of (P31)=erratum (Q1348305). Hope this isn't a difficult one (I've never been disappointed with the support found here. Thank you all, Trilotat (talk) 23:30, 31 August 2020 (UTC) @Trilotat: This query works for items with a label equal to the title of the article. That is the case in all the cases that I havd seen. SELECT DISTINCT ?item ?title
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\".
+    bd:serviceParam wikibase:api \"Generator\".
+    bd:serviceParam mwapi:generator \"search\".
+    bd:serviceParam mwapi:gsrsearch \"haswbstatement:P31=Q13442814 -haswbstatement:P31=Q1348305 Erratum\".
+    bd:serviceParam mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item wdt:P1476 ?title.
+  FILTER STRSTARTS(?title, \"Erratum\")
+}
+ Try it! --Dipsacus fullonum (talk) 00:41, 1 September 2020 (UTC) Thanks! This has given me more to do. That's a good thing, particularly now. I appreciate it. Trilotat (talk) 14:28, 1 September 2020 (UTC) How to get data from wikidata using the QID I wanted to know how can I get data using QID. I have some names, I use falcon 2.0 entity linker curl command( change it into python script) to get information of its QID. Now I want to use that QID to get the persons gender( male or female) or alias or other information. Can someone give an idea how can it be done. The code to get QID is given below. the link to falcon 2.0 is https://github.com/SDM-TIB/Falcon2.0.import requests import jsonresponse_list=[] person_names=[]if __name__ == '__main__': limit=100
+   with open(filename, 'r') as in_file:
+       in_reader = in_file.readlines()
+       for data in in_reader:
+           if limit > 0:
+               person_names.append(data.rstrip()) 
+               limit -=1
+           else :
+               break
+               
+               
+   \"\"\"
+   Url of post request and header of type json create linking against each line of text.
+   \"\"\"
+   
+   
+   url=\"https://labs.tib.eu/falcon/falcon2/api?mode=long\"
+   headers = {'Content-type': 'application/json'}
+   for name in person_names:
+       data = {\"text\":name }
+       data_json = json.dumps(data)
+       response = requests.post(url, data=data_json, headers=headers)
+       print(response.content) It gives output as http://www.wikidata.org/entity/Q42493 for the entity. – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). Maybe Wikidata:Data_access would be a nice intro for you. --- Jura 17:56, 1 September 2020 (UTC) How to add subject to this query I like this query. I don't remember who was kind enough to create it for me. I'd like to use it to search if appropriate main subject (P921) has been added to the items. How do I add subject in a way that returns results? Thank you. Trilotat (talk) 18:15, 1 September 2020 (UTC) SELECT DISTINCT ?item ?title ?doi
+WHERE {
+  hint:Query hint:optimizer \"None\".
+{  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api \"Search\";
+                    wikibase:endpoint \"www.wikidata.org\";
+                    mwapi:srsearch \"\\\"california\\\" haswbstatement:P31=Q13442814\".
+    ?page_title wikibase:apiOutput mwapi:title.
+  } }
+  
+  BIND(IRI(CONCAT(STR(wd:), ?page_title)) AS ?item)
+  
+  ?item wdt:P31 wd:Q13442814;
+        wdt:P1476 ?title;
+        wdt:P356 ?doi.
+  FILTER CONTAINS(LCASE(?title), \"california\").
+  ?item wdt:P356 ?doi . FILTER(STRSTARTS(?doi,'10.1785'))
+}
+ Try it! Hi Trilotat. The only real change is that I added OPTIONAL { ?item wdt:P921 ?subject. } and the label service for ?subjectLabel, but besides that I also did several optimizations: Get the item directly from the MWAPI call instead of first ?page_title and then doing a manual conversion to ?item Don't get ?doi twice Remove the triple ?item wdt:P31 wd:Q13442814 from the SPARQL code because the MWAPI search already checks that condition. (Well, it doesn't check for rank. If that is important, reinsert the triple.) Don't turn the built-in optimizer off but instead move the MWAPI call to a named subquery to ensure that it is executed first SELECT  ?item ?title ?subject ?subjectLabel ?doi
+WITH
+{
+  SELECT ?item
+  WHERE
+  {
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:api \"Search\";
+                      wikibase:endpoint \"www.wikidata.org\";
+                      mwapi:srsearch \"\\\"california\\\" haswbstatement:P31=Q13442814\".
+      ?item wikibase:apiOutputItem mwapi:title.
+    }
+  }
+} AS %mwapi
+WHERE {
+  INCLUDE %mwapi
+  ?item wdt:P1476 ?title;
+        wdt:P356 ?doi.
+  FILTER CONTAINS(LCASE(?title), \"california\").
+  FILTER STRSTARTS(?doi,'10.1785')
+  OPTIONAL { ?item wdt:P921 ?subject. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! --Dipsacus fullonum (talk) 19:20, 1 September 2020 (UTC) Awesome. I didn't understand half of what you said. Okay, less than half. Thanks, though! A list of OSM wiki pages without links to Wikidata I want to create a mix'n'match catalog with OpenStreetMap Wiki (Q18635431) pages for tags, keys and relations that are still not yet connected to Wikidata. Using Sophox (Q55840137) instead of WDQS, I need, in this order: Entry ID (OSM wiki page URL title) Entry name (OSM wikibase item label) Entry description (OSM wikibase item description) At an earlier stage, @Yurik suggested this query, but I'm having trouble adapting it to what I need for mix'n'match. I apologize in advance for asking this here as I know Sophox is slightly different from usual pure WDQS queries, but I have few other options at this time. NMaia (talk) 01:19, 28 August 2020 (UTC) For future reference, this was done, courtesy of @CamelCaseNick. Query (and query without items that have duplicates). NMaia (talk) 11:52, 3 September 2020 (UTC) timeout Dear fellows, I keep receiving timeout. Is there any solution? Items used: human (Q5)   Properties used: ORCID iD (P496)   , occupation (P106)   , instance of (P31)   SELECT ?item 
+WHERE
+{
+  ?item wdt:P496 ?reseachID .
+  FILTER NOT EXISTS { ?item wdt:P106 [] }
+  ?item wdt:P31 wd:Q5. 
+}
+LIMIT 100 Try it!Luckyz (talk) 09:48, 30 August 2020 (UTC) Would a search query be a solution for you? --Matěj Suchánek (talk) 10:02, 2 September 2020 (UTC) On another look, I didn't receive a timeout with MINUS { ... }. --Matěj Suchánek (talk) 10:04, 2 September 2020 (UTC) What do you mean with minus? Sorry for being newbie. Luckyz (talk) 10:47, 2 September 2020 (UTC) Items used: human (Q5)   Properties used: ORCID iD (P496)   , occupation (P106)   , instance of (P31)   """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860842-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?item 
+WHERE
+{
+  ?item wdt:P496 ?reseachID .
+  MINUS{ ?item wdt:P106 [] }
+  ?item wdt:P31 wd:Q5. 
+}
+LIMIT 100""" .

@@ -1,0 +1,25 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e6bf00db215441ebbe59f481400bee3b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: Commons category (P373)   , instance of (P31)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812362-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d812362-DD6A28A7B8C1902C1CE8049DD9E27C38;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT (Count(?item) as ?count) WHERE {
+    # ?article and ?category share the same P373 (\"Commons Category\")
+    MINUS{ ?item  wdt:P373 ?commonsCategory . }
+    MINUS{ ?item wdt:P31 wd:Q4167836 . }
+  
+    # sitelink to Commons points to the same category as property P373
+    ?commonsSitelink schema:about ?item .
+    FILTER(STRSTARTS(STR(?commonsSitelink), \"https://commons.wikimedia.org/wiki/Category\"))
+}""" .

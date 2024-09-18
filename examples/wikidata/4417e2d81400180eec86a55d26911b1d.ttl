@@ -1,0 +1,44 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-4417e2d81400180eec86a55d26911b1d> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2018/05/18>,
+    <https://www.wikidata.org//wiki/Wikidata:Requests_for_deletions/Archive/2017/12/17>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821992-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d821992-AFC052072E5FA527617E366BAC3C89DB,
+    _:genid-4e694113159d4e3db4a1a913894a81d821992-6D68FEE604240D5284DB88C15741A82A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel
+WHERE{
+  ?item wikibase:sitelinks 0 .
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P972 wd:Q28781198 .
+  ?item wdt:P21 ?sex .
+
+  ?item wikibase:statements ?statementCount.
+  FILTER(?statementCount = 3).
+
+  OPTIONAL{
+    ?backlink ?p1 ?item .
+  }
+  FILTER(!bound(?backlink))  
+  
+  OPTIONAL{
+    ?item ?p2 [prov:wasDerivedFrom ?ref] .
+    ?ref ?pr [] .
+    FILTER (?pr != pr:P143) #no source
+  }  
+  FILTER(!bound(?ref))
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

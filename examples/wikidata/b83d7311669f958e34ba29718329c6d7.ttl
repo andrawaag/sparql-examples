@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-b83d7311669f958e34ba29718329c6d7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d849667-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d849667-146B1D00B15CDF89B46C12A3F5713260;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (GROUP_CONCAT(?p31Label; separator=\"; \") as ?p31s) WHERE{
+  {
+    SELECT ?item ?p31 WHERE {
+        ?item wdt:P830 [];
+              wdt:P31 ?p31
+        FILTER ( ?p31 != wd:Q16521 )
+    }
+  }
+  MINUS {?item wdt:P31/wdt:P279* wd:Q16521}
+  SERVICE wikibase:label {
+	bd:serviceParam wikibase:language \"en\" .
+    ?item rdfs:label ?itemLabel .
+	?p31 rdfs:label ?p31Label           
+  }
+} GROUP BY ?item ?itemLabel ORDER BY ?itemLabel""" .

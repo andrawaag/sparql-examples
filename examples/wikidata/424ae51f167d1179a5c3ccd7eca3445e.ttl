@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-424ae51f167d1179a5c3ccd7eca3445e> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , cause of death (P509)   , date of death (P570)   , subclass of (P279)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89221-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d89221-4EA3399D031446E50CA5102A01F9C613,
+    _:genid-4e694113159d4e3db4a1a913894a81d89221-AB2D83AD607325353B1C0C66BC006D90, _:genid-4e694113159d4e3db4a1a913894a81d89221-939FDCC8B798164F66422FEF8A3C8B36,
+    _:genid-4e694113159d4e3db4a1a913894a81d89221-2B5BA6270529EFEF8DC649C0BCE48524, _:genid-4e694113159d4e3db4a1a913894a81d89221-8232D5527386C36F77D95B3D6DA09B63,
+    _:genid-4e694113159d4e3db4a1a913894a81d89221-C33D1D544831F02E1C089B4D863FACE1, _:genid-4e694113159d4e3db4a1a913894a81d89221-5C08C77BD6923017D68F8E255A890FD9,
+    _:genid-4e694113159d4e3db4a1a913894a81d89221-16BAAE62D333833DC4E490E40D7AC484, _:genid-4e694113159d4e3db4a1a913894a81d89221-B319693CBCBD6D260B4052FD4B294864,
+    _:genid-4e694113159d4e3db4a1a913894a81d89221-08A8B74999AE02CA762FFA1CABB7775F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:AreaChart
+SELECT ?cod (STR(SAMPLE(?yearOfDeath)) AS ?YEAR_Of_DEATH) (COUNT(*) AS ?NUMBER_OF_DEATHS) ?cause WHERE {
+  ?pid wdt:P31 wd:Q5;  # instance of human
+       wdt:P509 ?cod;  # cause of death
+       wdt:P570 ?_date_of_death.
+  ?cod wdt:P279* wd:Q12078.  # type of cancer
+ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\".
+                         ?cod rdfs:label ?cause. }
+  BIND ( YEAR(?_date_of_death) AS ?yearOfDeath )
+  FILTER( ?yearOfDeath > 1960 )
+}
+GROUP BY ?cod ?cause ?yearOfDeath""" .

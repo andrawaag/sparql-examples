@@ -1,0 +1,55 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-16e412956cde77605b2f77a7f9529de6> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87763-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d87763-D5ABA5C3FDE6A10892F1811D274F2BC2,
+    _:genid-4e694113159d4e3db4a1a913894a81d87763-34F2AE3E609AE6C40F9599739E42CE66, _:genid-4e694113159d4e3db4a1a913894a81d87763-126B8ABCF48F76137B1A6785B7D8DC26;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT
+  ?idioma
+  ?nombre
+{
+  # Obtención del presidente actual
+  #
+  # Si no hay otro presidente cuya fecha de inicio es mayor al
+  # encontrado, entonces el encontrado es el presidente actual.
+
+  ?presidente wdt:P39 wd:Q5708511;
+              p:P39 ?presidencia.
+  ?presidencia pq:P580 ?fecha_de_inicio.
+
+  FILTER NOT EXISTS {
+    ?presidente2 wdt:P39 wd:Q5708511;
+                 p:P39 ?presidencia2.
+    ?presidencia2 pq:P580 ?fecha_de_inicio2.
+    FILTER(?fecha_de_inicio2 > ?fecha_de_inicio)
+  }
+
+  # Obtención del nombre del presidente actual en Español
+
+  ?presidente rdfs:label ?nombre_es;
+              FILTER(LANG(?nombre_es) = \"es\").
+
+  # Obtención del nombre del presidente actual en otros idiomas
+
+  ?presidente rdfs:label ?nombre;
+              FILTER(xsd:string(?nombre) != xsd:string(?nombre_es)).
+
+  BIND(LANG(?nombre) AS ?idioma).
+}
+ORDER BY ?idioma""" .

@@ -1,0 +1,88 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7b9051f77f515d42912672426f5fe3e3> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860884-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d860884-6D55F14ABC17F93406260178E3C38C79,
+    _:genid-4e694113159d4e3db4a1a913894a81d860884-BE7F99B184CD8E0CE4D0CF800D95EB39, _:genid-4e694113159d4e3db4a1a913894a81d860884-F6B6FE4E1247A4BFF52089FB5DA6317F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?lugarDeNacimiento
+  ?lugarDeNacimientoLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?peruane {
+    {?peruane wdt:P27 wd:Q419}
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419}
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT ?peruane {
+    INCLUDE %0.
+
+    []
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+} AS %1
+WITH {
+  SELECT ?lugarDeNacimiento (COUNT(*) AS ?conteo) {
+    INCLUDE %1
+    ?peruane wdt:P19 ?lugarDeNacimiento.
+  }
+  GROUP BY ?lugarDeNacimiento
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?conteo)""";
+  <http://example.org/bigdata_select> """SELECT
+  ?lugarDeNacimiento
+  ?lugarDeNacimientoLabel
+  ?conteo
+WITH {
+  SELECT DISTINCT ?peruane {
+    {?peruane wdt:P27 wd:Q419}
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419}
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT ?peruane {
+    INCLUDE %0.
+
+    []
+      wdt:P50 ?peruane;
+      wdt:P31/wdt:P279* wd:Q7725634.
+  }
+} AS %1
+WITH {
+  SELECT ?lugarDeNacimiento (COUNT(*) AS ?conteo) {
+    INCLUDE %1
+    ?peruane wdt:P19 ?lugarDeNacimiento.
+  }
+  GROUP BY ?lugarDeNacimiento
+} AS %2
+{
+  INCLUDE %2.
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"es\"}.
+}
+ORDER BY DESC(?conteo)""" .

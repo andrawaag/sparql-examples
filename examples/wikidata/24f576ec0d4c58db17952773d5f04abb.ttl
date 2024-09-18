@@ -1,0 +1,158 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-24f576ec0d4c58db17952773d5f04abb> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Contents 1 Introduction 2 Table view of images that use depicts (P180) and main subject (P921) and their values 3 Tree view of images that use depicts (P180) and main subject (P921) and their values 4 Recipes Introduction [edit] This page contains SPARQL queries for finding images in Wikimedia Commons that have statements that use both both depicts (P180) and main subject (P921). Table view of images that use depicts (P180) and main subject (P921) and their values [edit] SELECT
+  ?image
+  ?mainSubjects
+  ?depicts
+# Subquery for getting images that have a \"depict\" (P180) and a
+# \"main subject\" (P921) statements.
+#
+# A LIMIT is used to avoid searching all images in Wikimedia Commons
+# since that requires a lot of time. The subquery stops searching
+# when the given number of images are found. Change the number of
+# LIMIT as needed, but note that the higher the number, the longer
+# the subquery will take to finish.
+WITH {
+  SELECT DISTINCT ?image {
+    ?image p:P180 [];
+           p:P921 [].
+  }
+  LIMIT 10
+} AS %0
+#
+# Get value of \"depict\" statements
+#
+WITH {
+  SELECT DISTINCT ?image ?depict {
+    INCLUDE %0.
+    ?image p:P180 [ps:P180 ?depict].
+  }
+} AS %1
+#
+# Get value of the \"main subject\" statements
+#
+WITH {
+  SELECT DISTINCT ?image ?mainSubject {
+    INCLUDE %0.
+    ?image p:P921 [ps:P921 ?mainSubject].
+  }
+} AS %2
+#
+# Concatenate the \"depict\" statements
+#
+WITH {
+  SELECT
+    ?image
+    (GROUP_CONCAT(DISTINCT CONCAT(?depictLabel, \" (\", ?depictQid, \")\"); SEPARATOR = ', ') AS ?depicts)
+  {
+    INCLUDE %1.
+
+    BIND(SUBSTR(STR(?depict), 32) AS ?depictQid).
+
+    SERVICE <https://query.wikidata.org/sparql> {
+      SELECT ?depict ?depictLabel {
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+      }
+    }
+  }
+  GROUP BY ?image
+} AS %3
+#
+# Concatenate the \"main subject\" statements
+#
+WITH {
+  SELECT
+    ?image
+    (GROUP_CONCAT(DISTINCT CONCAT(?mainSubjectLabel, \" (\", ?mainSubjectQid, \")\"); SEPARATOR = ', ') AS ?mainSubjects)
+  {
+    INCLUDE %2.
+
+    BIND(SUBSTR(STR(?mainSubject), 32) AS ?mainSubjectQid).
+
+    SERVICE <https://query.wikidata.org/sparql> {
+      SELECT ?mainSubject ?mainSubjectLabel {
+        SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+      }
+    }
+  }
+  GROUP BY ?image
+} AS %4
+{
+  INCLUDE %3.
+  INCLUDE %4.
+}
+ Try it! Tree view of images that use depicts (P180) and main subject (P921) and their values [edit] #defaultView:Tree
+SELECT DISTINCT
+  ?image
+  ?imageLabel
+  ?url
+  ?property
+  ?propertyLabel
+  ?value
+  ?valueLabel
+# Subquery for getting images that have a \"depict\" (P180) and a
+# \"main subject\" (P921) statements.
+#
+# A LIMIT is used to avoid searching all images in Wikimedia Commons
+# since that requires a lot of time. The subquery stops searching
+# when the given number of images are found. Change the number of
+# LIMIT as needed, but note that the higher the number, the longer
+# the subquery will take to finish.
+WITH {
+  SELECT DISTINCT ?image {
+    ?image p:P180 [];
+           p:P921 [].
+  }
+  LIMIT 10
+} AS %0
+{
+  INCLUDE %0.
+
+  # Get the URL of the image so that a thumbnail is shown per each
+  # image in #defaultView:Tree
+
+  ?image schema:url ?url.
+
+  # Get the properties that will be shown for each image
+
+  {?image p:P921 [ ps:P921 ?value; ?ps [] ]}
+  UNION
+  {?image p:P180 [ ps:P180 ?value; ?ps [] ]}
+
+  # Get the label of the properties and the items
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?property wikibase:statementProperty ?ps.
+    {
+      SELECT ?property ?propertyLabel ?value ?valueLabel {
+        SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+      }
+    }
+  }
+
+  SERVICE wikibase:label {bd:serviceParam wikibase:language \"en\"}.
+}
+ Try it! Recipes [edit] Replace the body of the query %0 with any recipe you might have for finding images of your interest. Here are some recipes:Filter in images whose depicts (P180) equals its main subject (P921) SELECT DISTINCT ?image {
+  ?image p:P180 [ps:P180 ?a];
+         p:P921 [ps:P921 ?b].
+  FILTER(?a = ?b).
+}
+LIMIT 10 Filter out images whose depicts (P180) equals its main subject (P921) """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Rdrg109/1/15>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846868-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?image {
+  ?image p:P180 [ps:P180 ?a];
+         p:P921 [ps:P921 ?b].
+  FILTER(?a != ?b).
+}
+LIMIT 10""" .

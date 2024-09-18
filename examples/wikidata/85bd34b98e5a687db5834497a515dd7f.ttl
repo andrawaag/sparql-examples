@@ -1,0 +1,24 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-85bd34b98e5a687db5834497a515dd7f> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858322-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d858322-AD617BE24044D543AAD0503C7B7D3F7D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?countryLabel ?library ?libraryLabel (YEAR(?earliest) as ?year) WHERE {
+{ SELECT ?country (MIN(?inception) as ?earliest) WHERE {
+    ?library wdt:P31/wdt:P279? wd:Q7075 ; wdt:P131?/wdt:P17 ?country; wdt:P571 ?inception
+    } GROUP BY ?country }
+?library wdt:P31/wdt:P279? wd:Q7075 ; wdt:P131?/wdt:P17 ?country; wdt:P571 ?earliest.
+MINUS {?country wdt:P576 []} # Exclude abolished countries like the Austrian Empire
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ?countryLabel""" .

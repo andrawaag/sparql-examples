@@ -1,0 +1,38 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-e3d1a046fa06e475324e084860f0ecb1> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries>,
+    <https://www.wikidata.org//wiki/User:Ren%C3%A9LC>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d850591-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d850591-EB09524CC875D8A66C27286200D7D99F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#afficher tous les éléments (ID, Label, Description, référentiels), connus de Wikidata, qui dipose de la propriété \"archivé par\" (P485) pour une institution donnée.
+#regouper tous les référentiels dans une même cellule.
+#classer les éléments trouvés par genre ou sexe puis par ordre alphabéthique de Description et de Label.
+SELECT DISTINCT ?item ?itemLabel ?itemDescription  (GROUP_CONCAT(DISTINCT(?referentiel); separator=\", \") as ?referentiels)
+                (GROUP_CONCAT(DISTINCT(?reference_URL); separator=\", \") as ?reference_URLs) (SAMPLE(?reference_URL) as ?one_of_them)
+WHERE {
+    ?item wdt:P485 wd:Q856640. #élément archivé par une institution donnée
+  OPTIONAL {?item p:P485 ?statement. 
+            ?statement ps:P485 ?archives. #option avoir déposé ses archives dans une institution
+            OPTIONAL {?statement pq:P217 ?referentiel.} #option avoir pour qualificatif un numéro d'inventaire.
+            OPTIONAL {?statement prov:wasDerivedFrom/pr:P854 ?reference_URL.}       
+           }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],fr,it,de,nl,en\". }
+}
+GROUP BY ?item ?itemLabel ?itemDescription ?referentiels
+ORDER BY  ?itemDescription ?itemLabel""" .

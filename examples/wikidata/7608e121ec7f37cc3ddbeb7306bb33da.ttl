@@ -1,0 +1,45 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-7608e121ec7f37cc3ddbeb7306bb33da> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d82018-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d82018-273AAD756EA3C9023816A0FDAB6E8EA9,
+    _:genid-4e694113159d4e3db4a1a913894a81d82018-46C97514FF554CD34DC6578F79935A27, _:genid-4e694113159d4e3db4a1a913894a81d82018-AB87ECE91F1A2A70124CF57161E52AF5,
+    _:genid-4e694113159d4e3db4a1a913894a81d82018-ED551EFA05D0B4FAAF11937ABE50B867, _:genid-4e694113159d4e3db4a1a913894a81d82018-680DDB912E6F7F60489374AAF5BF09F3,
+    _:genid-4e694113159d4e3db4a1a913894a81d82018-0982211849ED7F612A87D7A69995CC65, _:genid-4e694113159d4e3db4a1a913894a81d82018-C0677EC4CE11088F8EB2F93F78C94B04,
+    _:genid-4e694113159d4e3db4a1a913894a81d82018-2E5B6FE710709F2D2ADD648F2DD6AE3A, _:genid-4e694113159d4e3db4a1a913894a81d82018-85D0740A6C750979B7FFFBB4AAB8BA66,
+    _:genid-4e694113159d4e3db4a1a913894a81d82018-ECB67C846D46B1BFC4DC7F6BD5C83832;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BubbleChart
+SELECT ?surname ?surnameLabel ?count
+WHERE
+{
+  {
+    SELECT ?surname (COUNT(?human) AS ?count) WHERE {
+    # ?human wdt:P31 wd:Q5.
+      ?human wdt:P734 ?surname.
+    }
+    GROUP BY ?surname ORDER BY DESC(?count) LIMIT 100
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} 
+ORDER BY DESC(?count)""" .

@@ -1,0 +1,46 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-1e10eb1e3e63dc08445aa90797098526> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  sh:select """SELECT ?laps
+WHERE
+{
+  #  Bachil \"on laps\" laps
+  Bach laps ?laps.
+}""";
+  rdfs:comment """Other languages: Bahasa Indonesia British English Deutsch English Lëtzebuergesch Nederlands Türkçe català dansk eesti español français italiano polski português do Brasil svenska ślůnski русский українська հայերեն עברית العربية 中文 日本語 WDQS ehk Wikidata päringuteenus on võimas tööriist, mis võimaldab piiluda Wikidata telgitagustesse. See juhend õpetab päringukeskkonda kasutama. Before writing your own SPARQL query, look at {{Item documentation}} or any other generic SPARQL query template and see if your query is already included.  Contents 1 Enne alustamist 2 SPARQL-i alused 3 Meie esimene päring 3.1 Automaatne täitmine 4 Keerulisemad kolmikud 5 Üksikjuht nähtusest ja klassid 5.1 Omaduste rajad 6 Täpsustajad 7 ORDER ja LIMIT 7.1 Harjutus 7.1.1 Arthur Conan Doyle'i raamatud 7.1.2 Keemilised elemendid 7.1.3 Jõed, mis suubuvad Mississippisse 7.1.4 Jõed, mis suubuvad Mississippisse II 8 OPTIONAL 9 Avaldised, FILTER ja BIND 9.1 Andmetüübid 9.2 Tehtemärgid 9.3 FILTER 9.4 BIND, BOUND, IF 9.5 COALESCE 10 Rühmitamine 10.1 Linnade rahvaarvud 10.2 Maalimisel kasutatud materjalid 10.3 Relvad tootja kaupa 10.4 Kirjastused lehekülgede arvu järgi 10.4.1 HAVING 10.5 Kokkuvõte agregeerivatest funktsioonidest 10.6 wikibase:Label ja agregeerimine 11 VALUES 12 Label in multiple languages 13 Ja nii edasi… 14 See also Enne alustamist See juhend võib tunduda pikk ja hirmutav, kuid ära ehmu! SPARQL-i aluste õppimine laob tugeva põhja. Isegi, kui lõpetad lugemise pärast meie esimest päringut, oskad juba piisavalt, et koostada palju põnevaid päringuid. Juhendi iga lõik võimaldab Sul kirjutada aina võimsamaid päringuid.Kui Sa ei ole kunagi kuulnud mõistetest Wikidata, SPARQL või WDQS, siis siin on lühiseletus: Wikidata on koondandmebaas. See sisaldab miljoneid sissekandeid, nagu “Kanada pealinn on Ottawa” või “Mona Lisa on maalitud paplile õlivärviga” või “kulla sulamistemperatuur on 1064,18 kraadi Celsiuse järgi”. SPARQL on keel, mille abil saab sõnastada küsimusi (päringuid) andmebaasidele. Sobivas andmebaas suudab SPARQL-i päring vastata küsimustele nagu “mis on muusikas enim levinud tonaalsus?” või “millist tegelaskuju on mänginud suurim arv näitlejaid?” või “mis on veregruppide jaotus?” või “milliste autorite tööd lisandusid sel aastal avalikku omandisse?”. WDQS (Wikidata Query Service) ehk Wikidata päringuteenus toob need kaks kokku: Sa sisestad SPARQL-i päringu, see käib läbi Wikidata andmete ning kuvab Sulle tulemuse.  SPARQL-i alused Lihtne SPARQL-i päring näeb välja selline: SELECT ?a ?b ?c
+WHERE
+{
+  x y ?a.
+  m n ?b.
+  ?b f ?c.
+} SELECT lause on nimekiri muutujatest, mida Sa tahad tagastada (muutujad algavad küsimärgiga), ja WHERE lause sisaldab nende muutujate kitsendusi, peamiselt kolmikute kujul. Wikidatas (ja sarnastes andmebaasides) hoitakse kogu infot kolmikutena. Kui Sa käivitad päringu, siis proovib päringuteenus täita muutujad päris väärtustega, et tulemusena tekkinud kolmikud ilmuksid andmebaasis. Seejärel tagastab ta ühe tulemuse iga leitud muutujate kombinatsiooni kohta. Kolmikut võib lugeda kui lauset (mistõttu ta lõppeb ka punktiga), milles on subjekt, predikaat ja objekt: SELECT ?puuvili
+WHERE
+{
+  ?puuvili omabVärvi kollane.
+  ?puuvili maitseb hapult.
+} Selle päringu tulemused võiksid sisaldada näiteks sidrunit. Wikidatas on enamik omadusi \"omab\" tüüpi, seega päringut võiks lugeda hoopis selliselt: SELECT ?puuvili
+WHERE
+{
+  ?puuvili värv kollane.
+  ?puuvili maitse hapu.
+} mida võib lugeda “?puuvili omab värvi kollane” (mitte “?puuvili on kollase värv” – pea seda meeles selliste omaduspaaride juures nagu “vanem”/“laps”!).See aga ei ole hea näide WDQSi jaoks. Maitse on subjektiivne, seega Wikidatas ei ole selle jaoks omadust (ingl property). Mõtleme selle asemel vanema/lapse suhetele, mis on enamasti üheti mõistetavad. Meie esimene päring Oletame, et me tahame nimekirja barokkajastu helilooja Johann Sebastian Bachi kõigist lastest. Kasutades pseudoelemente nagu ülaltoodud päringutes, kuidas Sa selle päringu kirja paneksid?Loodetavasti said midagi sellist: SELECT ?laps
+WHERE
+{
+  #  lapsel \"on vanem\" Bach
+  ?laps vanem Bach.
+  # (pane tähele: kõik, mis järgneb trellidele (‘#’) on kommentaar ning WDQS ignoreerib seda.)
+} või siis SELECT ?laps
+WHERE
+{
+  # lapsel \"on vanem\" Bach 
+  ?laps vanem Bach. 
+} või siis """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_tutorial/et>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/> .

@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-319872361824226ea1ec7199e910dfd0> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Property_talk:P5452>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863431-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d863431-11D5ED8F2AE08524BFD376CC78D6B75F;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?item_label ?check_url WHERE {
+  ?item wdt:P31 wd:Q101352 .
+  MINUS {?item wdt:P5452 [] } .
+  ?item rdfs:label ?item_label FILTER(lang(?item_label) = 'en') .
+
+  wd:P5452 wdt:P1630 ?fmt .
+  BIND(IRI(REPLACE(str(?item_label), '(^.*)', ?fmt)) AS ?check_url) .
+} LIMIT 50""" .

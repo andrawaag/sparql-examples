@@ -1,0 +1,37 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a245f85ef7defa4e9350e3e4c6822df7> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/pt>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/ru>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/en>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833536-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d833536-6CD0247632D453A7CC96022261268DAC,
+    _:genid-4e694113159d4e3db4a1a913894a81d833536-CE6804ECB4A08F51E2B2D350119BB295, _:genid-4e694113159d4e3db4a1a913894a81d833536-4BC3713423207BD811F6D80E6E43D57A,
+    _:genid-4e694113159d4e3db4a1a913894a81d833536-B26C6F9C927E842A64EA8CF7745D025A, _:genid-4e694113159d4e3db4a1a913894a81d833536-44638061748E73219DA59C72C592AE8E,
+    _:genid-4e694113159d4e3db4a1a913894a81d833536-7F5D5E1F377ED426819DEDAB584505C1, _:genid-4e694113159d4e3db4a1a913894a81d833536-780516495ED1F626B6A8ED582164948E,
+    _:genid-4e694113159d4e3db4a1a913894a81d833536-91C664A35CDB77496E85A4C2C005D5BD, _:genid-4e694113159d4e3db4a1a913894a81d833536-89060927DDE2CE230B12081544784F5A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Female line leading to, and descended from, Elizabeth II (Q9682)
+SELECT ?child ?childLabel ?mother ?motherLabel ?depth WHERE
+ {
+  SERVICE gas:service {
+       gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ; gas:in wd:Q9682 ; gas:linkType wdt:P25 ; gas:traversalDirection \"Undirected\"; gas:out ?child ; gas:out1 ?depth ; gas:out2 ?mother . 
+  }
+
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} order by ?depth""" .

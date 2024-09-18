@@ -1,0 +1,35 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-8379aeefec46c92fb779c2e27853e782> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d843712-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#based on a query by User:Lepticed7: https://w.wiki/ewx
+SELECT ?item ?itemLabel ?y ?start ?end ?countryLabel ?surfaceLabel ?locationLabel ?unit ?prize ?partof ?partofLabel ?partof2 ?partof2Label
+WHERE
+{
+  ?item wdt:P31 wd:Q47345468;
+    wdt:P361 wd:Q1134303.
+  OPTIONAL { ?item wdt:P585 ?y0 . BIND(YEAR(?y0) as ?y) }
+  OPTIONAL { ?item wdt:P580 ?start. }
+  OPTIONAL { ?item wdt:P582 ?end. }
+  OPTIONAL { ?item wdt:P17 ?country. }
+  OPTIONAL { ?item wdt:P765 ?surface. }
+  OPTIONAL { ?item wdt:P276 ?location. }
+  OPTIONAL { ?item p:P2121/psv:P2121 ?st . ?st wikibase:quantityAmount ?prize . OPTIONAL { ?st wikibase:quantityUnit/wdt:P498 ?unit }  } 
+  OPTIONAL { ?item wdt:P361 ?partof . FILTER( ?partof != wd:Q1134303)  }
+  OPTIONAL { ?item wdt:P31 ?partof2 . FILTER( ?partof2 != wd:Q47345468)  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

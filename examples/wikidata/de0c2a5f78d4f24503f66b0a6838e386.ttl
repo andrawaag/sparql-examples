@@ -1,0 +1,525 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-de0c2a5f78d4f24503f66b0a6838e386> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """WDQS, the Wikidata Query Service (Q20950365)   is an awesome tool to answer many questions we might have.For brief introduction about interface with pictures and very first queries: A gentle introduction to the Wikidata Query Service.SPARQL 1.1 Query Language (Q32146616)   is a language used in Wikidata Query Service (Q20950365)   . Contents 1 Agenda 2 RDF graph (Q31386861) 2.1 semantic triple (Q28134515) 2.2 RDF node 2.2.1 Internationalized Resource Identifier 2.2.2 RDF literal 3 RDF datatype IRI in Wikidata RDF Dump Format 3.1 xsd:dateTime 4 nodes in WDQS 4.1 Entities 4.1.1 Entities that represent properties 5 edges in WDQS 5.1 Multiple values 6 Wikidata property (Q18616576) 7 Group Graph Patterns 7.1 SPARQL punctuation 7.1.1 Repetition in subject 7.1.2 Repetition in subject and predicate 7.1.3 Blank nodes 7.1.3.1 Brackets syntax 7.1.4 Property paths 7.1.4.1 Duplicates and alternative claims 7.1.4.2 Symmetric properties and self-references 8 Retrieving items with optional information (OPTIONAL) 9 Instances and classes 10 Wider or narrower results 11 Unknown or no values 12 Pagination (ORDER and LIMIT) 12.1 Limitations 12.2 Arthur Conan Doyle books 12.3 Chemical elements 13 Ways to reduce multiplicity 13.1 Note about \"Bad Aggregate\" messages 13.2 Exercises 13.2.1 Paintings along with their painting material 13.2.2 Guns by manufacturer 13.2.3 Publishers by number of pages 14 And beyond… 15 References Agenda [edit] We will: mention key points of Resource Description Framework (Q54872)   cover Wikidata data model (Q16354757)   and Wikidata RDF Dump Format (Q32786132)   first and in order; explanation of SPARQL features could be not in order or even missing (i.e. too complex or with narrow application) mention terminology in order to ask search engines with right questions later on Whitespace is significant in strings, but not meaningful otherwise.[sparqlspec 1] WDQS editor indents lines for us automatically.Let's go! RDF graph (Q31386861) [edit] semantic triple (Q28134515) [edit] Relations. Claims. object (Q488383). ⟨ subject ⟩ Wikidata property ⟨ object or value ⟩ relations are directed from the subject;[rdfprimer 1] RDF model is used to represent information about resources (entities): resource describes something in the world[rdfconcepts 1] and not limited to any networks at all; duplicates are allowed, while A relational model of data for large shared data banks (Q32061744) prohibits this for relational algebra (Q840540) \"All rows are distinct\" [such limitation can be avoided by introduction of additional column with globally unique identifier (Q254972)]. Such definition leads to multiple ways database normalisation (Q339072) solely to allow data with multiple values in databases again; Turtle (Q114409) is a text-based format used to serialization (Q1127410) RDF graph (Q31386861). SPARQL 1.1 Query Language (Q32146616) supports almost identical[RDF11Turtle 1] notation natively. World Wide Web Consortium (Q37033)' documents are commonly use this notation. Internationalized Resource Identifier (Q424583)s can be abbreviated into prefixes like wd: and wdt: in storage[rdfprimer 2] and in queries;[sparqlspec 2] More trivial notes same resource is often represented using multiple triples; in any RDF storage RDF property (Q31208391) is expressed with Internationalized Resource Identifier (Q424583);[rdfprimer 3] we could draw analogy between semi-structured data (Q2336004) and sparse matrix (Q1050404) but when \"cells\" are single-valued (for most of Wikidata, but not entirely); Special:EntityData can output all claims related to one entity: Mona Lisa in Turtle; in any RDF storage data is semi-structured data (Q2336004) for the most part: child (P40) can be absent for any instance of human (Q5); this is impossible in relational model (Q755662) where data is fully structured in terms of columns [some column can be picked to have semi-structured content e.g. JSON (Q2063), but such column is required for every row in that table]; in Wikidata entities have Internationalized Resource Identifier, links (data mapping (Q2330408)) to external datasets are implemented using special properties with datatype external id; resources could be in local datasets (e.g. Wikidata (Q2013)) or remote;[sparqlfederation 1] Notes about FILTER FILTER(condition) is a clause you can insert into your SPARQL query to, well, filter the results. Inside the parentheses, you can put any expression of boolean type, and only those results where the expression returns true are used. For example, to get a list of all humans born in 2015, we first get all humans with their date of birth – SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}
+ – and then filter that to only return the results where the year of the date of birth is 2015. There are two ways to do that: extract the year of the date with the YEAR function, and test that it’s 2015 – FILTER(YEAR(?dob) = 2015)
+ – or check that the date is between Jan. 1st (inclusive), 2015 and Jan. 1st, 2016 (exclusive): FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime)
+ I’d say that the first one is more straightforward, but it turns out the second one is much faster, so let’s use that: SELECT ?person ?personLabel ?dob
+WHERE
+{
+  ?person wdt:P31 wd:Q5;
+          wdt:P569 ?dob.
+  FILTER(\"2015-01-01\"^^xsd:dateTime <= ?dob && ?dob < \"2016-01-01\"^^xsd:dateTime)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } 
+}
+ Try it! RDF node [edit] Internationalized Resource Identifier (Q424583), RDF literal (Q31381203)[rdfconcepts 2] and blank node (Q3427875) are RDF node (Q31465098) in RDF graph (Q31386861);[rdfconcepts 3] Internationalized Resource Identifier [edit] IRIs differ from RDF literal in RDF and in SPARQL. in order to construct IRIs from xsd:string or simple literal use IRI()[sparqlspec 3] and glue strings literals using CONCAT();[sparqlspec 4] isIRI()[sparqlspec 5] and isLiteral()[sparqlspec 6] provides boolean checks; STR()[sparqlspec 7] is used to convert IRIs back to simple literals; RDF literal [edit] simple literal (Q39771219): \"Hello\" - RDF datatype IRI (Q31385480) in RDF 1.1 (Q31398258) is xsd:string language-tagged string RDF literal (Q31384986): \"Hello\"@en - RDF datatype IRI is rdf:langString RDF literal: \"002\"^^xsd:integer - RDF datatype IRI is xsd:integer SPARQL treats them separately:[sparqlspec 8] SELECT ?node ?predicate WHERE {
+  ?node ?predicate \"Wikidata\"
+}
+ Try it! is different from SELECT ?node ?predicate WHERE {
+  ?node ?predicate \"Wikidata\"@en # @en is different from @en-gb and @en-ca
+}
+ Try it! to get RDF datatype IRI of RDF literal: DATATYPE(\"Wikidata\") to get IETF language tag of language-tagged string RDF literal: LANG(\"Wikidata\"@en) to construct RDF literal with RDF datatype IRI: STRDT(\"Wikidata\", xsd:string) to construct language-tagged string RDF literal: STRLANG(\"Wikidata\", \"en\") See also: functions on strings (xsd:string)[sparqlspec 9] checks based on regular expression (Q185612)[sparqlspec 10] RDF datatype IRI in Wikidata RDF Dump Format [edit] Following RDF datatype IRI of RDF literal could be seen in Wikidata RDF Dump Format: rdf:langString xsd:string xsd:decimal xsd:integer [derived from decimal][XSDDatatypes 1] xsd:dateTime <http://www.opengis.net/ont/geosparql#wktLiteral> wdt: prefixed variants of Special:ListProperties/globe-coordinate Example: operators to compare values with specific datatype Decimals and integers: +, -, *, / to calculate; <, >, =, <=, >= to compare Strings: =, != IRIs: =, != Booleans: || and && to calculate; IF(?condition, ValueIfTrue, ValueIfFalse) Example: language of the value Saint Petersburg (Q656) with multiple values in official name (P1448) or any other property Special:ListProperties/monolingualtext. SELECT ?value ?startDate ?endDate # ?r
+WHERE
+{
+       wd:Q656  p:P1448 ?s.
+       ?s      ps:P1448 ?value.
+       ?s      pq:P580  ?startDate.
+       ?s      pq:P582  ?endDate.
+#      ?s      wikibase:rank ?r.
+       FILTER(LANG(?value) = \"ru\")
+}
+ Try it! Example: language of the label We get the label with the ?human rdfs:label ?label triple, restrict it to English labels, and then check if it starts with “Mr. ”: SELECT ?human ?label
+WHERE
+{
+  ?human wdt:P31 wd:Q15632617;
+         rdfs:label ?label.
+  FILTER(LANG(?label) = \"en\")
+  FILTER(STRSTARTS(?label, \"Mr. \"))
+}
+ Try it! xsd:dateTime [edit] YEAR() to get year MONTH() to get month DAY() to get day NOW() to get current date and time Notes: ROUND(1950/100) will return 20 and ROUND(1949/100) will return 19, so it is inappropriate for centuries; more accurate solution is to use FLOOR((?year-1)/100)+1 (works well for 1..2001 range) nodes in WDQS [edit] RDF nodes in Wikidata RDF Dump Format (Q32786132) follow specific naming conventions. wd: - entity, browsable in Wikibase (Q16354758) or scriptable in Extension:Wikibase Client (Q21679293) wds: - statement node, internal part wdref: - reference node, internal part wdv: - value node, internal part [unprefixed] - sitelink node, per every language, per every project # We can inspect complex parts of data model at any second
+SELECT ?property ?RDFNode (IF(isLiteral(?RDFNode), CONCAT(\"literal, datatype IRI:\", STR(DATATYPE(?RDFNode))), IF(isIRI(?RDFNode), \"IRI\", IF(isBlank(?RDFNode), \"blank node\", \"impossible?!!\"))) as ?kindOfRDFNode)
+WHERE
+{
+  # prefixed subjects                                 or their IRIs
+  #                                                      <https://en.wikipedia.org/wiki/Mona%20Lisa>
+  #                                                      <https://es.wikipedia.org/wiki/La%20Gioconda>
+  #                                                      <https://www.wikidata.org/wiki/Wikidata:Introduction>
+  #                                                      <https://ko.wikinews.org/wiki/%EC%9C%84%ED%82%A4%EB%89%B4%EC%8A%A4:%EC%86%8C%EA%B0%9C>
+  #    wd:Q12418                                      or <http://www.wikidata.org/entity/Q12418>
+  #    wd:P571                                        or <http://www.wikidata.org/entity/P571>
+  #   wds:Q12418-8EDF7B01-3F71-4DA7-8B52-8C26242F0293 or <http://www.wikidata.org/entity/statement/Q12418-8EDF7B01-3F71-4DA7-8B52-8C26242F0293>
+  # wdref:8f08ac3e0839bdbc4c6eb8d671e772deb12ba423    or <http://www.wikidata.org/reference/8f08ac3e0839bdbc4c6eb8d671e772deb12ba423>
+  #   wdv:817fac0649608d9ebd295b60135818d4 QuantityValue <http://www.wikidata.org/value/817fac0649608d9ebd295b60135818d4>
+  #   wdv:804d3164e16f5c568523ef7b563ee1af QuantityValue, Normalized
+  #   wdv:800000d7a293881690f27762757ec940 wikibase:TimeValue
+  #   wdv:800fbeee96e1b9bd5d91c1f66b25365d wikibase:GlobecoordinateValue
+  wdv:788f87d431fffec0fc34235813459708 ?property ?RDFNode.
+}
+ Try it! Entities [edit] Entities that represent properties [edit] Wikidata property (Q18616576)It is possible to use entities for properties (they have information about wikibase:directClaim).It is impossible to substitute property path at second position with property at second position in one triple [as opposed to Q31209160 and Q31209194]. But it is possible with more triples or other variable-forming constructs. One nuance is to use entity outside triple where resulting property should be applied. Examples The following query uses these: SELECT ?child ?childLabel ?p1 ?p2
+WHERE
+{
+# variant 0: functional; note \"prop/direct\"
+# ?child <http://www.wikidata.org/prop/direct/P22> <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/prop/direct/P25> <http://www.wikidata.org/entity/Q57487>.
+
+# variant 00: functional; note 2 kinds of \"prop\"
+# ?child <http://www.wikidata.org/prop/P22>/<http://www.wikidata.org/prop/statement/P22> <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/prop/P25>/<http://www.wikidata.org/prop/statement/P25> <http://www.wikidata.org/entity/Q57487>
+
+# wikibase:directClaim - https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Properties
+
+# variant 1: functional, additional patterns, note \"entity\"
+# <http://www.wikidata.org/entity/P22> wikibase:directClaim ?p1 .
+# <http://www.wikidata.org/entity/P25> wikibase:directClaim ?p2 .
+  
+# ?child ?p1 <http://www.wikidata.org/entity/Q1339>.
+# ?child ?p2 <http://www.wikidata.org/entity/Q57487>.
+
+# variant 2: functional, property paths, note \"entity\"
+  BIND(<http://www.wikidata.org/entity/P22>/wikibase:directClaim as ?p1)
+  BIND(<http://www.wikidata.org/entity/P25>/wikibase:directClaim as ?p2)
+  
+  ?child ?p1 <http://www.wikidata.org/entity/Q1339>.
+  ?child ?p2 <http://www.wikidata.org/entity/Q57487>.
+  
+# variant 3: not, note \"entity\"
+# ?child <http://www.wikidata.org/entity/P22>/wikibase:directClaim <http://www.wikidata.org/entity/Q1339>.
+# ?child <http://www.wikidata.org/entity/P25>/wikibase:directClaim <http://www.wikidata.org/entity/Q57487>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! edges in WDQS [edit] 0.. — optional (or semi-structured) parts ..* — limitless ..1 — at most one edge (Q3297804) from to Domain * Domain * sitelink (Q17587456) 0..1** Wikidata item (Q16222597) 0..1 schema:about Wikidata entity (Q32753077) 0..1 statement node (Q17586663) 0..* p: prefix statement node (Q17586663) 0..1 Help:Sources (Q32753827) 0..* prov:wasDerivedFrom Links to value node (Q32753852) statement node (Q17586663) 0..1 value node (Q32753852) 0..1 psv: prefix statement node (Q17586663) 0..1 value node (Q32753852) 0..1 pqv: prefix Help:Sources (Q32753827) 0..1 value node (Q32753852) 0..1 prv: prefix wikibase:QuantityValue specific[WikibaseDumpRDF 1] statement node (Q17586663) 0..1 normalized value node (Q33126575) 0..1 psn: prefix statement node (Q17586663) 0..1 normalized value node (Q33126575) 0..1 pqn: prefix Help:Sources (Q32753827) 0..1 normalized value node (Q33126575) 0..1 prn: prefix * - multiplicity; ** - per language per project Multiple values [edit] See also: Help:Statements#Multiple values aggregate function (Q4115063)Rarely in Wikidata, we may enter multiple values.When we query for ?item wdt:mvproperty ?value we can get multiple records about values, not one about item. This is different from object-oriented approach where one record corresponds to one object.In order to get one subject (or item) per record: ignore such properties the most radical way; do not place properties that return multiple values (wd:Q12418 wdt:P186 ?material) in \"SELECT\" part of your query SAMPLE aggregate[sparqlspec 11] returns an arbitrary value working query GROUP_CONCAT aggregate[sparqlspec 12] working query. simplest query with label service wouldn't work. LIMIT 1 (when item and property is known beforehand) a less radical way than first, but it discards data as well: SELECT ?materialLabel { SELECT ?materialLabel WHERE { wd:Q12418 wdt:P186 ?material . SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } . } LIMIT 1 }; with a good hammer it is possible to fit square in circle Wikidata property (Q18616576) [edit] Practical implications of statements with different ranks number of statement nodes wds: with such rank scaling wikibase:rank of wds: wikibase:PreferredRank 1 0 1 1 1 0 0 1 wikibase:NormalRank 0 100 100 100 0 100 0 100 wikibase:DeprecatedRank 0 0 10 0 10 10 10 10 below per above wdt: in Wikidata entity (Q32753077) 1 100 1 1 1 100 0 p: between Wikidata entity and statement node 1 100 111 101 11 110 10 Statement nodes with rdf:type wikibase:BestRank are with red border Property in Wikidata model is augmented with Help:Ranks and can be used in multiple positions (references, qualifiers).Most Wikibase types have simple values.[WikibaseDumpRDF 2]By simple values we mean anything from RDF node section [IRIs, xsd:string, language-tagged literals, literals with other types, blank nodes].Simple values can be accessed with following prefixes, depending on where property was used: from Entity - wdt: [historic and wrong values aren't accessible here, see table on the right] from Statement node to value of property - ps: from Statement node to value of qualifier - pq: from Reference node - pr: Equivalent of wdt: SELECT ?pop WHERE {
+   wd:Q2807 wdt:P1082 ?pop
+}
+ Try it! # equivalent of wdt:
+# wd:Q2807 wdt:P1082 ?pop
+SELECT ?pop WHERE {
+   wd:Q2807     p:P1082 ?popNode           . # will return every node
+     ?popNode rdf:type  wikibase:BestRank  . # will restrict it to \"best\" nodes, similar to wdt: 
+     ?popNode  ps:P1082 ?pop                 # extract value of node
+}
+ Try it! Common mistake is to mix wdt:P1082 with p:P1082 in one SELECT clause: in most cases we should use only one way, not both. We can mix wdt: and p: of different properties.When we switch from wdt: to p: (in order to use qualifiers) we should use ps: prefixes (they would respect current statement node). Common mistake is to use wdt: instead of ps:.  Group Graph Patterns [edit] Johann Sebastian Bach chapelmaster, Thomaskantor, composer, organist, harpsichordist, violinist, conductor, choir director, concertmaster, musicologist, music educator, virtuoso and school teacher Catharina Dorothea Bach … Christiana Benedicta Louisa … Regina Johanna Bach … Ernestus Andreas Bach … Elisabeth Juliana Friderica Bach … Christiana Dorothea Bach … Johann August Abraham Bach … Johann Christoph Friedrich Bach composer, concertmaster, organist, chapelmaster and musician … Johann Christian Bach composer, pianist and music arranger … Johanna Carolina Bach … Christian Gottlieb Bach … Christiana Sophia Enrietta Bach … Maria Sophia Bach … Wilhelm Friedemann Bach composer, organist, pianist, musician, music arranger and independent publisher … Gottfried Heinrich Bach musician, pianist and composer … Johann Christoph Bach … Johann Gottfried Bernhard Bach composer, musician and organist … Carl Philipp Emanuel Bach chapelmaster and composer … Leopold Augustus Bach … Regina Susanna Bach … Johann Sebastian Bach (Q1339) had two wives. How can we see the children of Johann Sebastian Bach with his first wife, Maria Barbara Bach (Q57487)?The simplest way to do this is to add a second triple with that restriction: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339.     # Child  has father  Johann Sebastian Bach.
+  ?child wdt:P25 wd:Q57487.    # Child  has mother     Maria Barbara Bach.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Dot between triple patterns corresponds to \"and\" conjunction; \";\" can be used instead. Note: it is possible to omit last conjunction symbol, but some place it for interchangeability. SPARQL punctuation [edit] Each triple about a subject is terminated by a period; Multiple predicates about the same subject can be separated by semicolons; Multiple objects for the same subject and predicate can be separated by commas. SELECT ?s1 ?s2 ?s3
+WHERE
+{
+  ?s1 p1 o1;             # s1
+      p2 o2;             # s1
+      p3 o31, o32, o33.  # s1
+  ?s2 p4 o41, o42.       # s2
+  ?s3 p5 o5;             # s3
+      p6 o6.             # s3
+} Example: repetition in subject - ; Repetition in subject [edit] In natural language, may abbreviate second \"Child has\" predicate using conjunction: Child has father Johann Sebastian Bach and mother Maria Barbara Bach. In SPARQL, simply end a triple with a semicolon (;) instead of a period, you can add another predicate-object pair: # 4.2.1 Predicate-Object Lists
+# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#predObjLists
+
+SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;     # Child  has father  Johann Sebastian Bach and
+         wdt:P25 wd:Q57487.    #        has mother     Maria Barbara Bach.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Example: repetition in subject and predicate - , Repetition in subject and predicate [edit] Now suppose that, out of those results, we’re interested only in those children who also were also composer (Q36834) and pianist (Q486748). The relevant property occupation (P106). Please try yourself first. Possible solution below: # 4.2.2 Object Lists
+# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#objLists
+
+SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834;   #       has occupation  composer and
+         wdt:P106 wd:Q486748.  #       has occupation   pianist.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Syntax , allows us to append another object to a triple (reusing both subject and predicate), query can be simplified to: SELECT ?child ?childLabel
+WHERE
+{
+  ?child wdt:P22 wd:Q1339;
+         wdt:P25 wd:Q57487;
+         wdt:P106 wd:Q36834,    #        has occupation composer and 
+                  wd:Q486748.   #                        pianist.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Blank nodes [edit] Relative clauses. Properties of the object.Suppose we’re not actually interested in Bach’s children, but in his grandchildren.For this task we would use child (P40), which points from parent to child and is gender-independent. Possible solution below: SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 ?child.                     #    Bach  has a child       ?child.
+    ?child wdt:P40 ?grandChild.                #  ?child  has a child  ?grandChild.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Example: anonymous variables, blank nodes - [] Brackets syntax [edit] Note that we don't need information about the child (?child): we don’t use the variable except to talk about the grandchild. We can refer back to them because we’ve said “someone who”: this starts a relative clause, and within that relative clause we can say things about “someone” (e. g., that he or she “has a child ?grandChild”). In SPARQL we can use a pair of brackets ([]) in the left or right part, which acts as an anonymous variable. Inside the brackets, we can specify predicate-object pairs, just like after a ; after a normal triple; the implicit subject is in this case the anonymous variable that the brackets represent. (Note: also just like after a ;, we can add more predicate-object pairs with more semicolons, or more objects for the same predicate with commas.) # 4.1.4 Syntax for Blank Nodes https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#QSynBlankNodes
+# Example with object
+SELECT ?grandChild ?grandChildLabel
+WHERE
+{
+  wd:Q1339 wdt:P40 [ wdt:P40 ?grandChild ].   # Bach                                    has as child                     someone who has a child ?grandChild.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Property paths [edit] Property paths are a way to very tersely write down a path of properties between two items. Sequence path elements are separated with a forward slash (/): Examples without endless paths SPARQL Items and properties Description ?river wdt:P403 wd:Q1497 mouth of the watercourse (P403), Mississippi River (Q1497) All items that flow directly into the Mississippi River wd:Q1339 wdt:P40 ?descendant child (P40), Johann Sebastian Bach (Q1339) Children of Johann Sebastian Bach (Q1339) wd:Q1339 wdt:P40 ?child. ?child wdt:P40 ?descendant child (P40), Johann Sebastian Bach (Q1339) Grandchildren of Johann Sebastian Bach (Q1339) wd:Q1339 wdt:P40 [ wdt:P40 ?descendant ] child (P40), Johann Sebastian Bach (Q1339) Grandchildren of Johann Sebastian Bach (Q1339) wd:Q1339 wdt:P40/wdt:P40 ?descendant child (P40), Johann Sebastian Bach (Q1339) Grandchildren of Johann Sebastian Bach (Q1339) 9 Property Paths[sparqlspec 13] Repeated and endless paths could be expressed using +; same but optional - using *. | can be used to provide alternatives. Examples with endless paths SPARQL Items and properties Description ?river wdt:P403+ wd:Q1497 mouth of the watercourse (P403), Mississippi River (Q1497) All items that flow into the Mississippi River, directly or indirectly wd:Q1339 wdt:P40+ ?descendant child (P40), Johann Sebastian Bach (Q1339) All descendants of Johann Sebastian Bach (Q1339) wd:Q1339 wdt:P40* ?descendant child (P40), Johann Sebastian Bach (Q1339) All descendants of Johann Sebastian Bach (Q1339), including Johann Sebastian Bach (Q1339) ?descendant (wdt:P22|wdt:P25)+ wd:Q1339 father (P22), mother (P25), Johann Sebastian Bach (Q1339) All descendants of Johann Sebastian Bach (Q1339) ?work wdt:P31/wdt:P279* wd:Q838948 instance of (P31), subclass of (P279), work of art (Q838948) Instance of any subclass of work of art (Q838948) ?instance wdt:P31/wdt:P279* ?class instance of (P31), subclass of (P279), Q28326490, Q28326484, Instance of any subclass of class 9 Property Paths[sparqlspec 14] Example: list of suitable properties for given item The following query uses these: Items: public university (Q875538)   Properties: subclass of (P279)   , properties for this type (P1963)   SELECT ?class ?property ?classLabel ?propertyLabel  WHERE {
+  wd:Q875538  wdt:P279*  ?class    .
+  ?class      wdt:P1963  ?property .
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Duplicates and alternative claims [edit] Duplicates are possible with relatively complex paths.Another reason for this is alternative \"routes\": ⟨ item1 ⟩ instance of (P31) ⟨ item3 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item3 ⟩ ⟨ item3 ⟩ subclass of (P279) ⟨ item4 ⟩ - note item3 claims ⟨ item3 ⟩ subclass of (P279) ⟨ item5 ⟩ ⟨ item4 ⟩ subclass of (P279) ⟨ item6 ⟩ ⟨ item5 ⟩ subclass of (P279) ⟨ item6 ⟩ Query ?item wdt:P31/wdt:279* item6 will return 4 results: item1 twice and item2 twice.Sometimes it is possible to use less multiple 279 and P31 claims, but not always. Similar example without item3 ⟨ item1 ⟩ instance of (P31) ⟨ item4 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item4 ⟩ ⟨ item1 ⟩ instance of (P31) ⟨ item5 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item5 ⟩ ⟨ item5 ⟩ subclass of (P279) ⟨ item6 ⟩ Similar example without item3 and P279 claims ⟨ item1 ⟩ instance of (P31) ⟨ item4 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item4 ⟩ ⟨ item1 ⟩ instance of (P31) ⟨ item5 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item5 ⟩ ⟨ item1 ⟩ instance of (P31) ⟨ item6 ⟩ ⟨ item2 ⟩ instance of (P31) ⟨ item6 ⟩ Solution is to replace SELECT with SELECT DISTINCT. Symmetric properties and self-references [edit] In Wikidata properties can refer to other elements. Sometimes items are obligated to have links between each other: symmetric property.In practice this means that you might encounter: Stations in 2 hops from Ueno Station (Q801551): wd:Q801551 wdt:P197/wdt:P197 ?i2 will return references back to Ueno Station (Q801551) Possible solution is to append FILTER (?item != wd:Q801551) after triple in Group Graph Patterns. Detailed explanation with Mona Lisa RDF mappings (above) are different from what we use in SPARQL; Image is used to illustrate idea of additional nodes and links between them Mona Lisa (Q12418)   and made from material (P186) : oil paint (Q296955), the main material; poplar wood (Q291034), with the qualifier applies to part (P518)painting support (Q861259) – this is the material that the Mona Lisa was painted on Suppose we want to find all paintings with their painting surface, that is, those made from material (P186) statements with a qualifier applies to part (P518)painting support (Q861259) . How do we do that? That’s more information than can be represented in a single triple. The answer is: more triples! #extracted from https://www.wikidata.org/wiki/Special:EntityData/Q12418.ttl
+
+wd:Q12418 p:P186 wds:q12418-B76F63CF-7E3D-435F-8694-7F743F494B71 .
+
+wds:q12418-B76F63CF-7E3D-435F-8694-7F743F494B71 rdf:type wikibase:Statement, wikibase:BestRank ;
+	wikibase:rank wikibase:PreferredRank ;
+	ps:P186 wd:Q296955 .
+
+wd:Q12418 p:P186 wds:Q12418-053f412b-4541-92f8-ebba-f73c568f5c9b .
+
+wds:Q12418-053f412b-4541-92f8-ebba-f73c568f5c9b rdf:type wikibase:Statement, wikibase:BestRank ;
+	wikibase:rank wikibase:PreferredRank ;
+	ps:P186 wd:Q291034 ;
+	pq:P518 wd:Q861259 .
+ Wikidata’s solution for almost everything is more resources: references, numeric precision, values with units, geocoordinates, etc... entity wd: direct property wdt: - best values; it respects ranks: only preferred values, else only normal and never deprecated statement node p: - link between entity (item) and statement (wds:); it selects every statement node, regardless of ranks or other information. This node then is the subject of other prefixes below; property statements ps: - ” to statement object using statement nodes property qualifier pq: - ” to statement qualifiers using statement nodes ranks wikibase:rank - ” to rank references prov:wasDerivedFrom - ” to reference nodes Here’s a concrete example for the Mona Lisa:    wd:Q12418  p:P186   ?st1.      # Mona Lisa: material used: ?st1                #  p: is a link between entity and a statement
+        ?st1 ps:P186 wd:Q296955.  # value: oil paint                              # ps: is a link between statement and values
+
+   wd:Q12418  p:P186   ?st2.      # Mona Lisa: material used: ?st2
+       ?st2  ps:P186 wd:Q291034.  # value: poplar wood                         
+       ?st2  pq:P518 wd:Q861259.  # qualifier: applies to part: painting surface  # pq: is a link between statement and qualifiers
+ We can abbreviate first group using property paths wd:Q12418 p:P186/ps:P186 wd:Q296966.
+ We can abbreviate both groups with the brackets syntax wd:Q12418 p:P186 [ ps:P186 wd:Q296966 ].
+
+wd:Q12418 p:P186 [
+            ps:P186 wd:Q291034;
+            pq:P518 wd:Q861259
+          ]. Exercise: a query for all paintings with their painting surface? Possible solution SELECT ?painting ?paintingLabel ?material ?materialLabel
+WHERE
+{
+  ?painting wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?material; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! First, we limit ?painting to all instances of painting (Q3305213) or a subclass thereof. Then, we extract the material from the p:P186 statement node, limiting the statements to those that have an applies to part (P518)painting support (Q861259) qualifier. Retrieving items with optional information (OPTIONAL) [edit] LEFT OUTER JOIN (Q31341045)A president can have a spouse, but this is optional. More generally, in Wikidata an entity can miss properties (as opposed to explicit \"no value\" statements).Let’s try to query books by Arthur Conan Doyle (Q35610) that also includes fthe title (P1476), illustrator (P110), publisher (P123) and publication date (P577): # First query, incorrect
+# 6 Including Optional Values
+# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#optionals
+
+SELECT ?book ?title ?illustratorLabel ?publisherLabel ?published
+WHERE
+{
+  ?book wdt:P50 wd:Q35610;
+        wdt:P1476 ?title;
+        wdt:P110 ?illustrator;
+        wdt:P123 ?publisher;
+        wdt:P577 ?published.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! It only returns two results, why is that? Explanation Reason is very simple: 5 patterns are glued using \"and\" conjunctions. Fragment of previous query using simple syntax: ?book wdt:P50   wd:Q35610     . # required wdt:P50
+?book wdt:P1476   ?title      . # required wdt:P1476
+?book wdt:P110    ?illustrator. # required wdt:P110
+?book wdt:P123    ?publisher  . # required wdt:P123
+?book wdt:P577    ?published    # required wdt:P577 In other words, to match this query, a potential result must match all the triples we listed: it must have a title, and an illustrator, and a publisher, and a publication date. If it has some of those properties, but not all of them, it won’t match. That’s not what we want: we primarily want a list of all the books – if additional data is available, we’d like to include it, but we don’t want that to limit our list of results.The solution is to tell SPARQL executor that those properties are optional: wrap each group graph pattern with optional clause when desired, line before: ?book wdt:P1476 ?title. and after: OPTIONAL { ?book wdt:P1476 ?title } optionals can be (and should be) nested for every part of graph where data could be missing (optional) order matters, place \"OPTIONAL\" after required patterns[1] place it after VALUES Note: it’s very important to use separate OPTIONAL clauses here If you put all the triples into a single clause, like here: # Second query, but still incorrect
+SELECT ?book ?title ?illustratorLabel ?publisherLabel ?published
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.       # required wdt:P50
+  OPTIONAL {                     # match all or none from group:
+    ?book wdt:P1476 ?title;         # required wdt:P1476
+          wdt:P110 ?illustrator;    # required wdt:P110
+          wdt:P123 ?publisher;      # required wdt:P123
+          wdt:P577 ?published.      # required wdt:P577
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! – you’ll notice that most of the results don’t include any extra information. Same principle applies to Group Graph Patterns within \"OPTIONAL\" clause: all 4 patterns must be satisfied. The following query uses these: Items: Arthur Conan Doyle (Q35610)   Properties: author (P50)   , title (P1476)   , illustrator (P110)   , publisher (P123)   , publication date (P577)   #Third query, correct optionality
+SELECT ?book ?title ?illustratorLabel ?publisherLabel ?published
+WHERE
+{
+            ?book wdt:P50   wd:Q35610.        # required wdt:P50
+ OPTIONAL { ?book wdt:P1476   ?title        } # optional wdt:P1476
+ OPTIONAL { ?book wdt:P110    ?illustrator  } # optional wdt:P110
+ OPTIONAL { ?book wdt:P123    ?publisher    } # optional wdt:P123
+ OPTIONAL { ?book wdt:P577    ?published    } # optional wdt:P577
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 42
+ Try it! Note: OPTIONAL and VALUES # at least 41 results, not 4
+SELECT ?film ?filmLabel ?kinopolis ?cineplex WHERE {
+  OPTIONAL { ?film wdt:P2970 ?kinopolis } # should be after VALUES
+  VALUES ?film {wd:Q188159 wd:Q316555 wd:Q338305 wd:Q426346 wd:Q586589 wd:Q912877 wd:Q1451714 wd:Q5887360 wd:Q10527185 wd:Q15621765 wd:Q15982441 wd:Q16251439 wd:Q16671761 wd:Q16729557 wd:Q16954098 wd:Q18067135 wd:Q18145311 wd:Q18356955 wd:Q18758160 wd:Q19320969 wd:Q19571557 wd:Q19787641 wd:Q19827977 wd:Q20001218 wd:Q20814649 wd:Q20899589 wd:Q20992425 wd:Q21404528 wd:Q21646479 wd:Q21647348 wd:Q21819857 wd:Q21931690 wd:Q21935502 wd:Q22671081 wd:Q23794225 wd:Q24082706 wd:Q24761792 wd:Q26262106 wd:Q26262105 wd:Q26262109 wd:Q59687}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ Try it! Example with nested optionals: US presidents and spouses The following query uses these: Items: human (Q5)   , President of the United States (Q11696)   Properties: instance of (P31)   , position held (P39)   , spouse (P26)   , start time (P580)   , end time (P582)   SELECT 
+?president ?presidentLabel 
+?termStart ?termEnd
+?spouse 
+?relationshipStart ?relationshipEnd 
+WHERE {
+   
+   ?president wdt:P31 wd:Q5 .
+
+   ?president                p:P39     ?position_held_statement .
+   ?position_held_statement ps:P39   wd:Q11696 .
+   ?position_held_statement pq:P580    ?termStart .
+   
+   # current presiden will always miss it
+   OPTIONAL {   
+     ?position_held_statement pq:P582  ?termEnd
+   } 
+   
+   # spouse is optional
+   OPTIONAL {
+      ?president             p:P26     ?spouseStatement .
+      ?spouseStatement      ps:P26     ?spouse .
+      ?spouseStatement      pq:P580    ?relationshipStart .
+
+      # current spouse will always miss it
+      OPTIONAL {   
+        ?spouseStatement    pq:P582    ?relationshipEnd
+      }
+   }
+   
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+ } ORDER BY ?termStart ?relationshipStart
+ Try it! Note: property paths are always \"required\" and never \"optional\" The following query uses these: Items: human (Q5)   , President of the United States (Q11696)   Properties: instance of (P31)   , position held (P39)   , spouse (P26)   , end time (P582)   #Note: property paths are always \"required\" and never \"optional\"
+SELECT 
+?president
+?relationshipEnd 
+WHERE {
+   
+   ?president              wdt:P31   wd:Q5                      . # required wdt:P31
+   ?president                p:P39     ?position_held_statement . # required   p:P39
+   ?position_held_statement ps:P39   wd:Q11696                  . # required  ps:P39
+  
+   ?president p:P26/pq:P582   ?relationshipEnd                    # required   p:P26 and pq:P582
+   
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+
+}
+ Try it! Instances and classes [edit] See also: Help:Basic membership properties and User:TomT0m/Classification Earlier, we noted that most Wikidata properties are “has” relations: has child, has father, has occupation. But sometimes (in fact, frequently), you also need to talk about what something is: ⟨ Gone with the Wind (Q2875)    ⟩ instance of (P31) ⟨ film (Q11424)    ⟩ ⟨ film (Q11424)    ⟩ subclass of (P279) ⟨ work of art (Q838948)    ⟩ When we want to search for “all work of art”, it’s not enough search for all items that are direct instances of work of art: SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31 wd:Q838948. # instance of work of art
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! That query only returns 2815 results – obviously, there are over 868119 work of art! The problem is that this misses items like Gone with the Wind, which is only an instance of film, not of work of art. We need to tell SPARQL to account following claim when searching: ⟨ film (Q11424)    ⟩ subclass of (P279) ⟨ work of art (Q838948)    ⟩ One possible solution to this is the brackets syntax we talked about: Gone with the Wind is an instance of some class subclass of “work of art”.But this might be not what you want: We’re no longer including items that are directly instances of work of art. In other words, subclass of relations in path can be optional. We’re still missing items that are instances of some subclass of some other subclass of “work of art” – for example, Snow White and the Seven Dwarfs is an animated film, which is a film, which is a work of art. In this case, we need to follow two “subclass of” statements – but it might also be three, four, five, any number really. For some properties, degree of nesting isn't known beforehand: not only it means that there might be a deep chain of subclass of but also such chain should be combined (wasn't covered yet) with short chains of few subclass of. The more links, the more nesting, the less query is readable by humans. Furthermore query that uses simplest syntax or brackets syntax won't match layers of underlying data exactly (3 levels in query, but 4 in data) and every time you change the data, you have to update query as well in order to match them back. More complex, but also more flexible solution: # instance of any subclass of work of art
+
+SELECT ?work ?workLabel
+WHERE
+{
+  ?work wdt:P31/wdt:P279* wd:Q838948. # one P31 and any number of P279 between the item and the class
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+} LIMIT 42
+ Try it! Now you know how to search for all work of arts, or all buildings, or all human settlements: the magic incantation wdt:P31/wdt:P279*, along with the appropriate class. This uses some more SPARQL features that I haven’t explained yet, but quite honestly, this is almost the only relevant use of those features, so you don’t need to understand how it works in order to use WDQS effectively.subclass of (P279) is the most common transitive Wikidata property (Q18647515), see others. Wider or narrower results [edit] Matching Alternatives. Negation.Over time we will lose interest in some items as well-known, visited or done in any sense. It's time to exclude them (MINUS), or to include new items (UNION): The following query uses these:Items: work of art (Q838948)   , Louvre Museum (Q19675)   , Roman portraiture (Q440928)   , genre of sculpture (Q18783400)   Properties: instance of (P31)   , subclass of (P279)   , location (P276)   , genre (P136)   , image (P18)   , movement (P135)    Features: ImageGrid (Q24515278)  #defaultView:ImageGrid
+SELECT ?item ?itemLabel ?image ?genreLabel ?movementLabel
+WHERE
+{
+           ?item wdt:P31/wdt:P279*          wd:Q838948   . # works of art
+           ?item wdt:P276                   wd:Q19675    . # located in Louvre
+           # 117 items
+MINUS    { ?item wdt:P136                   wd:Q440928   } # except ONE sculptural genre (Q440928)
+           # 116 items
+MINUS    { ?item wdt:P136/wdt:P31/wdt:P279* wd:Q18783400 } # except ANY sculptural genre (Q18783400)
+           # 113 items
+  
+OPTIONAL { ?item wdt:P18                   ?image       }
+OPTIONAL { ?item wdt:P136                  ?genre       }
+OPTIONAL { ?item wdt:P135                  ?movement    }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} Try it! Notes: potential differences between MINUS and FILTER NOT EXISTS NOT EXISTS and MINUS represent two ways of thinking about negation, one based on testing whether a pattern exists in the data, given the bindings already determined by the query pattern, and one based on removing matches based on the evaluation of two patterns.[sparqlspec 15] One of the key differences between MINUS and NOT EXISTS is that it is a child graph pattern and so breaks the graph pattern and so the result of the query can change depending where the MINUS is placed[2][3] Unknown or no values [edit] See also: Help:Statements#Unknown or no values concept of no-value in Wikibase (Q19798647). concept of unknown value in Wikibase (Q19798648).This is rarely used. empty cell in WDQS; \"no value\"[WikibaseDumpRDF 3] is stored as rdf:type[4] of statement node t58922719 or similar instead of value; \"unknown value\"[WikibaseDumpRDF 4] is a blank node[rdfprimer 4][5], isBlank()[sparqlspec 16] is used in SPAQRL to detect these When properties are: known beforehand: solution involves checks IF(boolean condition, then, else) where conditions are as described above unknown beforehand: solution is more complex Checks for P577 \"values\" \"unknown value\" and \"no value\" for every value/property/item The following query uses these: Items: Bob's Game (Q4931588)   , 64 Hanafuda: Tenshi no Yakusoku (Q1107793)   , Battlefleet Gothic: Armada (Q18857304)   , Civilization V (Q2385)   , God Wars: Future Past (Q23647080)   Properties: publication date (P577)   SELECT ?game ?date ?statementNodeType ?check0 ?check1 ?check2 ?check3
+WHERE
+{
+    VALUES ?game {
+      wd:Q4931588  # no value
+      wd:Q1107793  # one value
+      wd:Q18857304 # unknown value
+      wd:Q2385     # multiple values
+      wd:Q23647080 # no property
+    }
+    OPTIONAL
+    {
+      ?game      p:P577  ?statementNode
+      OPTIONAL { ?statementNode ps:P577  ?date }
+      OPTIONAL { ?statementNode rdf:type ?statementNodeType FILTER (?statementNodeType IN (wdno:P577)) }
+    }
+    
+    BIND(IF(BOUND(?statementNode),true,false)              as ?check0) # property is here?
+    BIND(COALESCE(DATATYPE(?date) = xsd:dateTime  , false) as ?check1) # real date?
+    BIND(COALESCE((wdno:P577 = ?statementNodeType), false) as ?check2) # no value?
+    BIND(COALESCE(isBlank(?date)                  , false) as ?check3) # unknown?
+}
+ Try it! Label values \"unknown value\" and \"no value\" for every value/property/item The following query uses these: Items: Adolf Lorenz (Q86085)   , anonymous (Q4233718)   #retrieve all \"unknowns\" and \"no value\" claims
+SELECT ?item ?prefix ?valueorstatementnode ?typeOfStatementNode ?customText
+WHERE
+{
+                                                         #for selected items
+    VALUES ?item {
+      wd:Q86085
+      wd:Q4233718
+    }
+	?item  ?prefix ?valueorstatementnode.
+#   !BOUND(DATATYPE(?valueorstatementnode))
+
+    BIND(xsd:integer(IF(fn:starts-with(STR(?prefix), \"http://www.wikidata.org/prop/P\"), fn:replace(STR(?prefix), \"http://www.wikidata.org/prop/P\", \"\"), \"???\")) as ?pid)
+    BIND(IRI(CONCAT(\"http://www.wikidata.org/prop/novalue/P\", STR(?pid))) as ?possibleWDNO)
+    
+    
+    OPTIONAL 
+    {
+    ?valueorstatementnode rdf:type ?typeOfStatementNode. # information about \"no value\" stored as type
+    }
+    BIND(IF(isBlank(?valueorstatementnode), \"unknown value\", IF(?typeOfStatementNode = ?possibleWDNO, \"no value\", ?value)) as ?customText)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?customText)
+ Try it! Pagination (ORDER and LIMIT) [edit] It’s quite common to care only about a few results: a first, first to, pioneer in; oldest, earliest; youngest, latest.In order to get an answer our entities should be ordered and limited: ORDER BY something sorts the results by something. something can be any expression – for now, the only kind of expression we know are simple variables (?something), but we’ll see some other kinds later. This expression can also be wrapped in either ASC() or DESC() to specify the sorting order (ascending or descending). (If you don’t specify either, the default is ascending sort, so ASC(something) is equivalent to just something.) LIMIT count cuts off the result list at count results, where count is any natural number. For example, LIMIT 10 limits the query to ten results. LIMIT 1 only returns a single result. (You can also use LIMIT without ORDER BY. In this case, the results aren’t sorted, so you don’t have any guarantee which results you’ll get. Which is fine if you happen to know that there’s only a certain number of results, or you’re just interested in some result, but don’t care about which one. In either case, adding the LIMIT can significantly speed up the query, since WDQS can stop searching for results as soon as it’s found enough to fill the limit.)The query that returns the ten most populous countries: SELECT DISTINCT ?country ?countryLabel ?population ?ended
+# ideally we don't need a \"DISTINCT\" above
+# we get multiple records because some items have multiple P31 statements that lead to a Q3624078
+# we can trim duplicates as workaround (or inspect classification and P31 links)
+#SELECT ?country ?countryLabel ?population ?ended
+WHERE
+{
+  ?country wdt:P31/wdt:P279* wd:Q3624078; #countries
+           wdt:P1082         ?population; #with their population
+  MINUS 
+  {
+  ?country wdt:P576          ?ended. 
+  } # exclude \"former\" countries
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY DESC(?population) # most populous countries - descending population
+LIMIT 10
+ Try it! Limitations [edit] In Wikidata sort order defined for following types of properties: string quantity time labels of items, including items without a label in corresponding language (are first using ASC; last - using DESC) But not for: items Exercises Arthur Conan Doyle books [edit] Write a query that returns all books by Sir Arthur Conan Doyle. Hint The relevant items and properties are: Arthur Conan Doyle (Q35610), author (P50). Example solution SELECT ?book ?bookLabel
+WHERE
+{
+  ?book wdt:P50 wd:Q35610.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ Try it! Chemical elements [edit] Write a query that returns all chemical elements with their element symbol and atomic number, in order of their atomic number. Hint The relevant items and properties are: chemical element (Q11344), element symbol (P246), atomic number (P1086). Example solution SELECT ?element ?elementLabel ?symbol ?number
+WHERE
+{
+  ?element wdt:P31 wd:Q11344;
+           wdt:P246 ?symbol;
+           wdt:P1086 ?number.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+ORDER BY ?number
+ Try it! Ways to reduce multiplicity [edit] Sources of multiplicity are explained in edges and Wikidata properties.We will start with an example about two competitors and their rewards. It is natural to win same competition but in different years. Let's see how to deal with this in queries SELECT ?e ?value WHERE { 
+VALUES (?e ?value ?date) {
+(\"James\" \"Belgium\" \"70\")
+(\"Mary\" \"worldwide\" \"71\")
+(\"Mary\" \"worldwide\" \"72\")
+(\"Mary\" \"worldwide\" \"73\")
+(\"Mary\" \"France\" \"76\")
+}
+}
+ Try it! The following query uses these:# we can return every event with respect to person
+SELECT ?e (GROUP_CONCAT(?event) as ?events)
+{
+  SELECT ?e ?event WHERE { 
+  VALUES (?e ?event ?date) {
+  (\"James\" \"Belgium\" \"70\")
+  (\"Mary\" \"worldwide\" \"71\")
+  (\"Mary\" \"worldwide\" \"72\")
+  (\"Mary\" \"worldwide\" \"73\")
+  (\"Mary\" \"France\" \"76\")
+  }
+  }
+}
+GROUP BY ?e Try it! In order to return dates we could use ordinary CONCAT as part of BIND() in WHERE or directly in SELECT (expr AS ?var): The following query uses these:#same: select awards with respect to person
+SELECT ?e (GROUP_CONCAT(?v; separator=\", \") as ?events)
+{
+  #different: return CONCAT(?event,\"'\",?date) as ?v
+  SELECT ?e (CONCAT(?event,\"'\",?date) as ?v) WHERE { 
+  VALUES (?e ?event ?date) {
+  (\"James\" \"Belgium\" \"70\")
+  (\"Mary\" \"worldwide\" \"71\")
+  (\"Mary\" \"worldwide\" \"72\")
+  (\"Mary\" \"worldwide\" \"73\")
+  (\"Mary\" \"France\" \"76\")
+  }
+  } ORDER BY ASC(?date)
+}
+GROUP BY ?e
+ORDER BY DESC(?e) Try it! Now we might not need all details, for example we only need \"number of\" or \"total count\" of something. Solution is to use one of aggregate function (Q4115063), for example COUNT: (COUNT(?v) as ?events) - number of events Complete example The following query uses these: SELECT ?e (COUNT(?v) as ?events)
+{
+  SELECT ?e (CONCAT(?event,\"'\",?date) as ?v) WHERE { 
+  VALUES (?e ?event ?date) {
+  (\"James\" \"Belgium\" \"70\")
+  (\"Mary\" \"worldwide\" \"71\")
+  (\"Mary\" \"worldwide\" \"72\")
+  (\"Mary\" \"worldwide\" \"73\")
+  (\"Mary\" \"France\" \"76\")
+  }
+  }
+}
+GROUP BY ?e
+ Try it! DISTINCT is used to count distinct events. Complete example The following query uses these: # Number of distinct competitions
+  SELECT ?e (COUNT(DISTINCT ?event) as ?events) WHERE
+  {
+    SELECT ?e ?event ?date WHERE { 
+    VALUES (?e ?event ?date) {
+    (\"James\" \"Belgium\" \"70\")
+    (\"Mary\" \"worldwide\" \"71\")
+    (\"Mary\" \"worldwide\" \"72\")
+    (\"Mary\" \"worldwide\" \"73\")
+    (\"Mary\" \"France\" \"76\")
+    }
+    }
+  }
+  GROUP BY ?e
+ Try it! HAVING construct is used to ask questions over results of grouping The following query uses these:# participants ...
+  SELECT ?e (COUNT(DISTINCT ?event) as ?events) WHERE
+  {
+    SELECT ?e ?event ?date WHERE { 
+    VALUES (?e ?event ?date) {
+    (\"James\" \"Belgium\" \"70\")
+    (\"Mary\" \"worldwide\" \"71\")
+    (\"Mary\" \"worldwide\" \"72\")
+    (\"Mary\" \"worldwide\" \"73\")
+    (\"Mary\" \"France\" \"76\")
+    }
+    }
+  }
+  GROUP BY ?e
+  # with at least 2 different competitions
+  HAVING(?events>1) # () are mandatory here too Try it! Note about \"Bad Aggregate\" messages [edit] When we place ?materialLabel in SELECT part of our query, we should copy such variable in GROUP BY too. # Working query without ?materialLabel
+SELECT ?material (COUNT(?painting) AS ?count)
+WHERE
+{
+  ?painting wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?material; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?material # nothing else here Try it! """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834880-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Working query with ?materialLabel
+SELECT ?material ?materialLabel (COUNT(?painting) AS ?count)
+WHERE
+{
+  ?painting wdt:P31/wdt:P279* wd:Q3305213;
+            p:P186 [ ps:P186 ?material; pq:P518 wd:Q861259 ].
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?material ?materialLabel # copied here to avoid message""" .

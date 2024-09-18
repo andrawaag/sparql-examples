@@ -1,0 +1,31 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f8b8ba9cabdbc2f0d45894f48aaa485b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Forum/Archiv/2020/10>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d85843-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?item ?itemLabel ?streetID ?species ?label WHERE {
+    #Abfrage der-Wikidata-Species-ID in OSM für alle als \"Baum\" getaggten Kartenelemente
+    SELECT DISTINCT ?species WHERE {
+      ?tree osmt:natural \"tree\".
+      ?tree osmt:species:wikidata ?species.
+    }
+  }
+  #Abfrage der Straßen in Dresden (via P8710) benannt nach einem Baum-Taxon.
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?species rdfs:label ?label.
+    ?item wdt:P8710 ?streetID.    
+    ?item wdt:P138 ?species.
+    ?item rdfs:label ?itemLabel.
+    FILTER((LANG(?label)) = \"de\")
+    FILTER((LANG(?itemLabel)) = \"de\")
+  }
+}""" .

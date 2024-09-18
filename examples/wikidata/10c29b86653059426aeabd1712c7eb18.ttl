@@ -1,0 +1,26 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-10c29b86653059426aeabd1712c7eb18> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment "Properties: instance of (P31)   , topic's main template (P1424)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jarekt/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810124-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810124-4D91D4D6770ED95226ADF97701B73C8E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?licLabel (count(?item) as ?count) (min(?item) as ?example)
+{
+    ?item wdt:P31   ?lic .          
+    ?item wdt:P1424 ?temp. 
+    ?temp wdt:P31   wd:Q110010043 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+} 
+group by ?licLabel
+order by desc(?count)""" .

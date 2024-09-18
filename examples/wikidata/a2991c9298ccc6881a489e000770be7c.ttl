@@ -1,0 +1,32 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-a2991c9298ccc6881a489e000770be7c> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>, <https://www.wikidata.org//wiki/User:Hjart/SPARQL_queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d853123-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d853123-7D69D0CC195BD5A7B4C21966967F921C,
+    _:genid-4e694113159d4e3db4a1a913894a81d853123-4DC856ADD3DA648AC7A705B358D7FFDF;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?tidspunkt
+ (IF(?præc = 9, \"år\",
+     IF(?præc = 10, \"måned\", \"andet\")
+     ) AS ?præcision)
+WHERE
+{
+  ?item p:P360 ?statement .
+  ?statement ps:P360 wd:Q5 .
+  ?statement pqv:P570 ?tidspunkt_v .
+  ?tidspunkt_v wikibase:timeValue ?tidspunkt .
+  ?tidspunkt_v wikibase:timePrecision ?præc .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"da,en\" . }
+}""" .

@@ -1,0 +1,142 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-f2b43d46a2ab60d96111e8a593d9a98b> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  rdfs:comment """Babel user information eu-N Erabiltzaile hau euskaldun zaharra da (euskara du ama hizkuntza). es-N Esta persona tiene una comprensión nativa del español. en-3 This user has advanced knowledge of English. fr-1 Cet utilisateur dispose de connaissances de base en français. ca-1 Aquest usuari té un coneixement bàsic de català. Users by language Contents 1 Queries 1.1 Parlamentarioak legegintzaldiaren arabera antolatzeko 1.2 Mammals that are in catalan Wikipedia but not in Basque 1.3 Butterfly genus at enwiki but not at euwiki 1.4 Fungi with image not present at Basque Wikipedia ordered by number of sitelinks 2 Wikidata Query Service + QuickCategories = ♥ 2.1 People born by year 3 Veterans and battles 3.1 Beteranoan jaio-heriotza lekuak, guduak eta gurasoak 4 Alemaniako herriak estatuka Queries [edit] Parlamentarioak legegintzaldiaren arabera antolatzeko [edit] SELECT ?article (\"+Category:Nafarroako Parlamentuko parlamentariak IV. legealdian\" AS ?command) WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"eu,en\". }
+  ?item wdt:P39 wd:Q60226157.
+  VALUES ?legealdia {wd:Q117822847}
+  ?item p:P39 ?kargua.
+  ?kargua ps:P39 ?kargua_;
+    pq:P2937 ?legealdia.
+  ?article schema:about ?item .
+  ?article schema:inLanguage \"eu\" .
+  ?article schema:isPartOf <https://eu.wikipedia.org/>
+}
+ Try it! Mammals that are in catalan Wikipedia but not in Basque [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?taxonname ?familyLabel ?orderLabel ?sitelinks ?itemLabel WHERE {
+  ?item wdt:P31 wd:Q16521.
+  ?item wdt:P105 wd:Q7432.
+  ?item wdt:P225 ?taxonname.
+  ?item wdt:P171+ wd:Q7377.
+  ?item wdt:P171+ ?family.
+  ?family wdt:P105 wd:Q35409.
+  ?family wdt:P171+ ?order.
+  ?order wdt:P105 wd:Q36602.
+  ?item wikibase:sitelinks ?sitelinks.
+  ?cat schema:about ?item.
+  ?cat schema:isPartOf <https://ca.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"la,eu\". }
+  FILTER(NOT EXISTS {
+    ?wen schema:about ?item.
+    ?wen schema:inLanguage \"eu\".
+  })
+  MINUS {?item wdt:P141 wd:Q237350.}
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 1000
+ Try it! Butterfly genus at enwiki but not at euwiki [edit] SELECT DISTINCT ?item ?taxonname ?familyLabel ?itemLabel ?taxonomic_typeLabel WHERE {
+  ?item wdt:P31 wd:Q16521;
+    wdt:P105 wd:Q34740;
+    wdt:P225 ?taxonname;
+    (wdt:P171+) wd:Q28319;
+    (wdt:P171+) ?family.
+  ?family wdt:P105 wd:Q35409.
+  ?cat schema:about ?item;
+    schema:isPartOf <https://en.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"la,eu\". }
+  FILTER(NOT EXISTS {
+    ?wen schema:about ?item;
+      schema:inLanguage \"eu\".
+  })
+  ?item wdt:P427 ?taxonomic_type.
+}
+LIMIT 300
+ Try it! Fungi with image not present at Basque Wikipedia ordered by number of sitelinks [edit] PREFIX schema: <http://schema.org/>
+
+SELECT DISTINCT ?item ?taxonname ?itemLabel ?irudia ?sitelinks WHERE {
+  ?item wdt:P31 wd:Q16521.
+  ?item wdt:P105 wd:Q7432.
+  ?item wdt:P225 ?taxonname.
+  ?item wdt:P171+ wd:Q27720.
+  ?item wdt:P171+ ?family.
+  ?family wdt:P105 wd:Q37517.
+  ?item wdt:P18 ?irudia.
+  ?item wikibase:sitelinks ?sitelinks.
+  ?wen schema:about ?item.
+  ?wen schema:isPartOf <https://en.wikipedia.org/>.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"la,eu\". }
+  FILTER(NOT EXISTS {
+    ?weu schema:about ?item.
+    ?weu schema:inLanguage \"eu\".
+  })
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 100
+ Try it! Wikidata Query Service + QuickCategories = ♥ [edit] SELECT ?titleEu (\"+Category:Alemaniako futbolariak\" AS ?command) WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\";
+                     wikibase:endpoint \"en.wikipedia.org\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle \"Category:German_footballers\";
+                     mwapi:gcmnamespace 0;
+                     mwapi:gcmprop \"title\";
+                     mwapi:gcmlimit \"max\".
+     ?titleEn_ wikibase:apiOutput mwapi:title.
+  }
+  BIND(STRLANG(?titleEn_, \"en\") AS ?titleEn)
+  ?articleEn schema:name ?titleEn;
+             schema:isPartOf <https://en.wikipedia.org/>;
+             schema:about ?item.
+  ?articleEu schema:about ?item;
+             schema:isPartOf <https://eu.wikipedia.org/>;
+             schema:name ?titleEu.
+} Copy the result, paste it into QuickCategories, submit the batch and run the commands. Try it out! --Lucas Werkmeister (eztabaida) 20:19, 29 martxoa 2019 (UTC) With subcategory support: SELECT ?titleEu (\"+Category:BASQUE CATEGORY HERE\" AS ?command) WHERE {
+  hint:Query hint:optimizer \"None\".
+  SERVICE <https://query.wikidata.org/bigdata/namespace/categories/sparql> {
+    SERVICE mediawiki:categoryTree {
+      bd:serviceParam mediawiki:start <https://en.wikipedia.org/wiki/Category:ENGLISH_CATEGORY_URL_HERE>;
+                      mediawiki:direction \"Reverse\";
+                      mediawiki:depth 5 . # change this if needed
+    }
+  }
+  ?out schema:name ?categoryEn.
+  SERVICE wikibase:mwapi {
+     bd:serviceParam wikibase:api \"Generator\";
+                     wikibase:endpoint \"en.wikipedia.org\";
+                     mwapi:generator \"categorymembers\";
+                     mwapi:gcmtitle ?categoryEn;
+                     mwapi:gcmnamespace 0;
+                     mwapi:gcmprop \"title\";
+                     mwapi:gcmlimit \"max\".
+     ?titleEn_ wikibase:apiOutput mwapi:title.
+  }
+  BIND(STRLANG(?titleEn_, \"en\") AS ?titleEn)
+  ?articleEn schema:name ?titleEn;
+             schema:isPartOf <https://en.wikipedia.org/>;
+             schema:about ?item.
+  ?articleEu schema:about ?item;
+             schema:isPartOf <https://eu.wikipedia.org/>;
+             schema:name ?titleEu.
+}
+LIMIT 100 People born by year [edit] """@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Theklan>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d85495-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d85495-FEE8A368DBE82520CD80B981F0E4132D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?year (COUNT(?item) AS ?count)
+WHERE
+{
+	?item wdt:P19 wd:Q1598962.
+	?item wdt:P569 ?data.
+  BIND(YEAR(?data) as ?year)
+}
+GROUP BY ?year""" .

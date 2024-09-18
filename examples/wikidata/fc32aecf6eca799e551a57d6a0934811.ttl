@@ -1,0 +1,23 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+<https://www.wikidata.org/#query-fc32aecf6eca799e551a57d6a0934811> a sh:SPARQLExecutable,
+    sh:SPARQLSelectExecutable;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Heritage_institutions/Tools_%26_tasks>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d845311-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d845311-7EA28E64E61385AD7E470D94AAEAE83A;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?prop ?propLabel (COUNT(?archive) AS ?count) WHERE {
+?archive wdt:P31/wdt:P279? wd:Q166118 ; # archives or 1st-level subtypes
+?p [].
+?prop wikibase:directClaim ?p FILTER (?prop != wd:P31)
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?prop ?propLabel
+ORDER BY DESC(?count)""" .
