@@ -6,15 +6,20 @@
 
 <https://www.wikidata.org/#query-419292e77fd1e6ecc79a911855c5dcd2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?itemLabel ?inv ?languageLabel ?sitelink WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d818278-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?itemLabel ?inv ?languageLabel ?sitelink WHERE {
 ?item wdt:P195 wd:Q636400; wdt:P217 ?inv # items in the Ashmolean and get their inventory number
       FILTER (?item != wd:Q1249435) .    # exclude Oxyrhynchus Papyri
 ?sitelink schema:about ?item;            # Wikimedia links (usually Wikipedia articles)
           schema:inLanguage ?lang FILTER (?lang != 'en') FILTER (?lang != 'en-simple') . # exclude English language
 ?language wdt:P305 ?lang                 # convert two-letter code to language item
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY ?inv""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} ORDER BY ?inv""" .

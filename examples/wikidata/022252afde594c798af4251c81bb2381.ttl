@@ -6,7 +6,37 @@
 
 <https://www.wikidata.org/#query-022252afde594c798af4251c81bb2381> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX target: <http://www.wikidata.org/entity/Q742670>
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:buriallocation>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838666-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX target: <http://www.wikidata.org/entity/Q742670>
+
+SELECT 
+  ?works
+
+  ?composer ?composerLabel
+  (CONCAT(\"#composer/\", SUBSTR(STR(?composer), 32)) AS ?composerUrl)
+  ?composerDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?work) AS ?works)
+    ?composer
+  WHERE {
+    ?composer wdt:P119 target: ;
+            ^wdt:P86 ?work .
+  }
+  GROUP BY ?composer
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?works)""";
+  <http://example.org/bigdata_select> """PREFIX target: <http://www.wikidata.org/entity/Q742670>
 
 SELECT 
   ?works
@@ -28,8 +58,4 @@ WHERE {
   INCLUDE %composers
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?works)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:buriallocation>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?works)""" .

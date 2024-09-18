@@ -6,15 +6,6 @@
 
 <https://www.wikidata.org/#query-6c15bbd7f1dda9bbe55faeb2785eb7df> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?id ?title WHERE {   
-  ?id wdt:P669 wd:Q1083850 ;
-      wdt:P1435 wd:Q916333 ;
-      wdt:P6375 ?adres ;
-      wdt:P359 ?rijksmonumentid ;
-      rdfs:label ?label .
-  FILTER (LANG(?label)='nl')
-    BIND(CONCAT(?rijksmonumentid, ' - ', STR(?label), ' - ', ?adres ) AS ?title )
-} LIMIT 200""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Number of languages a Wikipedia page has been translated into 2 How to pass a list of QIDs to a secondary query 3 Prevent Duplication with Multiple GROUP_CONCAT Properties 4 Still rubbish at aggregation 4.1 How much are items about rivers used in Wikidata (one country) 5 Execution methods by country with time of usage 6 Query works non aggregated or for single QID, but not with both 7 Map of stadiums with a capacity of at least 25000 8 Single value and separator 9 Resumption of: https://www.wikidata.org/wiki/Wikidata:Request_a_query/Archive/2020/04#list_of_Nazi_camps 10 Optional Wikipedia links 11 Including Wikipedia link in the query 12 Trying to get WD items that have a specific Property multiple times 13 Genres used as P31 14 Number of links of \"what links here\" in Wikipedia for Italian Books 1980-2021 15 List of all people born between certain years 16 Get each mammal species scientific name, common name & every parent taxon 17 Seeking to list data on all positions held (P39) for a set of items 18 Querying wikidata about movies 19 Query any popular entry 20 #Unique items in a specific language 21 churches without coordinates 22 WikiProject Writing: Querying for writing studies topics to develop article lists 23 List of streets with alt labels 24 Wikipedia articles in all languages 25 Comparison of labels on a set of items 26 Querying wikidata about movies 2 27 Help for query, art gallery of paintings of Venus or Aphrodite 28 Search within subdivisions of administrative entities 29 Finding an error in the parents (Note: AFD is a faunal directory) 30 Get only one item, not one in every language it is available Number of languages a Wikipedia page has been translated into I'm trying to get the number of Wikipedia pages languages Italian books 1980-2021 have been translated into. For instance, \"My brilliant friend\" has been translated into 4 other wikipedia pages. My query returns results but, for instance, doesn't count \"My brilliant friend\" and I was wondering why. SELECT ?item ?label ?authorlabel (count(?lang) as ?numWikipediaLanguages) WHERE { hint:Query hint:optimizer \"None\".
 
 VALUES ?type {wd:Q571 wd:Q7725634} 
@@ -396,5 +387,17 @@ WHERE
  Try it! --Tagishsimon (talk) 14:09, 11 March 2022 (UTC) Optional Wikipedia links I'm playing around with queries for Kartographer, see for example nl:Lijst van rijksmonumenten aan de BakenessergrachtThe normal query works: Items used: Grote Markt (Q1083850)   , Rijksmonument (Q916333)   Properties used: located on street (P669)   , heritage designation (P1435)   , street address (P6375)   , Rijksmonument ID (P359)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d850945-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?id ?title WHERE {   
+  ?id wdt:P669 wd:Q1083850 ;
+      wdt:P1435 wd:Q916333 ;
+      wdt:P6375 ?adres ;
+      wdt:P359 ?rijksmonumentid ;
+      rdfs:label ?label .
+  FILTER (LANG(?label)='nl')
+    BIND(CONCAT(?rijksmonumentid, ' - ', STR(?label), ' - ', ?adres ) AS ?title )
+} LIMIT 200""" .

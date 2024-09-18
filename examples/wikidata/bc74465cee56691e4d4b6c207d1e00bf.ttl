@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-bc74465cee56691e4d4b6c207d1e00bf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d862246-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d862246-CA5A4D253CB9FFF6A12089F469646160;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+SELECT DISTINCT ?item WITH {
 #SELECT ?cnt ?prs (COUNT(?prs) AS ?cntcnt) WITH {
   SELECT ?ref WHERE {
     ?ref pr:P143 wd:Q54919; pr:P813 [] . #  Q1823134 LCSH ; Q36578 GND; Q54919 VIAF; Q423048 ISNI; Q51711 Quora; Q37312 IMDb
@@ -22,7 +30,19 @@
   ?statement prov:wasDerivedFrom ?ref . 
   ?item ?any ?statement .
 } LIMIT 100 #GROUP BY ?cnt ?prs ORDER BY DESC(?cnt)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122825-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item WITH {
+#SELECT ?cnt ?prs (COUNT(?prs) AS ?cntcnt) WITH {
+  SELECT ?ref WHERE {
+    ?ref pr:P143 wd:Q54919; pr:P813 [] . #  Q1823134 LCSH ; Q36578 GND; Q54919 VIAF; Q423048 ISNI; Q51711 Quora; Q37312 IMDb
+  }
+} AS %t WITH {
+  SELECT ?ref (COUNT(?pr) AS ?cnt) (GROUP_CONCAT(STRAFTER(STR(?pr), 'reference/'); separator=', ') AS ?prs) WHERE {
+    INCLUDE %t .
+    ?ref ?pr [] .
+    ?pr ^wikibase:reference [] .
+  } GROUP BY ?ref
+} AS %s WHERE {
+  INCLUDE %s .
+  ?statement prov:wasDerivedFrom ?ref . 
+  ?item ?any ?statement .
+} LIMIT 100 #GROUP BY ?cnt ?prs ORDER BY DESC(?cnt)""" .

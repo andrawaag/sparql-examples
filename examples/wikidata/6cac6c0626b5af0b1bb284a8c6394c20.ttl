@@ -6,25 +6,6 @@
 
 <https://www.wikidata.org/#query-6cac6c0626b5af0b1bb284a8c6394c20> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:ImageGrid{\"hide\":[\"?img\"]}
-select ?ware ?wareLabel (max(?image) as ?img) (concat('in ', str(count(?country)), ' Ländern') as ?countries) ?pm20link
-where {
-  {
-  select ?ware ?image ?wareId
-  where {
-    ?ware wdt:P10890 ?wareId ;
-          wdt:P18 ?image .
-   }
-  }
-  ?folder wdt:P921 ?ware ;
-          wdt:P1269 ?country .
-   
-   bind(uri(concat('https://pm20.zbw.eu/category/ware/i/', ?wareId)) as ?pm20link)
-
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" . }
-}
-group by ?ware ?wareLabel ?pm20link
-order by ?wareLabel""";
   rdfs:comment """Home Data Structure Data Sources Use Cases Tools & Tasks Statistics Contents 1 All PM20 folders currently linked to Wikidata, by type 2 Queries for person folders 2.1 Map of economists in PM20 by place of birth 2.2 Gender bias in the PM20 persons archives 2.3 Participants of expeditions 2.4 Heads of state 3 Queries for PM20 subject categories 3.1 All subject categories 4 Queries for PM20 \"country\" categories 4.1 All geo codes 5 Queries for PM20 country/subject folders 5.1 Subject folders map 5.2 Subject folders for Japan 5.3 Alle Länder/Sach-Mappen (in German) 5.4 Folder and document count per top category 5.5 Folder and document count per geographicl category 5.6 Folder count per country distribution 5.7 \"Real-world\" items linking to PM20 subject folders 6 Queries for companies/organizations 6.1 Map of PM20 companies by headquarters location 6.2 Company folders by NACE-Code 6.3 Folder count per country 6.4 Statistics: total count of items linked to PM20 company folders 6.5 Wikidata property values sourced from PM20 company folders 6.6 List of all PM20 companies (folders and microfilm sections) 7 Queries on comodities and wares 7.1 Ware image grid (w/ links to PM20 folders) 8 Fulltext search for any type of PM20 folder All PM20 folders currently linked to Wikidata, by type [edit] Queried from the Wikidata SPARQL endpoint: Organization/company folders (co) Person folders (pe) General subject folders (sh) Ware folders (wa) Queries for person folders [edit] Map of economists in PM20 by place of birth [edit] per Wikidata query: #defaultView:Map{\"hide\":\"?geo\"}
 select ?image ?item ?itemLabel ?pobLabel ?viewer ?geo
 where {
@@ -413,5 +394,27 @@ order by ?wdLabel
 limit 25000 Try it! Queries on comodities and wares [edit] Ware image grid (w/ links to PM20 folders) [edit] The following query uses these:Properties: PM20 ware ID (P10890)   , image (P18)   , main subject (P921)   , facet of (P1269)    Features: ImageGrid (Q24515278)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_20th_Century_Press_Archives/Use_cases>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d829405-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid{\"hide\":[\"?img\"]}
+select ?ware ?wareLabel (max(?image) as ?img) (concat('in ', str(count(?country)), ' Ländern') as ?countries) ?pm20link
+where {
+  {
+  select ?ware ?image ?wareId
+  where {
+    ?ware wdt:P10890 ?wareId ;
+          wdt:P18 ?image .
+   }
+  }
+  ?folder wdt:P921 ?ware ;
+          wdt:P1269 ?country .
+   
+   bind(uri(concat('https://pm20.zbw.eu/category/ware/i/', ?wareId)) as ?pm20link)
+
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" . }
+}
+group by ?ware ?wareLabel ?pm20link
+order by ?wareLabel""" .

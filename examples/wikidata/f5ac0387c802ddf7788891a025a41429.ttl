@@ -6,10 +6,6 @@
 
 <https://www.wikidata.org/#query-f5ac0387c802ddf7788891a025a41429> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item WHERE {
-  ?item ?label \"Hartmann von Aue\".
-  ?item wdt:P31 wd:Q5.
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 P40 without adopted children and their offspring? 2 Select by qualifier value 3 Women born BCE 4 More higher 5 Items with property quote 6 BLfD-ID and no P18 7 Wikipedia articles categorized in a Wikiproject 8 All national wildlife areas of Canada in Quebec 9 Ottoman Sultans and their Grand Viziers 10 format got URL as an external link 11 Fixing descriptions with a certain error 12 Can't query some labeled items 13 Integer numbers, sorted by (thresholded) number of times they appear as values in statements 14 Simple tree of upper ontology? 15 village (Q532) and India (Q668) 16 Papers with the most authors 17 qualifiers used with significant event (P793) 18 List of all scientific articles with a PMCID and a title with a trailing asterisk and a dot (*.) 19 Getting the list of taxa described by a given taxonomist, or more generally by the people of an insitution (or a country) 20 All items with multiple instances of same statement 21 Most common title of paintings 22 Scientific Journals with more than 3 stated ISSNs 23 Bengali Wikipedia articles with no Wikidata statement 24 Pedido para agregar información en la mini base de datos de Q6152160 (Jane Duncan) 25 Number of items with at least one Wikipedia page 26 Optimization needed for artist dupe detection 27 Country name in a given language & in Bengali P40 without adopted children and their offspring? SELECT * { wd:Q658061 wdt:P40+ ?item }
  Try it! Any idea how I could get children and grandchildren without adopted children and their descendants, e.g. Q63014#P40. --- Jura 06:06, 27 February 2018 (UTC) This question of trying to do a path query, but with the links subject to a qualifier test, is similar to the question I had above, in #Virtual_graph_?. There is in general no way to write that kind of test into the path statement. You can get a result which is close to what you are looking for here with SELECT * { 
    wd:Q658061 wdt:P40+ ?item.
@@ -226,5 +222,11 @@ SELECT ?item ?itemLabel  ?pointInTime ?link ?notariLabel WHERE {
  Try it! Jheald (talk) 22:49, 11 March 2018 (UTC) Actually, on further runs, sometimes the regex is faster, sometimes the STRSTARTS(). So I haven't really been able to help you at all, apart from the suggestion to batch the queries and fix the data in chunks. Jheald (talk) 23:07, 11 March 2018 (UTC) @MisterSynergy, Jheald: Thank you both; I guess I'll just fix them in batches, then. Mahir256 (talk) 23:16, 11 March 2018 (UTC) @MisterSynergy, Jheald: Alternatively, there was PetScan. Mahir256 (talk) 23:45, 11 March 2018 (UTC) ... which can do the label lookup and regex as a post-processing operation, after the basic query. Smart. Jheald (talk) 23:49, 11 March 2018 (UTC) Can't query some labeled items Dear all,I want to check, if a person exists and return its identifier.This works fine:"""@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d855637-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT ?item WHERE {
+  ?item ?label \"Hartmann von Aue\".
+  ?item wdt:P31 wd:Q5.
+}""" .

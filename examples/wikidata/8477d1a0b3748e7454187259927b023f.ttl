@@ -6,7 +6,29 @@
 
 <https://www.wikidata.org/#query-8477d1a0b3748e7454187259927b023f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT * WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Mfchris84>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87640-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT * 
+WHERE {{
+  SELECT ?item WHERE { ?item p:P964 ?GKZStmt. }
+GROUP BY ?item
+HAVING ((COUNT(?GKZStmt)) > 1 ) 
+         
+         }
+  ?item p:P964 ?GKZStmt.
+       ?GKZStmt ps:P964 ?GKZ.
+       OPTIONAL { ?GKZStmt pq:P580 ?startTime. }
+       OPTIONAL { ?GKZStmt pq:P582 ?endTime. }
+       ?GKZStmt wikibase:rank ?rank
+  }
+ORDER BY ?item ?rank""";
+  <http://example.org/bigdata_select> """SELECT * WITH {
   SELECT ?item WHERE { ?item p:P964 ?GKZStmt. }
 GROUP BY ?item
 HAVING ((COUNT(?GKZStmt)) > 1 ) 
@@ -19,8 +41,4 @@ WHERE {include %GKZGems
        OPTIONAL { ?GKZStmt pq:P582 ?endTime. }
        ?GKZStmt wikibase:rank ?rank
   }
-ORDER BY ?item ?rank""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Mfchris84>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY ?item ?rank""" .

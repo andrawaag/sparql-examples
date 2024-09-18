@@ -6,26 +6,6 @@
 
 <https://www.wikidata.org/#query-cfcb2df70d86513831e06105c960a492> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?prop_per_item (COUNT(DISTINCT ?item) as ?nb) (SAMPLE(?item) as ?sample)
-WITH
-{
- SELECT DISTINCT ?claim { ?id wdt:P31 wd:Q55586529 ; wikibase:claim ?claim }
-} as %ids
-WHERE
-{
-  {
-    SELECT ?item  (COUNT(DISTINCT ?claim) as ?prop_per_item)
-    {
-      hint:Query hint:optimizer \"None\".
-      INCLUDE %ids
-      ?item wdt:P27 wd:Q38 . 
-      ?item ?claim []
-    }
-    GROUP BY ?item
-  }
-}
-GROUP BY ?prop_per_item
-ORDER BY ?prop_per_item""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 creation date of wp articles? 2 Country with all relationships related to econocmic and demografic variables could have it 3 budget (P2769) of data protection authority (Q55499415) by point in time (P585) 4 RE:How to former official city names? 5 Mayors 6 Limit lexeme images to one 7 Specific Elo ratings 8 ESRB rating (P852) 9 Gender balance in Swedish parliament 10 Query for all MEP Parliamentarians 11 given name 12 Items without relevant categories 13 Honda Sports Award alma mater 14 Query categories of Commons images 15 Another Q19036877 request 16 Powerplants in Turkey 17 Query for qualifiers on an identifier 18 Scholarly articles by language of title, with no language of content specified 19 Finding Geosphere articles without en: title 20 tool/ query idea: cast members' age at time of movie release 21 Looking for duplicate citations 22 CountyLabel 23 Dataquality 24 Sitelinks to Commons outside of the Gallery/Category namespaces 25 Humans 26 Add counties of a particular state to this query 27 Convulted syntax (property dashboard) 28 Compresence of VIAF members 29 Is it possible to return only referenced results? 30 Query on identifiers only 31 Union 32 Humans 2 33 With out P3602 34 list or graph of Q1, Q2, Q3, etc. . ? 35 find all human entities 36 Given name in greek 37 search in Author Name String 38 Two-letter genera, on Wikispecies 39 budget (P2769) of data protection authority (Q55499415) by point in time (P585) in Euro (Q4916) 40 Timing out 41 Duplicated Elements with the same Guía Digital del Patrimonio Cultural de Andalucía ID (P3318) value 42 Query using categories 43 Query subset of entities on a category page 44 Number of MPs elected to the Norwegian storting for each election 45 Count of neighbouring countries 46 duplicate statements creation date of wp articles? Does the WDQS have access to metadata about Wikipedia articles? E.g. can we write a query to show a map of all geocoded places with articles written in 2011? --99of9 (talk) 09:58, 2 July 2020 (UTC) @99of9: You can get some metadata about Wikipedia articles by accessing the Wikipedia's API though WDQS's MWAPI service (search for \"SERVICE wikibase:mwapi\" in the sections above for examples). This way you can for instance find the date of the first revision of one or more Wikipedia articles, but you cannot search for all articles written in 2011, or check the dates of all geocoded articles because there are too many to handle in a query (there is a limit of 10,000 results from the MWAPI service). --Dipsacus fullonum (talk) 10:45, 2 July 2020 (UTC) Country with all relationships related to econocmic and demografic variables could have it Hello:Could you help me with an example oriented to query for a list of all countries with their relationships related to econocmic and demografic variables?Thank you very muchMario Hi Mario. Please be more specific about what relationships you want see. It will help if you name the properties you want to query. --Dipsacus fullonum (talk) 14:19, 2 July 2020 (UTC) budget (P2769) of data protection authority (Q55499415) by point in time (P585) I added budget (P2769) to two data protection authority (Q55499415) for several years. Now i want to plot them. I tried the following: SELECT ?dpaLabel ?year ?budget
 WHERE {
   ?dpa wdt:P31/wdt:P279* wd:Q55499415.
@@ -686,5 +666,48 @@ ORDER BY ?cod
  Try it! records the uses of all VIAF members; I would need a similar query, which I will try to describe. So, at the moment the query counts the presence of properties in the items (e.g. on how many items have main values of SBN author ID (P396) and how many main values of SBN author ID (P396) are present in them); what I need is a count of the compresence of these properties in the items, i.e. how many items have X (e.g. 3) values of claims using a property which has instance of (P31)Wikidata property for authority control by VIAF member (Q55586529) and has the ?cod. Just an example: for Heliodorus (Q20002932) the result would be 4 (1 value each for GND ID (P227), National Library of Israel J9U ID (P8189), Library of Congress authority ID (P244), Nationale Thesaurus voor Auteursnamen ID (P1006). The result should be grouped by number: X items have 1 value of VIAF members, Y items have 2 values of VIAF members, Z items have 3 values of VIAF members ...I obviously fear timeout, but maybe it is avoidable in some way. --Epìdosis 13:23, 20 July 2020 (UTC) Little idea: an alternative way of approaching the problem would be counting all the values of external-ids present in each item and then considering only the values of properties which are instance of (P31)Wikidata property for authority control by VIAF member (Q55586529) and have the ?cod. Don't know, it may as well be worse for timeout ... --Epìdosis 13:25, 20 July 2020 (UTC) Items used: Wikidata property for authority control by VIAF member (Q55586529)   , Italy (Q38)   Properties used: instance of (P31)   , country of citizenship (P27)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d831502-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?prop_per_item (COUNT(DISTINCT ?item) as ?nb) (SAMPLE(?item) as ?sample)
+WITH
+{
+ SELECT DISTINCT ?claim { ?id wdt:P31 wd:Q55586529 ; wikibase:claim ?claim }
+} as %ids
+WHERE
+{
+  {
+    SELECT ?item  (COUNT(DISTINCT ?claim) as ?prop_per_item)
+    {
+      hint:Query hint:optimizer \"None\".
+      INCLUDE %ids
+      ?item wdt:P27 wd:Q38 . 
+      ?item ?claim []
+    }
+    GROUP BY ?item
+  }
+}
+GROUP BY ?prop_per_item
+ORDER BY ?prop_per_item""";
+  <http://example.org/bigdata_select> """SELECT ?prop_per_item (COUNT(DISTINCT ?item) as ?nb) (SAMPLE(?item) as ?sample)
+WITH
+{
+ SELECT DISTINCT ?claim { ?id wdt:P31 wd:Q55586529 ; wikibase:claim ?claim }
+} as %ids
+WHERE
+{
+  {
+    SELECT ?item  (COUNT(DISTINCT ?claim) as ?prop_per_item)
+    {
+      hint:Query hint:optimizer \"None\".
+      INCLUDE %ids
+      ?item wdt:P27 wd:Q38 . 
+      ?item ?claim []
+    }
+    GROUP BY ?item
+  }
+}
+GROUP BY ?prop_per_item
+ORDER BY ?prop_per_item""" .

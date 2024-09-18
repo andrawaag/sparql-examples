@@ -6,22 +6,6 @@
 
 <https://www.wikidata.org/#query-8362c994ff4d670848731cf0ba17618f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription ?TTDB ?TTDB_URL ?enWP_article ?Website
-WHERE
-{
-    ?item wdt:P4079 ?TTDB .
-    BIND ( CONCAT(\"https://database.theatrestrust.org.uk/resources/theatres/show/\", ?TTDB) AS ?TTDB_URL)
-    OPTIONAL {
-      ?enWP_article schema:about ?item .
-      ?enWP_article schema:inLanguage \"en\" .
-      ?enWP_article schema:isPartOf <https://en.wikipedia.org/> .
-     }
-   OPTIONAL {
-   ?item wdt:P856 ?Website .
-   } 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\"  }    
-}
-LIMIT 50""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Elo ratings in certain month 2 A couple of problems 3 Sort ordering within a group 4 Detect \"unknown value\" and \"no value\" 4.1 Arbitrary break 5 Inconsistencies in disambiguations 6 Ministers of Education in the European Union 7 Problem with Timeout 8 Sitelinks that end with a questionmark 9 Genres 10 Items close to each other where only one has an image 11 List all video games with blank English label 12 No name in a language, but components of name in that language 13 Filter multiple languages in a specific order 14 Taxons with the same name 15 New UK MPs 16 Find all uses of a certain property 17 Alias = Label 18 Query by century 19 Concatenate more values 20 Status of items in a subclass 21 What is Lipovica's current country? 22 Done Lang by number of label 23 Person Name + Birth Month and Day, but no Year 24 Search by items after a specific item 25 P36:Q3551 26 Blacklist 27 query to look up redirects 28 raw Q-code values 29 targetunit=km2 30 Sitelinks on wiktionary 31 Looking up a set of external identifiers 32 Cities listed by population density 33 How to format string output as clickable link? 34 No sitelink, no statements and no backlink 35 Search for cheese (enwiki) 36 Strange timeout error 37 Items that have no label in French but a category with a label in French 38 Example of date using Millennium precision 39 How to find village in India 40 Getting info for category Daily Newspaper (Q1110794) Elo ratings in certain month I need a list of items with Elo ratings (Property:P1087) at point in time (Property:P585) \"April 2007\" (something like \"+2007-04-01T00:00:00Z\" in input form). It's because many of the elo ratings in this particular month were imported wrongly (see Wikidata:WikiProject_Chess#Tasks). It would be nice if somebody could tell me also a possibility to easy remove these statements. Steak (talk) 11:21, 26 May 2017 (UTC) SELECT ?item ?elorating WHERE {
   ?item p:P1087 ?statement .
   ?statement ps:P1087 ?elorating;
@@ -743,5 +727,25 @@ limit 100
  Try it! Matěj Suchánek (talk) 15:00, 22 June 2017 (UTC) The Query also finds historical cities, e.g. Altona (Q1630). Also, some cites like Frankfurt (Q1794) are listed more than once. Can somebody modify the query so that only current cities are found and listed only once? Steak (talk) 15:32, 22 June 2017 (UTC) Frankfurt (Q1794) has multiple preferred population (P1082) about population, that's why you can see it twice (I'd like to have the query as simple as possible). I updated the latest query above. Matěj Suchánek (talk) 17:03, 22 June 2017 (UTC) Thanks, for the latest query. Given that what happens to be a city can be a bit misleading (Paris is 4 times as dense as London), I switched to \"human settlement\". My query tinyurl.com/yawhhsxn works for Germany but when I want to look at the US it doesn't compute. If there a way to optimize the query, so that it computes for the US? Is there otherwise a way to only look at individual US states like California? ChristianKl (talk) 13:42, 27 June 2017 (UTC) How to format string output as clickable link? I cannot get the output of my query in the example below as \"clickable\" as I like. The WP sitelink and the \"official website\" are datatype URL anyway, so that's not a problem. But the Theatres Trust Database ID is a normal string property (like all those authority data properties are, by the way). I does, however, very much represent a defined part of an URL, and it would be nice to be able to generate something clickable. Here's as far as I got (and before you try it, adding the \"<\" and \">\" to the string doesn't help either). """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec128585-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89440-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d89440-631DA9AA230244A697B0BCA4415658C7;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?itemDescription ?TTDB ?TTDB_URL ?enWP_article ?Website
+WHERE
+{
+    ?item wdt:P4079 ?TTDB .
+    BIND ( CONCAT(\"https://database.theatrestrust.org.uk/resources/theatres/show/\", ?TTDB) AS ?TTDB_URL)
+    OPTIONAL {
+      ?enWP_article schema:about ?item .
+      ?enWP_article schema:inLanguage \"en\" .
+      ?enWP_article schema:isPartOf <https://en.wikipedia.org/> .
+     }
+   OPTIONAL {
+   ?item wdt:P856 ?Website .
+   } 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\"  }    
+}
+LIMIT 50""" .

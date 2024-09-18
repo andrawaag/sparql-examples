@@ -6,7 +6,25 @@
 
 <https://www.wikidata.org/#query-53a79bce27f753c88bb8a1989508de86> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?image ?label WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810751-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810751-879506B239CEF81097D3DF3BEDC42775;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?image ?label  WHERE {
+  {
+  SELECT ?item (SAMPLE(?p18) AS ?image) {
+    ?item wdt:P31/wdt:P279* wd:Q31629 .
+    OPTIONAL { ?item wdt:P18 ?p18 } .
+  } GROUP BY ?item
+} .
+  ?item rdfs:label ?label .
+  FILTER ( LANG( ?label ) = \"en\" ) .
+  #FILTER ( STRSTARTS( LCASE( ?label ), \"bo\" ) ) .
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?image ?label WITH {
   SELECT ?item (SAMPLE(?p18) AS ?image) {
     ?item wdt:P31/wdt:P279* wd:Q31629 .
     OPTIONAL { ?item wdt:P18 ?p18 } .
@@ -16,8 +34,4 @@
   ?item rdfs:label ?label .
   FILTER ( LANG( ?label ) = \"en\" ) .
   #FILTER ( STRSTARTS( LCASE( ?label ), \"bo\" ) ) .
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127817-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

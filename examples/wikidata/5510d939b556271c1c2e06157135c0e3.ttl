@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-5510d939b556271c1c2e06157135c0e3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?label
-WHERE
-{
-  SERVICE wikibase:mwapi
-  {
-    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
-                    wikibase:api \"Generator\";
-                    mwapi:generator \"search\";
-                    mwapi:gsrsearch \"inlabel:Frankfurt\";
-                    mwapi:gsrlimit \"max\".
-    ?item wikibase:apiOutputItem mwapi:title.
-  }
-  ?item rdfs:label ?label.
-  FILTER CONTAINS(?label, \"Frankfurt\")
-}""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/pt>,
@@ -32,12 +17,12 @@ WHERE
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/fr>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/query_optimization/en>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-85FBED5D97DBA55CCA7D36A404711E68, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-C9584566B3BC25AD364A037F4EB8EBA5,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-FF43E8BF3FFCD73565F47E0582BCFF02, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-4AC593E3A3915A3A918D21A8AB470EBE,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-28FFC25AE415473524E65AB4BC151B63, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-5BFCEFC1DBEBAC4BC6B145E97753DC44,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-2D4C0293DFA505772CB4B2E0F5BFDFC4, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-59F73825D03A19F22A64DD33E5BA53F4,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec126191-1994E960284691F7E764D5124A5C9F4D;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854197-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d854197-52DFD4D09525CACF088EE9F20473844B,
+    _:genid-4e694113159d4e3db4a1a913894a81d854197-D5A7A5DB5020771C04834BE433FDCB0F, _:genid-4e694113159d4e3db4a1a913894a81d854197-D228A04D5FAA39F11355E57211E87B35,
+    _:genid-4e694113159d4e3db4a1a913894a81d854197-6CF55D34BB716A5F98E9DA662C54002D, _:genid-4e694113159d4e3db4a1a913894a81d854197-F3E2BF244FEB7D733230953F4E64014C,
+    _:genid-4e694113159d4e3db4a1a913894a81d854197-66FA872FEE9F7EBF6509FF6D2ACD5A6B, _:genid-4e694113159d4e3db4a1a913894a81d854197-82C27DA04552DCFAA247F6CFCAE3C465,
+    _:genid-4e694113159d4e3db4a1a913894a81d854197-C86DD7839764CC570AC681358148C8B7, _:genid-4e694113159d4e3db4a1a913894a81d854197-0A344E967197D07439478C5DB1C5440C,
+    _:genid-4e694113159d4e3db4a1a913894a81d854197-5B56C45D0740F13227A609B58BC0E621;
   schema:target <https://query.wikidata.org/sparql/>;
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly 2 wbgetentities unstable as of yesterday (03 Nov) 3 Faster way to query sparql with labels 4 Query buildup 5 Lag of some server(s) (Nov 29) 6 SPARQL query for citizenships does not always return all citizenships Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly Tracked in Phabricator Task T267175 Hello, the following query should return all german streets, which have a Commons-sitelink, but no Commonscat-Property (P373): SELECT ?item ?commonscat ?sitelink  WHERE {
   ?item wdt:P31 wd:Q79007. # Innerortsstraße
@@ -54,4 +39,22 @@ VALUES ?labelB2 { rdfs:label skos:altLabel } ?wdProperty2 ?labelB2 \"place of bi
 wikibase:directClaim ?wdtProperty2. 
 ?val ?wdtProperty2 ?ent . 
 OPTIONAL { ?val rdfs:label ?valLabel FILTER(lang(?valLabel) = \"en\") } 
-} LIMIT 10 Try it!I have already read the query optimization page on searching the label, using the example given, it's still very slow, the below query still takes 11 seconds to return result, it's not usable for real world application.  """@en .
+} LIMIT 10 Try it!I have already read the query optimization page on searching the label, using the example given, it's still very slow, the below query still takes 11 seconds to return result, it's not usable for real world application.  """@en;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?label
+WHERE
+{
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\";
+                    wikibase:api \"Generator\";
+                    mwapi:generator \"search\";
+                    mwapi:gsrsearch \"inlabel:Frankfurt\";
+                    mwapi:gsrlimit \"max\".
+    ?item wikibase:apiOutputItem mwapi:title.
+  }
+  ?item rdfs:label ?label.
+  FILTER CONTAINS(?label, \"Frankfurt\")
+}""" .

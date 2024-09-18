@@ -6,7 +6,33 @@
 
 <https://www.wikidata.org/#query-bcfc92170d8cce9023694464bbe235bd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:grammaticalgender-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826987-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?lexemes
+  ?gender ?genderLabel ?genderDescription
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?lexeme) AS ?lexemes)
+    ?gender
+  WHERE {
+    ?lexeme dct:language [] ; 
+            wdt:P5185 ?gender .
+  }
+  GROUP BY ?gender
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?lexemes)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?lexemes
   ?gender ?genderLabel ?genderDescription
 WITH {
@@ -23,8 +49,4 @@ WHERE {
   INCLUDE %genders
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 }
-ORDER BY DESC(?lexemes)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:grammaticalgender-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?lexemes)""" .

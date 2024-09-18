@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-c7af8afac608f8beeb9b8c6e69463583> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Get all the americans politicians born after 1950 which have as father a politician
-# From https://youtu.be/kJph4q0Im98?t=4961
-SELECT ?child ?childLabel ?fatherLabel ?dob
-WHERE {
-  ?child wdt:P31 wd:Q5 . # item must be instance of human
-  ?child wdt:P27 wd:Q30 . # also citizenship USA
-  ?child wdt:P106 wd:Q82955 . # has occupation politician
-  ?child wdt:P22 ?father . # and has father
-  ?father wdt:P106 wd:Q82955 . # which is a politician
-  
-  ?child wdt:P569 ?dob .
-  FILTER (YEAR(?dob) > 1950)
-  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO LANGUAGE],en\" . }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Norwegians born between 1820 untill 1920 2 Subtract all items with a publication date outside the given range 3 Spanish query 4 All items that have both a category's main topic (P301) and a main subject (P921) claim 5 Fixing WD:WikiProject_Periodicals/numbers/journals/general_properties 6 Remove from output 7 List all items where has characteristic (P1552) is used as a qualifier on properties for this type (P1963) 8 Member of EU (without UK) 9 Films by number of Wikipedia languages 10 Countries existing in a specific date 11 Adding english description to this query 12 Query for external identifier containing a string 13 Expanding the listeria list for anatomical metaclasses 14 Dates ranges 15 Query that finds all items that are subclasses of direct anatomical metaclass (Q103997018) but not instances of an instance of anatomical entity (Q27043950) 16 List of featured articles 17 Query about books written by women 18 Duplicate BHL items 19 Getting Wikidata QIds for ~1000 Wikipedia articles (various languages)? 20 Prefix should be s: but it return wds: 21 Optimizing a SPARQL query -- times out when I add Labels 22 Altering this query to include all subclasses of meteorite (Q60186) 23 List of authors with links to Wikisource but not any other project 24 Exclude members of duo 25 Once working, no longer working query 26 Getting the point-in-time of a property? 27 What are the most frequently used external identifiers? 28 including point in time (P585) 29 Add references to a query 30 Steer on combining subquery results 31 version, edition, or translation 32 List of countries 33 Timeout in a query about Wikidata pages 34 Data quality : those having official website (P856) but no country (P17) 35 This simple query does not seem to work 36 Image captured with ... 37 List of lonely items of tlwiki 38 Cannot reproduce results of a query in a 2018 video 39 Get all museums within 5km from a given latitude and longitude 40 Class and subclasses tree 41 Pages in a category, in another WP language project 42 Politician's careers 43 Search by wikibase:geoLatitude and wikibase:geoLongitude 44 Commons categories not using the infobox (SQL) 45 Timing out query 46 Display geo:wktLiterals 47 Large query request 48 How to get ask a query to find all the given names and their meanings 49 I would like to query the demographics of a location using the MediaWiki API Service Norwegians born between 1820 untill 1920 May I have a list of norwegians born between 1820 (inluded 1820) to 1920 (included 1920) Pmt (talk) 18:08, 1 December 2020 (UTC) @Pmt: This sort of thing - example is based on country of citizenship. If you want to go wider we could look at place of birth, or coutry for sport or whatnot. SELECT ?item ?itemLabel ?dob
 WHERE 
 {
@@ -1009,5 +994,24 @@ WHERE
  Try it! --Dipsacus fullonum (talk) 01:24, 25 December 2020 (UTC) Cannot reproduce results of a query in a 2018 video I'm a beginner and I wanted to test some of the queries shown in this video from 2018 : https://www.youtube.com/watch?v=kJph4q0Im98&t=5465s However, after typing the exact same query into query.wikidata.com However the results are not what I expected, I noticed that the number of results was too large and indeed it returned non american politician. After that I added the line `?father wdt:P27 wd:Q30 .` to signify that the father should also be american and it worked like in the video. But the video doen't feature this particular line, so I ask the question : Is it normal? or do I'm missing something? I expect that when I use the line `?child wdt:P27 wd:Q30 .` it mean that I only want American Politician, it is a AND statement so it should not return non american politician. Why?? Something doesn't add up. """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87937-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Get all the americans politicians born after 1950 which have as father a politician
+# From https://youtu.be/kJph4q0Im98?t=4961
+SELECT ?child ?childLabel ?fatherLabel ?dob
+WHERE {
+  ?child wdt:P31 wd:Q5 . # item must be instance of human
+  ?child wdt:P27 wd:Q30 . # also citizenship USA
+  ?child wdt:P106 wd:Q82955 . # has occupation politician
+  ?child wdt:P22 ?father . # and has father
+  ?father wdt:P106 wd:Q82955 . # which is a politician
+  
+  ?child wdt:P569 ?dob .
+  FILTER (YEAR(?dob) > 1950)
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO LANGUAGE],en\" . }
+}""" .

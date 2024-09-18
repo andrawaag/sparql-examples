@@ -6,28 +6,6 @@
 
 <https://www.wikidata.org/#query-18593b858165710ea6195a3a56325fbd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
-WHERE
-{
-  BIND ( \"10.1023/A\" as ?search_string )
-  hint:Query hint:optimizer \"None\".  
-  SERVICE wikibase:mwapi
-  {
-    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
-    bd:serviceParam wikibase:api \"Generator\" .
-    bd:serviceParam mwapi:generator \"search\" .
-    bd:serviceParam mwapi:gsrsearch ?search_string .
-    bd:serviceParam mwapi:gsrlimit \"max\" .    
-    bd:serviceParam mwapi:gsrnamespace \"0\" .    
-    ?item wikibase:apiOutputItem mwapi:title  .
-  }
-  FILTER( BOUND(?item) )
-  ?item wdt:P356 ?doi 
-  FILTER ( CONTAINS(?doi, ?search_string) )
-  FILTER NOT EXISTS { ?item wdt:P1476 [] }   
-  OPTIONAL { ?item wdt:P31 ?instance_of }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Chemical compounds 2 Farthest north 3 comparing a string without comparing languages 4 Split a query output into two or more lists 5 List of Nigerian LGBT articles on any Wikipedia in need of translation or pictures 6 List an P31 value with a specific reference 7 QUERY TO DOWNLOAD ALL MEMBERS OF PARLIAMENTS 8 Items with DOI (P356) that start with 10.1023/A: without a Label or a title (P1476) 9 P1013:Q4167410 to P1013:Q24005632 10 First query got timeout 11 Number of generations 12 Noob looks for help 13 A Wikidata list of the articles every Wikipedia should have 14 P81 qualifiers for P197 not matching P81 statement 15 Getting the unit of a quantity 16 Russian paintings that exist on ruwiki but not on frwiki 17 Alphabetical and numberical sorting 18 Location of admin_centre of relation 19 Human settlement in Italy without description in Italian language 20 Swedish Outdoor gyms with most viewed videos on youtube 21 English creative works that have an \"has edition\" but that edition doesn't have \"edition of\" 22 Values with specific unit 23 List people born in a region and dead in nazi camps 24 Wikidata listing query 25 Eye color 26 Matching \"depicts\" wikidata item describing a file in commons with the wikidata item 27 Females billionaires 28 YouTubers who don't have an image Chemical compounds I was wanting a query for a list of chemical compounds (Q11173) that I could use in this image finding tool: https://fist.toolforge.org/wdfist/ But it causes 10% duplicates, because it fails to recognise chemical structure (P117) diagrams as images.So instance of Q11173 Without P117??? Niterurea (talk) 18:59, 2 July 2021 (UTC) @Niterurea: There's somewhere north of 1 million of them; for that reason, no labels b/c timeout. --Tagishsimon (talk) 19:07, 2 July 2021 (UTC) SELECT ?item ?itemLabel 
 WHERE 
 {
@@ -117,5 +95,30 @@ WHERE
 } Try it! --- Jura 13:16, 4 July 2021 (UTC) @Jura1: Thank you! Hey, did you provide an example of items in that specific journal as an example? It works for me, but I was hoping for ALL journals. If you limited to items that are scholarly articles, that might limit some. Did you limit to a specific journal because otherwise it times out? Thanks again, I can address these pretty quickly now so thank you so much. Trilotat (talk) 16:05, 4 July 2021 (UTC) @Jura1: A follow-up... This is working better than expected! I have been able to update a few hundred items very quickly working through your list. I then went on to find other journals published by SpringerLink plugged into your query. Thanks so much. I'll keep looking for examples and then chasing down others published in that journal. Trilotat (talk) 17:20, 4 July 2021 (UTC) For the query, I used that journal as it was in your sample. Apparently \"10.1023\" could be any Springer publication. The below is probably closer to your question: Properties used: DOI (P356)   , title (P1476)   , instance of (P31)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d830710-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?instance_of ?instance_ofLabel
+WHERE
+{
+  BIND ( \"10.1023/A\" as ?search_string )
+  hint:Query hint:optimizer \"None\".  
+  SERVICE wikibase:mwapi
+  {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch ?search_string .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .
+  }
+  FILTER( BOUND(?item) )
+  ?item wdt:P356 ?doi 
+  FILTER ( CONTAINS(?doi, ?search_string) )
+  FILTER NOT EXISTS { ?item wdt:P1476 [] }   
+  OPTIONAL { ?item wdt:P31 ?instance_of }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

@@ -6,7 +6,41 @@
 
 <https://www.wikidata.org/#query-51b5e2ddd5e1e5fb52eb1bbfd0828764> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?count
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d835447-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?count
+
+WITH {
+  SELECT ?item WHERE {
+    {
+  SELECT ?lang (COUNT(DISTINCT ?article) AS ?count) WHERE {
+    ?article schema:about/wdt:P31 wd:Q7889 .
+    FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") .
+    ?article schema:inLanguage ?lang .
+  } 
+  GROUP BY ?lang
+}.
+    ?item wdt:P31 wd:Q10876391.
+    ?item wdt:P424 ?lang.
+  }
+} AS %wikipedias
+WHERE {
+  {
+  SELECT ?lang (COUNT(DISTINCT ?article) AS ?count) WHERE {
+    ?article schema:about/wdt:P31 wd:Q7889 .
+    FILTER (SUBSTR(str(?article), 11, 15) = \".wikipedia.org/\") .
+    ?article schema:inLanguage ?lang .
+  } 
+  GROUP BY ?lang
+}.
+  INCLUDE %wikipedias.
+} ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?count
 WITH {
   SELECT ?lang (COUNT(DISTINCT ?article) AS ?count) WHERE {
     ?article schema:about/wdt:P31 wd:Q7889 .
@@ -25,8 +59,4 @@ WITH {
 WHERE {
   INCLUDE %items.
   INCLUDE %wikipedias.
-} ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} ORDER BY DESC(?count)""" .

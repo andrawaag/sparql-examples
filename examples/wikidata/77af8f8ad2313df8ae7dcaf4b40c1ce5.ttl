@@ -6,7 +6,31 @@
 
 <https://www.wikidata.org/#query-77af8f8ad2313df8ae7dcaf4b40c1ce5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?prop ?propLabel ?violation ?violationLabel ?constraint ?class ?classLabel WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Chemistry/ChemID>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863644-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?prop ?propLabel ?violation ?violationLabel ?constraint ?class ?classLabel  {
+  {
+  SELECT DISTINCT ?item ?z1 ?s ?y WHERE {
+    ?s wikibase:hasViolationForConstraint ?y.
+    ?item ?z1 ?s .
+  }
+}
+  ?prop wikibase:claim ?z1 ;
+        wdt:P31 wd:Q19833835 .
+  OPTIONAL { ?y ps:P2302 ?violation }
+  OPTIONAL { ?y pq:P1793 ?constraint }     
+  OPTIONAL { ?y pq:P2308 ?class }     
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?prop ?propLabel ?violation ?violationLabel ?constraint ?class ?classLabel WITH {
   SELECT DISTINCT ?item ?z1 ?s ?y WHERE {
     ?s wikibase:hasViolationForConstraint ?y.
     ?item ?z1 ?s .
@@ -19,8 +43,4 @@
   OPTIONAL { ?y pq:P1793 ?constraint }     
   OPTIONAL { ?y pq:P2308 ?class }     
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiProject_Chemistry/ChemID>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

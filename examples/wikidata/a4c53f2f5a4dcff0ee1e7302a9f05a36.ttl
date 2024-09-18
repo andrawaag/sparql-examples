@@ -6,19 +6,6 @@
 
 <https://www.wikidata.org/#query-a4c53f2f5a4dcff0ee1e7302a9f05a36> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?song ?songLabel
-  (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\", \") as ?comp)
-  (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\", \") as ?lyri)
-  (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
-WHERE
-{
-    BIND(wd:Q530546 AS ?item) # this is the item of the album
-    ?item wdt:P658 ?song.
-    ?song wdt:P86 ?composer. # need concatenate all the composer
-    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
-}
-GROUP BY ?song ?songLabel""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Elo ratings in certain month 2 A couple of problems 3 Sort ordering within a group 4 Detect \"unknown value\" and \"no value\" 4.1 Arbitrary break 5 Inconsistencies in disambiguations 6 Ministers of Education in the European Union 7 Problem with Timeout 8 Sitelinks that end with a questionmark 9 Genres 10 Items close to each other where only one has an image 11 List all video games with blank English label 12 No name in a language, but components of name in that language 13 Filter multiple languages in a specific order 14 Taxons with the same name 15 New UK MPs 16 Find all uses of a certain property 17 Alias = Label 18 Query by century 19 Concatenate more values 20 Status of items in a subclass 21 What is Lipovica's current country? 22 Done Lang by number of label 23 Person Name + Birth Month and Day, but no Year 24 Search by items after a specific item 25 P36:Q3551 26 Blacklist 27 query to look up redirects 28 raw Q-code values 29 targetunit=km2 30 Sitelinks on wiktionary 31 Looking up a set of external identifiers 32 Cities listed by population density 33 How to format string output as clickable link? 34 No sitelink, no statements and no backlink 35 Search for cheese (enwiki) 36 Strange timeout error 37 Items that have no label in French but a category with a label in French 38 Example of date using Millennium precision 39 How to find village in India 40 Getting info for category Daily Newspaper (Q1110794) Elo ratings in certain month I need a list of items with Elo ratings (Property:P1087) at point in time (Property:P585) \"April 2007\" (something like \"+2007-04-01T00:00:00Z\" in input form). It's because many of the elo ratings in this particular month were imported wrongly (see Wikidata:WikiProject_Chess#Tasks). It would be nice if somebody could tell me also a possibility to easy remove these statements. Steak (talk) 11:21, 26 May 2017 (UTC) SELECT ?item ?elorating WHERE {
   ?item p:P1087 ?statement .
   ?statement ps:P1087 ?elorating;
@@ -525,5 +512,23 @@ WHERE
  Try it! It's possible sort by qualifier series ordinal (P1545) that there is in tracklist (P658) It's possible concatenate all the value in composer (P86) and lyricist (P676) so we have only one row for song (ex. \"Flavio Premoli, Franco Mussida\")? We need one row because Wikidatalist show only one row if exist multiple row for the same item. --ValterVB (talk) 12:52, 11 June 2017 (UTC)  Items used: Per un amico (Q530546)   Properties used: tracklist (P658)   , composer (P86)   , lyricist (P676)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec128522-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819091-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d819091-7321749AA97F81B54098068A21A50BF6;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?song ?songLabel
+  (GROUP_CONCAT(DISTINCT ?composerLabel; separator=\", \") as ?comp)
+  (GROUP_CONCAT(DISTINCT ?lyrics_byLabel; separator=\", \") as ?lyri)
+  (CONCAT('\"', str(?songLabel), '\" by ', str(?comp), \" (comp.), \", str(?lyri), \" (lyrics)\") as ?songdesc)
+WHERE
+{
+    BIND(wd:Q530546 AS ?item) # this is the item of the album
+    ?item wdt:P658 ?song.
+    ?song wdt:P86 ?composer. # need concatenate all the composer
+    ?song wdt:P676 ?lyrics_by # need concatenate all the lyrics by
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,it\" .  ?composer rdfs:label ?composerLabel . ?lyrics_by rdfs:label ?lyrics_byLabel . ?song rdfs:label ?songLabel }
+}
+GROUP BY ?song ?songLabel""" .

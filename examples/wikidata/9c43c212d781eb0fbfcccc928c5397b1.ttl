@@ -6,19 +6,6 @@
 
 <https://www.wikidata.org/#query-9c43c212d781eb0fbfcccc928c5397b1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?participantLabel (contains(?participantLabel,\"Women's\") as ?x)  WHERE {
-  ?item wdt:P31 wd:Q5 .
-  ?item wdt:P106 wd:Q13141064 .
-  ?item wdt:P1344 ?participant .
-  
-        
-  SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"en\" .
-  }     
-   
-  FILTER NOT EXISTS { ?item wdt:P21 ?sexe } .
-         
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Biographical reference work 2 Bug somewhere? 3 Biographies for the Asian Month 4 excluding Q-IDs 5 Taxa described first time in year... 6 Nuclear power plants 7 Articles about females from one category in the English and Arabic Wikipedias 8 Units conversion 9 help with timing out query 10 Pakistan people 11 Cities in Russia on the map 12 List of Chopin works with catalogue numbers 13 Search by label on a distinct set (Dutch painters) 14 Efficient query, based on a string, to find Wikidata pages 15 Query to select a type of item (Building) or subtype, located in a city 16 Nearest places to a set of query results 17 Problem with Qualifiers 18 Gender queries (again) 19 People born on november 16th for Listeria 20 using substring in order to filter results 21 Why do some results appear twice? 22 Filter on description 23 People not born in... 24 N° of biographies by year of birth and sex 25 Query for namespaces 26 P131 values without P131 set 27 Query for all Q objects that have an English Wikipedia associated with them Biographical reference work Would anybody be so kind as to help me with a query? I have no experience with them and don't know SPARQL (yet), but I'd like to learn.What I'm trying to do is get all Wikidata items that have Teuchos ID (P2018) with a string starting with \"P-\", then add described by source (P1343)Philologisches Schriftsteller-Lexikon (Q27357514) to all of them, with page number and reference URL (linking to a digital facsimile).How do you translate this into a query? Jonathan Groß (talk) 10:03, 17 October 2016 (UTC) Using SPARQL, you can just get all items which need to be processed, e.g. by using this query: SELECT ?item ?itemLabel ?teuchos WHERE {
 	?item wdt:P2018 ?teuchos .
   	FILTER REGEX(?teuchos, '^P\\\\-.*')
@@ -326,5 +313,22 @@ WHERE
  Try it! Any tips how I can split this up? Thanks in advance. Jane023 (talk) 18:20, 15 November 2016 (UTC) People born on november 16th for Listeria Is it possible to make a query to look for the people born (or death) on any particular day for Listeria? -Theklan (talk) 11:12, 16 November 2016 (UTC) @Theklan: Have you seen Wikidata:Database reports/birthday today? Matěj Suchánek (talk) 08:13, 19 November 2016 (UTC) Thanks, @Matěj Suchánek:! -Theklan (talk) 12:03, 19 November 2016 (UTC) How would be the correct sintax? FILTER (year(?date) > 1 && day(?date) = day(16) && month(?date) = month(11)) Is not working. -Theklan (talk) 13:14, 19 November 2016 (UTC) Why day(16)? day(?date) converts the value to a number, so it should be compared with a number (16). Matěj Suchánek (talk) 21:44, 19 November 2016 (UTC) using substring in order to filter results The goal is to have a result with only participants to a man's tournament, or to a woman's tournament, for participants lacking a gender. I got the below query that will give a true/false result, but the filter itself doesn't work. Does anyone know how to apply that? Edoderoo (talk) 10:17, 20 November 2016 (UTC) """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2016/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec127367-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840925-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d840925-27D2E1CF6162B19B5BF5F7A80F6781AB;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?participantLabel (contains(?participantLabel,\"Women's\") as ?x)  WHERE {
+  ?item wdt:P31 wd:Q5 .
+  ?item wdt:P106 wd:Q13141064 .
+  ?item wdt:P1344 ?participant .
+  
+        
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"en\" .
+  }     
+   
+  FILTER NOT EXISTS { ?item wdt:P21 ?sexe } .
+         
+}""" .

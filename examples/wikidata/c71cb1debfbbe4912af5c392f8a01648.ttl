@@ -6,7 +6,31 @@
 
 <https://www.wikidata.org/#query-c71cb1debfbbe4912af5c392f8a01648> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?numberItem ?type ?value (COUNT(*) AS ?cnt) WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844018-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?numberItem ?type ?value (COUNT(*) AS ?cnt)  WHERE {
+  {
+  SELECT ?numberItem ?type ?value WHERE {
+    ?numberItem wdt:P31/wdt:P279 wd:Q12503; p:P1181/psv:P1181/wikibase:quantityAmount ?numericalValue .
+    FILTER(?numericalValue > 9000) . # optional to prevent timeouts
+#depending on the statement data type, un-comment one of the four following lines. You may have to adjust the FILTER value above to yield results.
+    BIND(?numericalValue AS ?value) . BIND(wikibase:Quantity AS ?type) . # numerical data type properties
+#    BIND(STR(?numericalValue) AS ?value) . BIND(wikibase:String AS ?type) . # string data type properties
+#    BIND(STR(?numericalValue) AS ?value) . BIND(wikibase:ExternalId AS ?type) . # external-id data type properties; technically also plain strings
+#    BIND(STRLANG(STR(?numericalValue), 'en') AS ?value) . BIND(wikibase:Monolingualtext AS ?type) . # monolingualtext data type properties for language code 'en'
+  }
+} .
+  ?type ^wikibase:propertyType/wikibase:directClaim ?wdt .
+  [] ?wdt ?value .
+} GROUP BY ?numberItem ?type ?value HAVING (?cnt > 10)""";
+  <http://example.org/bigdata_select> """SELECT ?numberItem ?type ?value (COUNT(*) AS ?cnt) WITH {
   SELECT ?numberItem ?type ?value WHERE {
     ?numberItem wdt:P31/wdt:P279 wd:Q12503; p:P1181/psv:P1181/wikibase:quantityAmount ?numericalValue .
     FILTER(?numericalValue > 9000) . # optional to prevent timeouts
@@ -20,8 +44,4 @@
   INCLUDE %subquery .
   ?type ^wikibase:propertyType/wikibase:directClaim ?wdt .
   [] ?wdt ?value .
-} GROUP BY ?numberItem ?type ?value HAVING (?cnt > 10)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/03>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} GROUP BY ?numberItem ?type ?value HAVING (?cnt > 10)""" .

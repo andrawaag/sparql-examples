@@ -6,7 +6,27 @@
 
 <https://www.wikidata.org/#query-c631be807463b473af0ac08f0ac915ce> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itDescrizione WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ValterVB>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d862384-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d862384-FC512EB6C15C7A8BBE6E71FEDDDF8878;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?itDescrizione  WHERE {
+  {
+  SELECT ?item {
+    BIND( 1000000 * 30 AS ?base ) . # change this 0-30
+    ?item wdt:P31 wd:Q4167836 .
+    BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) .
+    FILTER( ?num > ?base + 0 && ?num < ?base + 1000001 ) .
+  }
+} .
+  ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
+  FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itDescrizione WITH {
   SELECT ?item {
     BIND( 1000000 * 30 AS ?base ) . # change this 0-30
     ?item wdt:P31 wd:Q4167836 .
@@ -17,8 +37,4 @@
   INCLUDE %sub .
   ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
   FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:ValterVB>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec119657-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

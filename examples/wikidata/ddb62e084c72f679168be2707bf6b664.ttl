@@ -6,41 +6,6 @@
 
 <https://www.wikidata.org/#query-ddb62e084c72f679168be2707bf6b664> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Double cousins: children of 2 brothers marrying 2 sisters
-SELECT 
-  ?person ?personLabel
-  ?relative ?relativeLabel
-  ?link
-  ?f1 ?f1Label
-  ?m1 ?m1Label
-  ?f2 ?f2Label
-  ?m2 ?m2Label
-  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
-  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
-WITH
-{
-  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
-  {
-    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
-    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
-    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
-    # checks to avoid half-siblings:
-    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
-    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
-    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
-    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
-    } 
-    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
-  }  LIMIT 200
-} as %basic
-WHERE
-{
-    # hint:Query hint:optimizer \"None\".
-    INCLUDE %basic
-    ?person wdt:P31 wd:Q5 .
-    ?relative wdt:P31 wd:Q5 .
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 A bit of sport 2 Separación en dos diferentes objetos Q de Wikidata, de dos artículos en un mismo idioma, uno de desambiguación respecto de XXXX, y el otro agrupando personas con el apellido XXXX 3 All items that ever were popular 4 Nobel prizes 5 Finding all super-classes 6 Creation date 7 Communes of France without a church 8 Grey mountains 9 without P31 10 Percent female per first letter in the surname 11 Same label for two items of same type 12 Taxon label in French different from the scientific name 13 Avoid duplication - geo coords 14 All statements with a reference \"imported from OpenStreetMap\" 15 Airports less than 100km from Berlin didn't work 16 How to filter away properties that have 'no value' set? 17 stated in : Q20087097 but without P304 18 Where is the most dense concentration of item ? 19 Double first cousins 20 Living people without an image from a specific country 21 All items with P373 and a hewiki article 22 Label and Alias same at different Items 23 Looking for items where category saved in sitelink to Commons does not match P373 24 Put multiple results in one cell 25 Looking for items where there is category saved in sitelink to Commons but we have no P373 26 Release date and region 27 Media release region 28 Wikipedia articles about Canadian cities that has no photo 29 Get a work's label in its original language 30 Wikidata items with coordinate location (P625) tag 31 Rocket launches per year 32 existing french wikivoyage page and no OSM relation, in wikidata page A bit of sport The problem: have a list of all the footballers that played in 2016–17 Serie A (Q23728326)Possible approach: search all the player that have played in team listed by participating team (P1923) in 2016–17 Serie A (Q23728326) in the period time period (P2348) using member of sports team (P54) and qualifier start time (P580) and end time (P582), To detect footballers we can use occupation (P106)=association football player (Q937857) (maybe P2348 isn't so easy to use).Some volunteers? --ValterVB (talk) 17:53, 29 September 2017 (UTC) ValterVB, thanks for your valuable input. I just wanted to point out that the season is 2017-2018 (this season). --Bella Situazione (talk) 14:14, 30 September 2017 (UTC) If the query work for one season, work for all season. In this case I prefer 2016-2017 because the item is more complete, for 2017-2018 we need at least the teams. --ValterVB (talk) 14:48, 30 September 2017 (UTC) I tried to do something, that's what I've been able to do: PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT ?item ?itemLabel ?datanascita ?transfermkt WHERE {
@@ -272,5 +237,79 @@ ORDER BY DESC(?count)
  Try it! But it's limited to Brittany (Q12130) to avoid TimeOut. I tried to embed to select inside one another but I fail to have results :/ Has anyone a better idea how to do it ?Cdlt, VIGNERON (talk) 18:05, 20 October 2017 (UTC) Interesting question. Not sure, but you might want to add DISTINCT in the COUNT(). --- Jura 14:00, 21 October 2017 (UTC) Double first cousins Items used: human (Q5)   Properties used: father (P22)   , mother (P25)   , sibling (P3373)   , instance of (P31)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec130283-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d836350-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d836350-16D01A6DF482A99B45F61D94665C73B1;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Double cousins: children of 2 brothers marrying 2 sisters
+SELECT 
+  ?person ?personLabel
+  ?relative ?relativeLabel
+  ?link
+  ?f1 ?f1Label
+  ?m1 ?m1Label
+  ?f2 ?f2Label
+  ?m2 ?m2Label
+  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
+  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
+WITH
+{
+  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
+  {
+    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
+    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
+    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
+    # checks to avoid half-siblings:
+    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
+    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
+    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    } 
+    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
+  }  LIMIT 200
+} as %basic
+WHERE
+{
+    # hint:Query hint:optimizer \"None\".
+    INCLUDE %basic
+    ?person wdt:P31 wd:Q5 .
+    ?relative wdt:P31 wd:Q5 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """# Double cousins: children of 2 brothers marrying 2 sisters
+SELECT 
+  ?person ?personLabel
+  ?relative ?relativeLabel
+  ?link
+  ?f1 ?f1Label
+  ?m1 ?m1Label
+  ?f2 ?f2Label
+  ?m2 ?m2Label
+  # ?gf1 ?gf1Label    ?gm1 ?gm1Label
+  # ?gf2 ?gf2Label    ?gm2 ?gm2Label
+WITH
+{
+  SELECT   ?person   ?f1   ?m1   ?relative ?f2 ?m2 ?link ?gf1 ?gf2 ?gm1 ?gm2
+  {
+    ?person wdt:P22 ?f1 ; wdt:P25 ?m1 .
+    ?relative wdt:P22 ?f2 ;wdt:P25 ?m2 .
+    { ?f1 wdt:P3373 ?f2 . ?m1 wdt:P3373 ?m2 . BIND(\"2 brothers/2 sisters\" as ?link)
+    # checks to avoid half-siblings:
+    ?f1 wdt:P22 ?gf1 ; wdt:P25 ?gm1 . 
+    ?f2 wdt:P22 ?gf1 ; wdt:P25 ?gm1 .
+    ?m1 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    ?m2 wdt:P22 ?gf2 ; wdt:P25 ?gm2 .
+    } 
+    FILTER ( ?person != ?relative && ?f1 != ?f2 && ?m1 != ?m2 && ?gf1 != ?gf2  && ?gm1 != ?gm2 )  #avoid more closely related
+  }  LIMIT 200
+} as %basic
+WHERE
+{
+    # hint:Query hint:optimizer \"None\".
+    INCLUDE %basic
+    ?person wdt:P31 wd:Q5 .
+    ?relative wdt:P31 wd:Q5 .
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

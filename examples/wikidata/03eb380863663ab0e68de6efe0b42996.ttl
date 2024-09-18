@@ -6,34 +6,6 @@
 
 <https://www.wikidata.org/#query-03eb380863663ab0e68de6efe0b42996> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#cases where a drug physically interacts with the product of gene known to be genetically associated a disease
-#these cases may show opportunities to repurpose a drug for a new disease
-#See http://database.oxfordjournals.org/content/2016/baw083.long and
-#http://drug-repurposing.nationwidechildrens.org/search
-#an example that was recently validated involved a new link between Metformin wd:Q19484 and cancer survival
-#https://jamia.oxfordjournals.org/content/22/1/179
-#currently set up to find drugs for cancers that target genes related to cell proliferation
-#adapt by changing constraints (e.g. to 'heart disease' Q190805) or removing them
-SELECT ?drugLabel ?geneLabel ?biological_processLabel ?diseaseLabel
-WHERE {
-  ?drug wdt:P129 ?gene_product . # drug interacts with a gene_product
-  ?gene wdt:P688 ?gene_product . # gene_product (usually a protein) is a product of a gene (a region of DNA)
-  ?disease wdt:P2293 ?gene .     # genetic association between disease and gene
-  ?disease wdt:P279* wd:Q12078 . # limit to cancers wd:Q12078 (the * operator runs up a transitive relation..)
-  ?gene_product wdt:P682 ?biological_process . #add information about the GO biological processes that the gene is related to
-
-   ?biological_process (wdt:P361|wdt:P279)* wd:Q189101 . # chain down subclass/part-of
-   #Change the last statement (wd:Q14818032) to limit to genes related to certain biological processes (and their sub-processes):
-      #cell proliferation wd:Q14818032 (Current example)
-                #apoptosis wd:Q14599311
-
-    #uncomment the next line to find a subset of the known true positives (there are not a lot of them in here yet; will lead to 4 drugs if biological process is cell proliferation 2018-12-17)
-  #?disease wdt:P2176 ?drug . # disease is treated by a drug
-    SERVICE wikibase:label {
-        bd:serviceParam wikibase:language \"en\" .
-  }
-}
-LIMIT 1000""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
@@ -69,21 +41,53 @@ LIMIT 1000""";
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-2675EC56755C8976A51603EC34408E1A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-7B1B148C6C87564E5120E55188763A79,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-E9EC25AEA35CB45CD7E4C85BD7612B83, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-5162CEA9697BDF636134269832DE8017,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-EDB2512793069448D974A09EF1776B0C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-465D8F99AA4D73FA8F274BC4F3BD23A9,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-C2467979EB6BE0D668F2A5C1EE62E54C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-B579098B9B21ECBD887B63CF986C9B0D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-477624F273EB00EA9C05C89ABBDDB607, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-08C331CA0E55F357312EF1BAA73D4D54,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-191560F5170A8C6EAD7874BC15EE482B, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-FAA32F9862CCF65A48AA591CF42D9ADD,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-B57C0930068AD9FF6B30B5D6BCC716BD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-30C5F17CB46033B6B2EAD2B60E9E958D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-75AFD752A68B438A82A66B935C98314B, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-888664B40651FE0CB7759F790D9E29C9,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-40DDF9E1F8724D8B7D53497D0B21B16A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-74819F4951A61094E07B897D0ED4A728,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-8F20337121B7256DB1D799E42966A084, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-1A5ED8AC16A7CC118E257342E1202B7A,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-137C2363FBD23C35006A8ED9A2E16657, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-CA8D2AA3D677A34248BA20AD896FA70C,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-DAC3AF804AB3D5AD9E067AC6513DDF31, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-4445596A04DC457A86D060440EB64FE1,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-98A0C9A22C332943437458B57ECA1B1F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-467C8A37D28EFAE567ECEBE829871D9F,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-B9ED3C8380F08450F0A73A9488FF1363, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-4DAD0A10D5BD1A890B20B2C3638AACBB,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-207AF99A719CE2C9DA592EEEA492F389, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-D40E9ACC2295F7236FDE418B50F8954D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-772A3593E3387FD892D1E0F072C3B9AA, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115889-951B0B4DC088ADB13E205C5CC14114D6;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d83383-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d83383-95891702934C70927EC1EFCB226B7C78,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-FAC46CBD070DA48389B49C10C2765711, _:genid-4e694113159d4e3db4a1a913894a81d83383-9DCAF21DD7E118CCE7254D411CB17967,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-A2C7280AFBB02BBE96026D8FEEADC3EF, _:genid-4e694113159d4e3db4a1a913894a81d83383-52D72A67544EB720399DD1B6A7B67569,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-8D70A460BD3440A7ADB3924F6511E704, _:genid-4e694113159d4e3db4a1a913894a81d83383-9392E7292F5DB901C8594951A64EB000,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-8F74AC7EA4C95A440031FC0881D8BDA6, _:genid-4e694113159d4e3db4a1a913894a81d83383-D778F07B7715C892958E8E993074FF5F,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-8CEF1741759F69183242753FFF5C68DE, _:genid-4e694113159d4e3db4a1a913894a81d83383-4A1CBA805290407114B49F3F4B0A76C9,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-1ECFBFDC64CE143225BE060670668767, _:genid-4e694113159d4e3db4a1a913894a81d83383-E01A4BA238E0742BCCC987F95C01173A,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-4CC37DA7DAD94BE89355D26FD303535F, _:genid-4e694113159d4e3db4a1a913894a81d83383-7FD28791415F59C9083B4D9F1B09CD57,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-41A22A16B771E982B8241D1F18A0CD98, _:genid-4e694113159d4e3db4a1a913894a81d83383-0F1E38B628830869B0D20A7F16A4DAB8,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-932AB5DEC8CC4CCE82EC1A4754BF2686, _:genid-4e694113159d4e3db4a1a913894a81d83383-6475D7360F94D6D890C52DB64973590E,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-77907D52D9F2112BE57098D1F83DB037, _:genid-4e694113159d4e3db4a1a913894a81d83383-4E8569AA63EACA4E7AE4A7B18683357F,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-92FA9927C974472E25EB89B9E2EF3636, _:genid-4e694113159d4e3db4a1a913894a81d83383-BE4B944155693DDE40579E8AA0C14D65,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-9F94EF6FD99B7A0278385F50F7E5CFEB, _:genid-4e694113159d4e3db4a1a913894a81d83383-1682760034DB1F2C3C115FC6FD58D8E0,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-C673E56AA018A8166A0DCEC92278DA76, _:genid-4e694113159d4e3db4a1a913894a81d83383-0B0316E0429C646718C429876CD6BD4C,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-A73D02E5A4605411FBD8D2A069822B40, _:genid-4e694113159d4e3db4a1a913894a81d83383-9ED651D1ECD6F746DA09437577DC5698,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-E85D758F379B3937086B9733F13D1900, _:genid-4e694113159d4e3db4a1a913894a81d83383-CDCEEA21F6E9C60811C8145B1C852F5A,
+    _:genid-4e694113159d4e3db4a1a913894a81d83383-DCEE05C620F82EB0D83FAF5EE654C9B2, _:genid-4e694113159d4e3db4a1a913894a81d83383-9CB39CE4E2F14588F70EC103FF858C25;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#cases where a drug physically interacts with the product of gene known to be genetically associated a disease
+#these cases may show opportunities to repurpose a drug for a new disease
+#See http://database.oxfordjournals.org/content/2016/baw083.long and
+#http://drug-repurposing.nationwidechildrens.org/search
+#an example that was recently validated involved a new link between Metformin wd:Q19484 and cancer survival
+#https://jamia.oxfordjournals.org/content/22/1/179
+#currently set up to find drugs for cancers that target genes related to cell proliferation
+#adapt by changing constraints (e.g. to 'heart disease' Q190805) or removing them
+SELECT ?drugLabel ?geneLabel ?biological_processLabel ?diseaseLabel
+WHERE {
+  ?drug wdt:P129 ?gene_product . # drug interacts with a gene_product
+  ?gene wdt:P688 ?gene_product . # gene_product (usually a protein) is a product of a gene (a region of DNA)
+  ?disease wdt:P2293 ?gene .     # genetic association between disease and gene
+  ?disease wdt:P279* wd:Q12078 . # limit to cancers wd:Q12078 (the * operator runs up a transitive relation..)
+  ?gene_product wdt:P682 ?biological_process . #add information about the GO biological processes that the gene is related to
+
+   ?biological_process (wdt:P361|wdt:P279)* wd:Q189101 . # chain down subclass/part-of
+   #Change the last statement (wd:Q14818032) to limit to genes related to certain biological processes (and their sub-processes):
+      #cell proliferation wd:Q14818032 (Current example)
+                #apoptosis wd:Q14599311
+
+    #uncomment the next line to find a subset of the known true positives (there are not a lot of them in here yet; will lead to 4 drugs if biological process is cell proliferation 2018-12-17)
+  #?disease wdt:P2176 ?drug . # disease is treated by a drug
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language \"en\" .
+  }
+}
+LIMIT 1000""" .

@@ -6,7 +6,33 @@
 
 <https://www.wikidata.org/#query-1be74d9374691c31f806c376ac1d2287> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?countOfZoobankPublicationId ?countOfZoobankAuthorId ?countOfZoobankActId
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d82816-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?countOfZoobankPublicationId ?countOfZoobankAuthorId ?countOfZoobankActId
+
+WITH {
+  SELECT (COUNT(*) AS ?countOfZoobankAuthorId) WHERE {
+    [] wdt:P2006 [].
+  }
+} AS %countOfZoobankAuthorId
+WITH {
+  SELECT (COUNT(*) AS ?countOfZoobankActId) WHERE {
+    [] wdt:P1746 [].
+  }
+} AS %countOfZoobankActId
+WHERE {
+  {
+  SELECT (COUNT(*) AS ?countOfZoobankPublicationId) WHERE {
+    [] wdt:P2007 [].
+  }
+}.
+  INCLUDE %countOfZoobankAuthorId.
+  INCLUDE %countOfZoobankActId.
+}""";
+  <http://example.org/bigdata_select> """SELECT ?countOfZoobankPublicationId ?countOfZoobankAuthorId ?countOfZoobankActId
 WITH {
   SELECT (COUNT(*) AS ?countOfZoobankPublicationId) WHERE {
     [] wdt:P2007 [].
@@ -26,8 +52,4 @@ WHERE {
   INCLUDE %countOfZoobankPublicationId.
   INCLUDE %countOfZoobankAuthorId.
   INCLUDE %countOfZoobankActId.
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

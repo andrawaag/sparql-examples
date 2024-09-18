@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-5b79c5a5e225408355333d19c47fb806> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT *
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d814411-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT *
 WITH
 {
    SELECT * WHERE {  BIND ( strlang( CONCAT( \"Douglas\" , \" \", \"Adams\"), \"en\") as ?testing) }
@@ -17,7 +24,14 @@ WHERE
   INCLUDE %include
   OPTIONAL { ?item rdfs:label ?testing ; wdt:P31 wd:Q5 }
 }""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT *
+WITH
+{
+   SELECT * WHERE {  BIND ( strlang( CONCAT( \"Douglas\" , \" \", \"Adams\"), \"en\") as ?testing) }
+}  as %include
+WHERE
+{
+  hint:Query hint:optimizer \"None\".
+  INCLUDE %include
+  OPTIONAL { ?item rdfs:label ?testing ; wdt:P31 wd:Q5 }
+}""" .

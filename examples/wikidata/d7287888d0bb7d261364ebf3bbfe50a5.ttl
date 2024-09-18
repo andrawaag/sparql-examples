@@ -6,7 +6,49 @@
 
 <https://www.wikidata.org/#query-d7287888d0bb7d261364ebf3bbfe50a5> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Most cited authors
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d829714-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d829714-ACAC1153D06E37C1BF34FC0700C1BCA1;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Most cited authors
+
+PREFIX target: <http://www.wikidata.org/entity/Q2018386>
+
+SELECT
+  ?count
+  ?author ?authorLabel
+  ?orcid
+  ?example_cited_work ?example_cited_workLabel
+  ?example_citing_work ?example_citing_workLabel
+
+WHERE {
+  {
+  # Count the number of citations
+  SELECT
+    ?author
+    (COUNT(?cited_work) AS ?count)
+    (SAMPLE(?cited_work) AS ?example_cited_work)
+    (SAMPLE(?citing_work) AS ?example_citing_work)
+  WHERE {
+    ?cited_work wdt:P1433 target: .
+    ?citing_work wdt:P2860 ?cited_work .
+    ?cited_work wdt:P50 ?author .
+  }
+  GROUP BY ?author
+} 
+          
+  # Include optional ORCID iD
+  OPTIONAL { ?author wdt:P496 ?orcid . }
+  
+  # Label the results
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+}
+ORDER BY DESC(?count)
+LIMIT 50""";
+  <http://example.org/bigdata_select> """# Most cited authors
 
 PREFIX target: <http://www.wikidata.org/entity/Q2018386>
 
@@ -40,8 +82,4 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 }
 ORDER BY DESC(?count)
-LIMIT 50""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec124538-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+LIMIT 50""" .

@@ -6,7 +6,38 @@
 
 <https://www.wikidata.org/#query-9d08b25db82678c619f07f72574fdd95> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d857566-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?awards
+  ?actor
+  ?actorLabel
+  (CONCAT(\"#actor/\", SUBSTR(STR(?actor), 32)) AS ?actorUrl)
+  ?actorDescription
+
+WHERE {
+  {
+  SELECT
+    (COUNT(*) AS ?awards)
+    ?actor
+  WHERE {
+    ?actor wdt:P166 [] .
+    FILTER EXISTS { ?actor wdt:P106 wd:Q33999 }
+  }
+  GROUP BY ?actor
+  ORDER BY DESC(?awards)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?awards)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?awards
   ?actor
   ?actorLabel
@@ -28,8 +59,4 @@ WHERE {
   INCLUDE %actors
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?awards)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:actor-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?awards)""" .

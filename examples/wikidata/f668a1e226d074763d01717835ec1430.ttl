@@ -6,15 +6,6 @@
 
 <https://www.wikidata.org/#query-f668a1e226d074763d01717835ec1430> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?occupation ?author (COUNT(?article) AS ?count)  WHERE
-    {
-        ?topic wdt:P3095 ?occupation .
-        ?journal wdt:P921 ?topic .
-        ?article wdt:P1433 ?journal ; wdt:P31 wd:Q13442814 ; wdt:P50 ?author .
-        ?author wdt:P31 wd:Q5 ; wdt:P106 wd:Q1650915 .
-    } 
-GROUP BY  ?occupation ?author 
-HAVING (?count > 10) LIMIT 5""";
   rdfs:comment """ Request a query Fishing in the Wikidata river requires both an idea where to look for fish and a suitable fishing method. If you have the former, this page can help you find the latter. This is a page where SPARQL queries [Q114898838] can be requested. Please provide feedback if a query is written for you. You can also request help to rewrite queries that don't work anymore, due to the WDQS graph split. For sample queries, see Examples and Help:Dataset sizing. Property talk pages include also summary queries for these. For help writing your own queries, or other questions about queries, see Wikidata talk:SPARQL query service/queries and Wikidata:SPARQL query service/query optimization. Help resources about Wikidata Query Service (Q20950365) and SPARQL: Wikidata:SPARQL query service/Wikidata Query Help and Category:SPARQL. To report an issue about the Query Service (interface, results views, export...) please see Wikidata:Contact the development team/Query Service and search. Translate this header box! Start a new discussion  On this page, old discussions are archived. An overview of all archives can be found at this page's archive index. The current archive is located at 2024/09. Project chat Translators' noticeboard Bot requests Lexicographical data Request a query Requests for permissions Interwiki conflicts Administrators' noticeboard Requests for deletions Property proposal Bureaucrats' noticeboard Report a technical problem Requests for comment Properties for deletion Requests for checkuser  Contents 1 All items that have a P1705 for Skolt Saami and a P4119 value 2 Help with WDGS 3 Labels for scholarly articles 4 WDQS being weird (railway junctions) 5 humans without source ? 6 Olympic medalists 7 inferring narrower occupations 8 Islands 9 Slightly different results after federating a query 10 Slice, how does it work? 11 List of persons whose age is a multiple of 25 12 Query to find all Renaissance Artists born in Italy 13 List of cyclists and URLs to Wikipedia in different languages All items that have a P1705 for Skolt Saami and a P4119 value [edit] I've been trying to get a list of all of the items on wd that have a native label (P1705) value in Skolt Sami (Q13271) and have a NLS Geographic Names Register Place ID (P4119) value as someone has imported all of these as part of a batch where everything else is correct and these particular values are usually not, so I don't want to just revert the batch. I haven't figured out how to isolate the native label (P1705) for only the Skolt Sami (Q13271) values, so I'd appreciate the help. - Yupik (talk) 16:37, 1 September 2024 (UTC)[reply] @Yupik: select ?l ?lLabel ?sms ?p4119 {
   ?l wdt:P4119 ?p4119 ; # has a P4119
      wdt:P1705 ?sms . # has a P1705
@@ -215,5 +206,16 @@ GROUP BY ?thesisType ?thesisTypeLabel ORDER BY DESC (?count)
 ORDER BY ?itemLabel Try it! The query (almost) all works as is should do -- it finds railway junctions which might have TIPLOC code (P12928) statements, but which say that there are actually better items for those statements, and tells me the railway-line sections going through each junction, and counts the number which are described by an external source GeoFurlong (Q129485508) that happens to only describe currently existing ones.Except that the Engineer's Line Reference (P10271) property works in one place, but has to be commented out in the second.Any thoughts to explain this? Jheald (talk) 16:53, 5 September 2024 (UTC)[reply] humans without source ? [edit] Hello! I'd like to see a list of humans, on the Dutch wikipedia, that don't have any source listed. Preferably with some info like birth date and place, gender, the wikidata description. Thanks! 81.164.2.207 21:30, 7 September 2024 (UTC)[reply] Olympic medalists [edit] Hi folks! How would you approach getting a list of Olympic medalists? I tried using instance of (P31)/subclass of (P279) : Olympic medalist (Q58826204), but there are very, very few results. Strainu (talk) 11:29, 10 September 2024 (UTC)[reply] inferring narrower occupations [edit] Problem: we have large numbers of people with a sole occupation of \"researcher\" and a description either \"researcher\" or based on an ORCID. This makes disambiguation really hard.Proposed solution: Most journals have a main subject, many of which are linked by a P3095 to an occupation, so we can link a human through articles to journals then topics and occupations. If the person has 10 articles in wikidata, picking the most common occupation linked to them should be a good approximation of their occupation.Problem: So far the query I've got times out. How do I make it go faster so it doesn't timeout? How to ignore people occupation of \"researcher\" AND another occupation? """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d848554-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?occupation ?author (COUNT(?article) AS ?count)  WHERE
+    {
+        ?topic wdt:P3095 ?occupation .
+        ?journal wdt:P921 ?topic .
+        ?article wdt:P1433 ?journal ; wdt:P31 wd:Q13442814 ; wdt:P50 ?author .
+        ?author wdt:P31 wd:Q5 ; wdt:P106 wd:Q1650915 .
+    } 
+GROUP BY  ?occupation ?author 
+HAVING (?count > 10) LIMIT 5""" .

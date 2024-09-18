@@ -6,13 +6,6 @@
 
 <https://www.wikidata.org/#query-5b1cfc9bf32f606cc3cf607a2c05585b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?a ?aLabel ?aDescription ?b ?bLabel ?bDescription
-{
-    ?a wdt:P1889 ?b . 
-    FILTER ( str(?a) < str(?b) ) 
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-LIMIT 10""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Exclude a list of QIDs 2 Edits made by a user 3 Adding labels to aggregated values 4 Url and date 5 News article archives 6 Sitelinks for multiple items 7 I want to list the sitelink to English and German Wikipedia 8 Search for multiple (specific) types via wikibase:api \"EntitySearch\" running into 50 record limit? 9 Get all items that come under a particular category 10 WikiProject every politician 11 WikiData SPARQL query for plants data 12 Query of Species of Trees in different languages 13 chemical substances used in plastics 14 Trouble with nested town/state entities 15 Query to get Fotball Players from different countries by divistion and date of birth 16 DisGeNET and mirbase 17 Common properties that link politicians 18 All eukaryotic proteins 19 Property paths with normalRank 20 office held by head of government 21 Leading zeros 22 Select a point in time and a determination method 23 Change query 24 Order by number - correctly 25 New year challenge 26 Map: Set individual colors for ordinal scale 27 Liste des codes Wikidata des communes françaises 28 Wikidata:Database reports/items with P569 greater than P570 29 all items with P536 or P597 and not P4544 30 Unwanted instances 31 Group URLs in one cell 32 All norwegians born before 1802 33 Dams 34 Feature arcticle 35 Famous (not french) people born in France 36 People by decade and century 37 Articles on the Hebrew Wikipedia that have coordinates 38 List of films 39 Countings airports 40 how many trans-people in Wikidata? 41 Count people by birth date decade and by gender? 42 Get all values in two column format Exclude a list of QIDs I have a worklist of potential Wikipedia article topics and I want to remove entries that lack enough sourcing to warrant an article (so that a newcomer won't see this list and try to create the article). My understanding is that manual exclusion from the query is my only option—is this correct? If so, what's the best way to write this such that it's easy to maintain a list of QIDs to exclude from a series of queries? MINUS or NOT EXISTS? When I edit the list of QIDs, is there a way to host the list in one location or would I need to update it in each query? czar 05:58, 1 January 2020 (UTC) I figured it out with MINUS[1] but do {{Ping}} me if you have any suggestions for improvement czar 07:27, 1 January 2020 (UTC) @Czar: There's also NOT IN, which is deployed within FILTER, in the form filter (?item NOT IN (wd:Q516882,wd:Q12345)). I suspect this might be the easiest approach. --Tagishsimon (talk) 14:03, 1 January 2020 (UTC) Edits made by a user Hi all,I don't know if this request is possible or not: I would like to have the list of items (subclasses of structure of worship (Q1370598) in France (Q142)) for which the user Peter17-Bot add the property coordinate location (P625) (e.g. https://www.wikidata.org/w/index.php?title=Q38434124&diff=615373953&oldid=551868164). Thank you very much. Tubezlob (🙋) 11:29, 27 December 2019 (UTC) @Tubezlob: AFAIK, not via SPARQL. Quarry probably can - here's a not very dissimilar query - https://quarry.wmflabs.org/query/16335 - presuming that Quarry can filter on the edit summary. (iirc, Quarry cannot see the content of edits, but can see edit metadata.) Sadly successful Quarrying continues to be beyond my paygrade. --Tagishsimon (talk) 06:03, 28 December 2019 (UTC) @Tagishsimon: Thank you, that's a good hint! Is there an expert of Quarry here? 😊 Tubezlob (🙋) 09:01, 28 December 2019 (UTC) If the edits happend in a relatively short period, I would try SPARQL. Have a look at Wikidata:SPARQL_query_service/queries/examples/advanced#Map_of_newspapers_in_the_United_States_by_presence_of_Infobox_newspaper_in_their_English_Wikipedia_article. I would combine: Regular SPARQL query to get the instance/subclass of structure of worship (Q1370598) in France (Q142) Mediawiki API request to get all the edits of the bot in a certain period. Multichill (talk) 12:48, 2 January 2020 (UTC) @Multichill: Thank you for your answer! I made this SPARQL query: SELECT ?church ?churchLabel ?location
 WHERE
 {
@@ -799,5 +792,15 @@ e                  f
  Try it! – The preceding unsigned comment was added by [[User:|?]] ([[User talk:|talk]] • contribs). Properties used: different from (P1889)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819178-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?a ?aLabel ?aDescription ?b ?bLabel ?bDescription
+{
+    ?a wdt:P1889 ?b . 
+    FILTER ( str(?a) < str(?b) ) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+LIMIT 10""" .

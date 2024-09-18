@@ -6,7 +6,36 @@
 
 <https://www.wikidata.org/#query-e035ce4b1665b5af998fb76192f71dd6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?qcount ?qlabel ?quantity1 ?quantity2 ?quantity3 WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838063-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?qcount ?qlabel ?quantity1 ?quantity2 ?quantity3  WHERE {
+  {
+  SELECT ?item ?qname ?qcount ?qlabel WHERE {
+    VALUES ?item {wd:Q17122887}
+    ?item p:P516 [ps:P516 ?qname; pq:P1114 ?qcount].
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"en,mul\".
+      ?qname rdfs:label ?qlabel.
+    }
+  }
+}.
+  # works
+  BIND(CONCAT(\" \",?qlabel) AS ?quantity1)
+  # works 
+  BIND(CONCAT(STR(?qcount),\" \",?qlabel) AS ?quantity2)
+  # does not work
+  BIND(CONCAT(STR(?qname),\" \",?qlabel) AS ?quantity3)
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?qcount ?qlabel ?quantity1 ?quantity2 ?quantity3 WITH {
   SELECT ?item ?qname ?qcount ?qlabel WHERE {
     VALUES ?item {wd:Q17122887}
     ?item p:P516 [ps:P516 ?qname; pq:P1114 ?qcount].
@@ -23,8 +52,4 @@
   BIND(CONCAT(STR(?qcount),\" \",?qlabel) AS ?quantity2)
   # does not work
   BIND(CONCAT(STR(?qname),\" \",?qlabel) AS ?quantity3)
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2024/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

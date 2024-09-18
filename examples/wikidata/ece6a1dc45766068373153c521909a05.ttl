@@ -6,7 +6,28 @@
 
 <https://www.wikidata.org/#query-ece6a1dc45766068373153c521909a05> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d855295-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX schema: <http://schema.org/>
+SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
+
+WHERE
+{
+  { 
+  SELECT (COUNT(?article) AS ?total)
+  WHERE
+  {
+    ?article schema:isPartOf <https://is.wikipedia.org/>.
+  }
+}
+  ?article schema:name ?title.
+  ?article schema:isPartOf <https://is.wikipedia.org/>.
+  BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
+}
+GROUP BY ?first_letter ?total""";
+  <http://example.org/bigdata_select> """SELECT ?first_letter  (COUNT(?first_letter) as ?count) (?count/?total*100 AS ?pct)
 WITH
 { 
   SELECT (COUNT(?article) AS ?total)
@@ -22,8 +43,4 @@ WHERE
   ?article schema:isPartOf <https://is.wikipedia.org/>.
   BIND (SUBSTR(?title, 1, 1) AS ?first_letter)
 }
-GROUP BY ?first_letter ?total""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+GROUP BY ?first_letter ?total""" .

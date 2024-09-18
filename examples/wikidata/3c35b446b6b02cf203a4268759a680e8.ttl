@@ -6,7 +6,20 @@
 
 <https://www.wikidata.org/#query-3c35b446b6b02cf203a4268759a680e8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d818092-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d818092-E61B50096425EFE8AF768020DDE96E5D,
+    _:genid-4e694113159d4e3db4a1a913894a81d818092-8EE1ED24E691E2866DF00CCB43F3B9D8, _:genid-4e694113159d4e3db4a1a913894a81d818092-87153FEE0E26B291A948CC552ACA019E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
   ?autor
   ?autorLabel
   (COUNT(*) AS ?count)
@@ -34,11 +47,31 @@ WITH {
 }
 GROUP BY ?autor ?autorLabel
 ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112964-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112964-9325AECBCAAFD2A908F5F0DE25A6EF75, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112964-EF2FC2C9A9F7CCC2DEA97B9D0BC73245;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT
+  ?autor
+  ?autorLabel
+  (COUNT(*) AS ?count)
+WITH {
+  SELECT DISTINCT ?autor {
+    {?autor wdt:P27 wd:Q419}
+    UNION
+    {?autor wdt:P19/wdt:P131* wd:Q419}
+    UNION
+    {?autor wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?autor ?obra {
+    INCLUDE %0.
+    ?obra wdt:P50 ?autor.
+
+    [] schema:about ?obra;
+       schema:isPartOf <https://es.wikipedia.org/>.
+  }
+} AS %1
+{
+  INCLUDE %1.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY ?autor ?autorLabel
+ORDER BY DESC(?count)""" .

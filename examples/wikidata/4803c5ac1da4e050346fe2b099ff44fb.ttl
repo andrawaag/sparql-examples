@@ -6,7 +6,26 @@
 
 <https://www.wikidata.org/#query-4803c5ac1da4e050346fe2b099ff44fb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?p3318 ?p3318num (COUNT(?item) AS ?count) (GROUP_CONCAT(STRAFTER(STR(?item),'entity/');SEPARATOR=', ') AS ?items)  WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840919-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?p3318 ?p3318num (COUNT(?item) AS ?count) (GROUP_CONCAT(STRAFTER(STR(?item),'entity/');SEPARATOR=', ') AS ?items)   WHERE {
+  {
+  SELECT DISTINCT ?p3318  WHERE {
+  ?item1 wdt:P3318 ?p3318 .
+  ?item2 wdt:P3318 ?p3318 .
+  FILTER(STR(?item1)<STR(?item2))
+}
+}
+  ?item wdt:P3318 ?p3318 .
+  BIND(xsd:integer(STRAFTER(STR(?p3318),'i')) AS ?p3318num)
+}
+GROUP BY ?p3318 ?p3318num
+ORDER BY DESC(?count) ?p3318num""";
+  <http://example.org/bigdata_select> """SELECT ?p3318 ?p3318num (COUNT(?item) AS ?count) (GROUP_CONCAT(STRAFTER(STR(?item),'entity/');SEPARATOR=', ') AS ?items)  WITH {
   SELECT DISTINCT ?p3318  WHERE {
   ?item1 wdt:P3318 ?p3318 .
   ?item2 wdt:P3318 ?p3318 .
@@ -18,8 +37,4 @@
   BIND(xsd:integer(STRAFTER(STR(?p3318),'i')) AS ?p3318num)
 }
 GROUP BY ?p3318 ?p3318num
-ORDER BY DESC(?count) ?p3318num""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count) ?p3318num""" .

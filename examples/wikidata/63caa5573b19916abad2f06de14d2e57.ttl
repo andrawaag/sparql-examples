@@ -6,7 +6,32 @@
 
 <https://www.wikidata.org/#query-63caa5573b19916abad2f06de14d2e57> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?url
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/MobyGames_genre_ID>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837631-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?url
+
+WHERE {
+  {
+  SELECT ?item ?url ?property WHERE {
+    ?item wdt:P973 ?url.
+    FILTER regex (STR(?url), \"mobygames.com/browse/games/\").
+  }
+}.
+  ?item wdt:P31 ?type.
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". 
+    ?type rdfs:label ?typeLabel.
+    ?item rdfs:label ?itemLabel.
+    ?property rdfs:label ?propertyLabel.
+  }
+} GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel (SAMPLE(?typeLabel) as ?nature) ?url
 WITH {
   SELECT ?item ?url ?property WHERE {
     ?item wdt:P973 ?url.
@@ -22,8 +47,4 @@ WHERE {
     ?item rdfs:label ?itemLabel.
     ?property rdfs:label ?propertyLabel.
   }
-} GROUP BY ?item ?itemLabel ?propertyLabel ?url""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Property_proposal/MobyGames_genre_ID>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} GROUP BY ?item ?itemLabel ?propertyLabel ?url""" .

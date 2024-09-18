@@ -6,7 +6,14 @@
 
 <https://www.wikidata.org/#query-c95c7d7b95c03200628a021570f1035d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?doi ?zoobankpub (substr(?published1, 1, 10) as ?published) ?issue ?pages ?title WHERE {  
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812143-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?item ?doi ?zoobankpub (substr(?published1, 1, 10) as ?published) ?issue ?pages ?title WHERE {  
   ?item wdt:P1433 wd:Q21386186 .
   ?item wdt:P356 ?doi .
   OPTIONAL {?item wdt:P577 ?published1} .
@@ -18,8 +25,4 @@
   BIND(if(contains(?pages,  \"–\"), strbefore(?pages, \"–\"), ?pages) as ?startpage)
   BIND(if(contains(?pages,  \"–\"), strafter(?pages, \"–\"), ?pages) as ?endpage)
 }
-ORDER BY ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Succu/SPARQL>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY ASC(xsd:integer(?issue)) ASC(xsd:integer(?startpage))""" .

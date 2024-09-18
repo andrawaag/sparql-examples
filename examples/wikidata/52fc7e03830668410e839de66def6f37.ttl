@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-52fc7e03830668410e839de66def6f37> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?globeLabel ?lon 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2020/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d82282-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?globeLabel ?lon 
 WITH
 {
   SELECT ?stv ?lon
@@ -23,7 +31,20 @@ WHERE
   ?stv wikibase:geoGlobe ?globe 
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Project_chat/Archive/2020/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?globeLabel ?lon 
+WITH
+{
+  SELECT ?stv ?lon
+  {
+    ?stv  wikibase:geoLongitude ?lon .
+    FILTER ( abs (?lon) > 180 )
+  }
+  limit 10000
+} as %select 
+WHERE
+{
+  INCLUDE %select 
+  ?item p:P625 [ psv:P625 ?stv ] .
+  ?stv wikibase:geoGlobe ?globe 
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

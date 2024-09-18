@@ -6,20 +6,6 @@
 
 <https://www.wikidata.org/#query-fc76e5349d989b54e05584c992352eda> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT *
-{
-    # BIND(wd:Q706518 as ?item) 
-    ?item wdt:P214 [] .
-    ?item wdt:P569 ?d1 ; wdt:P569 ?d2 .
-    FILTER( 
-          ?d1 != ?d2 
-           && MONTH(?d1) = DAY(?d2) 
-           && DAY(?d1) = MONTH(?d2) 
-           && YEAR(?d1) = YEAR(?d2) 
-           && DAY(?d1) != DAY(?d2) 
-          )
-}
-LIMIT 10""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Extracting articles in other Languages. 2 Displaying null records in results tab 3 Items that links to specific websites 4 Querying qualifiers of Taxon Names 5 Jeugdliteratuur (2) 6 More than one value 7 Query for Subclass lithostratigraphic unit (Q3550897) 8 Autocomplete wikidata query 9 Mountains over 8000 meters 10 Searching for items with \"Formation\" in title, but no instance of (P31) 11 Display Label 12 Query for all versions added to MediaWiki 13 Adding qualifiers to a list 14 City maps 15 Surplus of coordinates 16 Help on showing place of publication (P291) qualifier 17 miRNA and mRNA in Duchenne muscular dystrophy 18 Constraint violation query needed 19 Youngest chess player with Elo rating 20 Count and list specific items 20.1 Questions 20.2 Merging 21 Count of items with particular subject 22 Months aren't having a SI unit definition 23 How to label result colums? 24 List of Ps used for a particular Q 25 Find all the examples of a kind of item with coordinates but without a 'located in the administrative territorial entity' statement but are located within an area shape 26 Folding matches 27 List of current sovereign states 28 Map showing the locations of all the current articles on the English Wikivoyage 29 Pulling start and end times for multiple home venues 30 Listing all items with more than 100 authors 31 Guinness World Records map 32 Retrieving items whose label matches a list 33 All values of a property 34 WikiFlix 📽🍿🤩 35 GLAMS without coordinates 36 Request if a statement with a specific source is already present 37 Is it possible to get a list of books cited on the pages of a particular Wikipedia project or category (e.g., Literature) 38 String search 39 Query with a qualifier 40 Looking for Errata that don't have links to their corrected article 41 List of images from commons, which are in two categories 42 Inverted DOB day and month 43 DSS with titles 44 FILTER on two sitelink 45 Pull \"null\" values back 46 Filtering for only current properties 47 Time out 48 Help with query that times out 49 Names of all cities around the world with a population larger than one million 50 Improved MachtSinn query times out 51 Query where an english wikipedia article exists as a redirect 52 Query timing out 53 Example query with big cities in layers returns: java.lang.StackOverflowError 54 realiser une requete 55 Query for all entities that have a page in the Wikipedia of a given language 56 Union 57 Pillorys 58 Combine values Extracting articles in other Languages. Hi, I have a list of articles written in EN Wikipedia, and I want to extract the Arabic and French articles for them. Can this be done using WQS or Petscan? (For example: I have the En wikipedia article of Real Madrid and want to make a table that shows the french and arabic articles -if existed-) Thanks --Mohammad Hijjawi (talk) 17:43, 31 October 2019 (UTC) @Mohammad Hijjawi: It's very possible. Two approaches below, one which selects a set of records (in this case, cats), and the other which defines an arbitrary list of items based on their QIds. Note that in these examples the item must point to an en-wiki article ... wrapping OPTIONAL {} around the en-wiki element of the query would make having an en-wiki article options too. hth. SELECT ?item ?itemLabel ?sitelink_en ?article_en ?sitelink_fr ?article_fr ?sitelink_ar ?article_ar
 WHERE 
 {
@@ -897,5 +883,21 @@ ORDER BY ?itemLabel
  Try it! --Larske (talk) 18:30, 17 November 2019 (UTC) List of images from commons, which are in two categories Hi!Please help me to find a list of images about Radio ( Commons:Category:Radio — with subcategories) uploaded during Wiki Science Competitions ( Commons:Category:Wiki Science Competition — with subcategories.\\If the list is too long, I will be happy with a list of images about History of radio ( Commons:Category:History of radio — with subcategories) uploaded during Wiki Science Competitions ( Commons:Category:Wiki Science Competition — with subcategories).--Perohanych (talk) 19:04, 17 November 2019 (UTC) @Perohanych: This PetScan query takes 10−30 seconds to execute and gives 235 images. It is however limited to a depth of 5. I tried to run a query with unlimited (i.e. -1) depth. It gave 26,614 images, but it took 2,929 seconds (i.e, almost 50 minutes to execute)! --Larske (talk) 08:09, 18 November 2019 (UTC) Inverted DOB day and month I am wondering if it is possible to systematically query all cases where there are two DOBs, with one beeing \"X-Y-year\" and one \"Y-X-year\" (example: B. J. Thomas (Q706518)). In such cases, it is highly likely that one of the two dates was created by erroneously inverting day and month. Steak (talk) 14:30, 18 November 2019 (UTC) Interesting idea. Here we go: Items used: B. J. Thomas (Q706518)   Properties used: VIAF ID (P214)   , date of birth (P569)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856450-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT *
+{
+    # BIND(wd:Q706518 as ?item) 
+    ?item wdt:P214 [] .
+    ?item wdt:P569 ?d1 ; wdt:P569 ?d2 .
+    FILTER( 
+          ?d1 != ?d2 
+           && MONTH(?d1) = DAY(?d2) 
+           && DAY(?d1) = MONTH(?d2) 
+           && YEAR(?d1) = YEAR(?d2) 
+           && DAY(?d1) != DAY(?d2) 
+          )
+}
+LIMIT 10""" .

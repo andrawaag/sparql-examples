@@ -6,7 +6,89 @@
 
 <https://www.wikidata.org/#query-553bc2caf51c5cac69f81b8ead9b5c87> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d853291-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d853291-CAD083338D08402E81898C6C41A24904;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
+  (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
+
+WHERE
+{
+  {
+    # Get the sum of monthly values within a year
+    SELECT ?item ?year (SUM(?max_numberperperiod) AS ?number) (SAMPLE(?monthly_reference_URL) AS ?monthly_reference_URL2)
+    WHERE
+    {
+      # Get the maximal value and a sample reference URL for each unique month
+      {
+        SELECT ?item ?year (MAX(?numberperperiod) AS ?max_numberperperiod) (SAMPLE(?reference_URL) AS ?monthly_reference_URL)
+        WHERE
+        {
+          {
+  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+?item (wdt:P31/wdt:P279*) wd:Q62447.
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year=2020).
+  }
+}
+          ?timevalue wikibase:timePrecision ?prec.
+          FILTER (?prec > 9)# precision more precise or equal to month
+        }
+        GROUP BY ?item ?year ?date
+      }
+    }
+    GROUP BY ?item ?year
+  }
+  UNION
+  {
+    ?timevalue wikibase:timePrecision 9 .
+    BIND (?numberperperiod AS ?number)
+    BIND (?reference_URL AS ?sample_reference_URL)
+    {
+  SELECT ?item ?statement ?date ?year ?timevalue ?numberperperiod ?reference_URL
+  WHERE
+  {
+?item (wdt:P31/wdt:P279*) wd:Q62447.
+    ?item p:P3872 ?statement.
+    ?statement pqv:P585 ?timevalue;
+               ps:P3872 ?numberperperiod.
+    ?timevalue wikibase:timeValue ?date.
+    OPTIONAL { ?statement pq:P518 ?applies. }
+    OPTIONAL { ?statement prov:wasDerivedFrom / (pr:P854|pr:P4656) ?reference_URL. }
+    FILTER (BOUND(?applies)=false || ?applies = wd:Q2165236 )
+    MINUS { ?statement wikibase:rank wikibase:DeprecatedRank }
+    BIND (YEAR(?date) AS ?year)
+    FILTER (?year=2020).
+  }
+}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"fr\". }
+}
+GROUP BY ?item ?itemLabel ?year
+ORDER BY desc(?passengers)
+LIMIT 50""";
+  <http://example.org/bigdata_select> """SELECT ?year ?item ?itemLabel (MAX(?number) AS ?passengers)
   (SAMPLE(COALESCE(?reference_URL, ?monthly_reference_URL2)) AS ?sample_reference_URL)
 WITH
 {
@@ -58,8 +140,4 @@ WHERE
 }
 GROUP BY ?item ?itemLabel ?year
 ORDER BY desc(?passengers)
-LIMIT 50""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User_talk:Dipsacus_fullonum>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec125021-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+LIMIT 50""" .

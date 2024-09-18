@@ -6,16 +6,6 @@
 
 <https://www.wikidata.org/#query-035ef4f5ba391609c97e1a880546c02b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map
-SELECT ?item ?itemLabel ?itemDescription ?coor ?img ?st ?sl
-{
-	?item wdt:P31/wdt:P279* wd:Q473972 . 
-    ?item wdt:P17 wd:Q739 . 
-    OPTIONAL { ?item wdt:P625 ?coor }
-    OPTIONAL { ?item wdt:P18 ?img }
-    ?item wikibase:statements ?st ; wikibase:sitelinks ?sl 
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Wikipedia Biography pages without an infobox 2 Wikidata items mapped to the CIDOC CRM ontology via the equivalent class (P1709) property 3 Display Label, female label, male label for occupation, in a specific language 4 Howto query 5 L'ensemble des archives en Suisse 6 Query times out. Why? 7 Selecting for only non-null results that are properly sourced 8 Last created elements ? 9 Monuments with P969 10 List of libraries by region 11 Natural reserves of Colombia 12 getting en-wiki pageid of existing query results 13 Filtering specific items 14 Biography 15 Categories and links 16 List of physicists 17 Retrieve sub properties of a property 18 How to exclude something? 19 Deduplicate IATA 20 Items in all subdivisions of a territorial entity in any level 21 ORDER BY sans commencer par les mentions vides 22 Rendre les liens actifs (P858 et P373) dans une liste de résultats 23 Counts for entity types for English Wikipedia articles 24 Commons sitelinks containing \"(museum specimens)\" 25 Time out problem because of P2888 25.1 Status update 25.2 Calendar model problem 26 Lexicographical queries are go! 27 Norwegian citizens born outside Norway 28 Nested Query with georeference 29 Identifying interwiki links that no longer exist 30 How to get area's unit of measurement? 31 Refnode woe 32 Yearly Public Domain query 33 Requesting help finding all mathematics related nodes 34 Most gender-neutral names 35 Good example query with LINESTRING 35.1 Milan Metro map 35.2 Single-line metros 35.3 KML 36 Queries regarding federation 37 Filter authors by province in Spain AND department of France 38 Governments get reelected when the economy gets better/stays strong 39 Constraint 40 Finding books with more than one publishing date 41 List of company revenues 42 Descriptions – overcapitalization, inclusion of \"professional\" 43 All persons whose cause of death was a traffic accident 44 Every item with a Q number as title 45 Cities which are countries by themselves. (Self loop) 46 Acting tennis players by ranking 47 Order Islands by label (if they have one ...) 48 Get 'instance of' title Wikipedia Biography pages without an infobox I'm not sure this could done. I'd request a query of WP articles with the WP Bio template with the needs infobox=y. I'd be happy to add the template \"Infobox person/Wikidata|fetchwikidata=ALL|onlysourced=y\", but most have no sourced info that would go into the infobox. So, can the result be filtered to include only those items with no fewer that four sourced claims? I would then go add the autofilled infobox to the WP articles. Thanks! - Trilotat (talk) 06:31, 1 October 2018 (UTC) Perhaps this is not a well-defined request. Let me try it this way... How do I query wikidata for items with sourced properties that would provide a \"good\" person infobox in wikipedia using the ? There are many Wikipedia biography articles with no infobox that would benefit from a wikidata-sourced infobox, i.e. Category:Biography articles without infoboxes. - Trilotat (talk) 13:17, 3 October 2018 (UTC) Wikidata items mapped to the CIDOC CRM ontology via the equivalent class (P1709) property I'd like to retrieve a list of Wikidata items that are mapped to the CIDOC CRM ontology; these are the items which have 'cidoc' as part of the URI that is the value of the equivalent class (P1709) property. Probably quite simple, but I'm struggling to extract only the items with those strings (example: group of humans (Q16334295) which corresponds with http://www.cidoc-crm.org/Entity/e74-group/version-6.1). Many thanks in advance :-) Spinster 💬 12:07, 1 October 2018 (UTC) @Spinster: You were perhaps forgetting to STR() the P1709 value: SELECT DISTINCT ?item ?itemLabel ?cidoc_url WHERE {
   ?item wdt:P1709 ?cidoc_url .
   FILTER(STRSTARTS(str(?cidoc_url), \"http://www.cidoc-crm.org\")) .
@@ -307,5 +297,19 @@ ORDER BY ?communeLabel ?itemLabel
  Try it!--Tagishsimon (talk) 09:13, 9 October 2018 (UTC)Tank you @Tagishsimon: have you any advice how to address this issue, potentially affecting other queries? Pietro (talk) 09:27, 9 October 2018 (UTC) Sadly no, beyond where one approach does not work, use another. In this case, using a named subquery worked well. Someone else might have more insight; it does not make a great deal of sense to me that a query looking for an overlap of ~4500 items against ~20000 items times out. --Tagishsimon (talk) 09:32, 9 October 2018 (UTC) We should ask for a \"Wikidata:Request a troubleshoot\" service ;) Pietro (talk) 11:57, 9 October 2018 (UTC) Natural reserves of Colombia Can someone help me to get a list of natural reserves in Colombia? Would be really useful to organise next year's WLE. --Sahaquiel9102 (talk) 03:58, 10 October 2018 (UTC) Items used: protected area (Q473972)   , Colombia (Q739)   Properties used: instance of (P31)   , subclass of (P279)   , country (P17)   , coordinate location (P625)   , image (P18)   Features used: map (Q24515275)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856708-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT ?item ?itemLabel ?itemDescription ?coor ?img ?st ?sl
+{
+	?item wdt:P31/wdt:P279* wd:Q473972 . 
+    ?item wdt:P17 wd:Q739 . 
+    OPTIONAL { ?item wdt:P625 ?coor }
+    OPTIONAL { ?item wdt:P18 ?img }
+    ?item wikibase:statements ?st ; wikibase:sitelinks ?sl 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],es,en\". }
+}""" .

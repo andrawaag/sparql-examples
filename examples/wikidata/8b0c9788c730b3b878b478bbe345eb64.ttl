@@ -6,36 +6,6 @@
 
 <https://www.wikidata.org/#query-8b0c9788c730b3b878b478bbe345eb64> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Graph
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX gas: <http://www.bigdata.com/rdf/gas#>
-
-select 
-  ?owner ?ownerLabel ?owned ?ownedLabel
-where {
-  { 
-    select
-      ?owner1 ?owned1
-    where {
-      service gas:service {
-        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
-                gas:in wd:Q12300043, wd:Q861295 ;           	   
-                gas:traversalDirection \"Undirected\" ;
-                gas:out ?owned1 ;
-                gas:out1 ?depth ;
-                gas:out2 ?owner1 ;
-                gas:linkType wdt:P1830 ;
-                gas:maxIterations 5;
-                gas:maxVisited 200 .
-      }
-    }
-  }
-  ?owner wdt:P1830 ?owned .
-  filter (?owner = ?owner1  || ?owner = ?owned1 || ?owned = ?owner1 || ?owned = ?owned1)  
- 
-  service wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
-}""";
   rdfs:comment """For: https://query.wikidata.orgStatus: https://searchdata.wmflabs.org/wdqs/ User:Fnielsen/SPARQL/Danish politics Contents 1 Creative works 1.1 Creative works with geo locations 1.2 Literary works with citation for reference to place of action 1.3 Narrative location around the center of France 1.4 Residence of authors from Denmark 2 Neuroinformatics 2.1 Ventricular-brain ratios 2.2 Papers with external data 2.3 Patients and those they are treated by 3 Wiki research 3.1 The full monty 3.2 Wikidata research 3.3 Works mentioning Wikidata properties 3.4 Danish Wikipedia research 3.4.1 Python with SPARQL query 3.4.2 Result 4 \"Awesome\" people born on Wikidata birthday 5 Companies 5.1 Russian branch 6 Graphs 6.1 Road connections 6.2 A.P. Møller group ownership 6.3 Scientific co-authors 6.4 Neuroinformatics co-citation author network 6.5 Author cocitation network 6.6 Board members for Danish organizations 6.7 Controlling and ownerships in Denmark 7 Scientometrics 7.1 Most cited Dane 7.2 Most cited with a SoundCloud ID 7.3 Most self-citing author 7.4 Author affiliated with DTU Compute with most works in Wikidata 7.5 Most cited work from DTU Compute-affiliated author based on recorded citations in Wikidata Creative works [edit] Creative works with geo locations [edit] PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/> 
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -322,5 +292,37 @@ select ?road ?roadLabel ?image ?connected_road ?connected_roadLabel where {
  Try it! A.P. Møller group ownership [edit] """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Fnielsen/SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d861244-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gas: <http://www.bigdata.com/rdf/gas#>
+
+select 
+  ?owner ?ownerLabel ?owned ?ownedLabel
+where {
+  { 
+    select
+      ?owner1 ?owned1
+    where {
+      service gas:service {
+        gas:program gas:gasClass \"com.bigdata.rdf.graph.analytics.BFS\" ;
+                gas:in wd:Q12300043, wd:Q861295 ;           	   
+                gas:traversalDirection \"Undirected\" ;
+                gas:out ?owned1 ;
+                gas:out1 ?depth ;
+                gas:out2 ?owner1 ;
+                gas:linkType wdt:P1830 ;
+                gas:maxIterations 5;
+                gas:maxVisited 200 .
+      }
+    }
+  }
+  ?owner wdt:P1830 ?owned .
+  filter (?owner = ?owner1  || ?owner = ?owned1 || ?owned = ?owner1 || ?owned = ?owned1)  
+ 
+  service wikibase:label { bd:serviceParam wikibase:language \"da,en\" .  } 
+}""" .

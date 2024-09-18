@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-6f6d4500eefe0a7d2c6b6849bfeb26cf> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?property ?propnameLabel ?value ?valueLabel WITH 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863467-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?property ?propnameLabel ?value ?valueLabel WITH 
 { select ?item where 
   {
     ?item wdt:P106 wd:Q10833314 . # they're a tennis player
@@ -20,7 +28,17 @@ where
   ?propname wikibase:directClaim ?property . # constrain to directClaims
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?property ?propnameLabel ?value ?valueLabel WITH 
+{ select ?item where 
+  {
+    ?item wdt:P106 wd:Q10833314 . # they're a tennis player
+    ?item wdt:P27 wd:Q30 .        # with US citizenship
+  } 
+} as %i                           # %i is a list of US tennis player items
+where
+{ 
+  include %i                      # we seed the subquery with this list
+  ?item ?property ?value .        # find all properties & values
+  ?propname wikibase:directClaim ?property . # constrain to directClaims
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

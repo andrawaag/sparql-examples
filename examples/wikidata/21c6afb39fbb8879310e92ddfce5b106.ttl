@@ -6,14 +6,6 @@
 
 <https://www.wikidata.org/#query-21c6afb39fbb8879310e92ddfce5b106> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?websiteLabel WHERE {
-  ?item wdt:P856 ?website.
-  ?website rdfs:label ?websiteLabel .
-  FILTER CONTAINS(LCASE(?websiteLabel), 'bbc.com' ).
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}
-
-LIMIT 10""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 popularity of network members on social and web media 2 Eliminating items where a property is set to \"no value\" 3 Get the release year (publication date) of a game 4 Random items with a 'subclass of' statement but not an 'instance of' statement 5 You can't have arrays! (except you totally can) 6 Search an author with the acronym in the first name with ORCID iD on Wikidata 7 only return senses for certain languages 8 Fixing incorrect pairs of values + unlinked qualifiers 9 Most recently created 'instance of human' items 10 Important tonalities 11 Project namespace articles (from all editions) with 10 or more cross-wiki links 12 Query to pick up all reference URLs with a specific base URL 13 My tank query is missing lots of tanks 14 Find WikiID (Q-codes) using people's names (labels) 15 Value of a property at a point in time 16 WMF and Wikimedia Affiliates activity and reach of on Social and Web media services? 17 MWAPI fu 18 getting results for a list of Q id's 19 Matching pages in other language WPs 20 With no article in Greek Wikipedia 21 Support Twitter accounts 22 How do I search against an items Label/Description or Aliases or against a \"limited support field\" 23 Get a dataset with no Q ID based on Handle ID or Label 24 Matching labels on a substring in one language 25 Finding taxon items which use ... 26 Ranking by the number of claims on items 27 Filtering by Department of France 28 Item from website URL 29 How to compare similar itemLabels in English by Wikidata Query Service 30 Wikidata:History Query Service 31 The best flex ever? 31.1 Median query by Dipsacus fullonum 31.2 No median query by MisterSynergy 31.3 No solution from Infrastruktur 32 I need help building a query to get a list of all people who died from 2015 to 2022 33 All films without an article on any language WP 34 Help with GROUP BY and HAVING popularity of network members on social and web media Hi!I would love to visualize with Wikidata a spectrum of popularity (and use) of different (social and web) media (by past and/or present) network members.Ideally the case study network would be Q96376996 and use and popularity could be checked on service: (Twitter, FB, Instagram, Youtube, Vimeo and Flickr) ...and for each year (from when first recorded with starting an account with 0 followers to current fame ;-p)...My gut feeling is that we think that these media are widely used and give results, but in reality only very few (network members) have significant visibility and positive impact. -- Zblace (talk) 03:43, 30 June 2022 (UTC) Do you mean you wish a reporting with for instance with https://www.wikidata.org/wiki/Q36844#P8687 ? Bouzinac 💬●✒️●💛 12:14, 30 June 2022 (UTC) YES - I think so. --Zblace (talk) 14:57, 30 June 2022 (UTC) @Bouzinac I mean reporting exists since few months for most of them but their comparison to actually see Which network member is most active and popular *(or not)... When and Where would be useful for network to reflect on. --Zblace (talk) 07:21, 1 July 2022 (UTC) Eliminating items where a property is set to \"no value\" When running a query for items without a property, it still reports those where I've set the property to \"no_value\" in the GUI editor. How can I eliminate them too? eg for HMS Newcastle (Q11861579) when I ask for frigates operated by Royal Navy without vessel class (P289) Vicarage (talk) 13:41, 30 June 2022 (UTC) @Vicarage could you handle the sparql query resulting of the query editor ? In principle, the solution is to do something like … minus { ?item p:P289 ?statement . minus { ?statement a wdno:P289 . } } I’m curious about why you would like to put a no value in such a case however ? author TomT0m / talk page 14:02, 30 June 2022 (UTC) I've tried SELECT DISTINCT ?item ?itemLabel ?itemDescription WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE]\". }
   {
@@ -764,5 +756,17 @@ WHERE
  Try it! --Tagishsimon (talk) 18:22, 24 July 2022 (UTC) Thank you guys for your help! It'll take me some time to unpack all this! Vincent Tep (talk) 08:48, 25 July 2022 (UTC) Quick links, fwiw, to the three most useful pages for understanding all of this stuff (the SPARQL spec aside): The tutorial, very good for basics of getting e.g. qualifier values The RDF Dump format, a guide to all the flavours found in the chocolate box Wikidata:SPARQL query service/query optimization which discusses, amongst other things, the use of hints in queries. --Tagishsimon (talk) 09:02, 25 July 2022 (UTC) Item from website URL Hi everyone,I would like to get wikidata entries of some websites. For instance if the website is bbc.com, the SPARQL query should return the entity of BBC. I built the following query according to the examples on Wikidata, however I can not get any results. I removed the filter condition, and got the official websites. But with filter, the result is empty. What could be the problem?Thanks """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/07>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d85786-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?websiteLabel WHERE {
+  ?item wdt:P856 ?website.
+  ?website rdfs:label ?websiteLabel .
+  FILTER CONTAINS(LCASE(?websiteLabel), 'bbc.com' ).
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+
+LIMIT 10""" .

@@ -6,7 +6,25 @@
 
 <https://www.wikidata.org/#query-30695870ab6aa23bb2eaabd61efd7bb2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: journals with how often they cite a retracted article
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Retractions/SPARQL>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852529-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: journals with how often they cite a retracted article
+SELECT ?journal ?journalLabel ?count  {
+  {
+  SELECT ?journal (COUNT(DISTINCT ?citesRetracted) AS ?count) WHERE {
+    ?citesRetracted wdt:P2860 / wdt:P31 wd:Q45182324 ;
+                    wdt:P1433 ?journal .
+  } GROUP BY ?journal
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#title: journals with how often they cite a retracted article
 SELECT ?journal ?journalLabel ?count WITH {
   SELECT ?journal (COUNT(DISTINCT ?citesRetracted) AS ?count) WHERE {
     ?citesRetracted wdt:P2860 / wdt:P31 wd:Q45182324 ;
@@ -15,8 +33,4 @@ SELECT ?journal ?journalLabel ?count WITH {
 } AS %JOURNALS {
   INCLUDE %JOURNALS
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Retractions/SPARQL>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} ORDER BY DESC(?count)""" .

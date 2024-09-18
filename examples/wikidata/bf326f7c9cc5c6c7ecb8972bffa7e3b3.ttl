@@ -6,7 +6,47 @@
 
 <https://www.wikidata.org/#query-bf326f7c9cc5c6c7ecb8972bffa7e3b3> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_2>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833389-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#
+ # Díjak - hierarchiája 
+ # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
+ # Nem tökéletes ,  quick&dirty lekérdezés.
+ #
+ SELECT  ?broaderLabel  ?broader ?itemLabel ?item ?instances ?sites  WHERE { 
+    {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  } .
+    OPTIONAL { ?item wdt:P279 ?broader } .
+    {
+      SELECT ?item (count(distinct ?element) as ?instances) {
+        {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  }.
+        OPTIONAL { ?element wdt:P31 ?item }
+      } GROUP BY ?item
+    }
+    {
+      SELECT ?item (count(distinct ?site) as ?sites) {
+        {
+    SELECT DISTINCT ?item { ?item wdt:P279* wd:Q618779 }
+  }.
+        OPTIONAL { ?site schema:about ?item }
+      } GROUP BY ?item
+    }
+    SERVICE wikibase:label {
+      bd:serviceParam wikibase:language \"hu,en,de,es,fr,it,ru,uk,bg,zh,ja,ko\"
+    }
+  }
+ORDER BY  ?broaderLabel  ?broader ?itemLabel ?item""";
+  <http://example.org/bigdata_select> """#
  # Díjak - hierarchiája 
  # Ez néha többszintes,  most csak az egyszerűség miatt csak az egyel feletibb szintet listázom.
  # Nem tökéletes ,  quick&dirty lekérdezés.
@@ -32,8 +72,4 @@
       bd:serviceParam wikibase:language \"hu,en,de,es,fr,it,ru,uk,bg,zh,ja,ko\"
     }
   }
-ORDER BY  ?broaderLabel  ?broader ?itemLabel ?item""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:T%C3%A1rsalg%C3%B3/Archive_2>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY  ?broaderLabel  ?broader ?itemLabel ?item""" .

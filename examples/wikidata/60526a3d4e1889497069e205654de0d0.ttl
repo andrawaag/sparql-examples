@@ -6,7 +6,30 @@
 
 <https://www.wikidata.org/#query-60526a3d4e1889497069e205654de0d0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT  ?redirect_from ?redirect_to  ?count
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d817129-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT  ?redirect_from ?redirect_to  ?count
+
+
+ 
+WHERE {
+  { 
+  SELECT (COUNT(DISTINCT(?file)) AS ?count) ?redirect_from  {
+     ?file wdt:P180 ?redirect_from . 
+  } GROUP BY ?redirect_from
+  ORDER BY ASC(?count)
+  LIMIT 50          
+} .
+  SERVICE <https://query.wikidata.org/sparql> {
+      ?redirect_from owl:sameAs ?redirect_to .
+      #FILTER( ?redirect_from != ?redirect_to  ) .
+  }
+}""";
+  <http://example.org/bigdata_select> """SELECT  ?redirect_from ?redirect_to  ?count
 
 WITH { 
   SELECT (COUNT(DISTINCT(?file)) AS ?count) ?redirect_from  {
@@ -22,8 +45,4 @@ WHERE {
       ?redirect_from owl:sameAs ?redirect_to .
       #FILTER( ?redirect_from != ?redirect_to  ) .
   }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

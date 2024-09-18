@@ -6,34 +6,6 @@
 
 <https://www.wikidata.org/#query-3f94aae14bf98ec631e357235ea5f132> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?start ?t1 ?end ?t2 ?startprecision ?endprecision ?precision ?duration ?tp ?conv ?converted 
-{
-    {  SELECT *
-       WHERE
-       {
-          #  VALUES ?item { wd:Q2139412 wd:Q585291 wd:Q840250 wd:Q815122 }
-           ?item wdt:P31 wd:Q188055 .
-           ?item p:P580/psv:P580 [ wikibase:timeValue ?start ; wikibase:timePrecision ?startprecision ] .
-           ?item p:P582/psv:P582 [ wikibase:timeValue ?end ; wikibase:timePrecision ?endprecision ]
-       }
-       LIMIT 200
-    }
-    #determine lowest precision
-    BIND( IF( ?startprecision > ?endprecision , ?endprecision , ?startprecision ) as ?precision) 
-    #change dates to lowest precision (here: only year precision)
-    BIND( IF( ?startprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?start)),\"-01-01T00:00:00Z\")), ?start)  as ?t1) 
-    BIND( IF( ?endprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?end)),\"-12-31T00:00:00Z\")), ?end)  as ?t2) 
-    #calc duration on adjusted dates (in days)
-    BIND( ?t2 - ?t1 as ?duration)                  
-    #get unit corresponding to precision and conversion factor from days
-    ?tp wdt:P2803 ?pr . FILTER( str(?pr) = str(?precision) )
-    OPTIONAL { ?tp p:P2442 / psv:P2442 [ wikibase:quantityAmount ?conv ; wikibase:quantityUnit wd:Q573 ] .
-             ?tp rdfs:label ?unit . FILTER(lang(?unit) = \"en\") 
-             } 
-    # convert from days to unit corresponding to precision, add \"ca.\" and unit label
-    BIND( CONCAT( \"ca. \", str(ROUND(FLOOR((1 / ?conv * ?duration) +1))), \" \", ?unit ) as ?converted) 
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to list a range of Q-items? 2 People of a certain type with the closest connections to a particular person 3 Query for last name 4 Multiple ID values, but not counting deprecated values 5 Q 6 Automatically update Wikidata page 7 Need help fixing up an old query I request here a couple of years ago 8 Pulling back Q codes by IPEDs ID 9 Overcoming timeout 10 Writing to Wikidata 11 finding redirected wikidata items used by SDC 12 End date with precision limited to year (and not day+month) 13 Stats on the number of identifiers for a given collection 14 Fishers that have an article on the French Wikipedia 15 Problem with query 16 potential issues 17 Trouble with preferred values/normal rank values 18 Disappointing query :( 19 A list of every personality which have a personal page in the french wikipedia with their date of birth 20 European trips 21 Articles not in \"Deaths in year\" articles 22 A query to find lexemes 23 Find Wikidata items for a list of persons with known biographical data 24 A kind query request 25 All dates for a given item 26 list all female employees and those who have positions at the Bank of England 27 Sustainable Development Goal (Q53580881) - Sustainable Development Goal Target (Q56724848) - Sustainable Development Goal Indicator (Q56726345) 28 Member of the French National Assembly but only those who belong to the 13th legislature of the Fifth French Republic 29 Request a query for Battles in history and the generals who won it 30 Time out 31 Query to match WD tapestries with Commons images based on Palissy ID 32 Strange quantityUnit in P4214 property for 11 objects 33 Not include items with P582 34 To add images for items which dont have images 35 German federal ministers 36 Number of characters 37 People who are most probably dead 38 Listings of women with nationality 39 List of places How to list a range of Q-items? Is this possible. I'm trying to catch (timeout) a range of Q's before and after 4626 AM (Q16128701) to curate them with the right P31.--So9q (talk) 22:06, 23 November 2019 (UTC)I could generate this myself in a spreadsheet and use in a values block perhaps?--So9q (talk) 10:17, 24 November 2019 (UTC)It worked! Is there a way to generate a range of Q-items dynamically say a special word RANGE(1, 100) that would result in a list of wd:-prefixed Q-items? If not I think we should open a ticket for this, because it is really useful to be able to do to limit queries to a certain range of Q-items.--So9q (talk) 11:36, 24 November 2019 (UTC)I tried with 5000 in the range and the WDQS UI freeze all the time making it almost impossible to type in the SPARQL window. I think this is related to auto completion which should be possible to turn of (as it acts strangely on mobile devices also). This is bug I think.--So9q (talk) 11:46, 24 November 2019 (UTC) SPARQL doesn't afaik have a concept of range, beyond creative use of FILTER to establish them; but I get the impression that's not very efficient. I can imagine a bespoke WDQS service which provides better support for QId ranges (and other matters - append/edit dates & ranges). I doubt such a thing will be commissioned, but by all means open a ticket, since it's even less likely to be built if the suggestion is not made. Not sure about the UI bug; again, worth raising, if there's for instance a client process that could be knocked on the head for super-large queries. --Tagishsimon (talk) 20:44, 24 November 2019 (UTC) On some SPARQL systems (but, I think, not ours) there is full string indexing of all strings and URLs, so a strategy would be to find all URLs that were Q-ids, and CONTAINED the initial digits of the range you were looking for after their Q-number. FILTER could then be applied to this set to reduce it to the range that you were looking for. Full indexing of strings was not implemented on our system, because (i) it is a perfrmance overhead, and (ii) it was considered that such string searching could be achieved through the ElasticSearch API. Nevertheless, STRSTARTS still works better than one might expect (I think -- see Lucas's tips on range-searching in the optimisation page for more. But perhaps it only applies to numbers/dates). So that might be one strategy that could be investigated. Alternatively, one could investogate whether the string search API could be used to extract a block of Qids, that could then be filtered. Jheald (talk) 22:57, 24 November 2019 (UTC) Where is the optimisation page? What about filtering on the dump file? wget https://dumps.wikimedia.org/wikidatawiki/entities/latest-truthy.nt.gz && zcat latest-truthy.nt.gz | wikidata-filter Or a simpler sed that works on the (much bigger) json newline devided dump: wget https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz && zcat latest-all.json.gz | sed -e '/nifty expression/' > output.json.gz --So9q (talk) 19:47, 27 November 2019 (UTC) @So9q: Wikidata:SPARQL query service/query optimization --Tagishsimon (talk) 21:23, 27 November 2019 (UTC) Thanks :)--So9q (talk) 21:54, 27 November 2019 (UTC) Went ahead and created a ticket for the UI freeze bug: https://phabricator.wikimedia.org/T239385--So9q (talk) 07:28, 28 November 2019 (UTC) @So9q: I couldn’t find an efficient way to generate a range of items – but item IDs aren’t supposed to be significant anyways. And since you were limiting the results to those with a specific description anyways, it’s possible to efficiently query for all of those items with this description, without any range restriction: SELECT ?item WHERE {
   ?item schema:description \"Hebrew calendar year\"@en;
         wdt:P155 ?follows.
@@ -202,5 +174,41 @@ order by desc(year(?end)) ?whereLabel2
  Try it! --Larske (talk) 23:21, 5 December 2019 (UTC)  Items used: Siege of Zierikzee (Q2139412)   , Siege of Autun (Q585291)   , Battle of Mainz (Q840250)   , Siege of Bensheim (Q815122)   , siege (Q188055)   , day (Q573)   Properties used: instance of (P31)   , Wikidata time precision (P2803)   , start time (P580)   , end time (P582)   , conversion to standard unit (P2442)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d843622-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?start ?t1 ?end ?t2 ?startprecision ?endprecision ?precision ?duration ?tp ?conv ?converted 
+{
+    {  SELECT *
+       WHERE
+       {
+          #  VALUES ?item { wd:Q2139412 wd:Q585291 wd:Q840250 wd:Q815122 }
+           ?item wdt:P31 wd:Q188055 .
+           ?item p:P580/psv:P580 [ wikibase:timeValue ?start ; wikibase:timePrecision ?startprecision ] .
+           ?item p:P582/psv:P582 [ wikibase:timeValue ?end ; wikibase:timePrecision ?endprecision ]
+       }
+       LIMIT 200
+    }
+    #determine lowest precision
+    BIND( IF( ?startprecision > ?endprecision , ?endprecision , ?startprecision ) as ?precision) 
+    #change dates to lowest precision (here: only year precision)
+    BIND( IF( ?startprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?start)),\"-01-01T00:00:00Z\")), ?start)  as ?t1) 
+    BIND( IF( ?endprecision < 10, xsd:dateTime( CONCAT( str(YEAR(?end)),\"-12-31T00:00:00Z\")), ?end)  as ?t2) 
+    #calc duration on adjusted dates (in days)
+    BIND( ?t2 - ?t1 as ?duration)                  
+    #get unit corresponding to precision and conversion factor from days
+    ?tp wdt:P2803 ?pr . FILTER( str(?pr) = str(?precision) )
+    OPTIONAL { ?tp p:P2442 / psv:P2442 [ wikibase:quantityAmount ?conv ; wikibase:quantityUnit wd:Q573 ] .
+             ?tp rdfs:label ?unit . FILTER(lang(?unit) = \"en\") 
+             } 
+    # convert from days to unit corresponding to precision, add \"ca.\" and unit label
+    BIND( CONCAT( \"ca. \", str(ROUND(FLOOR((1 / ?conv * ?duration) +1))), \" \", ?unit ) as ?converted) 
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" . }
+}""" .

@@ -6,7 +6,32 @@
 
 <https://www.wikidata.org/#query-71e4e8aa95631ba4d89669e658b6588d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#List of properties used as qualifier on a translator (P655) statement.
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d862690-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d862690-CE391126A082CB9779E362514C8C69D8;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#List of properties used as qualifier on a translator (P655) statement.
+SELECT ?property ?propertyLabel ?count  WHERE {
+  {
+  SELECT ?property ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
+    ?item p:P655 ?statement .
+    ?statement ?pq ?x .
+    ?property a wikibase:Property;
+              wikibase:qualifier ?pq.
+    FILTER(?property != wd:P31)
+  }
+  GROUP BY ?property ?value
+  ORDER BY DESC(?count)
+  LIMIT 100
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#List of properties used as qualifier on a translator (P655) statement.
 SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
     ?item p:P655 ?statement .
@@ -22,8 +47,4 @@ SELECT ?property ?propertyLabel ?count WITH {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
 }
-ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121784-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count)""" .

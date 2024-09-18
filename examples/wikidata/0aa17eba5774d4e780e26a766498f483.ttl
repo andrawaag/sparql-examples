@@ -6,7 +6,95 @@
 
 <https://www.wikidata.org/#query-0aa17eba5774d4e780e26a766498f483> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Get share of renewable energy in electricity using Federated query
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d814177-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d814177-CD6478178EC98C18922405206ABEC943,
+    _:genid-4e694113159d4e3db4a1a913894a81d814177-5FB3246826E9CB1C83A8BAC09C0F6BE0, _:genid-4e694113159d4e3db4a1a913894a81d814177-4AA17A070C9AF12074E72AC6B2C0E917,
+    _:genid-4e694113159d4e3db4a1a913894a81d814177-AE065CEAE2F5888BD54280A834F6551C, _:genid-4e694113159d4e3db4a1a913894a81d814177-FA5DB2BBA176DA02D2C0CC969F344049,
+    _:genid-4e694113159d4e3db4a1a913894a81d814177-2AD903FE3E2C91C76A75CB0D2B1CEE29, _:genid-4e694113159d4e3db4a1a913894a81d814177-C968CAB62E37A905DE8D353AE928B7DF,
+    _:genid-4e694113159d4e3db4a1a913894a81d814177-3BB60F73A8C05841ED093C4A3F4D8511, _:genid-4e694113159d4e3db4a1a913894a81d814177-AD65F3C1DEB4E9CFFD9CB22042920EE5,
+    _:genid-4e694113159d4e3db4a1a913894a81d814177-EB7E3AA2ABE6EAAE83047336AEBE6995;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#Get share of renewable energy in electricity using Federated query
+
+# Read share of renewable energy in electricity in EU countries from http://semantic.eea.europa.eu 
+# and populate the result with finnish and inari sami labels from Wikidata
+
+PREFIX cube: <http://purl.org/linked-data/cube#>
+PREFIX sdmx-measure: <http://purl.org/linked-data/sdmx/2009/measure#> 
+PREFIX sdmx-dimension: <http://purl.org/linked-data/sdmx/2009/dimension#> 
+PREFIX sdmx-attribute: <http://purl.org/linked-data/sdmx/2009/attribute#> 
+PREFIX property: <http://rdfdata.eionet.europa.eu/eurostat/property#> 
+
+SELECT DISTINCT
+   (YEAR(?timePeriod) as ?year)
+   (?obsValue as ?Share_of_renewable_energy_in_electricity)
+   ?unit_EN
+   ?unit_SMN
+   ?nuts
+   ?country_EN
+   ?country_SMN
+   ?flag
+   ?country
+
+WHERE {
+   {
+   SELECT  * WHERE {
+
+      # Route query through zbw.eu as semantic.eea.europa.eu is not visible to query.wikidata.org
+
+      SERVICE <http://zbw.eu/beta/sparql/stw/query> {
+
+         # Read share of renewable energy in electricity in EU countries from http://semantic.eea.europa.eu 
+
+         SERVICE <http://semantic.eea.europa.eu/sparql> {
+            SELECT * WHERE {
+               ?row cube:dataSet <http://rdfdata.eionet.europa.eu/eurostat/data/nrg_ind_335a> .  
+               ?row property:indic_en  <http://dd.eionet.europa.eu/vocabulary/eurostat/indic_en/119820> .
+               ?row sdmx-dimension:timePeriod ?timePeriod .
+               ?row sdmx-measure:obsValue ?obsValue .
+               ?row sdmx-attribute:unitMeasure ?unitTmp .
+               ?row sdmx-dimension:refArea ?countryTmp .
+               ?countryTmp skos:prefLabel ?country_EN .
+               ?countryTmp skos:notation ?nuts .
+               ?unitTmp rdfs:label ?unit_EN .
+               FILTER(YEAR(?timePeriod) = 2016)
+            }
+         }
+      }
+   }
+} .
+
+   # And populate the result with finnish and inari sami labels and flag from Wikidata
+
+   ?country wdt:P605 ?nuts .
+   ?country wdt:P41 ?flag .
+   ?unit wdt:P3328 ?unit_EN . 
+
+    OPTIONAL {?country rdfs:label ?country_FI FILTER (LANG(?country_FI) = \"fi\")}.
+    OPTIONAL {?country rdfs:label ?country_SMN FILTER (LANG(?country_SMN) = \"smn\")}.
+    OPTIONAL {?unit rdfs:label ?unit_FI FILTER (LANG(?unit_FI) = \"fi\")}.  
+    OPTIONAL {?unit rdfs:label ?unit_SMN FILTER (LANG(?unit_SMN) = \"smn\")}.   
+  
+    FILTER(?country NOT IN (wd:Q756617, wd:Q29999)) # Filter out Kingdom Denmark and Kingdom of Netherlands
+}
+ORDER BY DESC(?Share_of_renewable_energy_in_electricity)
+LIMIT 35 # Expected number of results is 34""";
+  <http://example.org/bigdata_select> """#Get share of renewable energy in electricity using Federated query
 
 # Read share of renewable energy in electricity in EU countries from http://semantic.eea.europa.eu 
 # and populate the result with finnish and inari sami labels from Wikidata
@@ -70,23 +158,4 @@ WHERE {
     FILTER(?country NOT IN (wd:Q756617, wd:Q29999)) # Filter out Kingdom Denmark and Kingdom of Netherlands
 }
 ORDER BY DESC(?Share_of_renewable_energy_in_electricity)
-LIMIT 35 # Expected number of results is 34""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/ja>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/zh>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/hy>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/fr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/tr>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/uk>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/sv>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced/en>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/advanced>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-46ABF8ECDF7BFC651CD20DB63A20B343, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-806DE5E582B6F1C2A359B30C8C66BDE7,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-A1BED292766ADC82B69C3E3B8AA44772, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-C5B177CA493818CCA7B39DA0C5FE04A4,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-5763A77E495FB277B233BE676F5788DD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-2B30586C856B85C559F322134FF95064,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-4DF55BEE2A0E287AD7E3EA027AE7B076, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-0D2EBF9D3CB5F1F842DB0AF7186F0002,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112541-5402A7E9967711A9B574F242043DFBBC;
-  schema:target <https://query.wikidata.org/sparql/> .
+LIMIT 35 # Expected number of results is 34""" .

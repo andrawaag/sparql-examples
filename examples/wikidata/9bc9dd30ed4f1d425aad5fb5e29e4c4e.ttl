@@ -6,7 +6,24 @@
 
 <https://www.wikidata.org/#query-9bc9dd30ed4f1d425aad5fb5e29e4c4e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title:The most notable sculptures
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sculpture>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819922-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title:The most notable sculptures
+#defaultView:ImageGrid
+SELECT ?item ?itemLabel (SAMPLE(?img) AS ?image)  WHERE {
+{SELECT DISTINCT ?item WHERE {
+?item wdt:P31/wdt:P279? wd:Q860861.
+?item wikibase:sitelinks ?sites. } ORDER BY DESC(?sites) LIMIT 100 }.
+?item wdt:P18 ?img.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?item ?itemLabel""";
+  <http://example.org/bigdata_select> """#title:The most notable sculptures
 #defaultView:ImageGrid
 SELECT ?item ?itemLabel (SAMPLE(?img) AS ?image) WITH {SELECT DISTINCT ?item WHERE {
 ?item wdt:P31/wdt:P279? wd:Q860861.
@@ -14,8 +31,4 @@ SELECT ?item ?itemLabel (SAMPLE(?img) AS ?image) WITH {SELECT DISTINCT ?item WHE
 INCLUDE %toplist.
 ?item wdt:P18 ?img.
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} GROUP BY ?item ?itemLabel""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_Sculpture>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} GROUP BY ?item ?itemLabel""" .

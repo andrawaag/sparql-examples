@@ -6,7 +6,35 @@
 
 <https://www.wikidata.org/#query-0f160a6bd20231b2095159812f39ebf7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#List of properties linking a creative work to a book series, ordered by frequency of use
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Atelier_2018>,
+    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812089-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d812089-BDBFE41ECB08569F5999183F85A2DDE9,
+    _:genid-4e694113159d4e3db4a1a913894a81d812089-5E52122ED34805AA8831FFF3C36F162F, _:genid-4e694113159d4e3db4a1a913894a81d812089-5933A1D3098BA972B213014E70726FE8;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#List of properties linking a creative work to a book series, ordered by frequency of use
+SELECT ?property ?propertyLabel ?count  WHERE {
+  {
+  SELECT ?property ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
+    ?bookseries wdt:P31/wdt:P279* wd:Q277759.
+    ?item ?wdt ?bookseries.
+    ?item wdt:P31/wdt:P279* wd:Q17537576.
+    ?property a wikibase:Property;
+              wikibase:directClaim ?wdt.
+    FILTER(?property != wd:P31)
+  }
+  GROUP BY ?property ?value
+  ORDER BY DESC(?count)
+  LIMIT 10
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#List of properties linking a creative work to a book series, ordered by frequency of use
 SELECT ?property ?propertyLabel ?count WITH {
   SELECT ?property ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
     ?bookseries wdt:P31/wdt:P279* wd:Q277759.
@@ -23,10 +51,4 @@ SELECT ?property ?propertyLabel ?count WITH {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en-US,en,en\". }
 }
-ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Beat_Estermann/WD-Atelier_2018>,
-    <https://www.wikidata.org//wiki/User:Beat_Estermann/WD_Intro_Swiss_National_Library_2018>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121889-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121889-FC73A152ED714A8AA6EB6435611CEB18, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121889-7770F7EE61EAA978FFB3AEC050B357B7;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count)""" .

@@ -6,7 +6,35 @@
 
 <https://www.wikidata.org/#query-274162da327df753861c45d32845e38d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: Éléments à propos d'auteurs disposant d’une page Wikispecies
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/fr>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d822505-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: Éléments à propos d'auteurs disposant d’une page Wikispecies
+SELECT ?author ?authorLabel ?count
+
+WHERE {
+  {
+  SELECT ?author (COUNT(?paper) AS ?count)
+  WHERE {
+    ?article schema:about ?author ;
+      schema:isPartOf <https://species.wikimedia.org/> .
+    ?author wdt:P31 wd:Q5.
+    ?paper wdt:P50 ?author.
+  }
+  GROUP BY ?author
+  ORDER BY DESC(?count)
+  LIMIT 200
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """#title: Éléments à propos d'auteurs disposant d’une page Wikispecies
 SELECT ?author ?authorLabel ?count
 WITH {
   SELECT ?author (COUNT(?paper) AS ?count)
@@ -24,8 +52,4 @@ WHERE {
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\" . }
 }
-ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/fr>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count)""" .

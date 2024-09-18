@@ -6,30 +6,6 @@
 
 <https://www.wikidata.org/#query-caddb9c1f295e3837d170c1e3b42c6c2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# German states, ordered by the number of company headquarters per million inhabitants
-# Replace wd:Q1221156 (state of Germany) by anything else you care about, e.g., wd:Q6256 (country)
-# Nested queries for correctness (don't count companies twice) and performance (aggregate before adding more data)
-# Limits: states without population missing; company data in Wikidata is always incomplete
-# Note: This query shows some not-so-easy nesting of DISTINCT (don't count any company twice) and aggregate, in combination with arithmetic output evaluation functions. It is a hard query that may time out if modified.
-SELECT
-  ?state ?stateLabel
-  ?companies
-  ?population
-  (?companies/?population*1000000 AS ?companiesPerM)
-WHERE
-{
-  { SELECT ?state (count(*) as ?companies) WHERE {
-    {SELECT DISTINCT ?company ?state WHERE {
-      ?state wdt:P31 wd:Q1221156 .
-      ?company wdt:P31/wdt:P279* wd:Q4830453 .
-      ?company wdt:P159/wdt:P131* ?state .
-      FILTER NOT EXISTS{ ?company wdt:P576 ?date } # don't count dissolved companies
-    } }
-  } GROUP BY ?state }
-    ?state wdt:P1082 ?population
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
-}
-ORDER BY DESC(?companiesPerM)""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
@@ -65,21 +41,49 @@ ORDER BY DESC(?companiesPerM)""";
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-DD513493DD096635A26D5E9614D6F330, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-934625FEDFEAE92383B1F2CA33FC0359,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-514CAF80874FD75852C70B26CB87EDCC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-8FB1134D5BBDF388F8353D4DA6CF6CF8,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-E9B52FF30DB0C2CD76A4DFA6C6C5A301, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-2EF86000D1F104818C4371DC16939EAA,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-3EFC19D0C0A355E5B9D1A69BCD39250E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-852584B75D34F98224B49C470829CCE3,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-3ED34206870CC83E109CF112C00BDBAF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-C3493C506F8325264AC17D695FE9DBD2,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-5F69351BF85CA3C68E692E7290675294, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-A004AB6FDBC410CFE3274B05FFDB72CD,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-2CE852C8A3537649D29787D3F6EB42A3, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-A281A448087E3D06E6C832C1EA59D5C6,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-62569B445A4B887F50C34927152CF133, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-F1CF72B9192F2804B35F7397DA162130,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-9C55711DE1B1D11AA699C23D7201791A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-CE3794EBC35BD912CA9AF9DB236698C0,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-7C8972A24ADEAB120C23F7AF9B146B4A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-24B1999600E2D1A425BD405F773AC318,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-A1DDB8C95B716388333DCFE875493D8C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-A2BA5C2EC4D52B324A8DC42140F055CB,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-9257D2083A26DAD61104954A13DCD1A0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-4EC66FB64399076FC784D5DBE6EAAF2E,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-8D08C290DF37EF7D2866F8ADA2116EAC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-4A9FF93D0C91733985905FE8EF2AC0D9,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-7D739298D4F1C833ECA96FEAF02D3B35, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-4AFCF342467E63907EA448BD0E3520CD,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-199293CFB532B315234CD711D7B6C1DD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-4E6CF66C6126B58052AC39591CE41421,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-ECED927839818EF80988F631F285CA81, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec115712-FF64E798ECD584492B4B18FA5B7CF26B;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d811447-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d811447-CBDE81597B80DA4A4DD92491BD41EA82,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-505ECDDD4C849539A6538B6FEEE6DD3D, _:genid-4e694113159d4e3db4a1a913894a81d811447-C5075FDE6771D051BD13B86B38A13FE0,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-03338F9A3E6600F6A5DD120310400930, _:genid-4e694113159d4e3db4a1a913894a81d811447-DFA488B1473D2624FE4825D67204D435,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-8F08B89D5C3692D8AE0B0972C7ED2511, _:genid-4e694113159d4e3db4a1a913894a81d811447-1BEA75FA9476347C630AE46DC9758F75,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-3537EFFDD3DEC5C5E1210F6A9E2D8545, _:genid-4e694113159d4e3db4a1a913894a81d811447-F730C22C8A0B5D6D413148B47F3EA6D8,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-1DD685916E123E5A696B665E99874552, _:genid-4e694113159d4e3db4a1a913894a81d811447-21FC5FE2E2E6837FCC6655E8D4FA6F5A,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-3863CE0E8C776419874B0A93AE3E054B, _:genid-4e694113159d4e3db4a1a913894a81d811447-E849FD4CC9F955E54E931081678139F6,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-F8171974E4B97CA7E35642E28AE212EA, _:genid-4e694113159d4e3db4a1a913894a81d811447-54B4F3432E18EA286E8021FFBE10988A,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-8829C442666512398AAB168DFB4E20A2, _:genid-4e694113159d4e3db4a1a913894a81d811447-9086A7529337701C9325566E5333907F,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-408A8064C00E008BCF1BB0CEE2F97429, _:genid-4e694113159d4e3db4a1a913894a81d811447-4E15CFA35DCD3E89875A9269F5D26A7B,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-A286534C18AC0417D837168C2CD95FD4, _:genid-4e694113159d4e3db4a1a913894a81d811447-64FB6BE6FCC2CA1DBCBF59D7D6D6332B,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-95A3C3DD43E09639482EE42BDB2C7DBD, _:genid-4e694113159d4e3db4a1a913894a81d811447-659405178571C01488F787AFEC76D909,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-A4B35DA83A0D2CC446C83F94F38F96F3, _:genid-4e694113159d4e3db4a1a913894a81d811447-056B67D4965BCC638A2E6497FC966D2F,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-A077D56A7C924F8FA3628EFA345DD66F, _:genid-4e694113159d4e3db4a1a913894a81d811447-383826B7A33A1FAEAA8FE7B20B63F9D1,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-59B241E7FA567E296ABDF6605CFEE649, _:genid-4e694113159d4e3db4a1a913894a81d811447-9FE14DD7BF364323C37D63AB67A3924D,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-CF45A4E0978ABC1FEBA2E084F60E1435, _:genid-4e694113159d4e3db4a1a913894a81d811447-2954B5B4535AEE5613EC22BB11A61D56,
+    _:genid-4e694113159d4e3db4a1a913894a81d811447-27E1882EF2C80F1001E3628E14A401F6, _:genid-4e694113159d4e3db4a1a913894a81d811447-D79A10B9DBD0F3AD5A5ED668DA6039F2;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# German states, ordered by the number of company headquarters per million inhabitants
+# Replace wd:Q1221156 (state of Germany) by anything else you care about, e.g., wd:Q6256 (country)
+# Nested queries for correctness (don't count companies twice) and performance (aggregate before adding more data)
+# Limits: states without population missing; company data in Wikidata is always incomplete
+# Note: This query shows some not-so-easy nesting of DISTINCT (don't count any company twice) and aggregate, in combination with arithmetic output evaluation functions. It is a hard query that may time out if modified.
+SELECT
+  ?state ?stateLabel
+  ?companies
+  ?population
+  (?companies/?population*1000000 AS ?companiesPerM)
+WHERE
+{
+  { SELECT ?state (count(*) as ?companies) WHERE {
+    {SELECT DISTINCT ?company ?state WHERE {
+      ?state wdt:P31 wd:Q1221156 .
+      ?company wdt:P31/wdt:P279* wd:Q4830453 .
+      ?company wdt:P159/wdt:P131* ?state .
+      FILTER NOT EXISTS{ ?company wdt:P576 ?date } # don't count dissolved companies
+    } }
+  } GROUP BY ?state }
+    ?state wdt:P1082 ?population
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"de\" }
+}
+ORDER BY DESC(?companiesPerM)""" .

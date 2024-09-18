@@ -6,7 +6,38 @@
 
 <https://www.wikidata.org/#query-13c218c82cfa4c0bd09fef1694816cb2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:gloss-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825436-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?glosses
+  ?language_code
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?gloss) AS ?glosses)
+    ?language_code
+  WHERE {
+    ?sense skos:definition ?gloss .
+    BIND(LANG(?gloss) AS ?language_code)
+  }
+  GROUP BY ?language_code
+}
+  OPTIONAL {
+    ?language wdt:P305 ?language_code .
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?glosses)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?glosses
   ?language_code
   ?language ?languageLabel
@@ -28,8 +59,4 @@ WHERE {
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?glosses)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:gloss-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?glosses)""" .

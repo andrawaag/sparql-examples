@@ -6,7 +6,41 @@
 
 <https://www.wikidata.org/#query-fe88e072649cab72f3dc2a446a5b7938> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title: UK Health Ministers and their occupations on Wikidata
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions/doc>,
+    <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d861268-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d861268-437AFD9DF8F71BA94AFC65981D531C01,
+    _:genid-4e694113159d4e3db4a1a913894a81d861268-6748D4723AC43D5E4DA3178E8D7721FE, _:genid-4e694113159d4e3db4a1a913894a81d861268-D1A88EA3E755B54166E96FB1FDDB24C5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  rdfs:comment "Properties: instance of (P31)   , part of (P361)   , subclass of (P279)   , occupation (P106)   , position held (P39)   , start time (P580)   "@en;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#title: UK Health Ministers and their occupations on Wikidata
+SELECT ?x ?xLabel ?start (GROUP_CONCAT(?occLabel ;separator=\"; \") as ?occupations)  
+WHERE {
+  {
+  
+SELECT DISTINCT ?x (SAMPLE(?start) AS ?start) WHERE {  # Using sample as ministers may have held the position multiple times but we're only interested in one
+  ?x wdt:P31 wd:Q5 .
+  ?x p:P39 ?node .
+  ?node ps:P39 ?position ;
+        pq:P580 ?start .
+  ?position wdt:P361 wd:Q112014 .   # member of the UK Cabinet
+  ?position wdt:P279 wd:Q3273722 .  # health minister
+} GROUP BY ?x }
+  OPTIONAL {?x wdt:P106 ?occ . ?occ rdfs:label ?occLabel.   FILTER (LANG(?occLabel) = \"en\") }
+  BIND(COALESCE(?occLabel, \"None\") AS ?occLabel )
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?x ?xLabel ?start
+ORDER BY DESC (?start)""";
+  <http://example.org/bigdata_select> """#title: UK Health Ministers and their occupations on Wikidata
 SELECT ?x ?xLabel ?start (GROUP_CONCAT(?occLabel ;separator=\"; \") as ?occupations)  WITH {
   
 SELECT DISTINCT ?x (SAMPLE(?start) AS ?start) WHERE {  # Using sample as ministers may have held the position multiple times but we're only interested in one
@@ -24,11 +58,4 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?x ?xLabel ?start
-ORDER BY DESC (?start)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions/doc>,
-    <https://www.wikidata.org//wiki/Module:Sandbox/Azertus/SPARQLMentions>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec134027-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec134027-501633F53FDBBE8E707E692CE15E1C7C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec134027-9A8F7C1B8A1D253C7266B1D2F76D951A;
-  schema:target <https://query.wikidata.org/sparql/>;
-  rdfs:comment "Properties: instance of (P31)   , part of (P361)   , subclass of (P279)   , occupation (P106)   , position held (P39)   , start time (P580)   "@en .
+ORDER BY DESC (?start)""" .

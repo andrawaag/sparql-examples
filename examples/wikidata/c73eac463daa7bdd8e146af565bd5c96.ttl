@@ -6,14 +6,26 @@
 
 <https://www.wikidata.org/#query-c73eac463daa7bdd8e146af565bd5c96> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?languageLabel (COUNT(?sitelink) AS ?count) WITH { SELECT DISTINCT ?artist { ?work wdt:P195 wd:Q636400; wdt:P170 ?artist FILTER (!ISBLANK(?artist)) } } AS %artists WHERE {
-INCLUDE %artists.
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842455-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?languageLabel (COUNT(?sitelink) AS ?count)  WHERE {
+{ SELECT DISTINCT ?artist { ?work wdt:P195 wd:Q636400; wdt:P170 ?artist FILTER (!ISBLANK(?artist)) } }.
 ?sitelink schema:about ?artist; schema:inLanguage ?lang FILTER (CONTAINS(STR(?sitelink), \".wikipedia.org\"))
 ?language wdt:P218 ?lang.
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 } GROUP BY ?languageLabel
 ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT ?languageLabel (COUNT(?sitelink) AS ?count) WITH { SELECT DISTINCT ?artist { ?work wdt:P195 wd:Q636400; wdt:P170 ?artist FILTER (!ISBLANK(?artist)) } } AS %artists WHERE {
+INCLUDE %artists.
+?sitelink schema:about ?artist; schema:inLanguage ?lang FILTER (CONTAINS(STR(?sitelink), \".wikipedia.org\"))
+?language wdt:P218 ?lang.
+SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} GROUP BY ?languageLabel
+ORDER BY DESC(?count)""" .

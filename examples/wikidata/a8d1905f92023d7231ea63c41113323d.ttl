@@ -6,7 +6,15 @@
 
 <https://www.wikidata.org/#query-a8d1905f92023d7231ea63c41113323d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?athlete ?athleteLabel ?dbCountry ?dbCountryLabel ?statedInRef ?statedInRefLabel WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hdevine825/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d821215-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?athlete ?athleteLabel ?dbCountry ?dbCountryLabel ?statedInRef ?statedInRefLabel WHERE {
   ?athlete wdt:P7550 ?paraID. #retrieve all athletes with a global paralympic id
   MINUS{?athlete wdt:P1532 ?country.} #remove those with country for sport specified 
   ?database wdt:P31 wd:Q30225604. #find all national database id properties related to paralympics 
@@ -20,8 +28,4 @@
   OPTIONAL{ ?database wdt:P9073 ?statedIn. }
   BIND(COALESCE(?statedIn, ?dbQID) as ?statedInRef)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Hdevine825/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

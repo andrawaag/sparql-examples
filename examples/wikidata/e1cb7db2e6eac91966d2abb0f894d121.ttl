@@ -6,15 +6,19 @@
 
 <https://www.wikidata.org/#query-e1cb7db2e6eac91966d2abb0f894d121> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?itemLabel ?age ?item WHERE {?item wdt:P31/wdt:P279* wd:Q144 ;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/07>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d84022-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?itemLabel ?age ?item WHERE {?item wdt:P31/wdt:P279* wd:Q144 ;
                                                    wdt:P569 ?naissance ;
                                                    wdt:P570 ?mort .
         FILTER(?age > 19) .
         BIND(round((?mort - ?naissance)*100/365.2425) as ?a)
         BIND(?a/100 as ?age)
     SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". } }
-    ORDER BY DESC (?age)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/07>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+    ORDER BY DESC (?age)""" .

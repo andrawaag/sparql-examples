@@ -6,29 +6,6 @@
 
 <https://www.wikidata.org/#query-c0139573f6165011d179645789a7934f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#added before 2019-02
-
-#Shows people raised in the public domain \"life + 50 years\".
-SELECT ?item ?itemLabel ?genderLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupations) (GROUP_CONCAT(DISTINCT ?countryLabel; SEPARATOR=\", \") AS ?countries) ?death ?articles {
-  VALUES ?target_country { wd:Q16 wd:Q142 wd:Q39 wd:Q31 wd:Q30 } . #countries: Canada, France, Switzerland, Belgium, USA. Removing this line to get worldwide may cause a query timeout.
-  VALUES ?occ { wd:Q2500638 wd:Q20826540 wd:Q215627 } . #occupation: creator, erudite, person. These 3 occupations will also look for subclasses. Example: Alan Turing is a cryptographer, a subclass of cryptologist, a subclass of mathematician, a subclass of scientist, a subclass of erudite.
-   ?item wdt:P31 wd:Q5;
-               wdt:P21 ?gender;
-               wdt:P27 ?target_country;
-               wdt:P27 ?country;
-               wdt:P106/wdt:P279* ?occ ;
-               wdt:P106 ?occupation;
-               wikibase:sitelinks ?articles . #Service to count the number of articles in Wikipedia language versions. The higher the number, the greater the chances that the person is very notorious.
-   ?item wdt:P570 ?death . hint:Prior hint:rangeSafe true .
-   FILTER( ?death >= \"1969-01-01T00:00:00\"^^xsd:dateTime && ?death < \"1970-01-01T00:00:00\"^^xsd:dateTime ) #death: public domain \"life+50 years\". Change both years to get a list in different legislation. Example for USA: life+70 years
-   SERVICE wikibase:label {
-       bd:serviceParam wikibase:language \"fr,en\" . #Service to retrieve the labels of items, in order of language. Example: if the label does not exist in French, the service will take the English label
-       ?item rdfs:label ?itemLabel .
-       ?gender rdfs:label ?genderLabel .
-       ?occupation rdfs:label ?occupationLabel .
-       ?country rdfs:label ?countryLabel .
-   } .
-} GROUP BY ?item ?itemLabel ?genderLabel ?death ?articles ORDER BY DESC (?articles) #Order by the number of articles in Wikipedia language versions. The most notorious people will be at the top of the list.""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Brochon99/M%C3%A9moire>, <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
@@ -64,23 +41,52 @@ SELECT ?item ?itemLabel ?genderLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SE
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-D7591F83552F415E6DB417103738B778, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-2A9C0828C7D6C9F368B521FEBB855D33,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-DA49270B3E0D2131D723E86E40FB38A5, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-B576C37298281CC0183BAD64E9EDA985,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-36DDDD8E7FD69A39C6BBB0855F9D2167, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-B0E70DE3885CA8FF985054C138FE44F7,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-4906CEC49D966B467DA9B632253880AB, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-36EBD419A3CEFAE6BFF2AD642376EF5B,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-C12B281E65D621AE1DEB80D7E058469F, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-FC9C1E6DF5F1BA639A307E71F86A5CB4,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-21378BD3C84F32ADA0024F0CFFA7991B, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-43031A0C2056C00BB53C41C95FB97AFD,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-93FC06DB1813453E38813E5591EC2347, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-7FFADD1FC1C911FE35658CC2D768620F,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-D6CA2378B1C722129B473D779D89720C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-DBFD4F2D6DC6E60607F6CDFE00D2DD87,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-965E721E7FFF72D9578FD28382696DFD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-E6371D6F871310D6B2D598055D8665B9,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-9774A031E507EF4D4FBAA2BE4C46D80B, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-0BC3F887F6128CC28D08997DAEB68CA5,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-D442A85A029A36031F47A0C9834FCF98, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-32FEDF893BB2486F2C4CAF064695B0C8,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-2E51C0F242387DBD1923293D3CE0A14E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-FD86EEB9267BDCBB7CFDA182B27B39FA,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-F84DC6F50FCD1B92AC056BFB21D59C2E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-E37BF1CFD4AC62148208023E0BF901F4,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-93D10CEB756B5FB821B8CCC73651294E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-AAE988849FAE6E808AD58A41E63AD196,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-14B5B365A801AC95F164051D9BCE8407, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-AC39F00FBF0A93EDE440E1ACC0E2CFF4,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-7D53D495BAF347FA617C650BC52B5678, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-09994CD1C550FB8FFD5DCDA404EDE6AC,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-675E4B7E1B3515EC7CD81457D20A6775, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-65A1358F7006774B8AAC7800CD04B5CF,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120770-8E52D83A3FDF33A9E76074DDDB4D5F05;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d852184-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d852184-F256718ECD38858ED794736E9DF533C7,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-C085447396183024252887B2EEC9EE39, _:genid-4e694113159d4e3db4a1a913894a81d852184-27F7D7C87C46F7AD0E553687723BE13C,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-5C23370AE0FE10430177AF2CF18E01F7, _:genid-4e694113159d4e3db4a1a913894a81d852184-8ECB2A22443B9AD4E4756ABBDCE5E892,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-084FBCECA415D2EC11D334005C4BD2C1, _:genid-4e694113159d4e3db4a1a913894a81d852184-66E24D8823CDDC8F5FF10B8DEF836A12,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-765423BF18057755B32CD0F4D90690C7, _:genid-4e694113159d4e3db4a1a913894a81d852184-30BB81460266DEDEB5AF053E7C6E2022,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-8A5A8BE4D9D5FE4FD9DC48D1E9697E4F, _:genid-4e694113159d4e3db4a1a913894a81d852184-ED98C1A7728A58D365A3B362DF8C8D0F,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-94713CC5099FDDA303A496B736739AF3, _:genid-4e694113159d4e3db4a1a913894a81d852184-88AA3BA468A9FADC06C89876E0AE204B,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-8E743357B56EFA0C2F0B888A8DE9D571, _:genid-4e694113159d4e3db4a1a913894a81d852184-C2DA98D3C11B7B6D90CC8F5FC589AB76,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-AC2DEB7DD1C92D8A96327B6B64E6320C, _:genid-4e694113159d4e3db4a1a913894a81d852184-EF735457DC14B967F32FEAEAFCE9677B,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-ACDE2EE2F0E782260BFC6F86EDEBD4D5, _:genid-4e694113159d4e3db4a1a913894a81d852184-CD928B96BB1E78251FD98A552F4426DA,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-9948BD99EAC9E0340C936757CA8C4067, _:genid-4e694113159d4e3db4a1a913894a81d852184-3EAFB4B85A079106136F03C9E920642A,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-6F38868A4718F4A8536689E0CFCF7BD6, _:genid-4e694113159d4e3db4a1a913894a81d852184-13DA48E7A4C88E254D90E1B4E2E3D1E6,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-ED0EDF81CE5C394ADD6650C3DCEE3C28, _:genid-4e694113159d4e3db4a1a913894a81d852184-E327B19E088B7C9865EBA70657626498,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-68D814DC5502A4B16258F6169A33B9E8, _:genid-4e694113159d4e3db4a1a913894a81d852184-C6DB3C598880271DFB6A9771A07878E3,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-4FB2A965CA523F5BFB9835B9D14A92B8, _:genid-4e694113159d4e3db4a1a913894a81d852184-12405129AD9D83D31C536860E374E1B3,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-FB32EA7A96C5A0949875C5BF83FE557E, _:genid-4e694113159d4e3db4a1a913894a81d852184-1BA37A6FBC01C7C3CE299787458F6344,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-F4F4EF974A567DE001E4DFA5AEA2092A, _:genid-4e694113159d4e3db4a1a913894a81d852184-1C75DC6DD3962B7906C6AE8A50A3BA51,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-7ECDBA9F0C751531A6AD1E3CC2FF3EE9, _:genid-4e694113159d4e3db4a1a913894a81d852184-087B7F89BBDEA18C7E03F84232CE0CD7,
+    _:genid-4e694113159d4e3db4a1a913894a81d852184-393B6B098D19943C0ACB5D527E1D67F2;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2019-02
+
+#Shows people raised in the public domain \"life + 50 years\".
+SELECT ?item ?itemLabel ?genderLabel (GROUP_CONCAT(DISTINCT ?occupationLabel; SEPARATOR=\", \") AS ?occupations) (GROUP_CONCAT(DISTINCT ?countryLabel; SEPARATOR=\", \") AS ?countries) ?death ?articles {
+  VALUES ?target_country { wd:Q16 wd:Q142 wd:Q39 wd:Q31 wd:Q30 } . #countries: Canada, France, Switzerland, Belgium, USA. Removing this line to get worldwide may cause a query timeout.
+  VALUES ?occ { wd:Q2500638 wd:Q20826540 wd:Q215627 } . #occupation: creator, erudite, person. These 3 occupations will also look for subclasses. Example: Alan Turing is a cryptographer, a subclass of cryptologist, a subclass of mathematician, a subclass of scientist, a subclass of erudite.
+   ?item wdt:P31 wd:Q5;
+               wdt:P21 ?gender;
+               wdt:P27 ?target_country;
+               wdt:P27 ?country;
+               wdt:P106/wdt:P279* ?occ ;
+               wdt:P106 ?occupation;
+               wikibase:sitelinks ?articles . #Service to count the number of articles in Wikipedia language versions. The higher the number, the greater the chances that the person is very notorious.
+   ?item wdt:P570 ?death . hint:Prior hint:rangeSafe true .
+   FILTER( ?death >= \"1969-01-01T00:00:00\"^^xsd:dateTime && ?death < \"1970-01-01T00:00:00\"^^xsd:dateTime ) #death: public domain \"life+50 years\". Change both years to get a list in different legislation. Example for USA: life+70 years
+   SERVICE wikibase:label {
+       bd:serviceParam wikibase:language \"fr,en\" . #Service to retrieve the labels of items, in order of language. Example: if the label does not exist in French, the service will take the English label
+       ?item rdfs:label ?itemLabel .
+       ?gender rdfs:label ?genderLabel .
+       ?occupation rdfs:label ?occupationLabel .
+       ?country rdfs:label ?countryLabel .
+   } .
+} GROUP BY ?item ?itemLabel ?genderLabel ?death ?articles ORDER BY DESC (?articles) #Order by the number of articles in Wikipedia language versions. The most notorious people will be at the top of the list.""" .

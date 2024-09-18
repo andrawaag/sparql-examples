@@ -6,79 +6,6 @@
 
 <https://www.wikidata.org/#query-0f5a7bcc411e42b3ff44b2775bf635cb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX llemma:   <http://wikiba.se/ontology#lemma>
-PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
-PREFIX llang:    <http://purl.org/dc/terms/language>
-PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
-PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
-PREFIX lfeature: <http://wikiba.se/ontology#grammaticalFeature>
-PREFIX lsenses:  <http://www.w3.org/ns/lemon/ontolex#sense>
-PREFIX lglos:    <http://www.w3.org/2004/02/skos/core#definition>
-
-# List words of in some titles and corresponding lexemes (or \"placeholder\") 
-#  limited to the 42 first words & English language titles
-#  includes glos for any of the senses already defined on one of the lexemes (more generally needed)
-#  by Jura1, 10 March 2020
-
-SELECT
-  ?a ?title ?nv ?word (GROUP_CONCAT(DISTINCT ?lemma; separator=\"/\") as ?all_lemma) 
-  (SAMPLE(?lexeme) as ?a_lexeme) 
-  (GROUP_CONCAT(DISTINCT ?lexcatLabel; separator=\", \") as ?all_lexcat) 
-  (COUNT(DISTINCT ?sense) as ?senses)
-  (GROUP_CONCAT(DISTINCT ?glos_en; separator=\" [other sense: ]_\") as ?all_glos_en) 
-WITH
-{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
-  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
-  ,\"[ ]{2,100}\",\" \") as ?input)
-  #skip some characters in title
-  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
-  WHERE
-   {
-      # { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
-      # UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
-      # above for COVID-19, use the following for ZIKA instead, add other items as needed
-      ?a wdt:P921 wd:Q202864 .
-      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } OFFSET 1000 LIMIT 200
-} as %titles
-WITH
-{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
-     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
-} as %positionalregexes                                                            
-WITH
-{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
-} as %getwords
-WHERE
-{   INCLUDE %getwords
-    hint:Query hint:optimizer \"None\".
-    FILTER ( ?word != \"Z\"@en )
-    # check against English forms of lexemes (\"en\")
-    OPTIONAL { ?lf lhasform: ?word . ?lexeme1 lforms: ?lf ; llang: wd:Q1860 }
-
-    # check against lowercase forms 
-    BIND( Lcase(?word) as ?lword)
-    OPTIONAL { ?lf lhasform: ?lword . ?lexeme2 lforms: ?lf ; llang: wd:Q1860 }
-
-    # check against noun forms with 's (incomplete, not en-gb, not different cases)
-    BIND( strlang(REPLACE(str(?word),\"^(.+)'s$\", \"$1\"),\"en\") as ?noun)
-    OPTIONAL { ?lf lhasform: ?noun . ?lexeme5 lforms: ?lf ; llang: wd:Q1860 ; lcat: wd:Q1084 }
- 
-    # check against British-English lowercase forms (\"en-gb\")
-    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
-    OPTIONAL { ?lf lhasform: ?lword_engb . ?lexeme3 lforms: ?lf ; llang: wd:Q1860 }
-  
-    # exclude digits-only strings and 1-letter strings
-    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
-    FILTER ( strlen( stR(?word)) != 1  ) 
- 
-    BIND( COALESCE( ?lexeme1, ?lexeme2, ?lexeme5, ?lexeme3, wd:L254535 ) as ?lexeme)
-    ?lexeme llemma: ?lemma ; lcat: ?lexcat .
-    ?lexcat rdfs:label ?lexcatLabel . FILTER(lang(?lexcatLabel) = \"en\") .
-    OPTIONAL { ?lexeme lsenses: ?sense .
-               OPTIONAL { ?sense lglos: ?glos_en . FILTER(lang(?glos_en) = \"en\")   }
-             }
-}
-GROUP BY ?a ?title ?nv ?word
-ORDER BY ?a ?nv""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Unification of distances in the stars 2 Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors 3 Weird football statistics (2 queries) 3.1 Top 10 of the youngest and the oldest goal scorers and players in tournament history 3.2 Places of birth of soccer players on a world map 4 Nigeria women biographies without photos on Wikipedia 5 Renaming label variables 6 Project country coverage stats 7 How to query all places within a place? 8 How to show only unique values when using several GROUP_CONCAT? 9 List of IATA airport codes with geo coords, city, country, continent 10 Get a list of lexemes with sense 11 Timeline US news 12 List of 1000 female with the highest number of interwikis, but without a be:interwiki 13 Query no longer working 14 Simple request (Participants to the 2016 Olympics) 15 Getting the lexeme for a given form 15.1 How many words to check 15.2 List words 15.3 Cross-check against existing lexemes 15.4 Article titles and corresponding lexemes (or \"placeholder\") 16 \"has part/part of\" tree 17 Every 'instance of' X which has more than one 'instance of' statement and a list of values of these 'instance of' stataments 18 Catalan label and Roman people 19 Timeout, but has been running two weeks ago every day. 20 Revenue: Newest Number and Qualifier 21 Items with more than 30 sitelinks 22 Pageviews of a given item in a given endpoint 23 Playing with references 24 List of city residents, with street names 25 All Encompassing Query 26 Wikipedia categories and sub-categories 27 Instance of (P31) Disease Outbreak (Q3241045) of (P642) COVID-19 (Q84263196) 28 List of the websites of all cities in Germany 29 Abfrage der Bürgermeister ein Stadt in zeitlicher Reihenfolge 30 List of Oscar Best Movies 31 Thousands separator 32 Searching for a specific property from a list of items 33 Upper case titles 34 Article titles about persons that contain a certain string 35 Mayors 36 Part of string with P973 37 Spelling out the language of a Wikimedia page from sitelink 38 Query on qualifier and display it on results 39 ORDER BY Family name 40 FILTER NOT EXISTS 41 Better query for P301 inverse constraint? 42 electoral district of a political position held? 43 Many wikiquote entries, but few wikipedia entries 44 List of artists in City of Pori art collection 45 Select Australian women who have an infobox with the parameter \"image =\" (and possibly therefore an image) where there is no image in wikidata Unification of distances in the stars By running the following query: # Stars up to 18 light years away sorted by the nearest
 SELECT ?star ?starLabel ?distance
 WHERE
@@ -655,5 +582,154 @@ WHERE
 } Try it! Another approach, checking against lexemes. --- Jura 19:03, 7 March 2020 (UTC) Article titles and corresponding lexemes (or \"placeholder\") Items used: COVID-19 (Q84263196)   , COVID-19 pandemic (Q81068910)   , Coronavirus (Q57751738)   , Coronaviridae (Q1134583)   , SARS-CoV-2 (Q82069695)   , Coronavirus (Q290805)   , Zika virus (Q202864)   , English (Q1860)   , noun (Q1084)   Properties used: main subject (P921)   , title (P1476)   , KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88837-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX llemma:   <http://wikiba.se/ontology#lemma>
+PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
+PREFIX llang:    <http://purl.org/dc/terms/language>
+PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
+PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+PREFIX lfeature: <http://wikiba.se/ontology#grammaticalFeature>
+PREFIX lsenses:  <http://www.w3.org/ns/lemon/ontolex#sense>
+PREFIX lglos:    <http://www.w3.org/2004/02/skos/core#definition>
+
+# List words of in some titles and corresponding lexemes (or \"placeholder\") 
+#  limited to the 42 first words & English language titles
+#  includes glos for any of the senses already defined on one of the lexemes (more generally needed)
+#  by Jura1, 10 March 2020
+
+SELECT
+  ?a ?title ?nv ?word (GROUP_CONCAT(DISTINCT ?lemma; separator=\"/\") as ?all_lemma) 
+  (SAMPLE(?lexeme) as ?a_lexeme) 
+  (GROUP_CONCAT(DISTINCT ?lexcatLabel; separator=\", \") as ?all_lexcat) 
+  (COUNT(DISTINCT ?sense) as ?senses)
+  (GROUP_CONCAT(DISTINCT ?glos_en; separator=\" [other sense: ]_\") as ?all_glos_en) 
+WITH
+{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+  #skip some characters in title
+  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
+  WHERE
+   {
+      # { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
+      # UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
+      # above for COVID-19, use the following for ZIKA instead, add other items as needed
+      ?a wdt:P921 wd:Q202864 .
+      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } OFFSET 1000 LIMIT 200
+} as %titles
+WITH
+{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                            
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
+} as %getwords
+WHERE
+{   INCLUDE %getwords
+    hint:Query hint:optimizer \"None\".
+    FILTER ( ?word != \"Z\"@en )
+    # check against English forms of lexemes (\"en\")
+    OPTIONAL { ?lf lhasform: ?word . ?lexeme1 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against lowercase forms 
+    BIND( Lcase(?word) as ?lword)
+    OPTIONAL { ?lf lhasform: ?lword . ?lexeme2 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against noun forms with 's (incomplete, not en-gb, not different cases)
+    BIND( strlang(REPLACE(str(?word),\"^(.+)'s$\", \"$1\"),\"en\") as ?noun)
+    OPTIONAL { ?lf lhasform: ?noun . ?lexeme5 lforms: ?lf ; llang: wd:Q1860 ; lcat: wd:Q1084 }
+ 
+    # check against British-English lowercase forms (\"en-gb\")
+    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
+    OPTIONAL { ?lf lhasform: ?lword_engb . ?lexeme3 lforms: ?lf ; llang: wd:Q1860 }
+  
+    # exclude digits-only strings and 1-letter strings
+    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
+    FILTER ( strlen( stR(?word)) != 1  ) 
+ 
+    BIND( COALESCE( ?lexeme1, ?lexeme2, ?lexeme5, ?lexeme3, wd:L254535 ) as ?lexeme)
+    ?lexeme llemma: ?lemma ; lcat: ?lexcat .
+    ?lexcat rdfs:label ?lexcatLabel . FILTER(lang(?lexcatLabel) = \"en\") .
+    OPTIONAL { ?lexeme lsenses: ?sense .
+               OPTIONAL { ?sense lglos: ?glos_en . FILTER(lang(?glos_en) = \"en\")   }
+             }
+}
+GROUP BY ?a ?title ?nv ?word
+ORDER BY ?a ?nv""";
+  <http://example.org/bigdata_select> """PREFIX llemma:   <http://wikiba.se/ontology#lemma>
+PREFIX lcat:     <http://wikiba.se/ontology#lexicalCategory>
+PREFIX llang:    <http://purl.org/dc/terms/language>
+PREFIX lforms:   <http://www.w3.org/ns/lemon/ontolex#lexicalForm>
+PREFIX lhasform: <http://www.w3.org/ns/lemon/ontolex#representation>
+PREFIX lfeature: <http://wikiba.se/ontology#grammaticalFeature>
+PREFIX lsenses:  <http://www.w3.org/ns/lemon/ontolex#sense>
+PREFIX lglos:    <http://www.w3.org/2004/02/skos/core#definition>
+
+# List words of in some titles and corresponding lexemes (or \"placeholder\") 
+#  limited to the 42 first words & English language titles
+#  includes glos for any of the senses already defined on one of the lexemes (more generally needed)
+#  by Jura1, 10 March 2020
+
+SELECT
+  ?a ?title ?nv ?word (GROUP_CONCAT(DISTINCT ?lemma; separator=\"/\") as ?all_lemma) 
+  (SAMPLE(?lexeme) as ?a_lexeme) 
+  (GROUP_CONCAT(DISTINCT ?lexcatLabel; separator=\", \") as ?all_lexcat) 
+  (COUNT(DISTINCT ?sense) as ?senses)
+  (GROUP_CONCAT(DISTINCT ?glos_en; separator=\" [other sense: ]_\") as ?all_glos_en) 
+WITH
+{  SELECT ?a ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+  #skip some characters in title
+  #pad with \" Z\" in case the title is shorter than 42 words. \"Z\" is filtered out later. 
+  WHERE
+   {
+      # { ?a wdt:P921 wd:Q84263196 } UNION { ?a wdt:P921 wd:Q81068910 }    UNION { ?a wdt:P921 wd:Q57751738 } 
+      # UNION { ?a wdt:P921 wd:Q1134583 }  UNION { ?a wdt:P921 wd:Q82069695 }    UNION { ?a wdt:P921 wd:Q290805 }
+      # above for COVID-19, use the following for ZIKA instead, add other items as needed
+      ?a wdt:P921 wd:Q202864 .
+      ?a wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } OFFSET 1000 LIMIT 200
+} as %titles
+WITH
+{    SELECT ?re ?nv WHERE { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                            
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( strlang(REPLACE(?input, ?re, \"$2\"),\"en\") as ?word) }
+} as %getwords
+WHERE
+{   INCLUDE %getwords
+    hint:Query hint:optimizer \"None\".
+    FILTER ( ?word != \"Z\"@en )
+    # check against English forms of lexemes (\"en\")
+    OPTIONAL { ?lf lhasform: ?word . ?lexeme1 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against lowercase forms 
+    BIND( Lcase(?word) as ?lword)
+    OPTIONAL { ?lf lhasform: ?lword . ?lexeme2 lforms: ?lf ; llang: wd:Q1860 }
+
+    # check against noun forms with 's (incomplete, not en-gb, not different cases)
+    BIND( strlang(REPLACE(str(?word),\"^(.+)'s$\", \"$1\"),\"en\") as ?noun)
+    OPTIONAL { ?lf lhasform: ?noun . ?lexeme5 lforms: ?lf ; llang: wd:Q1860 ; lcat: wd:Q1084 }
+ 
+    # check against British-English lowercase forms (\"en-gb\")
+    BIND( strlang(Lcase(str(?word)),\"en-gb\") as ?lword_engb)
+    OPTIONAL { ?lf lhasform: ?lword_engb . ?lexeme3 lforms: ?lf ; llang: wd:Q1860 }
+  
+    # exclude digits-only strings and 1-letter strings
+    FILTER ( !REGEX( str(?word), \"^\\\\d+$\" )  )
+    FILTER ( strlen( stR(?word)) != 1  ) 
+ 
+    BIND( COALESCE( ?lexeme1, ?lexeme2, ?lexeme5, ?lexeme3, wd:L254535 ) as ?lexeme)
+    ?lexeme llemma: ?lemma ; lcat: ?lexcat .
+    ?lexcat rdfs:label ?lexcatLabel . FILTER(lang(?lexcatLabel) = \"en\") .
+    OPTIONAL { ?lexeme lsenses: ?sense .
+               OPTIONAL { ?sense lglos: ?glos_en . FILTER(lang(?glos_en) = \"en\")   }
+             }
+}
+GROUP BY ?a ?title ?nv ?word
+ORDER BY ?a ?nv""" .

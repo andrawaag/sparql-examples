@@ -6,20 +6,6 @@
 
 <https://www.wikidata.org/#query-487e8e2a2af003ef4fa24ad0e2b1cfae> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?when ?start ?end
-WHERE
-{
-  
-  ?item wdt:P31/wdt:P279* wd:Q1656682 .
-  ?item wdt:P276/wdt:P131* wd:Q1490 .  
-  { ?item wdt:P585 ?when   FILTER(YEAR(?when)=2002) }
-  UNION
-  { ?item wdt:P580 ?start ; wdt:P582 ?end . 
-   FILTER ( ?start < \"2003-00-00T00:00:00Z\"^^xsd:dateTime 
-           && ?end > \"2001-12-32T00:00:00Z\"^^xsd:dateTime )
-  }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Lighthouses in Sweden with more than one color without qualifier(s) 2 Graffiti artists 3 Check CAS numbers with a SPARQL request 4 Items without aliases 5 Twice-broken lighthouse colour query 6 Item description in specific language 7 Members of Academy of Esperanto (Q202479) with start time (P580) and end time (P582) 8 Born in January of a leap year 9 Getting urls with identifier properties 10 Recursive query to retrieve items located in a Region 11 2002 events in Tokyo 11.1 Query for compete data 11.2 Query for missing locations (events in Japan) 11.3 Query for missing dates (events in Tokyo) 11.4 Maybe some .. 12 Map and Graph at the same time 13 Get label in any language if it's not available in predefined languages 14 Venezuelan people 15 Year above 2100 16 Country of citizenship, where person died before the country existed or was born after the country existed, and other similar statements 17 Date of baptism from significant event (P793) 18 Categories used in english Wikipedia 19 Arbitrary list of items and language labels 20 Time line for the administrative organisations of the USA 21 Area chart of populations compared 22 How to create a clickable URL 23 Query my contributions? 23.1 Reporting on qualifiers irrespective of the property they qualify 24 Statements available at dbpedia, but not at Wikidata 25 Most sitelinks articles 26 How do I get the descriptions for different languages in table columns? 27 Getting Wikipedia articles linked to Wikidata items 28 Boundary polygons for London boroughs 29 Names of town which end with something Lighthouses in Sweden with more than one color without qualifier(s) I have managed to make a query of lighthouses in Sweden by the number of colors (P462), but I want to exclude colors with the qualifier (P518). How do I do that? Simply adding FILTER NOT EXISTS { ?color pq:P518 ?part } does not seems to work. /ℇsquilo 10:27, 1 January 2018 (UTC) This seems to work. There might be a more efficient way to do it, by collapsing ?item wdt:P462 ?colour and OPTIONAL {?item p:P462 ?mem . ?mem ps:P462 ?colour; pq:P518 ?qual . together in some clever way; but in my version the first of these restricts the query to lighthouses with colour, the second enquires about the qualifier ... I've not found a way to test for the absence of the qualifier without including lighthouses with no colour at all, in a single line of code. As normal, I'd like to stress that I really have not got a clue about SPARQL, and you should really consult an expert :) --Tagishsimon (talk) 12:28, 1 January 2018 (UTC) SELECT DISTINCT ?item ?itemLabel ?colour ?colourLabel ?qual WHERE {
   ?item wdt:P31 wd:Q39715 . #instance of lighthouse
   ?item wdt:P17 wd:Q34 . #country of Sweden
@@ -284,5 +270,24 @@ ORDER BY DESC(?count)
  Try it!--Tagishsimon (talk) 20:22, 13 January 2018 (UTC)Query for compete data If the data was complete, something like the following could work (5 results currently): Items used: event (Q1656682)   , Tokyo (Q1490)   Properties used: instance of (P31)   , subclass of (P279)   , location (P276)   , located in the administrative territorial entity (P131)   , point in time (P585)   , start time (P580)   , end time (P582)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d831097-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?when ?start ?end
+WHERE
+{
+  
+  ?item wdt:P31/wdt:P279* wd:Q1656682 .
+  ?item wdt:P276/wdt:P131* wd:Q1490 .  
+  { ?item wdt:P585 ?when   FILTER(YEAR(?when)=2002) }
+  UNION
+  { ?item wdt:P580 ?start ; wdt:P582 ?end . 
+   FILTER ( ?start < \"2003-00-00T00:00:00Z\"^^xsd:dateTime 
+           && ?end > \"2001-12-32T00:00:00Z\"^^xsd:dateTime )
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" }
+}""" .

@@ -6,23 +6,6 @@
 
 <https://www.wikidata.org/#query-17767e386bfa656c2d7b083683542138> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:ImageGrid
-SELECT ?item ?itemLabel ?image ?genreLabel ?movementLabel
-WHERE
-{
-           ?item wdt:P31/wdt:P279*          wd:Q838948   . # works of art
-           ?item wdt:P276                   wd:Q19675    . # located in Louvre
-           # 117 items
-MINUS    { ?item wdt:P136                   wd:Q440928   } # except ONE sculptural genre (Q440928)
-           # 116 items
-MINUS    { ?item wdt:P136/wdt:P31/wdt:P279* wd:Q18783400 } # except ANY sculptural genre (Q18783400)
-           # 113 items
-  
-OPTIONAL { ?item wdt:P18                   ?image       }
-OPTIONAL { ?item wdt:P136                  ?genre       }
-OPTIONAL { ?item wdt:P135                  ?movement    }
-	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
-}""";
   rdfs:comment """WDQS, the Wikidata Query Service (Q20950365)   is an awesome tool to answer many questions we might have.For brief introduction about interface with pictures and very first queries: A gentle introduction to the Wikidata Query Service.SPARQL 1.1 Query Language (Q32146616)   is a language used in Wikidata Query Service (Q20950365)   . Contents 1 Agenda 2 RDF graph (Q31386861) 2.1 semantic triple (Q28134515) 2.2 RDF node 2.2.1 Internationalized Resource Identifier 2.2.2 RDF literal 3 RDF datatype IRI in Wikidata RDF Dump Format 3.1 xsd:dateTime 4 nodes in WDQS 4.1 Entities 4.1.1 Entities that represent properties 5 edges in WDQS 5.1 Multiple values 6 Wikidata property (Q18616576) 7 Group Graph Patterns 7.1 SPARQL punctuation 7.1.1 Repetition in subject 7.1.2 Repetition in subject and predicate 7.1.3 Blank nodes 7.1.3.1 Brackets syntax 7.1.4 Property paths 7.1.4.1 Duplicates and alternative claims 7.1.4.2 Symmetric properties and self-references 8 Retrieving items with optional information (OPTIONAL) 9 Instances and classes 10 Wider or narrower results 11 Unknown or no values 12 Pagination (ORDER and LIMIT) 12.1 Limitations 12.2 Arthur Conan Doyle books 12.3 Chemical elements 13 Ways to reduce multiplicity 13.1 Note about \"Bad Aggregate\" messages 13.2 Exercises 13.2.1 Paintings along with their painting material 13.2.2 Guns by manufacturer 13.2.3 Publishers by number of pages 14 And beyond… 15 References Agenda [edit] We will: mention key points of Resource Description Framework (Q54872)   cover Wikidata data model (Q16354757)   and Wikidata RDF Dump Format (Q32786132)   first and in order; explanation of SPARQL features could be not in order or even missing (i.e. too complex or with narrow application) mention terminology in order to ask search engines with right questions later on Whitespace is significant in strings, but not meaningful otherwise.[sparqlspec 1] WDQS editor indents lines for us automatically.Let's go! RDF graph (Q31386861) [edit] semantic triple (Q28134515) [edit] Relations. Claims. object (Q488383). ⟨ subject ⟩ Wikidata property ⟨ object or value ⟩ relations are directed from the subject;[rdfprimer 1] RDF model is used to represent information about resources (entities): resource describes something in the world[rdfconcepts 1] and not limited to any networks at all; duplicates are allowed, while A relational model of data for large shared data banks (Q32061744) prohibits this for relational algebra (Q840540) \"All rows are distinct\" [such limitation can be avoided by introduction of additional column with globally unique identifier (Q254972)]. Such definition leads to multiple ways database normalisation (Q339072) solely to allow data with multiple values in databases again; Turtle (Q114409) is a text-based format used to serialization (Q1127410) RDF graph (Q31386861). SPARQL 1.1 Query Language (Q32146616) supports almost identical[RDF11Turtle 1] notation natively. World Wide Web Consortium (Q37033)' documents are commonly use this notation. Internationalized Resource Identifier (Q424583)s can be abbreviated into prefixes like wd: and wdt: in storage[rdfprimer 2] and in queries;[sparqlspec 2] More trivial notes same resource is often represented using multiple triples; in any RDF storage RDF property (Q31208391) is expressed with Internationalized Resource Identifier (Q424583);[rdfprimer 3] we could draw analogy between semi-structured data (Q2336004) and sparse matrix (Q1050404) but when \"cells\" are single-valued (for most of Wikidata, but not entirely); Special:EntityData can output all claims related to one entity: Mona Lisa in Turtle; in any RDF storage data is semi-structured data (Q2336004) for the most part: child (P40) can be absent for any instance of human (Q5); this is impossible in relational model (Q755662) where data is fully structured in terms of columns [some column can be picked to have semi-structured content e.g. JSON (Q2063), but such column is required for every row in that table]; in Wikidata entities have Internationalized Resource Identifier, links (data mapping (Q2330408)) to external datasets are implemented using special properties with datatype external id; resources could be in local datasets (e.g. Wikidata (Q2013)) or remote;[sparqlfederation 1] Notes about FILTER FILTER(condition) is a clause you can insert into your SPARQL query to, well, filter the results. Inside the parentheses, you can put any expression of boolean type, and only those results where the expression returns true are used. For example, to get a list of all humans born in 2015, we first get all humans with their date of birth – SELECT ?person ?personLabel ?dob
 WHERE
 {
@@ -340,5 +323,26 @@ WHERE
  Try it! Now you know how to search for all work of arts, or all buildings, or all human settlements: the magic incantation wdt:P31/wdt:P279*, along with the appropriate class. This uses some more SPARQL features that I haven’t explained yet, but quite honestly, this is almost the only relevant use of those features, so you don’t need to understand how it works in order to use WDQS effectively.subclass of (P279) is the most common transitive Wikidata property (Q18647515), see others. Wider or narrower results [edit] Matching Alternatives. Negation.Over time we will lose interest in some items as well-known, visited or done in any sense. It's time to exclude them (MINUS), or to include new items (UNION): The following query uses these:Items: work of art (Q838948)   , Louvre Museum (Q19675)   , Roman portraiture (Q440928)   , genre of sculpture (Q18783400)   Properties: instance of (P31)   , subclass of (P279)   , location (P276)   , genre (P136)   , image (P18)   , movement (P135)    Features: ImageGrid (Q24515278)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:D1gggg/Wikidata_model_and_SPARQL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89131-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:ImageGrid
+SELECT ?item ?itemLabel ?image ?genreLabel ?movementLabel
+WHERE
+{
+           ?item wdt:P31/wdt:P279*          wd:Q838948   . # works of art
+           ?item wdt:P276                   wd:Q19675    . # located in Louvre
+           # 117 items
+MINUS    { ?item wdt:P136                   wd:Q440928   } # except ONE sculptural genre (Q440928)
+           # 116 items
+MINUS    { ?item wdt:P136/wdt:P31/wdt:P279* wd:Q18783400 } # except ANY sculptural genre (Q18783400)
+           # 113 items
+  
+OPTIONAL { ?item wdt:P18                   ?image       }
+OPTIONAL { ?item wdt:P136                  ?genre       }
+OPTIONAL { ?item wdt:P135                  ?movement    }
+	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}""" .

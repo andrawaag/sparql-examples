@@ -6,28 +6,6 @@
 
 <https://www.wikidata.org/#query-6130d8668de8f404d6a8ba09b6542aa8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#title:Grouping by range of values (external-id count)
-SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
-WITH
-{
-  SELECT ?type (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sampl) 
-  WHERE 
-  {
-    ?item wdt:P8034 ?id .
-    ?item wikibase:identifiers ?ids .
-    BIND((?ids) AS ?type) #not really needed
-  }
-  GROUP BY ?type
-} as %what
-WHERE
-{
-  INCLUDE %what
-  BIND( IF(?type < 6, CONCAT(\"0\",str(?type)),  #zero added for sorting by group
-        IF(?type < 16, \"06-15\", \"16+\")) 
-        as ?group) 
-}
-GROUP BY ?group
-ORDER BY ?group""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Count only certain identifiers 2 Group by century of birth 3 Group minor results 3.1 grouping by range of values 3.2 Top 10 & others 4 Metadata for a commons category 5 All items that point to a specific url (no matter which property) 6 Brothers without property 7 Google Knowledge Graph 8 Extract all the IRIs 9 Listing norwegian ships where the manufacturer doesn't have a translation for \"norsk bokmål\" (nb) 10 Newest Images GEPRIS Historisch 11 articles on English Wikipedia with \"Korea\" or \"Korean\" in title not on Korean Wikipedia 12 The list of all provinces and their countries 13 Embajadores 14 Footballers died when playing a match 15 Author stated as 16 Oldest (or newest) geographical discoveries 17 unique Hebrew articles 18 P217 + prov:wasDerivedFrom 19 Looking for \"orphan\" errata 20 Count womans from specific places 21 Apply multi values in a filter 22 Only those with references and these have a certain value 23 Item creator 24 Subway maps 25 Language labels per column 26 A list of all the people 27 URL and shown text 28 Public domain poems without an audio recording Count only certain identifiers Hi! Through the following query SELECT ?type (COUNT(DISTINCT ?item) AS ?count) WHERE {
   ?item wdt:P9114 ?id .
   ?item wikibase:identifiers ?ids .
@@ -75,5 +53,51 @@ ORDER BY DESC(?count)
  Try it! I can group the items containing P8034 by occupation (P106).My questions are: regarding the first query: how can I group the results by ?type so that I have something like \"1\", \"2\", \"3\", \"4\", \"5\", \"6-15\", \"16+\"? regarding the second query: how can I display the labels of the occupations and how can I show only the 10 most frequent occupations and group all the rest under the label \"others\"? Thank you very much as always! --Epìdosis 08:43, 3 June 2021 (UTC) grouping by range of values As you get one question for every 100 edits for free, you might still have a couple of questions left ;) Still, I think it's better to ask one query per section header .. For the first one, the following should do: Properties used: Vatican Library VcBA ID (P8034)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/06>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846037-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+#title:Grouping by range of values (external-id count)
+SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
+WITH
+{
+  SELECT ?type (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sampl) 
+  WHERE 
+  {
+    ?item wdt:P8034 ?id .
+    ?item wikibase:identifiers ?ids .
+    BIND((?ids) AS ?type) #not really needed
+  }
+  GROUP BY ?type
+} as %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?type < 6, CONCAT(\"0\",str(?type)),  #zero added for sorting by group
+        IF(?type < 16, \"06-15\", \"16+\")) 
+        as ?group) 
+}
+GROUP BY ?group
+ORDER BY ?group""";
+  <http://example.org/bigdata_select> """#title:Grouping by range of values (external-id count)
+SELECT ?group (SUM(?count) as ?count_group) (SAMPLE(?sampl) as ?sample)
+WITH
+{
+  SELECT ?type (COUNT(DISTINCT ?item) AS ?count) (SAMPLE(?item) as ?sampl) 
+  WHERE 
+  {
+    ?item wdt:P8034 ?id .
+    ?item wikibase:identifiers ?ids .
+    BIND((?ids) AS ?type) #not really needed
+  }
+  GROUP BY ?type
+} as %what
+WHERE
+{
+  INCLUDE %what
+  BIND( IF(?type < 6, CONCAT(\"0\",str(?type)),  #zero added for sorting by group
+        IF(?type < 16, \"06-15\", \"16+\")) 
+        as ?group) 
+}
+GROUP BY ?group
+ORDER BY ?group""" .

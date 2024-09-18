@@ -6,28 +6,6 @@
 
 <https://www.wikidata.org/#query-8201a2daebf38af9947110c8e0eab8f6> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
-  ?item ?itemLabel
-  ?acronym_mb 
-  (GROUP_CONCAT(DISTINCT str(?acronym); separator = \", \") as ?other_acronyms)
-  (GROUP_CONCAT(DISTINCT str(?acronym_old); separator = \", \") as ?old_acronyms)
-WHERE 
-{
-  ?item wdt:P1343 wd:Q96192978.
-  OPTIONAL { ?item p:P1813 ?st0  . 
-      ?st0 pq:P1535 wd:Q96192978 ; ps:P1813 ?acronym_mb . 
-      FILTER NOT EXISTS { ?st0 pq:P582 [] }
-           }
-  OPTIONAL { ?item p:P1813 ?st1 . ?st1 ps:P1813 ?acronym . 
-             FILTER NOT EXISTS { ?st1 pq:P1535 wd:Q96192978 } 
-             FILTER NOT EXISTS { ?st1 pq:P582 [] }
-           }
-  OPTIONAL { ?item p:P1813 ?st2 . ?st2 ps:P1813 ?acronym_old . 
-             FILTER EXISTS { ?st2 pq:P582 [] }
-           }  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,it\". }
-}
-GROUP BY ?item ?itemLabel ?acronym_mb""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to avoid query timeout? 2 Order of labels in ImageGrid 3 How do I query the caption of images? 4 Using wikibase:mwapi with SDC statements on Commons 5 Grouping first names and last names 6 A query to get all video games with a valid release date 7 Human being having voice type (P412) but without a defined occupation 8 Searching for multiple text strings in one query 9 Dataset sizing 9.1 QUESTION 9.2 h. avg. depth of class tree 9.3 i. avg. branching factor of class tree 9.4 j. ontological complexity 10 Without label in English 11 Query to get item creator and editors / contributors 12 List composers residences 13 Filter output by just one column 14 Can I query items that their geolocation is in a given polygon ? 15 nuclear weapons test (Q210112) and their explosive energy equivalent (P2145) 16 Where do I do wrong things? 17 Help Fusion 2MASS J10475385+2124234 / 2MASSI J1047539+212423 18 Searching for all of a US State's faults 19 Query all taxons which are trees 20 get items of disambiguation page 21 Label in different languages 22 get the label of a property 23 Finding any content I've created without any statements 24 Strict search by label 25 List of living birds with an article on a certain language wiki (eg ga) 26 FILTER NOT EXISTS on qualifier 27 Acronyms 28 P18 with P2096 and P180 29 Greek Given names 30 Redirects on Commons 31 Human being without a defined dateOfBirth(P569) 32 Greek Given names (2) 33 Elo ratings diff within two months 34 All Messier objects 35 How to filter years in that query 36 Filter qualifier for precision 37 taxon author (P405) and not in Wikispecies 38 Multiple references How to avoid query timeout? Hello everyone! I have a query that should check if some items is sub-classes of the base material (Q214609): SELECT DISTINCT ?item ?itemLabel
 WHERE {
 VALUES (?item) {(wd:Q296955) (wd:Q1348059)}
@@ -853,5 +831,34 @@ ORDER BY ?itemLabel Try it! Maybe like the above .. I'm not sure how to split th
  Try it! Caveat, it only works if there is 2 acronyms and not more... :/ Cdlt, VIGNERON (talk) 12:03, 23 August 2020 (UTC) Items used: Memobase (Q96192978)   Properties used: described by source (P1343)   , short name (P1813)   , used by (P1535)   , end time (P582)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88711-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+  ?item ?itemLabel
+  ?acronym_mb 
+  (GROUP_CONCAT(DISTINCT str(?acronym); separator = \", \") as ?other_acronyms)
+  (GROUP_CONCAT(DISTINCT str(?acronym_old); separator = \", \") as ?old_acronyms)
+WHERE 
+{
+  ?item wdt:P1343 wd:Q96192978.
+  OPTIONAL { ?item p:P1813 ?st0  . 
+      ?st0 pq:P1535 wd:Q96192978 ; ps:P1813 ?acronym_mb . 
+      FILTER NOT EXISTS { ?st0 pq:P582 [] }
+           }
+  OPTIONAL { ?item p:P1813 ?st1 . ?st1 ps:P1813 ?acronym . 
+             FILTER NOT EXISTS { ?st1 pq:P1535 wd:Q96192978 } 
+             FILTER NOT EXISTS { ?st1 pq:P582 [] }
+           }
+  OPTIONAL { ?item p:P1813 ?st2 . ?st2 ps:P1813 ?acronym_old . 
+             FILTER EXISTS { ?st2 pq:P582 [] }
+           }  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en,fr,de,it\". }
+}
+GROUP BY ?item ?itemLabel ?acronym_mb""" .

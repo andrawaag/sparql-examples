@@ -6,15 +6,19 @@
 
 <https://www.wikidata.org/#query-d52b1799d1a3a5aaca2a5c873fe80d07> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?languageLabel ?count WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d83665-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?languageLabel ?count WHERE {
 {SELECT ?langcode (COUNT(?label) as ?count) WHERE {
 ?thing wdt:P6698 ?jpsid; rdfs:label ?label.
 BIND(lang(?label) AS ?langcode)
 } GROUP BY ?langcode }
 ?language wdt:P218 ?langcode
 SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MartinPoulter/queries/collections>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} ORDER BY DESC(?count)""" .

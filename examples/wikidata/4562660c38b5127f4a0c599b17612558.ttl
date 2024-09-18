@@ -6,23 +6,6 @@
 
 <https://www.wikidata.org/#query-4562660c38b5127f4a0c599b17612558> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Display villages within the specific radius from a specific place
-SELECT ?place ?placeLabel ?plwp ?location WITH {
-  SELECT ?place (SAMPLE(?location) AS ?location) {
-  wd:Q6895050 wdt:P625 ?polvillLoc .
-  SERVICE wikibase:around {
-    ?place wdt:P625 ?location.
-    bd:serviceParam wikibase:center ?polvillLoc;
-      wikibase:radius \"55\".
-  }
-  ?place wdt:P31 wd:Q55488 .
- }
- GROUP BY ?place
- } AS %i WHERE {
-  include %i
-  OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
- }""";
   rdfs:comment """Contents 1 Sídla v ČR v kilometrické vzdálenosti od bodu s odkazy do Wikipedie 2 Vesnice v Polsku v kilometrické vzdálenosti od bodu s odkazy do Wikipedie 2.1 Konkrétní příklad použití pro Wikiexpedici Dolní Slezsko 3 Švédské spisovatelky 20. století narozené ve Stockholmu 4 Železniční stanice v Polsku v kilometrické vzdálenosti od bodu s odkazy do Wikipedie Sídla v ČR v kilometrické vzdálenosti od bodu s odkazy do Wikipedie [edit] # Czech settlements in radius of a specific distance from the point
 # Česká sídla (vesnice, města) v určité vzdálenosti od bodu
 SELECT ?place ?location ?centerpointLoc ?placeLabel ?distance ?article ?sitelink WHERE {
@@ -99,5 +82,44 @@ WHERE
 LIMIT 1000 Try it! Železniční stanice v Polsku v kilometrické vzdálenosti od bodu s odkazy do Wikipedie [edit] Items used: Mojesz (Q6895050)   , railway station (Q55488)   Properties used: coordinate location (P625)   , instance of (P31)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Juandev/Queries>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d835195-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Display villages within the specific radius from a specific place
+SELECT ?place ?placeLabel ?plwp ?location  WHERE {
+  {
+  SELECT ?place (SAMPLE(?location) AS ?location) {
+  wd:Q6895050 wdt:P625 ?polvillLoc .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?polvillLoc;
+      wikibase:radius \"55\".
+  }
+  ?place wdt:P31 wd:Q55488 .
+ }
+ GROUP BY ?place
+ }
+  OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
+ }""";
+  <http://example.org/bigdata_select> """#Display villages within the specific radius from a specific place
+SELECT ?place ?placeLabel ?plwp ?location WITH {
+  SELECT ?place (SAMPLE(?location) AS ?location) {
+  wd:Q6895050 wdt:P625 ?polvillLoc .
+  SERVICE wikibase:around {
+    ?place wdt:P625 ?location.
+    bd:serviceParam wikibase:center ?polvillLoc;
+      wikibase:radius \"55\".
+  }
+  ?place wdt:P31 wd:Q55488 .
+ }
+ GROUP BY ?place
+ } AS %i WHERE {
+  include %i
+  OPTIONAL { ?plwp schema:about ?place; schema:isPartOf <https://pl.wikipedia.org/> . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],pl,cs,de\". }
+ }""" .

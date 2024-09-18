@@ -6,7 +6,27 @@
 
 <https://www.wikidata.org/#query-208c439cefea7209019d350a15cba721> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?title (COUNT(?work) AS ?works)  
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiCite/Archive_5>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d84130-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT DISTINCT ?item ?title (COUNT(?work) AS ?works)  
+
+
+WHERE {
+  {
+  SELECT ?item ?title  WHERE {
+    ?item wdt:P236 ?issn ;
+          wdt:P1476 ?title .
+    FILTER REGEX (LCASE(?title), \"(\\blaw|\\blegal|\\court)\")
+  }
+}
+          ?work wdt:P1433 ?item .
+}
+GROUP BY ?item ?title
+ORDER BY DESC(?works)""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?item ?title (COUNT(?work) AS ?works)  
 WITH {
   SELECT ?item ?title  WHERE {
     ?item wdt:P236 ?issn ;
@@ -21,8 +41,4 @@ WHERE {
           ?work wdt:P1433 ?item .
 }
 GROUP BY ?item ?title
-ORDER BY DESC(?works)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:WikiCite/Archive_5>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?works)""" .

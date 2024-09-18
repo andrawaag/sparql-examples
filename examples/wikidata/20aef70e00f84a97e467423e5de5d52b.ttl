@@ -6,7 +6,27 @@
 
 <https://www.wikidata.org/#query-20aef70e00f84a97e467423e5de5d52b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?film ?filmLabel ?filmDescription WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/10._Which_other_films_have_won_the_same_number_of_Academy_awards_as_the_Titanic_film_(1997)%3F>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833005-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?film ?filmLabel ?filmDescription  WHERE {
+  {
+  SELECT ?film (COUNT(DISTINCT ?award) AS ?count) WHERE {
+    ?film wdt:P166 ?award.
+    ?award (wdt:P31|wdt:P361)+ wd:Q19020. # awards currently use P31 but I could imagine that changing in the future
+  }
+  GROUP BY ?film
+  HAVING(?count = 11) # I’m hard-coding the “target” count here because it shouldn’t ever change
+}.
+  FILTER(?film != wd:Q44578) # *other* films :)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?film ?filmLabel ?filmDescription WITH {
   SELECT ?film (COUNT(DISTINCT ?award) AS ?count) WHERE {
     ?film wdt:P166 ?award.
     ?award (wdt:P31|wdt:P361)+ wd:Q19020. # awards currently use P31 but I could imagine that changing in the future
@@ -17,8 +37,4 @@
   INCLUDE %results.
   FILTER(?film != wd:Q44578) # *other* films :)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Wikimedia_Hackathon_2021_Data_Challenge/10._Which_other_films_have_won_the_same_number_of_Academy_awards_as_the_Titanic_film_(1997)%3F>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

@@ -6,22 +6,6 @@
 
 <https://www.wikidata.org/#query-2c4cc94a4e81c7a8fcd9737d1ca13c2b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map
- SELECT 
- ?country
- ?countryLabel
- ?coordinates
- (group_concat(?languagesLabel;separator=\" , \") as ?official_languages)
- WHERE {
-   ?country wdt:P31 wd:Q3624078.
-   ?country wdt:P37 ?languages .
-   ?country wdt:P625 ?coordinates .
-   OPTIONAL { 
- 		?languages rdfs:label ?languagesLabel.
- 		FILTER(LANG(?languagesLabel) = \"en\").
- 	}
-   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
- } GROUP BY ?country ?countryLabel ?coordinates""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Check whether a given list of element IDs fullfills certain criteria and return list of matching items 2 Request EVERY items with a specific description 3 Alphabets sorted by number of letters 4 Query without duplicates 5 Show Wikidata properties that are external identifiers and have a regex 5.1 Wikidata property - external ID - list 5.2 Wikidata property - external ID - group and count 6 Indian National Highways below 100 7 Chess elo ratings awarded after player's death 8 Ten most used references for date of birth 9 What is the query behind \"Search Wikidata\" ? 10 Show Wikidata properties that are external identifiers and are used on instances of Q5 11 Growth of Wikimedia chapters and user groups over time 12 Get de.wiki article name 13 Books written in a language the author, supposedly, can't write 14 Displaying labels in two or more languages 15 Troubleshoot wdt:P31* 16 Captain Cook memorials, and things named after him in Australia 17 Calculate percentage 18 Unit conversion 19 Query for complex constraint: if property has value A then qualifier B should be present 20 Map of languages 21 Query all International Masters awarded in a specific year 22 Querying a value with qualifiers 23 Norwegian citicens holding a political party membership 24 Reference URL's timeout 25 Get all Lexeme lemmas and IDs 26 Potential articles that might be mosaics, based on categories, but haven't been identified as such on Wikidata 27 Age at death 28 Using qualifiers 29 Defining formula (P2534) 30 Classification of animals 31 Qualifier reference URL (P854) for inventory number (P217) of artworks 32 Combine two queries Check whether a given list of element IDs fullfills certain criteria and return list of matching items Hello, for a project of mine I'm trying to filter items of a given list of n {\\displaystyle n} items (e.g. {Q14944328,Q2013}) so that the final list only contains items which fullfill a certain condition (e.g. wdt:P31/wdt:P279* wd:Q19729799). How would I be able to do so? Thanks in advance for any pointers --Naseweis520 (talk) 23:02, 30 April 2018 (UTC) @Naseweis520: If I understand your question, something like this (which right now finds nothing, since the two values you gave are not instances/subclass of the third item you gave. Come back with more questions, if needbe: SELECT ?item ?itemLabel WHERE {
  VALUES ?item {wd:Q14944328 wd:Q2013}        #this is the given list. Note that the items start with wd: ... add as many as you want 
   ?item wdt:P31/wdt:P279* wd:Q19729799 .     #this requires the item to be an instance of or subclass of the Q19729799 item. 
@@ -468,5 +452,26 @@ WHERE {
  Try it! Please note that 'unknown value' is treated as valid PQ in this query. --Larske (talk) 05:33, 12 May 2018 (UTC) Thank you Larske; 'unknown value' is in fact a valid value in these qualfiers; I'll try to check this query as soon as I can :) Wostr (talk) 19:29, 14 May 2018 (UTC) It seems that you query found 4 items more and I really don't know why ;) I'll update the constraint though, thanks again. Wostr (talk) 19:31, 20 May 2018 (UTC) Map of languages Election map of Finland HiI'm working on a proposal for a project to try and improve coverage of languages on Wikidata and Wikipedia and want to create a prototype to visualise languages on a map as a way to explore them. Is there some way to create a map which shows which languages are present in which countries? I know there are some issues with lack of shape files for countries and country regions. But I've also seen maps like this? I'm very happy for it to work for a very small region, all I want to show is that its is possible and you can click a button to get to the Wikipedia article for that language. This could either be a map to show all the languages in a region or which countries a language is spoken in or both.Thanks very much--John Cummings (talk) 10:11, 15 May 2018 (UTC)Here's a query that can start to answer this question: a map showing every sovereign state and its official languages. Issues that still need to be fixed are: using shape polygons to cover the countries instead of using a point coordinate per country, and linking to the wiki pages of the languages instead of just showing them in a concatenated field. I'm pretty sure those issues can be fixed with Kartographer, but I haven't worked with Kartographer in the past so I can't be of help there. The following query uses these:Items: sovereign state (Q3624078)   Properties: instance of (P31)   , official language (P37)   , coordinate location (P625)    Features: map (Q24515275)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d863533-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+ SELECT 
+ ?country
+ ?countryLabel
+ ?coordinates
+ (group_concat(?languagesLabel;separator=\" , \") as ?official_languages)
+ WHERE {
+   ?country wdt:P31 wd:Q3624078.
+   ?country wdt:P37 ?languages .
+   ?country wdt:P625 ?coordinates .
+   OPTIONAL { 
+ 		?languages rdfs:label ?languagesLabel.
+ 		FILTER(LANG(?languagesLabel) = \"en\").
+ 	}
+   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
+ } GROUP BY ?country ?countryLabel ?coordinates""" .

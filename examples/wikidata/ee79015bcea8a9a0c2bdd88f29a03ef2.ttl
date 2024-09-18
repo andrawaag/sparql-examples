@@ -6,7 +6,27 @@
 
 <https://www.wikidata.org/#query-ee79015bcea8a9a0c2bdd88f29a03ef2> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#Descendents del papa Borja ascendents de Felip I de Bèlgica
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d835765-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#Descendents del papa Borja ascendents de Felip I de Bèlgica
+SELECT DISTINCT ?persona ?personaLabel ?pares ?paresLabel
+
+WITH { SELECT ?persona WHERE { wd:Q108316 wdt:P40* ?persona. } } AS %2
+WHERE {
+  { SELECT ?persona WHERE { ?persona wdt:P40* wd:Q155004 . } }
+  INCLUDE %2
+  ?persona wdt:P22|wdt:P25 ?pares
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en,es,an,eu\" .
+  }
+}""";
+  <http://example.org/bigdata_select> """#Descendents del papa Borja ascendents de Felip I de Bèlgica
 SELECT DISTINCT ?persona ?personaLabel ?pares ?paresLabel
 WITH { SELECT ?persona WHERE { ?persona wdt:P40* wd:Q155004 . } } AS %1
 WITH { SELECT ?persona WHERE { wd:Q108316 wdt:P40* ?persona. } } AS %2
@@ -17,8 +37,4 @@ WHERE {
   SERVICE wikibase:label {
     bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],ca,en,es,an,eu\" .
   }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pere_prlpz>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

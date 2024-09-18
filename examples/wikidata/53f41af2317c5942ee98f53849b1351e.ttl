@@ -6,14 +6,6 @@
 
 <https://www.wikidata.org/#query-53f41af2317c5942ee98f53849b1351e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel WHERE { 
-  
-  ?ent rdfs:label|skos:altLabel \"Barack Obama\"@en. 
-  ?wdProperty1 rdfs:label|skos:altLabel \"date of birth\"@en; 
-               wikibase:directClaim ?wdtProperty1. 
-  
-  ?ent ?wdtProperty1 ?val .
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly 2 wbgetentities unstable as of yesterday (03 Nov) 3 Faster way to query sparql with labels 4 Query buildup 5 Lag of some server(s) (Nov 29) 6 SPARQL query for citizenships does not always return all citizenships Query shows entries, which should be filter out; number of entries in result set changes when executed repeatedly Tracked in Phabricator Task T267175 Hello, the following query should return all german streets, which have a Commons-sitelink, but no Commonscat-Property (P373): SELECT ?item ?commonscat ?sitelink  WHERE {
   ?item wdt:P31 wd:Q79007. # Innerortsstraße
   ?item wdt:P17 wd:Q183.   # Deutschland
@@ -46,5 +38,16 @@ WHERE
 } Try it!Then I found a toolforge tool that convert the name to Q id at https://phabricator.wikimedia.org/source/tool-name-to-q/repository/master/ it seems fast, so what I am thinking is using this method to convert all name to Q ID first then query the sparql using only Q id. is this the best solution ? What are the best practices ? I am developing a php application that will call the wikidata sparql endpoint at https://query.wikidata.org/sparql then return the result back to php application and display it to the browser. Hi. In the first query above you search for exact label and alias names. That isn't slow. The query is slow for other reasons (lots of triples with very many results in many variables you don't use for anything). The second query from Wikidata:SPARQL query service/query optimization#Searching labels searches labels which contains a certain word. That is a much harder thing to do fast. I don't know the tool you talk about but I suggest you just optimize the query. It can be much, much faster. You can ask for help at Wikidata:Request a query. --Dipsacus fullonum (talk) 14:56, 12 November 2020 (UTC) But never the less, it would be preferable to use place of birth (P19) directly instead of searching for a property with the label or alias \"place of birth\"@en. And note that the search for an item with the label or alias \"Chicago\"@en has 107 results. If you want all places of birth with a that name, that is the right things to do. If you instead want to find persons born in the biggest city of Illinois, USA, you should instead use Chicago (Q1297) in the query. --Dipsacus fullonum (talk) 15:17, 12 November 2020 (UTC) hi, but I don't know why this query to know the Barack obama date of birth, it will time out, I query the label separately, there are only 3 result for label of Barack Obama and 2 result for date of birth, so the result set is small. --Esia1688 (talk) 15:31, 12 November 2020 (UTC)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Contact_the_development_team/Query_Service_and_search/Archive/2020/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d843238-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?ent ?wdtProperty ?val ?valLabel WHERE { 
+  
+  ?ent rdfs:label|skos:altLabel \"Barack Obama\"@en. 
+  ?wdProperty1 rdfs:label|skos:altLabel \"date of birth\"@en; 
+               wikibase:directClaim ?wdtProperty1. 
+  
+  ?ent ?wdtProperty1 ?val .
+}""" .

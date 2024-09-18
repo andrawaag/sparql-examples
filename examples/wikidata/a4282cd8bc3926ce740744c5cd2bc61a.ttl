@@ -6,23 +6,6 @@
 
 <https://www.wikidata.org/#query-a4282cd8bc3926ce740744c5cd2bc61a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#added before 2016-10
-SELECT ?property ?alias ?occurences
-WHERE
-{
-  hint:Query hint:optimizer \"None\" .
-
-  {
-    SELECT ?alias (COUNT (?alias) as ?occurences) WHERE {	
-      ?tmp rdf:type wikibase:Property .
-      ?tmp skos:altLabel ?alias FILTER (LANG (?alias) = \"en\")
-    } GROUP BY ?alias
-  }
-
-  ?property rdf:type wikibase:Property .
-  ?property skos:altLabel ?alias FILTER (?occurences > 1) .
-}
-ORDER BY ?alias""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
@@ -38,11 +21,31 @@ ORDER BY ?alias""";
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-54F45B1FD60447ABCA1003B65C4DD369, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-005550E28513B233469368C6FB70535C,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-2CC096DC087045E40EF992A37446CD86, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-4C786035B363A1F271CD75520AB6AF10,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-D2830FB2B398ED7D8AD7E59F7B41FE7C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-6F2E2625865FDBC94753F4087DD16931,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-A9A03589EA22E9A739435DAE7CAFF051, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-F87159BA4352A9FB0E68B7B35C3F5AF7,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-0F9C6C587BF0C2544229D63E6CBD66A9, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-3D205B4EB801AFA6EBBF689DA4DD7206,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-1673B85CE94FFD58AC3FB66B6064C19E, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112589-7474E86BCF1FF067A67D476DE70C4F94;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d857788-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d857788-61F0DA7569A9D09836B162DB8610B3C9,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-592F9C98493359B047BF746A1B9955C8, _:genid-4e694113159d4e3db4a1a913894a81d857788-6F827281C2F184BFE4D98595BFE5DE74,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-EE6B3395444225C759D44EAD82C93F77, _:genid-4e694113159d4e3db4a1a913894a81d857788-9BF24462871050A35AAAF24AE608D1D7,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-BAE645C8FC0A5C5DA57A2E5B71957E04, _:genid-4e694113159d4e3db4a1a913894a81d857788-DC845D62A342F513390A4758FD293CF8,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-F7F74417AC8FAD35783F49CB3204A1B4, _:genid-4e694113159d4e3db4a1a913894a81d857788-7469AC9351CCBFE9BB37280DBC0009CA,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-23BF719152A0013F7242769956E6D759, _:genid-4e694113159d4e3db4a1a913894a81d857788-E4EB4EB92E1A5DD171047D0680586BFA,
+    _:genid-4e694113159d4e3db4a1a913894a81d857788-D48E696F1C4B6820AB6A22AAA30A792A, _:genid-4e694113159d4e3db4a1a913894a81d857788-CF93734C76F2447C917BE9FE748C35F3;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#added before 2016-10
+SELECT ?property ?alias ?occurences
+WHERE
+{
+  hint:Query hint:optimizer \"None\" .
+
+  {
+    SELECT ?alias (COUNT (?alias) as ?occurences) WHERE {	
+      ?tmp rdf:type wikibase:Property .
+      ?tmp skos:altLabel ?alias FILTER (LANG (?alias) = \"en\")
+    } GROUP BY ?alias
+  }
+
+  ?property rdf:type wikibase:Property .
+  ?property skos:altLabel ?alias FILTER (?occurences > 1) .
+}
+ORDER BY ?alias""" .

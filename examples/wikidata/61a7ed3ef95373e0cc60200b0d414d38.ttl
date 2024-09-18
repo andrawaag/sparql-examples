@@ -6,17 +6,20 @@
 
 <https://www.wikidata.org/#query-61a7ed3ef95373e0cc60200b0d414d38> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT (STRAFTER(STR(?location), STR(wd:)) AS ?country) (STRAFTER(STR(?item), STR(wd:)) AS ?legislature) (xsd:integer(?seatcount) AS ?seats)
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mhl20/prompts/test_seat_count>,
+    <https://www.wikidata.org//wiki/User:Oravrattas/prompts/Seat_Count>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854047-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d854047-10A83AE8BEB1831790ACB998CA8C9D7B,
+    _:genid-4e694113159d4e3db4a1a913894a81d854047-BEAE7768292B0AAA63B971132F21572F, _:genid-4e694113159d4e3db4a1a913894a81d854047-0545EDD898FF085938C2CA7310A7CE37;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT DISTINCT (STRAFTER(STR(?location), STR(wd:)) AS ?country) (STRAFTER(STR(?item), STR(wd:)) AS ?legislature) (xsd:integer(?seatcount) AS ?seats)
   WHERE {
     VALUES ?type { wd:Q10553309 wd:Q140247 }
     ?location wdt:P31 wd:Q6256 .
     ?item wdt:P31/wdt:P279* ?type ; wdt:P1001 ?location . 
     FILTER NOT EXISTS { ?item wdt:P576 [] } . # no end date
     OPTIONAL { ?item wdt:P1342 ?seatcount } 
-  }""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Mhl20/prompts/test_seat_count>,
-    <https://www.wikidata.org//wiki/User:Oravrattas/prompts/Seat_Count>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121586-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121586-E031B4B8A1AF693032211CC23E46197A, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec121586-DAD806AAB6DFC4412085FAB1A78E8129;
-  schema:target <https://query.wikidata.org/sparql/> .
+  }""" .

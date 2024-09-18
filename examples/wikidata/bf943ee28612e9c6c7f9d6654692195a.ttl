@@ -6,14 +6,19 @@
 
 <https://www.wikidata.org/#query-bf943ee28612e9c6c7f9d6654692195a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemlabel (GROUP_CONCAT(?p31label;SEPARATOR=\", \") AS ?p31labels) {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844027-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?itemlabel (GROUP_CONCAT(?p31label;SEPARATOR=\", \") AS ?p31labels) {
   { ?item wdt:P31/wdt:P279* wd:Q1248784 . ?item p:P31 [ ps:P31 [ rdfs:label ?p31label ] ] FILTER(lang(?p31label)='en') }
   MINUS {?item p:P31 [ ps:P31 wd:Q1248784 ] .}
   ?item rdfs:label ?itemlabel . FILTER(lang(?itemlabel)='en')
 }
 GROUP BY ?item ?itemlabel 
-ORDER BY ?itemlabel""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/06>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY ?itemlabel""" .

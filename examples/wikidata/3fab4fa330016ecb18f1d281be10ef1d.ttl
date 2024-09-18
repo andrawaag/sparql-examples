@@ -6,7 +6,32 @@
 
 <https://www.wikidata.org/#query-3fab4fa330016ecb18f1d281be10ef1d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BarChart
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Julia.athen>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d810415-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d810415-F0939D345C8D6AEA5AFDBC223DD03D01;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:BarChart
+SELECT  ?year (count(?citing_work) as ?count)
+
+WHERE {
+  {
+  SELECT DISTINCT ?work WHERE {
+    VALUES ?authors { wd:Q63809637 wd:Q4484888 wd:Q63759170 wd:Q63808847 }
+    ?work wdt:P50 ?authors.
+  }
+}
+  ?citing_work wdt:P2860 ?work.
+  ?citing_work wdt:P577 ?date.
+  BIND(str(YEAR(?date)) AS ?year)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+GROUP BY ?year 
+ORDER BY DESC(?year)""";
+  <http://example.org/bigdata_select> """#defaultView:BarChart
 SELECT  ?year (count(?citing_work) as ?count)
 WITH {
   SELECT DISTINCT ?work WHERE {
@@ -22,8 +47,4 @@ WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
 GROUP BY ?year 
-ORDER BY DESC(?year)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Julia.athen>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122528-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?year)""" .

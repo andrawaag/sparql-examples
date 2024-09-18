@@ -6,7 +6,41 @@
 
 <https://www.wikidata.org/#query-d3061c9f30ed292e97a28b7c2ac6abb9> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:taxon-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d836767-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?individuals
+
+  ?taxon ?taxonLabel
+  (CONCAT(\"#taxon/\", SUBSTR(STR(?taxon), 32)) AS ?taxonUrl)
+  ?taxonDescription  
+
+  ?example_individual ?example_individualLabel
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(DISTINCT ?individual) AS ?individuals)
+    ?taxon
+    (SAMPLE(?individual) AS ?example_individual)
+  WHERE {
+    ?taxon wdt:P31 wd:Q16521 .
+
+    # wdt:P31 could also be considered 
+    ?individual wdt:P10241 ?taxon .
+  }
+  GROUP BY ?taxon
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?individuals)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?individuals
 
   ?taxon ?taxonLabel
@@ -31,8 +65,4 @@ WHERE {
   INCLUDE %taxons
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?individuals)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:taxon-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?individuals)""" .

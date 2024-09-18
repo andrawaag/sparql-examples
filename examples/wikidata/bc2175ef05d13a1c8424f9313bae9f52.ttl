@@ -6,7 +6,30 @@
 
 <https://www.wikidata.org/#query-bc2175ef05d13a1c8424f9313bae9f52> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:orcid-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d860287-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?identifier ?identifierLabel ?identifierDescription
+  ?number_of_orcids
+
+WHERE {
+  {  
+  SELECT 
+    (COUNT(*) AS ?number_of_orcids)
+  WHERE {
+    [] wdt:P496 []
+  }
+}
+  BIND(wd:Q51044 AS ?identifier)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT 
   ?identifier ?identifierLabel ?identifierDescription
   ?number_of_orcids
 WITH {  
@@ -20,8 +43,4 @@ WHERE {
   INCLUDE %count
   BIND(wd:Q51044 AS ?identifier)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:orcid-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

@@ -6,32 +6,6 @@
 
 <https://www.wikidata.org/#query-0d69eb27ff27dd7f7c6b434ae907072a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map
-SELECT DISTINCT ?twin ?twinLabel ?geo ?pop ?image ?twinyear ?layer WHERE {
-  ?city wdt:P190 ?twin .
-  MINUS {?city wdt:P17 wd:Q30}
-  ?twin wdt:P17 ?country .
-  ?country wdt:P37 wd:Q1321 .
-  ?twin wdt:P625 ?geo .
-  ?twin wdt:P1082 ?pop .
-  ?twin wdt:P571 ?inception .
-  BIND(YEAR(?inception) AS ?twinyear)
-  BIND(IF(?twinyear < 1700, \"Pre-1700\", 
-          IF(?twinyear < 1751, \"1700-1750\", 
-             IF(?twinyear < 1801, \"1751-1800\", 
-                IF(?twinyear < 1851, \"1801-1850\", 
-                   IF(?twinyear < 1901, \"1851-1900\", 
-                      IF(?twinyear < 1951, \"1901-1950\", \"Post-1950\") 
-                     ) 
-                  ) 
-               ) 
-            )
-         ) AS ?layer )
-  FILTER (?pop < 100000 )
-  FILTER (?pop > 10000 )
-  OPTIONAL {?twin wdt:P18 ?image}
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Border cities of a country 2 Federated query with lei.info 3 bind, coalesce or concat ??? 4 Candidacies by electoral district 5 Searching for all the Wikidata items with descriptions both in Basque and Spanish 6 Chinese writers whose copyright expired 7 Getting QIDs from a en:Wikipedia category page? 8 Chess players without description 9 Select time in two statements with P577 10 Identifiers used in multiple Wikidata items 11 P304 of a reference 12 References with implicit URL 13 Female Swedish writers of the 20th century, who were born in Stockholm 14 A query about genre books 15 Railway stations in Ireland 16 Example of query where an item does NOT have a specified property 17 Select items where a property starts by xx 18 List instances of multiple instances of same qualifier per property 19 Avoiding duplicates 20 Layers by property 21 Find a specific CAS number I'm searching for 22 Layer does not display 23 Authors most cited with no entry in Wikidata 24 HDS and WP 25 Get cities and town 26 get english wikipedia URL (page) for wikidata Q item 27 Old taxonomists, missing from Wikisource 28 Hoping someone can modify this query to list for all administrative entities in Australia 29 Wikidata list 30 age not calculating/appearing 31 List of failed space missions 32 Newbie problems with sparql 32.1 Simple intersect 32.2 More complex matching 33 Generating labels with pairs of square brackets 34 Border posts of EU 35 Fabrics by weave and fiber 36 Get a qualifier 37 Malformed count 38 more than 1 value 38.1 exactly 1 value 39 Format constraint to exclude titles with two or more \"$\" 40 Selecting the first of several equally ranked statements 41 Showing the year part only in a timeline 42 Public artworks in London by female artists 43 Request all (or most!) data for Netflix Original Titles 44 Can someone tell me how to get results with distinct values in the \"col1\" column? 45 Filter when a specific qualifier Border cities of a country What would be the query to get a list of the cities of a country A that are X km from another country B or the border cities of a given country (such as Gualeguaychú (Q52585) or Puerto Iguazú (Q55378) in Argentina (Q414))? --190.226.77.162 06:39, 30 July 2019 (UTC) Hi. You might try this one #defaultView:Map
 SELECT ?border_city ?border_cityLabel ?countryLabel
 (GROUP_CONCAT(DISTINCT ?natureLabel; SEPARATOR = \"; \") AS ?nature) ?coords 
@@ -390,5 +364,35 @@ SELECT DISTINCT ?twin ?twinLabel ?geo ?pop ?image ?twinyear ?layer WHERE {
 } Try it! I do not understand why the ?layer does not display. Any pointers? --Daniel Mietchen (talk) 07:54, 19 August 2019 (UTC) OK, now I see — removing the STR() from the ?twinyear line solves the problem: The following query uses these: Items: United States of America (Q30)   , Spanish (Q1321)   Properties: twinned administrative body (P190)   , country (P17)   , official language (P37)   , coordinate location (P625)   , population (P1082)   , inception (P571)   , image (P18)    Features: map (Q24515275)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838192-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map
+SELECT DISTINCT ?twin ?twinLabel ?geo ?pop ?image ?twinyear ?layer WHERE {
+  ?city wdt:P190 ?twin .
+  MINUS {?city wdt:P17 wd:Q30}
+  ?twin wdt:P17 ?country .
+  ?country wdt:P37 wd:Q1321 .
+  ?twin wdt:P625 ?geo .
+  ?twin wdt:P1082 ?pop .
+  ?twin wdt:P571 ?inception .
+  BIND(YEAR(?inception) AS ?twinyear)
+  BIND(IF(?twinyear < 1700, \"Pre-1700\", 
+          IF(?twinyear < 1751, \"1700-1750\", 
+             IF(?twinyear < 1801, \"1751-1800\", 
+                IF(?twinyear < 1851, \"1801-1850\", 
+                   IF(?twinyear < 1901, \"1851-1900\", 
+                      IF(?twinyear < 1951, \"1901-1950\", \"Post-1950\") 
+                     ) 
+                  ) 
+               ) 
+            )
+         ) AS ?layer )
+  FILTER (?pop < 100000 )
+  FILTER (?pop > 10000 )
+  OPTIONAL {?twin wdt:P18 ?image}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

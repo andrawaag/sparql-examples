@@ -6,22 +6,6 @@
 
 <https://www.wikidata.org/#query-0e11c4c1ff0740def5e046921bc9eb7d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
-	?writingsystem
-	?writingsystemLabel
-	(COUNT( DISTINCT ?l) as ?ct)
-WHERE
-{
-	wd:Q23 rdfs:label ?label
-	BIND( lang(?label) as ?lang)
-	?l p:P424 [ ps:P424 ?lang ; pq:P794 wd:Q22283033 ] .
-  	?l wdt:P282 ?writingsystem .
-  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}
-GROUP BY
-	?writingsystem
-	?writingsystemLabel
-ORDER BY DESC(?ct)""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Items without a label in French but with a linked category which has a label 2 items without P31 3 Members of the Tweede Kamer at some point in time 4 Description different than 5 Get all newspapers in USA 6 Count scripts ? 7 #Number of films by year and genre 8 Item without a page in a specific wiki 9 Notable integers, and for each the list of their classes 10 Help on simple country query 11 start time of a position 12 Born in Europe 13 How to search for all items used as publisher (P123) in any references? 14 Filter for integer values only 15 Query about Israeli nationals who died on 1970 16 Getting info for category Daily Newspaper (Q1110794) 17 Geotagged tajik Wikipedia map? 18 Query for prenames vs gender 19 List of properties with less than 3 statements 20 different items with same VIAF ID (P214) 21 Is it possible to generate a list of Wikivoyage articles sorted by the amount of articles that exists for each destination in all wikivoyage editions? 22 items with multiple genders 23 Threefold Query 24 Redundant subcategories 25 Example with horses/optionals Items without a label in French but with a linked category which has a label Hi all,I would like a SPARQL query which gives items without a label in French but with a linked category which has a label in French.It would be useful to add labels in French.Thank you, Tubezlob (🙋) 14:23, 1 April 2017 (UTC) # Items that don't have a label in French, but there is a main category that has a label in French.
 SELECT ?item ?itemLabel ?_topic_s_main_category ?_topic_s_main_categoryLabelFR WHERE {
   ?item wdt:P910 ?_topic_s_main_category.
@@ -134,5 +118,29 @@ LIMIT 10
    Any Help Would Be Appreciated!! Why do you use country (P17) in newspapers at all?? I think that country of origin (P495) is more suitable for creative works. --Infovarius (talk) 08:39, 4 April 2017 (UTC) Count scripts ? Items used: George Washington (Q23)   , Q22283033 Properties used: writing system (P282)   , Wikimedia language code (P424)   , P794 """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842791-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+	?writingsystem
+	?writingsystemLabel
+	(COUNT( DISTINCT ?l) as ?ct)
+WHERE
+{
+	wd:Q23 rdfs:label ?label
+	BIND( lang(?label) as ?lang)
+	?l p:P424 [ ps:P424 ?lang ; pq:P794 wd:Q22283033 ] .
+  	?l wdt:P282 ?writingsystem .
+  	SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+GROUP BY
+	?writingsystem
+	?writingsystemLabel
+ORDER BY DESC(?ct)""" .

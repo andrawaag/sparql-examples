@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-a1a6d61c0ffd832534e30b3923187717> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT *
-WITH
-{
-  SELECT * { ?item wdt:P31 wd:Q101352 .
-    MINUS { ?item p:P1889 [] }
-  } OFFSET 75000 LIMIT 25000
-} as %a
-WHERE
-{
-    hint:Query hint:optimizer \"None\".
-    INCLUDE %a
-    ?item rdfs:label ?l . FILTER(  lang(?l) = \"en\") 
-    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
-    FILTER( ?dab != ?item )   
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 How to use property/item path queries in Wikidata 2 Get all items that are instance of a specific \"value\" 3 Publication details - manage timeouts 4 Francisco de Zurbaran 5 Query for all instruments played by people affiliated with a particular organization, and the number of those people who play each instrument 6 How to query for people by first and/or last name? 7 Query to identify people, bird-, tree-types streets are named after 8 Recent changes of a specific property 9 Listing of labels from the new query builder 10 Optimizing a query with language fallback 11 WD Talk page extract 12 List of all black people 13 Number of women in Wikidata without a Wikipedia article 14 train stations with IATA Code 15 Items with sitelinks to one wikipedia and not another 16 show qualifier 17 Commons depicts data for files in a given category 17.1 Secondary questions 17.2 Applying regex to query 18 People that have married two Olympians 19 Articles on ScotsWiki with \"Fix Scots\" template, grouped by topic / instance of 20 James bond movies' whereabouts 21 Problems matching Wikipedia URLs to wikidata items 22 Trouble connecting the qualifier to a property 23 List of outdoor Italian statues/monuments dedicated to women 24 Trying to add the percent to the ?title 25 identical label - optimization 26 P31/P279* 27 Slow when in a subquery, but fast otherwise How to use property/item path queries in Wikidata I am trying to search for a solution that can connect two given items together like this. The number of properties and items in the between can define by the number of hops. SELECT ?p
 WHERE { :startNode ?p_1 :Node_1. (...) :Node_n ?p_n :endNode.}
  Try it! Thank if somebody can help. A l p h a m a 11:30, 2 September 2021 (UTC) @Alphama: Currently gets a 'probably not' from me. I will point to the GAS service which would work were you following the same predicate for each hop. But if the predicates vary from hop to hop, with paths of different lengths, with no knowledge of what the predicate is, then woe. That might leave you with SPARQL having as many subject predicate object clauses as you want to test for, for paths of a fixed length. As normal, someone else may know better than me on this one. --Tagishsimon (talk) 12:27, 2 September 2021 (UTC) Thank for your response. I can generate a long query such as ?item1 ?p1 ?item2. ?item2 ?p2 ? item3?... but I look for a clever way such as ?item1 (?p ?item)* ?item2. What I can do now just like ?item1 wdt:P31+/wdt:P279+ ?item2. A l p h a m a 15:51, 2 September 2021 (UTC) Get all items that are instance of a specific \"value\" Hello,Is it possible to get all the items that are instance of a specific value (e.g. 'video game') without using the id of video game (Q7889) but using the actual value? I tried the below query and it does not return any item SELECT ?item ?itemLabel WHERE{   
@@ -714,5 +699,39 @@ WHERE {
 LIMIT 10 Try it!I tried various hints to optimize the above query, but it ends up timing out when I increase the limit. The idea is to find missing P1889 statements (maybe not many are left). There are about 500k family name items and 1.3 million dab items. --- Jura 10:41, 22 September 2021 (UTC) Items used: family name (Q101352)   , Wikimedia disambiguation page (Q4167410)   Properties used: instance of (P31)   , different from (P1889)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d838363-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT *
+WITH
+{
+  SELECT * { ?item wdt:P31 wd:Q101352 .
+    MINUS { ?item p:P1889 [] }
+  } OFFSET 75000 LIMIT 25000
+} as %a
+WHERE
+{
+    hint:Query hint:optimizer \"None\".
+    INCLUDE %a
+    ?item rdfs:label ?l . FILTER(  lang(?l) = \"en\") 
+    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
+    FILTER( ?dab != ?item )   
+}""";
+  <http://example.org/bigdata_select> """SELECT *
+WITH
+{
+  SELECT * { ?item wdt:P31 wd:Q101352 .
+    MINUS { ?item p:P1889 [] }
+  } OFFSET 75000 LIMIT 25000
+} as %a
+WHERE
+{
+    hint:Query hint:optimizer \"None\".
+    INCLUDE %a
+    ?item rdfs:label ?l . FILTER(  lang(?l) = \"en\") 
+    ?dab  rdfs:label ?l ; wdt:P31 wd:Q4167410 .
+    FILTER( ?dab != ?item )   
+}""" .

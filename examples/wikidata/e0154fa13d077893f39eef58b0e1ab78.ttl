@@ -6,55 +6,6 @@
 
 <https://www.wikidata.org/#query-e0154fa13d077893f39eef58b0e1ab78> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Graph
-SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel ?rgb
-
-WITH {
-  SELECT ?item1 ?rgb WHERE {
-    {
-      SELECT (?character as ?item1) WHERE {
-        ?game wdt:P31 wd:Q7889.
-        ?game wdt:P179 wd:Q219623.
-        ?game wdt:P674 ?character.
-      }
-    }
-    UNION
-    {
-      # Find sport -
-      SELECT (?sport as ?item1) WHERE {
-        ?game wdt:P31 wd:Q7889.
-        ?game wdt:P179 wd:Q219623.
-        ?game wdt:P674 ?character.
-        ?character wdt:P641 ?sport.
-      }
-    }
-    UNION
-    {
-      # Find games
-      SELECT (?game as ?item1) ?rgb WHERE {
-        ?game wdt:P31 wd:Q7889.
-        ?game wdt:P179 wd:Q219623.  
-        BIND(\"7FFF00\" as ?rgb)
-      }
-    }
-
-  }
-} AS %item1
-WITH {
-  SELECT (?item1 AS ?item2) WHERE {
-    INCLUDE %item1.
-  }
-} AS %item2
-WHERE {
-  INCLUDE %item1 .
-  INCLUDE %item2 .
-  ?item1 ?wdt ?item2 .
-  ?edge wikibase:directClaim ?wdt;
-        a wikibase:Property .
-  OPTIONAL { ?item1 wdt:P18 ?image1 . }
-  OPTIONAL { ?item2 wdt:P18 ?image2 . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Result of a sports match 2 Get all WP articles that have a reference to a website 3 Ordered tree of military grades 4 Filtered descriptions 5 Filter according to Wikipedia category 6 Removing double entities/tags from dutch municipalities 7 Reduce duplicates of Flanders Institute Arts Organization ID 8 multiple optional conditions 9 Mayors of Dutch municipalities 10 List of entries with given letter 11 Query for list of polygons and how many sides they have 12 Pulling ADS bibcode and DOI for works cited 13 Number of women who won any Nobel prizes 14 Listeria issue 15 x-axis 16 Siege durations 17 Generating a query with a DOI and ADS bibcode 18 Multi-graph and colors 19 Chess players without specific Elo rating 20 Flourished dates 21 Random lexemes (let's say, 30) and senses 22 Finding duplicate sets of normal ranked coordinates? 23 Pulling multiple QR codes for one property 24 Jeugdliteratuur 25 Get list of people who by property P69 (educated at) appearing on Wikipedia 26 Please explain what's going on here - CONSTRUCT versus SELECT get different results 27 w:pt:Lista de termas localizadas em Portugal 28 count Q5 by P21 by P569 in single Wikipedia 29 Chess players with DOB precision 30 Converting mongodb query to sparql 31 Duplicate values for P39 32 specific colors 33 Icelander(s) marked as an Israelian 34 Map of wikimedians in residence 35 Request time out for grouping qualifiers 36 Get organisational identifiers for museums in EUROPE 37 Query to have a map of all hospitals mentioned in some archival fonds 38 Obtenir le lien vers la base Joconde (musées) sur une liste d'oeuvres Result of a sports match How can I get out the result for the match from for example Hamburger SV versus SC Freiburg 2009–10 Fußball-Bundesliga (Q29877824) which is in participating team (P1923). --Balû (talk) 04:19, 1 October 2019 (UTC) @Balû: Here is a query that gives you a table with the results for all 16 265 matches in the Bundesliga (Q82595) that have been entered in Wikidata. Results for the most recent seasons seem to be missing in Wikidata. If you only want to have the results for one match, uncomment the VALUES line in the query. SELECT ?match ?seriesLabel ?time ?home_teamLabel ?home_goals ?away_teamLabel ?away_goals {
 # uncomment next line if you only want the match or matches specified within the { }  
 # VALUES ?match { wd:Q29877824 }
@@ -243,5 +194,137 @@ OPTIONAL { ?si_ge wdt:P276 ?lieu. }
  Try it! --Tagishsimon (talk) 17:31, 16 October 2019 (UTC) @Tagishsimon: Perfect! Thanks!! I've used it multiple times already. Thanks so much. Trilotat (talk) 00:16, 18 October 2019 (UTC) Multi-graph and colors Inspired by User:Fuzheado/queries, I tried to do the following query (somewhat ridiculous but for the fun of it :-þ) The following query uses these:Items: video game (Q7889)   , Tekken (Q219623)   Properties: instance of (P31)   , part of the series (P179)   , characters (P674)   , sport (P641)   , image (P18)    Features: Graph (Q24515287)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/10>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d815770-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Graph
+SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel ?rgb
+
+
+WITH {
+  SELECT (?item1 AS ?item2) WHERE {
+    {
+  SELECT ?item1 ?rgb WHERE {
+    {
+      SELECT (?character as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+      }
+    }
+    UNION
+    {
+      # Find sport -
+      SELECT (?sport as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+        ?character wdt:P641 ?sport.
+      }
+    }
+    UNION
+    {
+      # Find games
+      SELECT (?game as ?item1) ?rgb WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.  
+        BIND(\"7FFF00\" as ?rgb)
+      }
+    }
+
+  }
+}.
+  }
+} AS %item2
+WHERE {
+  {
+  SELECT ?item1 ?rgb WHERE {
+    {
+      SELECT (?character as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+      }
+    }
+    UNION
+    {
+      # Find sport -
+      SELECT (?sport as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+        ?character wdt:P641 ?sport.
+      }
+    }
+    UNION
+    {
+      # Find games
+      SELECT (?game as ?item1) ?rgb WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.  
+        BIND(\"7FFF00\" as ?rgb)
+      }
+    }
+
+  }
+} .
+  INCLUDE %item2 .
+  ?item1 ?wdt ?item2 .
+  ?edge wikibase:directClaim ?wdt;
+        a wikibase:Property .
+  OPTIONAL { ?item1 wdt:P18 ?image1 . }
+  OPTIONAL { ?item2 wdt:P18 ?image2 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """#defaultView:Graph
+SELECT ?item1 ?image1 ?item1Label ?item2 ?image2 ?item2Label ?edgeLabel ?rgb
+
+WITH {
+  SELECT ?item1 ?rgb WHERE {
+    {
+      SELECT (?character as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+      }
+    }
+    UNION
+    {
+      # Find sport -
+      SELECT (?sport as ?item1) WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.
+        ?game wdt:P674 ?character.
+        ?character wdt:P641 ?sport.
+      }
+    }
+    UNION
+    {
+      # Find games
+      SELECT (?game as ?item1) ?rgb WHERE {
+        ?game wdt:P31 wd:Q7889.
+        ?game wdt:P179 wd:Q219623.  
+        BIND(\"7FFF00\" as ?rgb)
+      }
+    }
+
+  }
+} AS %item1
+WITH {
+  SELECT (?item1 AS ?item2) WHERE {
+    INCLUDE %item1.
+  }
+} AS %item2
+WHERE {
+  INCLUDE %item1 .
+  INCLUDE %item2 .
+  ?item1 ?wdt ?item2 .
+  ?edge wikibase:directClaim ?wdt;
+        a wikibase:Property .
+  OPTIONAL { ?item1 wdt:P18 ?image1 . }
+  OPTIONAL { ?item2 wdt:P18 ?image2 . }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

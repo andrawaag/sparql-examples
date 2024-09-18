@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-8cb2fa3b414ed591a22262b44f946ea0> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?team (COUNT(?investigator) AS ?members) ?teamLabel (GROUP_CONCAT(DISTINCT(?name);separator=\", \") AS ?investigators) ?seriesLabel ?instanceLabel WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858055-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?team (COUNT(?investigator) AS ?members) ?teamLabel (GROUP_CONCAT(DISTINCT(?name);separator=\", \") AS ?investigators) ?seriesLabel ?instanceLabel WHERE {
   ?investigator wdt:P31 wd:Q110857263 .
   ?team wdt:P527 ?investigator . ?investigator rdfs:label ?name . FILTER(lang(?name) = \"de\")      
   ?team wdt:P31 ?instance
@@ -14,8 +23,4 @@
   SERVICE wikibase:label{bd:serviceParam wikibase:language \"de\"}
 }
 GROUP BY ?team ?teamLabel ?instance ?instanceLabel ?series ?seriesLabel
-ORDER BY ?team""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY ?team""" .

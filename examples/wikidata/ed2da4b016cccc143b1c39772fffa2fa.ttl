@@ -6,7 +6,42 @@
 
 <https://www.wikidata.org/#query-ed2da4b016cccc143b1c39772fffa2fa> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# from element-specific scholia sparqle; TODO: list element qid+Label
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Template:Chemical_element_simple_substance/doc>,
+    <https://www.wikidata.org//wiki/Template:Chemical_element_simple_substance>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d812599-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d812599-535A134EC6B6393652FC5F3982D7F52E;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# from element-specific scholia sparqle; TODO: list element qid+Label
+SELECT DISTINCT ?allotrope ?allotropeLabel  {
+  {  ## ?density ?densityUnit ?densityUnitLabel
+  SELECT ?allotrope (SAMPLE(?densityStats) AS ?densityStat) WHERE {
+    ?allotrope wdt:P31|wdt:P279 ?allotropeType .
+    ?allotropeType p:P279 ?allotropeSpecsStatement .
+    ?allotropeSpecsStatement ps:P279 wd:Q21198401 ;
+                             # pq:P642 target: . #remove element-specific QID (from scholia)
+    OPTIONAL {
+      ?allotrope p:P2054 ?densityStats .
+    }
+  } GROUP BY ?allotrope
+}
+#   OPTIONAL {
+## ps:P279 wd:Q21198401  p:P642 .
+#    ?allotrope p:P2054 ?densityStat .
+#    ?densityStat psv:P2054 ?densityValNode .
+#    ?densityValNode wikibase:quantityAmount ?density ;
+#                    wikibase:quantityUnit ?densityUnit .
+#  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+} ORDER BY ASC(?allotropeLabel)""";
+  <http://example.org/bigdata_select> """# from element-specific scholia sparqle; TODO: list element qid+Label
 SELECT DISTINCT ?allotrope ?allotropeLabel WITH{  ## ?density ?densityUnit ?densityUnitLabel
   SELECT ?allotrope (SAMPLE(?densityStats) AS ?densityStat) WHERE {
     ?allotrope wdt:P31|wdt:P279 ?allotropeType .
@@ -27,9 +62,4 @@ SELECT DISTINCT ?allotrope ?allotropeLabel WITH{  ## ?density ?densityUnit ?dens
 #                    wikibase:quantityUnit ?densityUnit .
 #  }
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-} ORDER BY ASC(?allotropeLabel)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Template:Chemical_element_simple_substance/doc>,
-    <https://www.wikidata.org//wiki/Template:Chemical_element_simple_substance>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec130658-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} ORDER BY ASC(?allotropeLabel)""" .

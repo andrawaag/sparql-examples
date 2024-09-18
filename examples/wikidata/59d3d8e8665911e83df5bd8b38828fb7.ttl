@@ -6,13 +6,6 @@
 
 <https://www.wikidata.org/#query-59d3d8e8665911e83df5bd8b38828fb7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """select distinct ?item ?itemLabel ?itemDescription ?sitelinks where {
-    ?item wdt:P31 wd:Q5;  
-          wdt:P570* \"????-28-27T00:00:00Z11\";  
-             wikibase:sitelinks ?sitelinks;
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
-
-ORDER BY DESC(?sitelinks)""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Contains a property not on a given list 2 Normal and Preferred 3 Colourising Map Pins by decade of date 4 Editing a query to include results with curly quotation marks 5 Get Dutch names of all species 6 Finding articles that have a volume set as a qualifier of the Published in (P1433) claim 7 Link for an external identifier 8 Help with querying multiple occupations 9 I'm trying to write a query to find American politicians whose father or mother was also a politician 10 Get the instance of an item 11 Items with the most statements 12 Because I suck at aggregation 13 Swiss women politicians involved in foreign affairs and/or international policy 14 Map of countries with diplomatic relations with France 15 Query Qualifier Values? 16 Adding State to Cities of female persons died before 2000 17 Problems with \"search results\" and \"hide/show pagination\" 18 Get items referenced by properties via \"Wikidata item of this property\" (P1629) 19 Get the item that has an external identifier of a specific value 20 Finding existing academic papers for use with \"Cite Q\" 21 files within a category in wikicommon that don't have a link out to wikidata 22 Any way to make this query faster? 23 Intersection list of P856 with a french cat 24 Get number of languages specific books are available in Wikipedia 25 Norwegian women 26 List of people that died on August 27 27 Difference of population on Earth and all the countries 28 Wildcard characters in wdqs/sparql ? Contains a property not on a given list I would like to find items that have instance of (P31)=Wikimedia category (Q4167836) that contain property values that are not instance of (P31), category contains (P4224), category combines topics (P971) (and probably others). Is there a good way of expressing this in a SPARQL query please? Thanks. Mike Peel (talk) 19:22, 1 August 2021 (UTC) @Mike Peel: Yes, along these lines. I think category items are amongst those sets that are difficult to query, fully, b/c of the number of items. I tried to get a count of distinct properties used in category items, but no dice. Even this list has issues - 47 seconds for a limit 100 :( SELECT ?item ?itemLabel ?property ?propertyLabel WITH {
 SELECT ?item ?property 
 WHERE 
@@ -985,5 +978,16 @@ ORDER BY DESC(?sitelinks) ?itemLabel
 } Try it! The above currently gives 16166 results. By place of birth 5762 results, either 16424 results. Several dates or places can result in multiple results. --- Jura 20:22, 26 August 2021 (UTC) Thanks a lot! Exactly what I needed. Changed dod from P569 to P570 BTW. Pmt (talk) 18:53, 27 August 2021 (UTC) List of people that died on August 27 I try to list people that died on 27th of August no matter what year to extent our lists of who died on what day. I did not see any similar examples on help page. Thanks in advance. Items used: human (Q5)   Properties used: instance of (P31)   , date of death (P570)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/08>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d856510-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+select distinct ?item ?itemLabel ?itemDescription ?sitelinks where {
+    ?item wdt:P31 wd:Q5;  
+          wdt:P570* \"????-28-27T00:00:00Z11\";  
+             wikibase:sitelinks ?sitelinks;
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+
+ORDER BY DESC(?sitelinks)""" .

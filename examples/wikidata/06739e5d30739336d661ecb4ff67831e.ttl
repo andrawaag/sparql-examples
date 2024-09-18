@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-06739e5d30739336d661ecb4ff67831e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?s ?desc ?dob WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844867-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?s ?desc ?dob WHERE {
   ?s wdt:P31 wd:Q5.                           # must be human
   ?s  p:P569/psv:P569 [wikibase:timePrecision ?precision; wikibase:timeValue ?birth]
   bind(if(?precision=11,?birth,if(?precision=10,concat(month(?birth),\" \",year(?birth)),year(?birth))) as ?dob)                
@@ -20,8 +32,4 @@
   FILTER((?birth > \"1898-01-01\"^^xsd:dateTime) && (?birth < \"1918-01-01\"^^xsd:dateTime))
 }
 GROUP BY ?s ?desc ?dob                       # right now the group by serves no purpose whatsoever - there are to aggregates in the select
-LIMIT 100                                    # obvs, only give me 100 results""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/02>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+LIMIT 100                                    # obvs, only give me 100 results""" .

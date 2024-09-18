@@ -6,7 +6,37 @@
 
 <https://www.wikidata.org/#query-fbcf283e19aa7bd403bd18c7fb897dd8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?name ?chr ?start ?stop WITH {
+  rdfs:comment "Properties: has part(s) (P527)   , encoded by (P702)   , Reactome ID (P3937)   , chromosome (P1057)   , short name (P1813)   , HGNC gene symbol (P353)   , genomic start (P644)   , genomic end (P645)   , genomic assembly (P659)   "@en;
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pathwaybot/query_examples>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d857272-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT DISTINCT ?name ?chr ?start ?stop 
+WHERE {
+  {
+  SELECT DISTINCT ?gene ?name ?chr WHERE {
+    VALUES ?pathwayID { \"R-HSA-532668\" }
+    ?pathway wdt:P527+/wdt:P702 ?gene ;
+             wdt:P3937 ?pathwayID .
+    ?gene wdt:P1057/wdt:P1813 ?chr ;
+          wdt:P353 ?name .
+  }
+}
+  ?gene p:P644 [
+    pq:P659 wd:Q20966585 ;
+    ps:P644 ?start
+  ] .
+  ?gene p:P645 [
+    pq:P659 wd:Q20966585 ;
+    ps:P645 ?stop
+  ]
+}""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?name ?chr ?start ?stop WITH {
   SELECT DISTINCT ?gene ?name ?chr WHERE {
     VALUES ?pathwayID { \"R-HSA-532668\" }
     ?pathway wdt:P527+/wdt:P702 ?gene ;
@@ -25,9 +55,4 @@ WHERE {
     pq:P659 wd:Q20966585 ;
     ps:P645 ?stop
   ]
-}""";
-  rdfs:comment "Properties: has part(s) (P527)   , encoded by (P702)   , Reactome ID (P3937)   , chromosome (P1057)   , short name (P1813)   , HGNC gene symbol (P353)   , genomic start (P644)   , genomic end (P645)   , genomic assembly (P659)   "@en;
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Pathwaybot/query_examples>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

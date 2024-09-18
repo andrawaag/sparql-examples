@@ -6,33 +6,6 @@
 
 <https://www.wikidata.org/#query-e74a5b25c59f3a065101302cf8cecf40> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:BubbleChart
-#Bubblechart and list of words in titles of articles about Zika. Limited to English titles, first 42 words, some words filtered.
-#by Jura1, 7 March 2020
-
-SELECT ?word (COUNT(DISTINCT ?title) as ?count)
-WITH
-{  SELECT ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
-  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
-  ,\"[ ]{2,100}\",\" \") as ?input)
-   {  [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } #  LIMIT 100
-} as %titles
-WITH
-{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
-     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
-} as %positionalregexes                                                             
-WITH
-{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
-} as %b 
-WHERE
-{
-    INCLUDE %b
-    FILTER ( ?word != \"Z\" && ?word != \"Zika\" && ?word != \"Corona\" 
-            && strlen(?word) > 3 
-            && ?word != \"pandemic\" && ?word != \"virus\" && lcase(?word) != \"infection\" && ?word != \"mortality\"
-           )               
-}
-GROUP BY ?word""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Unification of distances in the stars 2 Most common kinds of items and what are the most common statements for them? I want to write some instructions for new contributors 3 Weird football statistics (2 queries) 3.1 Top 10 of the youngest and the oldest goal scorers and players in tournament history 3.2 Places of birth of soccer players on a world map 4 Nigeria women biographies without photos on Wikipedia 5 Renaming label variables 6 Project country coverage stats 7 How to query all places within a place? 8 How to show only unique values when using several GROUP_CONCAT? 9 List of IATA airport codes with geo coords, city, country, continent 10 Get a list of lexemes with sense 11 Timeline US news 12 List of 1000 female with the highest number of interwikis, but without a be:interwiki 13 Query no longer working 14 Simple request (Participants to the 2016 Olympics) 15 Getting the lexeme for a given form 15.1 How many words to check 15.2 List words 15.3 Cross-check against existing lexemes 15.4 Article titles and corresponding lexemes (or \"placeholder\") 16 \"has part/part of\" tree 17 Every 'instance of' X which has more than one 'instance of' statement and a list of values of these 'instance of' stataments 18 Catalan label and Roman people 19 Timeout, but has been running two weeks ago every day. 20 Revenue: Newest Number and Qualifier 21 Items with more than 30 sitelinks 22 Pageviews of a given item in a given endpoint 23 Playing with references 24 List of city residents, with street names 25 All Encompassing Query 26 Wikipedia categories and sub-categories 27 Instance of (P31) Disease Outbreak (Q3241045) of (P642) COVID-19 (Q84263196) 28 List of the websites of all cities in Germany 29 Abfrage der Bürgermeister ein Stadt in zeitlicher Reihenfolge 30 List of Oscar Best Movies 31 Thousands separator 32 Searching for a specific property from a list of items 33 Upper case titles 34 Article titles about persons that contain a certain string 35 Mayors 36 Part of string with P973 37 Spelling out the language of a Wikimedia page from sitelink 38 Query on qualifier and display it on results 39 ORDER BY Family name 40 FILTER NOT EXISTS 41 Better query for P301 inverse constraint? 42 electoral district of a political position held? 43 Many wikiquote entries, but few wikipedia entries 44 List of artists in City of Pori art collection 45 Select Australian women who have an infobox with the parameter \"image =\" (and possibly therefore an image) where there is no image in wikidata Unification of distances in the stars By running the following query: # Stars up to 18 light years away sorted by the nearest
 SELECT ?star ?starLabel ?distance
 WHERE
@@ -529,5 +502,61 @@ GROUP BY ?wordcount
 ORDER BY DESC(?wordcount) Try it! List words Items used: Zika virus (Q202864)   Properties used: main subject (P921)   , title (P1476)   , KIT Linked Open Numbers ID (P5176)   , numeric value (P1181)   Features used: BubbleChart (Q24515280)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d817765-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+#defaultView:BubbleChart
+#Bubblechart and list of words in titles of articles about Zika. Limited to English titles, first 42 words, some words filtered.
+#by Jura1, 7 March 2020
+
+SELECT ?word (COUNT(DISTINCT ?title) as ?count)
+WITH
+{  SELECT ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+   {  [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } #  LIMIT 100
+} as %titles
+WITH
+{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                             
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+} as %b 
+WHERE
+{
+    INCLUDE %b
+    FILTER ( ?word != \"Z\" && ?word != \"Zika\" && ?word != \"Corona\" 
+            && strlen(?word) > 3 
+            && ?word != \"pandemic\" && ?word != \"virus\" && lcase(?word) != \"infection\" && ?word != \"mortality\"
+           )               
+}
+GROUP BY ?word""";
+  <http://example.org/bigdata_select> """#defaultView:BubbleChart
+#Bubblechart and list of words in titles of articles about Zika. Limited to English titles, first 42 words, some words filtered.
+#by Jura1, 7 March 2020
+
+SELECT ?word (COUNT(DISTINCT ?title) as ?count)
+WITH
+{  SELECT ?title (REPLACE(CONCAT(REPLACE(REPLACE(REPLACE(str(?title),'[\\\\.:,\\\\? %\";\\\\]\\\\[]',\"\"),\"[\\\\(\\\\)–“—”]\",\" \"),\"’\",\"'\"), 
+  \" Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z Z\")
+  ,\"[ ]{2,100}\",\" \") as ?input)
+   {  [] wdt:P921 wd:Q202864 ; wdt:P1476 ?title . FILTER(lang(?title)=\"en\") } #  LIMIT 100
+} as %titles
+WITH
+{    SELECT ?re ?nv { ?n wdt:P5176 []; wdt:P1181 ?nv . FILTER( ?nv < 43) 
+     BIND( CONCAT( \"^([^ ]+ ){\", str( ?nv - 1 ),\"}([^ ]+) .*\") as ?re) }
+} as %positionalregexes                                                             
+WITH
+{    SELECT * { INCLUDE %titles  INCLUDE %positionalregexes  BIND( REPLACE(?input, ?re, \"$2\") as ?word) }
+} as %b 
+WHERE
+{
+    INCLUDE %b
+    FILTER ( ?word != \"Z\" && ?word != \"Zika\" && ?word != \"Corona\" 
+            && strlen(?word) > 3 
+            && ?word != \"pandemic\" && ?word != \"virus\" && lcase(?word) != \"infection\" && ?word != \"mortality\"
+           )               
+}
+GROUP BY ?word""" .

@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-db918be94e3f16a7bfac0aa72791bd12> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?dob (GROUP_CONCAT(distinct ?occupationLabel;separator=\"; \") as ?occuption)  WHERE {  
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/05>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d835327-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?dob (GROUP_CONCAT(distinct ?occupationLabel;separator=\"; \") as ?occuption)  WHERE {  
   VALUES ?state {wd:Q1223 wd:Q824} 
   {?item wdt:P19/wdt:P131* ?state. }
   UNION
@@ -20,8 +29,4 @@
  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,fr,it\". 
                         ?occupation rdfs:label ?occupationLabel . 
                         ?item rdfs:label ?itemLabel .}
-} group by ?item ?itemLabel ?dob ORDER BY (?dob)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/05>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} group by ?item ?itemLabel ?dob ORDER BY (?dob)""" .

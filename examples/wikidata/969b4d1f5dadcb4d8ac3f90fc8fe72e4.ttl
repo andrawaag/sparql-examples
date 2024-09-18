@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-969b4d1f5dadcb4d8ac3f90fc8fe72e4> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#added before 2016-10
-SELECT ?item ?itemLabel (COUNT(distinct ?sitelink) as ?count)
-WHERE
-{
-	?item wdt:P31 wd:Q5 .
-	?item wdt:P27 wd:Q142 .
-	?sitelink schema:about ?item .
-	FILTER EXISTS { ?wen schema:about ?item . ?wen schema:inLanguage \"en\" }
-	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"fr\" }
-	SERVICE wikibase:label {
-		bd:serviceParam wikibase:language \"fr,en\" .
-	}
-}
-GROUP BY ?item ?itemLabel
-ORDER BY DESC(?count)""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
@@ -36,11 +21,31 @@ ORDER BY DESC(?count)""";
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-48E017A72A90EB742FD4199591B397F1, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-1F1D69A890C41C56FF11D393A3A5B38D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-EEE2466C8DC1C3E4958AB2DA76F49D80, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-65A6BB647B6A21F197C3365EF0A32820,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-5F36BA3EBA284ECCE8B537B1338C3F11, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-1DC1FE2D0C43FC247E72FECB23A67182,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-4C187744F3C25EDB85EAE3F1A688E777, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-AC16DC955EFE014C430474D574FCAD52,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-6FC8BFE014A95419B15F1C4421D54975, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-2450CA8108AD74D6AF02851BB980E10D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-A41C298F25553976FA85FD7116E36262, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112595-FACBAF0BE8B3BC382744689C1B34F262;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d859801-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d859801-19A319E027B673552613B345BBD7576F,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-E242AFC80AB04F6F0873E4BC0ECD5FAE, _:genid-4e694113159d4e3db4a1a913894a81d859801-8A2D819F5C51835789311B52E780B1BA,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-1E8F076C341C1D9E11EDE7F1C2F42973, _:genid-4e694113159d4e3db4a1a913894a81d859801-8559744599170C5687CD317ECC3DAC38,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-734E2027DFEAAFD57A868AD714AE70DE, _:genid-4e694113159d4e3db4a1a913894a81d859801-CE9616E9CF3676AAEB2E4660E741C1A9,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-7DE422F4C6820204CB3294E39BE48B0F, _:genid-4e694113159d4e3db4a1a913894a81d859801-765C8B1968484FE2269360AD7994D992,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-4E665558D30FC8A4B21E0839528A0FEF, _:genid-4e694113159d4e3db4a1a913894a81d859801-1004303E132F62A89E6847A371169583,
+    _:genid-4e694113159d4e3db4a1a913894a81d859801-DF1A762CE5ECAE87BB37F5D1C7985608, _:genid-4e694113159d4e3db4a1a913894a81d859801-B1DB076DED9462E197DD4A512F2F65B6;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#added before 2016-10
+SELECT ?item ?itemLabel (COUNT(distinct ?sitelink) as ?count)
+WHERE
+{
+	?item wdt:P31 wd:Q5 .
+	?item wdt:P27 wd:Q142 .
+	?sitelink schema:about ?item .
+	FILTER EXISTS { ?wen schema:about ?item . ?wen schema:inLanguage \"en\" }
+	FILTER NOT EXISTS { ?wfr schema:about ?item . ?wfr schema:inLanguage \"fr\" }
+	SERVICE wikibase:label {
+		bd:serviceParam wikibase:language \"fr,en\" .
+	}
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC(?count)""" .

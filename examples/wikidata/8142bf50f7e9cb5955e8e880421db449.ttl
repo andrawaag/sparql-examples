@@ -6,7 +6,31 @@
 
 <https://www.wikidata.org/#query-8142bf50f7e9cb5955e8e880421db449> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?image 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89302-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?image 
+
+WHERE
+{
+  {
+  SELECT ?item
+  WHERE
+  {
+    SERVICE <https://query.wikidata.org/sparql>
+    {
+      ?item wdt:P39 wd:Q11696 .  # position held: President of the United States
+    }
+  } 
+}
+  ?image wdt:P180 ?item .
+  FILTER NOT EXISTS { ?image rdfs:label ?label. FILTER (LANG(?label) = \"ar\") }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?image 
 WITH
 {
   SELECT ?item
@@ -23,8 +47,4 @@ WHERE
   INCLUDE %get_items
   ?image wdt:P180 ?item .
   FILTER NOT EXISTS { ?image rdfs:label ?label. FILTER (LANG(?label) = \"ar\") }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/09>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

@@ -6,15 +6,6 @@
 
 <https://www.wikidata.org/#query-da49cfe456111c0ce330a5ea6061314e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?itemDescription ?value ?descendant ?descendantLabel ?descendantDescription ?dob
-{
-  ?item wdt:P9044 ?value .
-  ?item wdt:P40+ ?descendant . 
-  ?descendant wdt:P31 wd:Q5 . 
-  FILTER NOT EXISTS { ?descendant p:P570 [] } 
-  OPTIONAL { ?descendant wdt:P569 ?dob }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 List of all Bart Simpson prank call alter egos 2 Minor issue regarding Humans per DoD query 3 Access to QID or creation date 4 List of German Research Foundation Applicants (with GEPRIS Historisch-ID) (1920 - 1945) with living descendents 5 Number of sitelinks based on Wikipedia article name (English) 6 How to get a list of people who have name in native language (P1559) in a particular language 7 STRSTARTS (URL) 8 List unique value violations for a particular P131 9 instance of (P31) scholarly article (Q13442814) with no description in English 10 Straightening out a bowl of spaghetti on subway lines 11 Help with a query of physical geography elements of a region 12 Mountain range names in national / local languages 13 How to find physicists with many articles in different languages (at least 20) 14 Query returning pages with non-empty talk pages 15 Complementary spouses 16 All places in the Great Catalan Encyclopedia that are not part of the Catalan Countries 17 Searching only one-way railway stations 18 How to query and filter among ranks 19 list of all games on wikidata 20 Metadata about every human in English Wikipedia 21 pubmed from a given list of QIDs 22 Days with no photos 23 Politicians by country (USA; UK; CAN; IN) in English and Hindi Wikipedias 24 Items whose article in Wikipedia contain a given string 25 Homonyms inside same subway List of all Bart Simpson prank call alter egos I'd like to have a timeline of all Bart Simpson prank call alter egos (e.g. Seymour Butz (Q105974063)). Thank you very much! ★ → Airon 90 07:49, 30 November 2021 (UTC) #defaultView:Timeline
 SELECT ?item ?itemLabel ?epiLabel ?pub
 WHERE { 
@@ -153,5 +144,19 @@ SELECT ?date ?cumulativecount
 LIMIT 100Try it! I don't think there is other than comparing with a qid you are already using. The filter above might be slightly quicker. --- Jura 17:36, 29 November 2021 (UTC)OK, so far thanks for the comments related to QID.But do you have any idea for schema:dateModified? --Fidoez (talk) 20:10, 29 November 2021 (UTC) If you are looking for very new pages, you might get a query to work that checks first only recently modified pages (and then for QID) --- Jura 20:22, 29 November 2021 (UTC) @Fidoez: The creation date for items is not stored in WDQS. You can access it by making an MWAPI call to www.wikidata.org, but that is only feasible for small groups of already selected items, not for a general search. As pointed out the QID number is ordered by creation date (but beware that merges can disturb the picture), but they AFAIK are not accessible indexed for searching in WDQS, so a FILTER using the numeric value is slow. --Dipsacus fullonum (talk) 15:32, 2 December 2021 (UTC) List of German Research Foundation Applicants (with GEPRIS Historisch-ID) (1920 - 1945) with living descendents I'd like to have a list of living descentants of applicants in the GEPRIS Historisch Database (compare GEPRIS Historisch person ID (P9044)). It would also be nice to have a genealogy graph of this cases. Nice to have would also be a network of all applicants with kinship ties to each other. My SPARQL knowledge is only basic, so I would be happy about some help! More information and some related SPARQL can be found here: https://www.wikidata.org/wiki/Wikidata:GEPRIS_Historisch_(DFG)/de Richirikken (talk) 09:05, 30 November 2021 (UTC) Items used: human (Q5)   Properties used: GEPRIS Historisch person ID (P9044)   , child (P40)   , instance of (P31)   , date of birth (P569)   , date of death (P570)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833173-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?itemDescription ?value ?descendant ?descendantLabel ?descendantDescription ?dob
+{
+  ?item wdt:P9044 ?value .
+  ?item wdt:P40+ ?descendant . 
+  ?descendant wdt:P31 wd:Q5 . 
+  FILTER NOT EXISTS { ?descendant p:P570 [] } 
+  OPTIONAL { ?descendant wdt:P569 ?dob }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],de,en\". }
+}""" .

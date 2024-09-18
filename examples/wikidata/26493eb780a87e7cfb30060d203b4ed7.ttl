@@ -6,29 +6,6 @@
 
 <https://www.wikidata.org/#query-26493eb780a87e7cfb30060d203b4ed7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT 
-    ?person ?personLabel ?personDescription 
-    ?occupations
-    ?politics  ?business
-WHERE
-{
-  {
-    SELECT
-      ?person (GROUP_CONCAT(DISTINCT ?p106label;SEPARATOR=\", \") AS ?occupations)
-    WHERE
-    {
-      ?person wdt:P172 wd:Q726673.
-      OPTIONAL { ?person wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(lang(?p106label)='sv') }
-      ?person wdt:P31 wd:Q5.
-    }
-    GROUP BY ?person
-    LIMIT 10
-  }
-   # hint:Query hint:optimizer \"None\".
-   OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q82955 . BIND(\"y\" as ?politics) }
-   OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q43845 . BIND(\"y\" as ?business) }
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],sv,fi,en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Top Famous People in US 2 New editor - two references shown as one 3 Query help needed to get page name, industry and founded 4 How many children got Alkmene (Q190543) 5 Display Label 6 Display only the oldest date 7 List of persons 8 No longer working query 9 Query: Number of articles 10 ORDER BY Family name (II) 11 Include qualifier in query 12 How to find items corresponding to Wikipedia titles without timeout? 13 COUNT not double with two localisation 14 Select all items except those that have the property \"is an instance of\" AND which not objects of the property \"is an instance of\" at the same time 15 How to filter out all items that do not have a label, and then also filter out all which have no properties at all? 16 Covid impact by country in country's official language 17 How to filter out all items that do not have a label, and which have no properties at all? - Suggested queries still returns those with no label? 18 Siblings with close dates of birth 19 Find state of a US location 20 nobel price in literature 21 Articles beginning with each letter 22 Why do I get 1 as a ?unitShort… 23 Optimization of a query 24 Femmes réunionnaises 25 Query by P2093 string 26 How many official languages are there in the world ? 27 Clash between COUNT and SERVICE wikibase:label ? 28 How to deal with time limit constraints? 29 Using a triple as an IF condition 30 Most used properties with no inverse label item (P7087) 31 Tennis player information 32 Stars belonging to Hydra constellation 33 Insulin en-wiki 34 Access Wikidata property qualifiers 35 Items and properties for SparQL-query on categories 36 check if Wikidata entry of a distinct person exists 37 Get all surnames from Wikidata ? 38 Names with missing Caverphone statements 39 Maintenance query : items from X category on langwiki without Z template 40 Show items with a property which has ANY qualifier ? 41 Query about Q21528878 42 Rest of division = 0 43 Retrieve occupation of person 44 Most polluted rivers in the world 45 Coronavirus deaths per date 46 Different date columns 47 Bag balm, Melkfett, Uierzalf, バッグ・バーム are not linked 48 items containing a name without property named after that person 49 Female Scientists who are a member of two notable science academies? 50 El Pulqui Empresa 51 Personas inspiradas en una obra/persona 52 How do I access an item's aliases, descriptions 53 List of disambig cities, towns, villages etc in the USA. 54 Adding a qualifier 55 Percentage column 56 Wikidata list 57 ?item =wd:QXXX 58 Finding items with invalid numerical values for a given property 59 problem with query 60 Equivalent of IN in a query 61 SPANISH FLU 1918 62 Tallest buildings 63 Statements with specific qualifiers 64 How to group values in a hierarchy? 65 Items 1 km. far from you 66 Query to find all relations 67 Añadir un enlace de otra Wikipedia 68 Get XML RDF format from a query link 69 Draughtsmen and Engravers called A. Walker or W. Walker 70 Query fixing (string replacement) 71 Multiple images and enWikisource sitelinks 72 ORCID iD without a country of citizenship 73 Pianists born in Morocco who died in Paris 74 Person 75 How many triples for Q30 76 Improve a list article at w:pt 77 Find 7 musicians somehow related 78 list of Nazi camps Top Famous People in US I'm looking to query the top 1000 famous people in the US, and output the following: - Where they were born - Occupation - If Actor, shows they were on - Any other famous people they are connected toThe last two bullets are \"nice to haves\", so I'd be happy even if the first two items can be queried.As for how to define famous? If there's no easy way, then I'd just be looking for the people who have occupations of actor, musician, and athlete.Thanks in advance for any help with this query! – The preceding unsigned comment was added by QueryBeginner (talk • contribs) at 31 mars 2020 kl. 16.47‎ (UTC). @QueryBeginner: You have to define what constitutes the level of fame in order to make a top list. If we define the \"fame\" as the number of Wikipedias that have an article about the respective person the number of pages/articles in all Wikimedia projects about the respective person with sitelinks on Wikidata, and \"people in the US\" as objects having United States of America (Q30) as the value for the country of citizenship (P27) property, the following query finds the \"top 1,000 famous people in the US\" with their respective place of birth (P19) and occupation (P106). SELECT ?item ?itemLabel (SAMPLE(?p19label) AS ?birthplace) (GROUP_CONCAT(?p106label;SEPARATOR=', ') AS ?occupations) ?fame  {
   ?item wdt:P31 wd:Q5 .
   ?item wdt:P27 wd:Q30 .
@@ -1655,5 +1632,33 @@ WHERE
  If you decide what you want, I can help with the details of a query. --Dipsacus fullonum (talk) 09:37, 23 April 2020 (UTC) Items used: Swedish-speaking population of Finland (Q726673)   , human (Q5)   , politician (Q82955)   , businessperson (Q43845)   Properties used: ethnic group (P172)   , occupation (P106)   , instance of (P31)   , subclass of (P279)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d849376-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT 
+    ?person ?personLabel ?personDescription 
+    ?occupations
+    ?politics  ?business
+WHERE
+{
+  {
+    SELECT
+      ?person (GROUP_CONCAT(DISTINCT ?p106label;SEPARATOR=\", \") AS ?occupations)
+    WHERE
+    {
+      ?person wdt:P172 wd:Q726673.
+      OPTIONAL { ?person wdt:P106 ?p106 . ?p106 rdfs:label ?p106label . FILTER(lang(?p106label)='sv') }
+      ?person wdt:P31 wd:Q5.
+    }
+    GROUP BY ?person
+    LIMIT 10
+  }
+   # hint:Query hint:optimizer \"None\".
+   OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q82955 . BIND(\"y\" as ?politics) }
+   OPTIONAL { ?person wdt:P106/wdt:P279* wd:Q43845 . BIND(\"y\" as ?business) }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],sv,fi,en\". }
+}""" .

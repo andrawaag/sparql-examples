@@ -6,13 +6,6 @@
 
 <https://www.wikidata.org/#query-bd1014cfaa50d1b1e251e6263e716ccb> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?lang ?langLabel 
-{
-    ?wp wdt:P31 wd:Q10876391; wdt:P407 ?lang . # (7a) language edition
-    ?lang p:P1098 [ ps:P1098 ?speakers ] . FILTER( ?speakers > 3000000)  # (5)
-    FILTER( ?lang != wd:Q1860 )  # not English
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 grouping problems (Bad aggregate) 2 Get pictures for an object in Wikidata and see if this picture miss depict WD in Wikicommons 3 20 criteria for 2 or 3 focus languages 4 Wikidata query into page map 5 All movies that won the awards 6 Why is this so slow? 7 Denonym 8 Troubleshoot query-not getting the right date of birth (dob) e.g Q18810921 dob query is 1954 October 12 but shows in page as 29 September 1954Julian. e.g Q13898 has 2 dob but query returns 1 dob. 9 Row numbering 10 wiki query in python. how to pass a variable (multiple QID) into query? any specific formatting required for the variable? 11 Some improvements for map query 11.1 one more thing 12 Count of Wikipedia pages for an object 13 Subway lines that are Y 14 Scatterplot query 15 Person query 16 Featured articles that don't exist 17 Japan Search SPARQL query (Wikidata-related!) 18 specify senators who served in a particular legislative term? 19 Query for Property dashboard 20 Can’t create new item 21 For... Loop query 22 Total population 23 Creator query 24 Humans with label containing ( or ) 25 finding where a particular reference is cited 26 Get all articles in a journal; multiple authors combined 27 List of administrative divisions by country 28 Focus on a specific group of items 29 Help: Query to get the creation date (when the entity was created on Wikidata) for a particular country 30 Order text strings taking accents in account 31 Countries with the least amount of restrictions on civil laws 32 Wikinews 33 Most commons name in Germany by year of birth grouping problems (Bad aggregate) Hi @all, I definitly lack practice, so please bear with me: The data is the result of my survival project lasting thoughout the last lockdowns, and now I would like to harvest some of the first fruits ;-) … the query breaks with the grouping of the architects. I read about the group_concat bug, added 2 variables for grouping but it breaks anyway. I bet you see the problem in a second. Another open issue is the image, I know I've seen an example where the output was limited on 1 value, but I cannot find it. #defaultView:Map
 SELECT ?item ?itemLabel ?coords ?img (YEAR(?date) as ?year) (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects)  WHERE {
   ?item wdt:P166 wd:Q1795794;
@@ -143,5 +136,18 @@ WHERE
  Try it! --Dipsacus fullonum (talk) 10:52, 4 March 2021 (UTC) Dipsacus fullonum Excellent doing a query like this is out of scope for me Thanks. I changed the query/image to find Wikicommons pictures missing a depict to the WD object they are image (P18)... I am trying to convince the people over at Evighetsrunor to use \"Rune pictures\" from Wikicommons and hopefully they will download the pictures and quality assure them and that they will have an unique persistent picture id and also quality assure the \"depict\" i.e. that we in Structured data on Wikimedia Commons has same as \"the Evighetsrunor picture id\" and that they confirm that the picture depicts the same Rune as we depict... the future will tell if we convince them GITHUB... - Salgo60 (talk) 13:46, 4 March 2021 (UTC) 20 criteria for 2 or 3 focus languages Could be interesting to have a query that finds the language(s) described in Wikidata:Lexicographical data/Focus languages/Requirements. --- Jura 07:45, 4 March 2021 (UTC) I can imagine easily a query that finds languages that finds candidates. Finding (a) set(s) of candidates is beyond what can be easily done in sparql because it would require something like an « alldiff » constraint ( https://web.imt-atlantique.fr/x-info/sdemasse/gccat/Calldifferent.html — can be written but not succintly or easily). Some of the criteria seems also hard to capture ( « The group has at least two members who can communicate in English and who are willing to be the long-term communication facilitators. » for example) Seems impossible to do here, I don’t think we even have informations like community size (do we?). author TomT0m / talk page 11:42, 4 March 2021 (UTC) Some should be possible. Here are two criteria partially: Items used: Wikipedia language edition (Q10876391)   , English (Q1860)   Properties used: instance of (P31)   , language of work or name (P407)   , number of speakers, writers, or signers (P1098)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d825937-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?lang ?langLabel 
+{
+    ?wp wdt:P31 wd:Q10876391; wdt:P407 ?lang . # (7a) language edition
+    ?lang p:P1098 [ ps:P1098 ?speakers ] . FILTER( ?speakers > 3000000)  # (5)
+    FILTER( ?lang != wd:Q1860 )  # not English
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

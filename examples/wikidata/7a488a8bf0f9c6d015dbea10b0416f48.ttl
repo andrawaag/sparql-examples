@@ -6,7 +6,41 @@
 
 <https://www.wikidata.org/#query-7a488a8bf0f9c6d015dbea10b0416f48> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Map{\"hide\":[\"?item\", \"?coordinate\"]}
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d89452-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Map{\"hide\":[\"?item\", \"?coordinate\"]}
+#title:Wikivoyage-Artikel in BBOX (Schweiz)
+SELECT ?image ?item ?itemLabel ?article ?coordinate
+
+WHERE {
+  {
+  SELECT ?item ?itemLabel ?article (SAMPLE(?image_) AS ?image)
+  WHERE {
+    ?article schema:about ?item.
+    ?article schema:name ?itemLabel.
+    ?article schema:isPartOf <https://de.wikivoyage.org/> .
+    OPTIONAL {
+      ?item wdt:P18 ?image_.
+    }
+  }
+  GROUP BY ?item ?itemLabel ?article ?coordinate
+}
+  SERVICE wikibase:box {
+    ?item wdt:P625 ?coordinate.
+    bd:serviceParam wikibase:cornerSouthWest \"Point(5.9559 45.818)\"^^geo:wktLiteral.
+    bd:serviceParam wikibase:cornerNorthEast \"Point(10.4921 47.8084)\"^^geo:wktLiteral.
+  }
+}
+ORDER BY ?itemLabel
+LIMIT 2500""";
+  <http://example.org/bigdata_select> """#defaultView:Map{\"hide\":[\"?item\", \"?coordinate\"]}
 #title:Wikivoyage-Artikel in BBOX (Schweiz)
 SELECT ?image ?item ?itemLabel ?article ?coordinate
 WITH {
@@ -30,8 +64,4 @@ WHERE {
   }
 }
 ORDER BY ?itemLabel
-LIMIT 2500""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MTheiler>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+LIMIT 2500""" .

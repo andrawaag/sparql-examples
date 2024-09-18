@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-f16117527903da570aec1d932b8a65ef> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#by Pigsonthewing and Csisc, 2019-07-05
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Database_evaluation>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d818755-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#by Pigsonthewing and Csisc, 2019-07-05
 SELECT distinct ?item ?itemLabel with 
 {
   select distinct ?item where
@@ -19,7 +28,16 @@ where
           schema:isPartOf <https://en.wikipedia.org/> .}
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Database_evaluation>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """#by Pigsonthewing and Csisc, 2019-07-05
+SELECT distinct ?item ?itemLabel with 
+{
+  select distinct ?item where
+  {  ?item (wdt:P31/(wdt:P279*)) wd:Q41176;
+    wdt:P17 wd:Q948 . }
+} as %i
+where
+{include %i
+  filter not exists {?article schema:about ?item ;
+          schema:isPartOf <https://en.wikipedia.org/> .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

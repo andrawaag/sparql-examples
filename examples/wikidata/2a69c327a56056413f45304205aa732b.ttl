@@ -6,44 +6,6 @@
 
 <https://www.wikidata.org/#query-2a69c327a56056413f45304205aa732b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?y ?exit ?new
-WITH
-{
-  SELECT DISTINCT ?y WHERE
-  {
-    ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
-    BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
-  }
-} as %a
-WITH
-{
-  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
-  {                     
-    ?item2 p:P31 ?st ; wdt:P30 wd:Q46 .
-    ?st ps:P31/wdt:P279* wd:Q6256 .
-    ?item2 wdt:P576 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
-  }
-  GROUP BY ?y
-} as %b
-WITH
-{
-  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
-  {                     
-    ?item0 p:P31 ?st ; wdt:P30 wd:Q46 .
-    ?st ps:P31/wdt:P279* wd:Q6256 .
-    ?item0 wdt:P571 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
-    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
-  }
-  GROUP BY ?y
-} as %c
-WHERE
-{
-  INCLUDE %a
-  OPTIONAL { INCLUDE %b }
-  OPTIONAL { INCLUDE %c }
-}
-ORDER BY ?y""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Indigenous (Canadian) humans in a given Wikipedia 2 References containing only P813 3 A list of all items with Label Kobbholmen 4 A map showing all locations of Kobbholmen 5 Scribe help: query noun genders (P5185), but not for given names (Q202444) 6 Get qualifiers of statement with preferred rank 7 Two family name 8 English descriptions starting with \"a\" 9 Usage of an item in qualifiers 10 Items/properties with emoji 11 Limiting results based on number of items 12 cites of the world. 13 Countries of Europe (1900 to present) 14 Accelerate query 15 Items with either of two property statements 16 Interplanetary space missions and their destinations 17 Political party of office holders while they held office 18 Query of political candidates 19 Images on Commons that are referenced in the \"image\" property, but not depicted in structured data 20 find items in a Wikipedia (sub-)category 21 Katakana lexemes that are derived from a word that also exists in my language 22 Biographies by century 23 Retrieve article links from wikidata query service 24 Average lifespan by birth year 25 How to obtain infoxbox from articles 26 All chemists and physicists that are linked to Marie Curie. 27 Other prices of Heinz Maier-Leibnitz-Price winner 28 Oldest Schools in Germany that aren't universitys 29 Example query is lacking subclass traversal 30 Query for Items with a Wikipedia Article in a Certain Language 31 Get actual article name for list of most popular Italian works 32 Need help for query optimization 33 Species described in 2021 with article in the German Wikipedia 34 Scholars with academic discipline specified using of (P642) 35 I need to collect items with first capital letter in description in X language 36 Family tree of the ancestors of Michael Jackson (Q2831) Indigenous (Canadian) humans in a given Wikipedia Hi again - how to count how many biographies (articles about humans) there are in a given Wikipedia (ex. English) about indigenous (aboriginal \"Indians\") who are also Canadian citizens? I am not sure if there is a general \"Indigenous\" element that we could use? Additionaly, I'd like to count the total number of articles about humans in a given Wikipedia. Thanks in advance! Seeris (talk) @Seeris: I have no idea how to know who is indigenous (or even how that is defined). You can count the number of articles about humans in a Wikipedia with this query: SELECT (COUNT(?article) AS ?biographies)
 WHERE
 {
@@ -322,5 +284,88 @@ ORDER BY ?itemLabel
  Try it! Popperipopp (talk) 14:46, 11 January 2022 (UTC) Yes, thanks. I wonder if one should try to look at it by year and list those that end or start. --- Jura 16:52, 11 January 2022 (UTC) And note that country (Q6256)!=state (Q7275) (and they have different subclasses and instances)... --Infovarius (talk) 20:04, 11 January 2022 (UTC) Items used: calendar year (Q3186692)   , Europe (Q46)   , country (Q6256)   Properties used: instance of (P31)   , subclass of (P279)   , point in time (P585)   , continent (P30)   , dissolved, abolished or demolished date (P576)   , inception (P571)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/01>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834613-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?y ?exit ?new
+WITH
+{
+  SELECT DISTINCT ?y WHERE
+  {
+    ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
+    BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+  }
+} as %a
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
+  {                     
+    ?item2 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item2 wdt:P576 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
+  }
+  GROUP BY ?y
+} as %b
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
+  {                     
+    ?item0 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item0 wdt:P571 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
+  }
+  GROUP BY ?y
+} as %c
+WHERE
+{
+  INCLUDE %a
+  OPTIONAL { INCLUDE %b }
+  OPTIONAL { INCLUDE %c }
+}
+ORDER BY ?y""";
+  <http://example.org/bigdata_select> """SELECT DISTINCT ?y ?exit ?new
+WITH
+{
+  SELECT DISTINCT ?y WHERE
+  {
+    ?item wdt:P31/wdt:P279? wd:Q3186692 ; wdt:P585 ?d . 
+    BIND(YEAR( ?d) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+  }
+} as %a
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item2Label; separator=\"; \") as ?exit)
+  {                     
+    ?item2 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item2 wdt:P576 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item2 rdfs:label ?item2Label }
+  }
+  GROUP BY ?y
+} as %b
+WITH
+{
+  SELECT DISTINCT ?y (GROUP_CONCAT(DISTINCT ?item0Label; separator=\"; \") as ?new)
+  {                     
+    ?item0 p:P31 ?st ; wdt:P30 wd:Q46 .
+    ?st ps:P31/wdt:P279* wd:Q6256 .
+    ?item0 wdt:P571 ?d0 .   BIND(YEAR( ?d0) as ?y) FILTER( ?y > 1900 && ?y < 2023 )
+    SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". ?item0 rdfs:label ?item0Label }
+  }
+  GROUP BY ?y
+} as %c
+WHERE
+{
+  INCLUDE %a
+  OPTIONAL { INCLUDE %b }
+  OPTIONAL { INCLUDE %c }
+}
+ORDER BY ?y""" .

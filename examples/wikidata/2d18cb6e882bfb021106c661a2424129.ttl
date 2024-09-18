@@ -6,19 +6,6 @@
 
 <https://www.wikidata.org/#query-2d18cb6e882bfb021106c661a2424129> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT (COUNT(DISTINCT ?woman) AS ?count)
-WITH
-{
-  SELECT DISTINCT ?occ { ?occ wdt:P279* wd:Q483501 }
-}
-as %occ
-WHERE
-{
-  INCLUDE %occ
-  ?woman wdt:P106 ?occ ; ^ schema:about [ schema:isPartOf <https://pt.wikipedia.org/>] .
-  hint:Prior hint:rangeSafe true .  
-  ?woman wdt:P21 wd:Q6581072 ; wdt:P31 wd:Q5 .
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Music help - personnel that played on a recording 2 Count identifiers with exceptions 3 Interwiki table from mwapi 4 Query of a category on EN WP vs Simple English WP 5 check for missing values 6 Query for novalue on qualifier 7 I would like to query wiki data by numeric twitter ID 8 Listed buildings in Coventry 9 Can you query by twitterID? 10 Query an Exact Instrumentation 11 Property-based neighbourhood graph 12 MWAPI insource 13 All articles on the English WIkipedia about National parks around the world 14 Countries with population - but no result for Greece? 15 Remove duplicates when the subject has several objects that corresponds to one predicate 16 MPs representing Coventry 17 Numeration of rows 18 Number of votes of a given party on an election by municipality 19 How to get all the attributes QID/UID 20 Find the today's featured article or a range (from the start to today for example) 21 Calculating ratios 22 Correcting wikidata list, avoiding country bug 23 Need to select all the coutries in the world, and their GPD 24 Extraction d'un qualificatif lié à une propriété 25 Search for element in subcategories 26 Get LatLng of Administrative territorial entity if available 27 RfQ: enwikisource interwiki to ruwiki / ruwikisource 28 Distribution of alma mater of elected members by legislature 29 Item ID in label, but only sometimes 30 Specific description and now P31/P279 set 31 Trying to query whether new data has been created in WikiData for a particular subject. 32 List of people from a state 33 Count of female artists with articles in the Portuguese Wikipedia 34 Grammatical featue 35 Using wikibase:around and also return the aggregate count of statements for each returned item 36 If recursive 37 Subway stations that aren't subway stations Music help - personnel that played on a recording TIA for any help! I saw on the Wikiproject Music page that it's possible to \"Use performer (P175) to list all the performers with instrument (P1303) as a qualifier to say which instrument each performer played on that recording.\" I'd be interested in either performers with instruments on a recording or a release. But I haven't been able to find an example query showing how to do this nor have I been able to construct one myself.Using the Beatles as an example, I am guessing I want to look at a track and not a song. I see I can get the composer and producer as properties, and I can return the band as performer, but have had no luck in my attempts to get the personnel roles. But I'm also not confident how to know if the entities will even have roles. I've tried with a few different tracks & releases but don't know if it's my query or the entities I'm looking at. Both? Any help much appreciated.Query: # personnel and instruments played on a recording 
 SELECT ?performer ?performerLabel ?instrument ?instrumentLabel
 WHERE {
@@ -769,5 +756,34 @@ WHERE
  Try it! but it times out, any ideas? Thanks. Mike Peel (talk) 11:07, 23 April 2021 (UTC) Items used: artist (Q483501)   , female (Q6581072)   , human (Q5)   Properties used: subclass of (P279)   , occupation (P106)   , sex or gender (P21)   , instance of (P31)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/04>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d840430-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT (COUNT(DISTINCT ?woman) AS ?count)
+WITH
+{
+  SELECT DISTINCT ?occ { ?occ wdt:P279* wd:Q483501 }
+}
+as %occ
+WHERE
+{
+  INCLUDE %occ
+  ?woman wdt:P106 ?occ ; ^ schema:about [ schema:isPartOf <https://pt.wikipedia.org/>] .
+  hint:Prior hint:rangeSafe true .  
+  ?woman wdt:P21 wd:Q6581072 ; wdt:P31 wd:Q5 .
+}""";
+  <http://example.org/bigdata_select> """SELECT (COUNT(DISTINCT ?woman) AS ?count)
+WITH
+{
+  SELECT DISTINCT ?occ { ?occ wdt:P279* wd:Q483501 }
+}
+as %occ
+WHERE
+{
+  INCLUDE %occ
+  ?woman wdt:P106 ?occ ; ^ schema:about [ schema:isPartOf <https://pt.wikipedia.org/>] .
+  hint:Prior hint:rangeSafe true .  
+  ?woman wdt:P21 wd:Q6581072 ; wdt:P31 wd:Q5 .
+}""" .

@@ -6,11 +6,6 @@
 
 <https://www.wikidata.org/#query-a481de3e984f029b4f4c414b71abcebe> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#trying to get all Lexeme IDs and lemmas
-
-SELECT ?lexeme ?lexemeLabel WHERE {
-?lexeme rdf:type wikibase:Lexeme .
-        }""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Check whether a given list of element IDs fullfills certain criteria and return list of matching items 2 Request EVERY items with a specific description 3 Alphabets sorted by number of letters 4 Query without duplicates 5 Show Wikidata properties that are external identifiers and have a regex 5.1 Wikidata property - external ID - list 5.2 Wikidata property - external ID - group and count 6 Indian National Highways below 100 7 Chess elo ratings awarded after player's death 8 Ten most used references for date of birth 9 What is the query behind \"Search Wikidata\" ? 10 Show Wikidata properties that are external identifiers and are used on instances of Q5 11 Growth of Wikimedia chapters and user groups over time 12 Get de.wiki article name 13 Books written in a language the author, supposedly, can't write 14 Displaying labels in two or more languages 15 Troubleshoot wdt:P31* 16 Captain Cook memorials, and things named after him in Australia 17 Calculate percentage 18 Unit conversion 19 Query for complex constraint: if property has value A then qualifier B should be present 20 Map of languages 21 Query all International Masters awarded in a specific year 22 Querying a value with qualifiers 23 Norwegian citicens holding a political party membership 24 Reference URL's timeout 25 Get all Lexeme lemmas and IDs 26 Potential articles that might be mosaics, based on categories, but haven't been identified as such on Wikidata 27 Age at death 28 Using qualifiers 29 Defining formula (P2534) 30 Classification of animals 31 Qualifier reference URL (P854) for inventory number (P217) of artworks 32 Combine two queries Check whether a given list of element IDs fullfills certain criteria and return list of matching items Hello, for a project of mine I'm trying to filter items of a given list of n {\\displaystyle n} items (e.g. {Q14944328,Q2013}) so that the final list only contains items which fullfill a certain condition (e.g. wdt:P31/wdt:P279* wd:Q19729799). How would I be able to do so? Thanks in advance for any pointers --Naseweis520 (talk) 23:02, 30 April 2018 (UTC) @Naseweis520: If I understand your question, something like this (which right now finds nothing, since the two values you gave are not instances/subclass of the third item you gave. Come back with more questions, if needbe: SELECT ?item ?itemLabel WHERE {
  VALUES ?item {wd:Q14944328 wd:Q2013}        #this is the given list. Note that the items start with wd: ... add as many as you want 
   ?item wdt:P31/wdt:P279* wd:Q19729799 .     #this requires the item to be an instance of or subclass of the Q19729799 item. 
@@ -527,5 +522,12 @@ LIMIT 25
  Try it! The Le Figaro example is proposed here as \"A query that has difficulties\" for automatic optimization. The proposed solution appears to be turning the optimizer off, but my query still times out when the limit is removed. https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/query_optimizationSo i suppose my question is: Is there any way to get find all uses of \"http://statline.cbs.nl\" in the entire wikidata dataset without getting a timeout? – The preceding unsigned comment was added by LeviQueryRequest (talk • contribs) at 13:35, 23 May 2018‎ (UTC). This is not possible with the Query Service, but you can simply use Special:LinkSearch/statline.cbs.nl. —MisterSynergy (talk) 14:09, 23 May 2018 (UTC) Get all Lexeme lemmas and IDs With the Lexeme property officially launched, I wanted to do a simple query to return all the current lexeme IDs and their Lemma label. Here's an example of a lexeme. It's modeled similarly to wikidata properties, it seems, using a Lexeme namespace (Lexeme:L1). I tried to query all the lexemes in the same way one would query all the properties, which didn't seem to work. Does anyone know how to properly list all of them currently? The following query uses these:"""@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d816382-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#trying to get all Lexeme IDs and lemmas
+
+SELECT ?lexeme ?lexemeLabel WHERE {
+?lexeme rdf:type wikibase:Lexeme .
+        }""" .

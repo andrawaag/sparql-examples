@@ -6,16 +6,6 @@
 
 <https://www.wikidata.org/#query-de062c6c924027c361da554e4dc5221b> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT
-?unitLabel ?dimensionLabel ?siconvLabel
-WHERE
-{
-  ?unit wdt:P2370 ?siconv .
-  ?unit wdt:P111 ?dimension .
-SERVICE wikibase:label {
-bd:serviceParam wikibase:language \"en\" .
-}
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Check whether a given list of element IDs fullfills certain criteria and return list of matching items 2 Request EVERY items with a specific description 3 Alphabets sorted by number of letters 4 Query without duplicates 5 Show Wikidata properties that are external identifiers and have a regex 5.1 Wikidata property - external ID - list 5.2 Wikidata property - external ID - group and count 6 Indian National Highways below 100 7 Chess elo ratings awarded after player's death 8 Ten most used references for date of birth 9 What is the query behind \"Search Wikidata\" ? 10 Show Wikidata properties that are external identifiers and are used on instances of Q5 11 Growth of Wikimedia chapters and user groups over time 12 Get de.wiki article name 13 Books written in a language the author, supposedly, can't write 14 Displaying labels in two or more languages 15 Troubleshoot wdt:P31* 16 Captain Cook memorials, and things named after him in Australia 17 Calculate percentage 18 Unit conversion 19 Query for complex constraint: if property has value A then qualifier B should be present 20 Map of languages 21 Query all International Masters awarded in a specific year 22 Querying a value with qualifiers 23 Norwegian citicens holding a political party membership 24 Reference URL's timeout 25 Get all Lexeme lemmas and IDs 26 Potential articles that might be mosaics, based on categories, but haven't been identified as such on Wikidata 27 Age at death 28 Using qualifiers 29 Defining formula (P2534) 30 Classification of animals 31 Qualifier reference URL (P854) for inventory number (P217) of artworks 32 Combine two queries Check whether a given list of element IDs fullfills certain criteria and return list of matching items Hello, for a project of mine I'm trying to filter items of a given list of n {\\displaystyle n} items (e.g. {Q14944328,Q2013}) so that the final list only contains items which fullfill a certain condition (e.g. wdt:P31/wdt:P279* wd:Q19729799). How would I be able to do so? Thanks in advance for any pointers --Naseweis520 (talk) 23:02, 30 April 2018 (UTC) @Naseweis520: If I understand your question, something like this (which right now finds nothing, since the two values you gave are not instances/subclass of the third item you gave. Come back with more questions, if needbe: SELECT ?item ?itemLabel WHERE {
  VALUES ?item {wd:Q14944328 wd:Q2013}        #this is the given list. Note that the items start with wd: ... add as many as you want 
   ?item wdt:P31/wdt:P279* wd:Q19729799 .     #this requires the item to be an instance of or subclass of the Q19729799 item. 
@@ -334,5 +324,18 @@ ORDER BY ?INSEE
  Try it! Matěj Suchánek (talk) 18:41, 7 May 2018 (UTC) Great! Thanks a lot Matěj Suchánek! — Ayack (talk) 11:16, 8 May 2018 (UTC) In fact, there is an issue: ?depcount is different from the initial query which have the right number. — Ayack (talk) 11:23, 8 May 2018 (UTC) I made a correction. Matěj Suchánek (talk) 12:37, 8 May 2018 (UTC) Thanks Matěj Suchánek! Results are right now. Do you know how to round percentages to two decimal places? I have tried ROUND() but it doesn't work. — Ayack (talk) 07:57, 9 May 2018 (UTC) SPARQL seems not to provide a function for this, so I hacked around it by multiplying the result by 100, rounding it and then dividing by 100. Matěj Suchánek (talk) 14:47, 9 May 2018 (UTC) If you want the column \"withCoord\" to be properly sortable, you may want to sacrifice the \"%\" by skipping the STR and CONCAT stuff and just use (ROUND((IF(?_withCoord > ?depCount, ?depCount, ?_withCoord) / ?depCount) * 100 * 100) / 100 AS ?withCoord) --Larske (talk) 06:14, 12 May 2018 (UTC) @Matěj Suchánek, Larske: Thanks a lot! — Ayack (talk) 18:49, 14 May 2018 (UTC) Unit conversionI want a list of units, their type, and conversion to SI units. The following query gives that, but is missing the unit for the SI conversion."""@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/05>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d819550-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT
+?unitLabel ?dimensionLabel ?siconvLabel
+WHERE
+{
+  ?unit wdt:P2370 ?siconv .
+  ?unit wdt:P111 ?dimension .
+SERVICE wikibase:label {
+bd:serviceParam wikibase:language \"en\" .
+}
+}""" .

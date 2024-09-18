@@ -6,7 +6,35 @@
 
 <https://www.wikidata.org/#query-0ec9d6e23920406ca0de696e01637812> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?property ?value ?wikipedia ?wikiurl WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d87502-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d87502-A520E2781DDDC69A60A14A4B3B00D21D;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX pr: <http://www.wikidata.org/prop/reference/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?property ?value ?wikipedia ?wikiurl  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} .
+  ?property wikibase:claim ?claim; wikibase:statementProperty ?ps .
+  ?item ?claim [ ?ps ?value; prov:wasDerivedFrom [ pr:P143 ?wikipedia ] ] .
+  OPTIONAL {
+    ?wikipedia wdt:P856 ?wikiurl .
+  }
+  OPTIONAL {
+    ?sitelink schema:about ?item; schema:isPartOf ?wikiurl .
+  }
+  FILTER(!BOUND(?sitelink)) .
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?property ?value ?wikipedia ?wikiurl WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -21,8 +49,4 @@
     ?sitelink schema:about ?item; schema:isPartOf ?wikiurl .
   }
   FILTER(!BOUND(?sitelink)) .
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/misc/references>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122813-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

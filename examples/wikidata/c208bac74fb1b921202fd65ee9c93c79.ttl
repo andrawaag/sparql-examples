@@ -6,7 +6,25 @@
 
 <https://www.wikidata.org/#query-c208bac74fb1b921202fd65ee9c93c79> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?globe ?globeLabel ?count
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d83326-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?globe ?globeLabel ?count
+
+WHERE
+{
+  {
+  SELECT ?globe (COUNT(?globecoordinate) AS ?count)
+  { ?globecoordinate wikibase:geoGlobe ?globe }
+  GROUP BY ?globe
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
+}
+ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """SELECT ?globe ?globeLabel ?count
 WITH
 {
   SELECT ?globe (COUNT(?globecoordinate) AS ?count)
@@ -18,8 +36,4 @@ WHERE
   INCLUDE %globes
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }
 }
-ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2022/08>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count)""" .

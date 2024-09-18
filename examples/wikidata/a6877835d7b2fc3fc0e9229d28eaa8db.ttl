@@ -6,7 +6,13 @@
 
 <https://www.wikidata.org/#query-a6877835d7b2fc3fc0e9229d28eaa8db> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Commons_categories>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d833743-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+WITH {
   # their categories (via P373 or commonswiki sitelink, which gets a bit complicated)
   SELECT ?item ?commonsCategory WHERE {
     hint:SubQuery hint:optimizer \"None\". # we have to disable the optimizer for this subquery because it gets confused by the ?commonsCategoryStatementEn part
@@ -25,8 +31,4 @@
     BIND(COALESCE(?commonsCategoryFromStatement, ?commonsCategoryFromSitelink) AS ?commonsCategory)
     FILTER(BOUND(?commonsCategory))
   }
-} AS %itemsWithCommonsCategories""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:TweetsFactsAndQueries/Queries/Commons_categories>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} AS %itemsWithCommonsCategories""" .

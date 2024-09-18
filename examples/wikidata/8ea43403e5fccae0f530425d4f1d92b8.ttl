@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-8ea43403e5fccae0f530425d4f1d92b8> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?Meteoritical_Bulletin_Database_ID ?instanceofLabel
-WHERE 
-{
-  { ?item wdt:P279*/wdt:P31 wd:Q60186 } UNION { ?item wdt:P824 [] }   #both
-  # ?item wdt:P279*/wdt:P31 wd:Q60186                                 #only Q60186 and subclasses
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\". }
-  OPTIONAL {
-    ?item wdt:P824 ?Meteoritical_Bulletin_Database_ID.
-    BIND(REPLACE(?Meteoritical_Bulletin_Database_ID, \"^([0-9]+).*$\", \"$1\") AS ?number)
-    BIND(STRAFTER(?Meteoritical_Bulletin_Database_ID, ?number) AS ?after)
-  }
-  OPTIONAL { ?item wdt:P31 ?instanceof }
-}
-ORDER BY (xsd:integer(?number)) (?after)
-LIMIT 1000""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Norwegians born between 1820 untill 1920 2 Subtract all items with a publication date outside the given range 3 Spanish query 4 All items that have both a category's main topic (P301) and a main subject (P921) claim 5 Fixing WD:WikiProject_Periodicals/numbers/journals/general_properties 6 Remove from output 7 List all items where has characteristic (P1552) is used as a qualifier on properties for this type (P1963) 8 Member of EU (without UK) 9 Films by number of Wikipedia languages 10 Countries existing in a specific date 11 Adding english description to this query 12 Query for external identifier containing a string 13 Expanding the listeria list for anatomical metaclasses 14 Dates ranges 15 Query that finds all items that are subclasses of direct anatomical metaclass (Q103997018) but not instances of an instance of anatomical entity (Q27043950) 16 List of featured articles 17 Query about books written by women 18 Duplicate BHL items 19 Getting Wikidata QIds for ~1000 Wikipedia articles (various languages)? 20 Prefix should be s: but it return wds: 21 Optimizing a SPARQL query -- times out when I add Labels 22 Altering this query to include all subclasses of meteorite (Q60186) 23 List of authors with links to Wikisource but not any other project 24 Exclude members of duo 25 Once working, no longer working query 26 Getting the point-in-time of a property? 27 What are the most frequently used external identifiers? 28 including point in time (P585) 29 Add references to a query 30 Steer on combining subquery results 31 version, edition, or translation 32 List of countries 33 Timeout in a query about Wikidata pages 34 Data quality : those having official website (P856) but no country (P17) 35 This simple query does not seem to work 36 Image captured with ... 37 List of lonely items of tlwiki 38 Cannot reproduce results of a query in a 2018 video 39 Get all museums within 5km from a given latitude and longitude 40 Class and subclasses tree 41 Pages in a category, in another WP language project 42 Politician's careers 43 Search by wikibase:geoLatitude and wikibase:geoLongitude 44 Commons categories not using the infobox (SQL) 45 Timing out query 46 Display geo:wktLiterals 47 Large query request 48 How to get ask a query to find all the given names and their meanings 49 I would like to query the demographics of a location using the MediaWiki API Service Norwegians born between 1820 untill 1920 May I have a list of norwegians born between 1820 (inluded 1820) to 1920 (included 1920) Pmt (talk) 18:08, 1 December 2020 (UTC) @Pmt: This sort of thing - example is based on country of citizenship. If you want to go wider we could look at place of birth, or coutry for sport or whatnot. SELECT ?item ?itemLabel ?dob
 WHERE 
 {
@@ -433,5 +418,25 @@ LIMIT 1000
  Try it! Thank you. Trilotat (talk) 21:16, 11 December 2020 (UTC) Items used: meteorite (Q60186)   Properties used: subclass of (P279)   , instance of (P31)   , Meteoritical Bulletin Database ID (P824)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/12>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834313-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?Meteoritical_Bulletin_Database_ID ?instanceofLabel
+WHERE 
+{
+  { ?item wdt:P279*/wdt:P31 wd:Q60186 } UNION { ?item wdt:P824 [] }   #both
+  # ?item wdt:P279*/wdt:P31 wd:Q60186                                 #only Q60186 and subclasses
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en,en\". }
+  OPTIONAL {
+    ?item wdt:P824 ?Meteoritical_Bulletin_Database_ID.
+    BIND(REPLACE(?Meteoritical_Bulletin_Database_ID, \"^([0-9]+).*$\", \"$1\") AS ?number)
+    BIND(STRAFTER(?Meteoritical_Bulletin_Database_ID, ?number) AS ?after)
+  }
+  OPTIONAL { ?item wdt:P31 ?instanceof }
+}
+ORDER BY (xsd:integer(?number)) (?after)
+LIMIT 1000""" .

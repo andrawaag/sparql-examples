@@ -6,7 +6,32 @@
 
 <https://www.wikidata.org/#query-9467117c7abef211cdfef40bd576be0c> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Authorship gender distribution (not distinct)
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d851761-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d851761-1D14314B9A19976E39E4A142D836C5F9;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Authorship gender distribution (not distinct)
+
+PREFIX target: <http://www.wikidata.org/entity/Q2128181>
+
+SELECT ?count ?gender ?genderLabel 
+
+WHERE {
+  {
+  SELECT (COUNT(?author) AS ?count) ?gender WHERE {
+    ?work wdt:P1433 target: .
+    ?work wdt:P50 ?author .
+    ?author wdt:P21 ?gender .
+  } 
+  GROUP BY ?gender
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
+} 
+ ORDER BY DESC(?count)""";
+  <http://example.org/bigdata_select> """# Authorship gender distribution (not distinct)
 
 PREFIX target: <http://www.wikidata.org/entity/Q2128181>
 
@@ -23,8 +48,4 @@ WHERE {
   INCLUDE %result
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\" . } 
 } 
- ORDER BY DESC(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Will_(Wiki_Ed)/APS_Project_Page/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec124502-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ ORDER BY DESC(?count)""" .

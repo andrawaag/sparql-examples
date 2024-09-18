@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-ddade448bf408c4d07be0c7d3ecd7928> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?roleValue ?roleValueLabel ?count WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/05>,
+    <https://www.wikidata.org//wiki/User_talk:Rdmpage>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d829387-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d829387-5E222206C8D177BDA92FF4F9E574C77B;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?roleValue ?roleValueLabel ?count WITH {
 SELECT ?roleValue (count(?item) as ?count) WHERE {
   ?item wdt:P2868 ?roleValue; wdt:P31 wd:Q16521 . 
   } group by ?roleValue  } as %i
@@ -15,8 +24,12 @@ WHERE
   INCLUDE %i
   SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
   } order by desc(?count)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/05>,
-    <https://www.wikidata.org//wiki/User_talk:Rdmpage>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec93770-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """SELECT ?roleValue ?roleValueLabel ?count WITH {
+SELECT ?roleValue (count(?item) as ?count) WHERE {
+  ?item wdt:P2868 ?roleValue; wdt:P31 wd:Q16521 . 
+  } group by ?roleValue  } as %i
+WHERE
+{
+  INCLUDE %i
+  SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
+  } order by desc(?count)""" .

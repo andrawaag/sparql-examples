@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-ad1f1c4b60c495ff9344aed29df4591f> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#who killed who in The Wire, and cause of death
-
-#defaultView:Graph
-
-SELECT DISTINCT ?person ?personLabel ?death ?deathLabel ?killer ?killerLabel 
-
-WHERE { ?person (wdt:P31 / wdt:P279) wd:Q95074 . #instance of subclass of fictional character
-        ?person wdt:P1441 wd:Q478360 . #present in The Wire
-        ?person wdt:P509 ?death #cause of death
-                
-                OPTIONAL { ?person wdt:P157 ?killer . } #person has \"killed by\"
-       
-       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-       
-       }""";
   rdfs:comment """Contents 1 Queries 1.1 Basic query building on Wikidata using paintings as the subject 1.1.1 Taking away criteria from your search using MINUS function 1.2 Using FILTER to specify results must be this or this 1.3 Using OPTIONAL to find statements that don't apply to all results 1.4 Using P, PS, to find nodes (multiple statement values) Queries [edit] Basic query building on Wikidata using paintings as the subject [edit] \"Find all of one thing\" So, \"Find all paintings on Wikidata\". SELECT ?item #the labels for the things in the query
 
 WHERE { ?item wdt:P31 wd:Q3305213 #instance of paintings, no labels.
@@ -119,5 +104,24 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\
 } Try it! Using OPTIONAL to find statements that don't apply to all results [edit] Finding characters in The Wire that have a cause of death but not all of them have a killer The following query uses these:Items: fictional character (Q95074)   , The Wire (Q478360)   Properties: instance of (P31)   , subclass of (P279)   , present in work (P1441)   , cause of death (P509)   , killed by (P157)    Features: Graph (Q24515287)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:Battleofalma/Building_queries_BL>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d854821-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#who killed who in The Wire, and cause of death
+
+#defaultView:Graph
+
+SELECT DISTINCT ?person ?personLabel ?death ?deathLabel ?killer ?killerLabel 
+
+WHERE { ?person (wdt:P31 / wdt:P279) wd:Q95074 . #instance of subclass of fictional character
+        ?person wdt:P1441 wd:Q478360 . #present in The Wire
+        ?person wdt:P509 ?death #cause of death
+                
+                OPTIONAL { ?person wdt:P157 ?killer . } #person has \"killed by\"
+       
+       SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+       
+       }""" .

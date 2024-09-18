@@ -6,7 +6,28 @@
 
 <https://www.wikidata.org/#query-dd31c2714c1f61bc2180e8f2282ee793> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itDescrizione WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d858277-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d858277-A8C8620145BE4C2AD88F7B42C19424D9,
+    _:genid-4e694113159d4e3db4a1a913894a81d858277-033D55E352D3CAE1CB809B7A51B359A5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX schema: <http://schema.org/>
+SELECT ?item ?itDescrizione  WHERE {
+  {
+  SELECT ?item {
+    BIND( 1000000 * 13 AS ?base ) . # change this 0-30
+    ?item wdt:P31 wd:Q4167836 .
+    BIND( xsd:integer( STRAFTER( STR( ?item ), STR( wd:Q ) ) ) AS ?num ) .
+    FILTER( ?num > ?base + 0 && ?num < ?base + 1000001 ) .
+  }
+} .
+  ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
+  FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itDescrizione WITH {
   SELECT ?item {
     BIND( 1000000 * 13 AS ?base ) . # change this 0-30
     ?item wdt:P31 wd:Q4167836 .
@@ -17,9 +38,4 @@
   INCLUDE %sub .
   ?item schema:description ?itDescrizione FILTER( LANG( ?itDescrizione ) = 'it' ) .
   FILTER( STR( ?itDescrizione ) != 'categoria di un progetto Wikimedia' ) .
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Infovarius/Queries>, <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2017/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120908-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec120908-CA2D9804CB2288B3C1CB0D1A77A0A296;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

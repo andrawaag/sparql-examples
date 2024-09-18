@@ -6,7 +6,72 @@
 
 <https://www.wikidata.org/#query-3e05b17d00300b72e3fb5f3e5067f3a1> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# Credit: User:Mahir256
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d842194-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d842194-A67E05477CF8A58973A77490EDFE5D49;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+# Credit: User:Mahir256
+#defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
+SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
+
+
+
+WITH {
+  SELECT ?da (sample(?lat2) as ?lat2) (sample(?lon2) as ?lon2) WHERE {
+    {?da wdt:P31 wd:Q1248784} UNION {?da wdt:P31 wd:Q644371}
+    ?sa wdt:P521 ?da.
+    ?da p:P625 / psv:P625 / wikibase:geoLatitude ?lat2 .
+    ?da p:P625 / psv:P625 / wikibase:geoLongitude ?lon2 .
+  } GROUP BY ?da
+} AS %das
+
+WITH {
+  SELECT ?line ?connect (\"9B0058\" as ?rgb) WHERE {
+    {
+  SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
+    {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
+    ?sa wdt:P17 wd:Q668 .
+    ?sa wdt:P625 ?coordinates  .
+    ?sa p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?sa p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?sa wdt:P18 ?image }.
+    OPTIONAL { ?sa wdt:P5696 ?code }.
+  } GROUP BY ?sa
+} .
+    INCLUDE %das .
+    ?sa p:P521 ?dastmt .
+    ?dastmt ps:P521 ?da .
+    ?dastmt pq:P137 ?connect .
+#    FILTER(STR(?sa) < STR(?da)) .
+    BIND(CONCAT('LINESTRING (', STR(?lon1), ' ', STR(?lat1), ',', STR(?lon2), ' ', STR(?lat2), ')') AS ?str) .
+    BIND(STRDT(?str, geo:wktLiteral) AS ?line) 
+  }
+} AS %lines 
+ 
+WHERE {
+  { {
+  SELECT ?sa (SAMPLE(?coordinates) AS ?coordinates) (SAMPLE(?image) AS ?image) (sample(?lat1) as ?lat1) (sample(?lon1) as ?lon1) (sample(?code) as ?code) WHERE {
+    {?sa wdt:P31 wd:Q1248784} UNION {?sa wdt:P31 wd:Q644371}
+    ?sa wdt:P17 wd:Q668 .
+    ?sa wdt:P625 ?coordinates  .
+    ?sa p:P625 / psv:P625 / wikibase:geoLatitude ?lat1 .
+    ?sa p:P625 / psv:P625 / wikibase:geoLongitude ?lon1 .
+    OPTIONAL { ?sa wdt:P18 ?image }.
+    OPTIONAL { ?sa wdt:P5696 ?code }.
+  } GROUP BY ?sa
+} }  UNION { INCLUDE %lines  } .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """# Credit: User:Mahir256
 #defaultView:Map{\"hide\":[\"?coordinates\", \"?line\", \"?rgb\"]}
 SELECT DISTINCT ?coordinates ?line ?sa ?saLabel ?connectLabel ?image ?code ?rgb
 
@@ -47,8 +112,4 @@ WITH {
 WHERE {
   { INCLUDE %sas }  UNION { INCLUDE %lines  } .
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:WikiProject_India/Queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec130058-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

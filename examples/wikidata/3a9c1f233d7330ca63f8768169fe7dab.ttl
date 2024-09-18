@@ -6,7 +6,19 @@
 
 <https://www.wikidata.org/#query-3a9c1f233d7330ca63f8768169fe7dab> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:Tree
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
+    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d822358-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d822358-562F9F17C437181085B74A201D8D715C,
+    _:genid-4e694113159d4e3db4a1a913894a81d822358-575E4447744160324753F10A85FFD829, _:genid-4e694113159d4e3db4a1a913894a81d822358-157AE993119B06DF13FAE53866E59E85;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+#defaultView:Tree
 SELECT
   ?peruane
   ?peruaneLabel
@@ -33,11 +45,30 @@ WITH {
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
 }
 ORDER BY ASC(?peruaneLabel)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/nl>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/de>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru/es>,
-    <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/Peru>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112967-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112967-C1A6B194623883491CAF89C00B9624AC, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112967-E4C3DB1E2E2D9ED800F7E4DAF90E5A08;
-  schema:target <https://query.wikidata.org/sparql/> .
+  <http://example.org/bigdata_select> """#defaultView:Tree
+SELECT
+  ?peruane
+  ?peruaneLabel
+  ?libro
+  ?libroLabel
+WITH {
+  SELECT DISTINCT ?peruane {
+    {?peruane wdt:P27 wd:Q419 }
+    UNION
+    {?peruane wdt:P19/wdt:P131* wd:Q419 }
+    UNION
+    {?peruane wdt:P1532 wd:Q419}
+  }
+} AS %0
+WITH {
+  SELECT DISTINCT ?libro ?peruane {
+    INCLUDE %0.
+    ?libro wdt:P31 wd:Q7725634;
+           wdt:P50 ?peruane.
+  }
+} AS %1
+{
+  INCLUDE %1.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"es\". }
+}
+ORDER BY ASC(?peruaneLabel)""" .

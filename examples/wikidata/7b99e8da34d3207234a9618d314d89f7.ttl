@@ -6,19 +6,6 @@
 
 <https://www.wikidata.org/#query-7b99e8da34d3207234a9618d314d89f7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-
-SELECT ?mirna ?gene ?pathway ?pLabel WHERE {
-  ?target dc:identifier ?exact .
-    ?target dcterms:isPartOf ?pathway .
-    ?pathway a wp:Pathway .
-    ?pathway <http://purl.org/dc/elements/1.1/title> ?pLabel .
-  SERVICE <https://query.wikidata.org/sparql> {
-    ?mirna rdfs:label 'hsa-miR-211-5p'@en .
-    ?mirna wdt:P128 ?gene .
-    ?gene wdt:P2888 ?exact filter (?exact = <http://identifiers.org/ncbigene/1234>)
-  }
-} LIMIT 10""";
   rdfs:comment """Contents 1 Query Wikidata with SPARQL 1.1 Drugs & Diseases 1.1.1 Find drugs that treat a disease and show a link for each supporting reference 1.1.2 Get all the drug-drug interactions for Methadone 1.1.3 Get all drug indications and their source database 1.2 Drug Repurposing 1.2.1 Drug interacts with protein encoded by gene with association to disease. Showing Metformin 1.2.2 Find drugs for cancers that target genes related to cell proliferation, where a drug physically interacts with the product of gene known to be genetically associated to a disease 1.3 Variants 1.3.1 Which variant of which gene predicts a positive prognosis in colorectal cancer 1.3.2 Given a variant ID, find drugs that may target the corresponding protein 1.3.3 Given a variant ID, find drugs that may target a protein in the same pathway 1.4 Microbial Queries 1.4.1 Request all taxa that have at least one gene and are child of the genus Chlamydia 1.4.2 Request all operons and their genes for Listeria monocytogenes EGD-e 1.4.3 Request all operons, their regulators, and their products 1.4.4 Request all organisms that are located in the female urogenital tract and that have a gene with product indole 1.4.5 Return gene counts for each bacterial genome in Wikidata 1.4.6 Return protein counts for each bacterial genome in Wikidata 1.5 Queries for microRNAs and extracellular RNAs 1.5.1 Get all mature miRNAs in Wikidata 1.5.2 Retrieve all mature miRNAs and their targets (names and NCBI entrez gene ID) 1.5.3 Retrieve all genes and mature miRNAs which are involved in the 'regulation of immune response' (GO:0050776) 1.5.4 Retrieve all genes that are involved in \"regulation of immune response\" AND that are regulated by an miRNA expressed in blood plasma or saliva 1.5.5 For these genes involved in regulation of immune reponse, are there drugs which modulate the immune response, by targeting one of these gene? 1.5.6 Biological processes impacted by hsa-miR-211-5p 1.5.7 Retrieve all human genes which are involved any immune response (as annotated by GO) AND are regulated by hsa-miR-211-5p. 1.5.8 Same query as the previous, but also retrieving small molecules interacting with these gene products. 1.6 BOSC 2017 examples 1.6.1 Get genes with GWAS association with asthma 1.6.2 ... and whose gene product is localized to membrane 1.6.3 ... where the GO localization is based on a non-IEA evidence code 1.6.4 ... with GWAS association with any respiratory disease 1.6.5 ... show associated chemical exposures 1.6.6 ... and show associated pathways 1.7 NCATS Translator Queries 1.7.1 What compensatory mutations in FA core genes confer resistance to chemotherapeutic drugs (e.g. cisplatin)? 1.7.2 Get GO Annotations for FA genes 1.7.3 Retrieve orthologs of FA-core genes 1.8 Wikidata FAIR paper 1.9 Other Example Queries 1.9.1 Retrieve an item by its external ID 1.9.2 Retrieve all items with an external ID 1.9.3 Example demonstrating GROUP BY, COUNT and ORDER BY 1.9.4 Example demonstrating how to retrieve qualifiers and references for statements 1.9.5 Example demonstrating how to retrieve determination method qualifiers 1.9.6 Example demonstrating how to retrieve references for statements that cite journal articles 1.9.7 Example demonstrating how to retrieve information about references for statements 1.9.8 Example demonstrating how to filter out unreferenced claims 1.9.9 Example demonstrating how to filter out contradictory claims 1.10 Miscellaneous Queries 1.10.1 Get mapping of Wikipedia articles to WikiData items to Entrez Gene IDs 1.10.2 Count of number of GO annotations on yeast grouped by curator 1.10.3 Retrieve reverse/\"what links here\" statements (statements where the item is the object) 1.10.4 Get all proteins with GO annotations that are a subclass of \"signaling receptor activity\", where the determination method is a type of manual assertion, and the evidence is a scientific article that was published since 2014 1.10.5 Get labels and description for Wikidata items 1.10.6 Count language labels for diseases 1.10.7 Example counting statements by their determination method 1.10.8 Get all properties and their usage counts on items that are diseases 1.10.9 Get all properties and their usage counts for statements where the values are diseases 1.11 Quality Control (QC) Queries 2 Query Wikidata using SPARQL Through R 2.1 Example Query 3 Query Wikidata using SPARQL Through Python 3.1 Example Query 4 Federated Queries 4.1 Wikidata -> Wikipathways 4.1.1 Wikipathways: Get drugs that act as channel blockers from Wikidata, get the pathways that these drugs are part of from Wikipathways 4.1.2 Get all interaction between metabolites in Pathways from Wikipathways and their individual pKa values 4.1.3 Find genes regulated by an miRNA of interest from Wikidata and retrieve pathways this gene is active in from WikiPathways 4.2 Uniprot -> Wikidata 4.2.1 Retrieve all human membrane proteins annotated for a role in colorectal cancer 4.2.2 Select all human UniProt entries with a sequence variant that leads to a 'loss of function' and also physically interact with (P129) a drug with a qualifier of \"use\" (P366) of \"enzyme inhibitor\" (Q427492) 5 Maintenance Queries Query Wikidata with SPARQL [edit] SPARQL queries can be submitted via a web form at http://query.wikidata.org/, or, for programmatic access: https://query.wikidata.org/sparql. The latter URL allows integrating Wikidata items with external SPARQL endpoints through federated queries or to integrate in data analysis packages such as R or any other platform with a SPARQL plugin.This page collects biomedical example queries to the SPARQL endpoint of Wikidata. For more general example queries, see here. Drugs & Diseases [edit] Find drugs that treat a disease and show a link for each supporting reference [edit] The following query uses these:Properties: NCI Thesaurus ID (P1748)   , formatter URL (P1630)   , drug or therapy used for treatment (P2176)   , ChEMBL ID (P592)   , NDF-RT ID (P2115)   #Find drugs that treat a disease and show a link for each supporting reference
 SELECT ?disease ?diseaseLabel ?diseaseDescription ?drug ?drugLabel ?drugDescription ?link
 WHERE {
@@ -583,5 +570,19 @@ SELECT DISTINCT ?pwTitle ?metabolite1Label ?pKa1 ?pKa2 ?metabolite2Label WHERE {
 } Try it! Find genes regulated by an miRNA of interest from Wikidata and retrieve pathways this gene is active in from WikiPathways [edit] Submit through Wikipathways endpoint """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/User:ProteinBoxBot/SPARQL_Examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d846883-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?mirna ?gene ?pathway ?pLabel WHERE {
+  ?target dc:identifier ?exact .
+    ?target dcterms:isPartOf ?pathway .
+    ?pathway a wp:Pathway .
+    ?pathway <http://purl.org/dc/elements/1.1/title> ?pLabel .
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?mirna rdfs:label 'hsa-miR-211-5p'@en .
+    ?mirna wdt:P128 ?gene .
+    ?gene wdt:P2888 ?exact filter (?exact = <http://identifiers.org/ncbigene/1234>)
+  }
+} LIMIT 10""" .

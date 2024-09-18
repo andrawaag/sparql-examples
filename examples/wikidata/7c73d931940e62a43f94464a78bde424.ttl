@@ -6,31 +6,6 @@
 
 <https://www.wikidata.org/#query-7c73d931940e62a43f94464a78bde424> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """# All Law & Order episodes on Wikidata.
-# According to enwp, “[a] total of 456 original episodes… aired before cancellation” (https://en.wikipedia.org/wiki/List_of_Law_%26_Order_episodes).
-# As of this writing, the query returns 451 results, so some episodes are missing (either without item or lacking the necessary statements to match this query).
-
-SELECT (SAMPLE(?seasonNumber) AS ?seasonNumber) (SAMPLE(?episodeNumber) AS ?episodeNumber) (SAMPLE(?title) AS ?title) (MIN(?pubDate) AS ?pubDate) ?episode
-{
-  # All episodes should be instance of episode with series Law & Order.
-  ?episode wdt:P31 wd:Q21191270;
-           wdt:P179 wd:Q321423.
-  # Many of them also have the season as series, so we can get episode and season number from qualifiers there.
-  OPTIONAL {
-    ?episode p:P179 [
-      # the season also has series Law & Order
-      ps:P179/p:P179 [
-        ps:P179 wd:Q321423;
-                pq:P1545 ?seasonNumber
-      ] ;
-      pq:P1545 ?episodeNumber
-    ]
-  }
-  OPTIONAL { ?episode wdt:P1476 ?title. }
-  OPTIONAL { ?episode wdt:P577 ?pubDate. }
-}
-GROUP BY ?episode # make sure we return each episode only once – a few have multiple publication dates, for example
-ORDER BY IF(BOUND(?seasonNumber), xsd:integer(?seasonNumber), 1000) xsd:integer(?episodeNumber) ?title""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/lb>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/th>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/eu>,
@@ -66,21 +41,52 @@ ORDER BY IF(BOUND(?seasonNumber), xsd:integer(?seasonNumber), 1000) xsd:integer(
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/en>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-91F45F49A23244FECF04CADFF69385D0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-A0E350625484114CD26930271E07940B,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-4A18E0655232E83D9135C2A48569E6E8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-F5D3443CA5AE5A458190437B618AC695,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-4A97CB848CF64F7FE2262C25BC4072F5, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-D21DBA556C9F66E57F5820D8D3BE136D,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-5BFF86FA85C216F2A2B052BB9CD1E646, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-58A9C9937558967D3B8BE6497DD3DC15,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-EF92DFB1B37F3DE475768A9CB2D045DD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-662A5397F9ECD4D97B8B0B7CF3F311A8,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-E8577A018827AA7BEA0D8DE63B3A1274, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-C3EC52192C09B0A99DC7C5DFDC83A0D8,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-00916AA320FA96926D154FD6E63E63CF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-24BE755B59A6DC8A4C9C6F9974D452F9,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-2F3D53156985D0E7DB45656C9ADB0170, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-C12E87EC8247063D47B7C7ED6DC48837,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-48A9B024E90F6ACF403287DD4E3ED52C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-9A3A3BBF0F9A9B20911C84445127886A,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-C04FB8C762F4C2D1DFA7C124328ED770, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-472FEB69C87C3CA5B090CA5D9D023BE2,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-0384E3F8A2DB08BA4591588B0E459BD0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-DD1F7CA9E3D8F6EF2A7CBECE1AF980DB,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-FFF1118325F0939F254DCE35485438EF, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-3DB04B30BFF53046DB92363656E8046F,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-71A30EBB179CFCC9B3D729B000EC0A94, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-46B8C83808255E662B64FC360D238A9F,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-236FA0AE38D7AFD1A29BB636B37736CE, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-BABA8BBDF89F2447CD063A1F14C880BF,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-A20139515EAD33F871FB0D8F9F37461C, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-1B00923118F7299C0CFDB4BBA210B633,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-C5E790602D0CD06125A4B76C553D52CD, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec116204-7E3CD4CC8882633E7952D2006ECF91F7;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d851383-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d851383-E2C3555FE5F49918BCE865F0D0883B55,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-77143FC5555A4FE1BD66C13A5C9F04B1, _:genid-4e694113159d4e3db4a1a913894a81d851383-885B8B564DB2A06729F4FDA5E6703DD7,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-435AD9B5B366CB2FF9547364E038BE6C, _:genid-4e694113159d4e3db4a1a913894a81d851383-4DC9985FE5B5B8B4E698852920ED13AD,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-428A59A83DF5A47B916E27B5F3256E33, _:genid-4e694113159d4e3db4a1a913894a81d851383-06A700008465E35CBB3FFAF60C2FF6D3,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-FD35EBB2E7D07595DC6BF6FF1B2CEB0D, _:genid-4e694113159d4e3db4a1a913894a81d851383-13C0A1A0FF5AFD0FBBEFCD64A1DCA644,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-EAE44B9FD5A026358A76E41D7090F599, _:genid-4e694113159d4e3db4a1a913894a81d851383-7A6E13E2A0B949371C50304781364044,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-55354826FFDF384CD262D40EED804DDF, _:genid-4e694113159d4e3db4a1a913894a81d851383-A02FBA839F82B89994F21ED4B90D8DCE,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-92FDAB080A213EBABA073C1D9913B80C, _:genid-4e694113159d4e3db4a1a913894a81d851383-B7D713482356BFB9E0F61107496E90F7,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-D296F38654B067E7B431139B69C8C205, _:genid-4e694113159d4e3db4a1a913894a81d851383-B15591BEF8321953954CC2DBD3A47517,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-6F0323C9A2602C7487DED1387FC50A0F, _:genid-4e694113159d4e3db4a1a913894a81d851383-182C89D16674C4FF99B21340B63AED3A,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-BAFE60F437FC9D9AEA1E722479608991, _:genid-4e694113159d4e3db4a1a913894a81d851383-3B9AFE683ACDA7F3A026248083CFA0B5,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-57D56C7F60131566172F47D7BE20C811, _:genid-4e694113159d4e3db4a1a913894a81d851383-60D9D08111463564ACDAC127E8B7C503,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-98066DA7F136E5BB5E8077126B34DABB, _:genid-4e694113159d4e3db4a1a913894a81d851383-DB170E491BE75D70DF2DCB160F5777B2,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-0A010B5C32A553430F3B17FE9E05E25A, _:genid-4e694113159d4e3db4a1a913894a81d851383-52CB0CEDB1D4F335806CBAD846D8756A,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-F766A7E999BF669AD966F94D3BA16BD5, _:genid-4e694113159d4e3db4a1a913894a81d851383-72D870A0BEE7C6D860E652A8C07374EC,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-38CE16F89CFE278CD4CC0196CBBF93DC, _:genid-4e694113159d4e3db4a1a913894a81d851383-2BACDC15192D7F209B0A6EB09F7A1300,
+    _:genid-4e694113159d4e3db4a1a913894a81d851383-F48B7632ED7C08E9967D52FE9BCC0390, _:genid-4e694113159d4e3db4a1a913894a81d851383-0F31C926CEC70D7C4393973F4F48E851;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+# All Law & Order episodes on Wikidata.
+# According to enwp, “[a] total of 456 original episodes… aired before cancellation” (https://en.wikipedia.org/wiki/List_of_Law_%26_Order_episodes).
+# As of this writing, the query returns 451 results, so some episodes are missing (either without item or lacking the necessary statements to match this query).
+
+SELECT (SAMPLE(?seasonNumber) AS ?seasonNumber) (SAMPLE(?episodeNumber) AS ?episodeNumber) (SAMPLE(?title) AS ?title) (MIN(?pubDate) AS ?pubDate) ?episode
+{
+  # All episodes should be instance of episode with series Law & Order.
+  ?episode wdt:P31 wd:Q21191270;
+           wdt:P179 wd:Q321423.
+  # Many of them also have the season as series, so we can get episode and season number from qualifiers there.
+  OPTIONAL {
+    ?episode p:P179 [
+      # the season also has series Law & Order
+      ps:P179/p:P179 [
+        ps:P179 wd:Q321423;
+                pq:P1545 ?seasonNumber
+      ] ;
+      pq:P1545 ?episodeNumber
+    ]
+  }
+  OPTIONAL { ?episode wdt:P1476 ?title. }
+  OPTIONAL { ?episode wdt:P577 ?pubDate. }
+}
+GROUP BY ?episode # make sure we return each episode only once – a few have multiple publication dates, for example
+ORDER BY IF(BOUND(?seasonNumber), xsd:integer(?seasonNumber), 1000) xsd:integer(?episodeNumber) ?title""" .

@@ -6,23 +6,6 @@
 
 <https://www.wikidata.org/#query-05bdfc929c42343530ba75293e648333> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT (COUNT(DISTINCT(?person)) AS ?countPerson)
-WHERE {
-  { # non-zero number of children matches
-    ?person wdt:P1971 ?numOfChildren .
-    {SELECT ?person (COUNT(?child) AS ?numOfChildrenComputed)
-    WHERE {
-      ?person wdt:P40 ?child 
-    }
-    GROUP BY ?person}
-    FILTER (?numOfChildren = ?numOfChildrenComputed)
-  }
-  UNION
-  { # zero number of children matches
-    ?person wdt:P1971 \"0\"^^xsd:decimal .
-    FILTER NOT EXISTS { ?person wdt:P40 ?child }
-  }
-}""";
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/nl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/pl>,
     <https://www.wikidata.org//wiki/Wikidata:SPARQL_query_service/queries/examples/maintenance/ja>,
@@ -38,11 +21,30 @@ WHERE {
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance/en>,
     <https://www.wikidata.org//wiki/User:Amitie_10g/Sandbox/Wikidata:SPARQL_query_service/queries/examples/maintenance>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-wikidata_prefixes,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-77C1C63EAE18BE999B2A5FC9DEBF6F35, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-7E893FD82C6F35AC96B1B80007AAE6DF,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-C419746E16D244EE593B638C7E2E7DF8, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-1433FEB160343F54812BDC9C7EB26FC2,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-8271D0C11CF1139C99608D25E80CB900, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-C8D2AA881405C9DB452A1AC86094BBF2,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-26173849C420B94998526C946F520A44, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-3B7AB04D7CF4AD4A710A9867B6D387EE,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-9B2FAEBDB51A12E1F0BB72FFB5A162F0, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-2E7046AD8E6DF37B184EBCAA8F00D9D1,
-    _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-E4BE7CFE0FE77B61F0ECB7F39FE26EE6, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec112667-76823228BEF85C241BBC0D67E93D73D5;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d832039-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d832039-62640A56B2854326E0AB95D9FEEDFD2C,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-F7F3AD5A9AE963FC418A12B28D8B9507, _:genid-4e694113159d4e3db4a1a913894a81d832039-631BB8BFF2CE78D55D3E2CC49F8ECB55,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-CF9365D9F949CB6A1AD167FAFDC5A4BE, _:genid-4e694113159d4e3db4a1a913894a81d832039-AABDF237CC847F737228C703812058CC,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-9414B59203B27D8CCC19F8C9990D19AB, _:genid-4e694113159d4e3db4a1a913894a81d832039-74DBF1705FB949FEA029D608869E03B0,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-FB8DF9E4BB7B6489303A35B0AC8342BA, _:genid-4e694113159d4e3db4a1a913894a81d832039-8377CD71A66E57FCB7B25EE8B64C264A,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-86EA43090B98DA5F3D4FD77777A85DE3, _:genid-4e694113159d4e3db4a1a913894a81d832039-CAE3100CA43A37BAB72C0FB44D09E042,
+    _:genid-4e694113159d4e3db4a1a913894a81d832039-EE100F04D0E6AD3D7A190964463E4DCB, _:genid-4e694113159d4e3db4a1a913894a81d832039-6F356D776F5A96C9ABAE2CDE0245E6B0;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT (COUNT(DISTINCT(?person)) AS ?countPerson)
+WHERE {
+  { # non-zero number of children matches
+    ?person wdt:P1971 ?numOfChildren .
+    {SELECT ?person (COUNT(?child) AS ?numOfChildrenComputed)
+    WHERE {
+      ?person wdt:P40 ?child 
+    }
+    GROUP BY ?person}
+    FILTER (?numOfChildren = ?numOfChildrenComputed)
+  }
+  UNION
+  { # zero number of children matches
+    ?person wdt:P1971 \"0\"^^xsd:decimal .
+    FILTER NOT EXISTS { ?person wdt:P40 ?child }
+  }
+}""" .

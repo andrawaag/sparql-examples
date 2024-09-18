@@ -6,16 +6,6 @@
 
 <https://www.wikidata.org/#query-b96fc8727fd7a76665b643ed880cdffc> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?y ?yLabel ?yDescription ?iata ?oh ?pLabel WHERE {
-  ?y (wdt:P31/(wdt:P279*)) wd:Q644371.
-
-  OPTIONAL { ?y wdt:P238 ?iata.}
-  OPTIONAL { ?y wdt:P856 ?oh. }
-  OPTIONAL { ?y wdt:P3872 ?p. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
-}
-
-LIMIT 3000""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Retrieve researchers without full name 2 Query about writers 3 Past presidents of the GSA with a wikipedia page 4 name of international airports and number of users 5 Hi, I want to map all the places associated with people linked to the merovingian culture (birth place, where they where at which moment). How can I do that, please? 6 Get reference (if persent) and source within wikipedia article for an entry 7 list of pictures with lacking geotag entry 8 Genres to which a name belongs 9 Improve a query -- too many singles values as filter 10 Chess olympiad participantes 11 ASTM standards 12 Public artworks in London by (any) artists.. but depicting females 13 List of any thesis (Q1266946) or master's thesis (Q1907875) in educated at (P69) 14 Items with P244 but no label in English 15 Time out 16 Display incomplete dates 17 Query to find all instances of spacecraft (Q40218) or it's sub-classes 18 Graph of Members Count by Year 19 Longest labels 20 People studied political science (Q36442) 21 Description in a given language 22 African American Athletes 1936 Olympics 23 Getting basic data about taxa 24 Query to get all valid values for symptoms and signs (P780) 25 Get all items with some specific symptoms 26 Format of Pictures 27 Wikidata property related to politics 28 Dbpedia query 29 Canadian politicians 30 Get number of publications for authors with ORCID and working in the Czech Republic - with federated Query 31 Impact Indicators for AfroCine 2.0 32 How many common article has a wikipedia with another wikipedia? 33 Number of Bundesliga matches 34 Get all sitelinks for items linked to a given WikiProject on a given wiki 35 How many items with P1472 represent people vs. organizations? 36 Range of time 37 Architectural structure 38 Identical external IDs Retrieve researchers without full name Many researchers have been imported into Wikidata without the full name in the label, i.e. Josefa Madrid (Q64670894). Most of the elements have an ORCID link, which in this case shows the full name Josefa Madrid. However, locating and correcting thousands of elements manually would take months. The plan is then to make a query to extract all these elements, then I should be able to make a script to extract the full names from ORCID, and finally I can update the elements with the full name using QuickStatements. Can anyone help me making a query that locate people with ORCID iD (P496) and where the label has the syntax J. Madrid? --Cavernia (talk) 07:18, 2 September 2019 (UTC) @Cavernia: Here is a query proposal where I also added a column for the number of sitelinks: SELECT ?item ?itemlabel ?ORCID ?sitelinks {
   ?item wdt:P496 ?ORCID .
   ?item wikibase:sitelinks ?sitelinks .
@@ -62,5 +52,19 @@ WHERE
  Try it! --Tagishsimon (talk) 21:17, 5 September 2019 (UTC) @Tagishsimon: Thanks!! Trilotat (talk) 22:51, 5 September 2019 (UTC) name of international airports and number of users I want to get the name of international airports and number of users in the world.I got the name of the airports easily. However, the number of users has a lot of redundant data."""@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2019/09>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d834700-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?y ?yLabel ?yDescription ?iata ?oh ?pLabel WHERE {
+  ?y (wdt:P31/(wdt:P279*)) wd:Q644371.
+
+  OPTIONAL { ?y wdt:P238 ?iata.}
+  OPTIONAL { ?y wdt:P856 ?oh. }
+  OPTIONAL { ?y wdt:P3872 ?p. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }
+}
+
+LIMIT 3000""" .

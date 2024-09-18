@@ -6,21 +6,6 @@
 
 <https://www.wikidata.org/#query-a6431309cb46234666f08814bd21e62d> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-SELECT ?item ?itemLabel ?nom ?nomLabel ?werk
-{
-  ?item wdt:P1411 ?nom .
-        FILTER NOT EXISTS { ?nom pq:P585 ?x } .
-  OPTIONAL {?item pq:P1686 ?werk} .
-  
-  
-SERVICE wikibase:label {
-    bd:serviceParam wikibase:language \"nl,en\" .
-  }
-} ORDER BY ASC(?item)""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Decode URL? 2 Shortest path / Erdos number problem: Deneuve number 3 How to check pairwise inequality 4 Label of OPTIONAL 5 How does the ORDER change the number of results? 6 Strange result 7 Most cited sources 8 Checking if ?item is containted in list of values 9 SPARQL template problem and filter count question 10 Problem with prefix count query 11 Only items without English article 12 Items with P1411 without qualifier P585 13 Redirects and deleted items as result 14 Query deadline with a filter? 15 Last edit 16 Which properties contains a value 17 Log() function? 18 How to filter on language of monolingual text? 19 Deleted result 20 Blank error 21 Grouping by only one variable 22 Group by ?award_statement but show ?award 23 Claims with item as value 24 Bug? \"bes\" works, but not \"best\" 25 +Example(s) 26 Multiple values 27 Counts for property talk pages 28 Can't use aliases for labels from SERVICE wikibase:label 29 Sometimes I need to rethink my logic for SPARQL to give the right result 30 Queries 31 Blazegraph 2.0 is coming 32 Prefix 33 Women by DOB 34 Linking to Commons file pages 35 Optional and Group by 36 Items with a given label in any language 37 Display \"tree map\" 38 sssloww 39 Quantities 40 Search for items with certain label or \"also known as\" string 41 Problem with simple query 42 Optional column with grouping 43 Label on precision? 44 Please help with filtering by non-constant language range 45 Server down? 46 Items without labels 47 GROUP_CONCAT and ORDER BY 48 Pairs 49 Auto-completion broken ? 50 Data outdated 51 Meta property to give possibility of doing queries on data set 52 EM query question 53 List also 0 matches and a sorting problem 54 wikibase:timePrecision \"9\"^^xsd:integer 55 Group by language of labels? 56 504 Gateway Time-out 57 Welsh Saints 58 Getting the language name from lang() 59 Efficient use of P2837 (P2837) 60 Translation 61 Query to get all relatives 62 All items without a description Decode URL? Is there a way to get all Wikipedia sitelinks in a URL decoded way, e.g. for Wikidata:SPARQL_query_service/queries#Countries_that_have_sitelinks_to_en-wiki instead of \"<https://en.wikipedia.org/wiki/South%20Africa>\", just \"<https://en.wikipedia.org/wiki/South Africa>\" or \"South Africa\". --- Jura 15:43, 31 December 2015 (UTC) That would be a good candidate for custom function. Please file a phabricator ticket. There is an encoding function but seems to be no decoding one. --Smalyshev (WMF) (talk) 22:51, 1 March 2016 (UTC) Shortest path / Erdos number problem: Deneuve number Any idea how I could solve this: Wikidata_talk:WikiProject_Movies#Most_active_contemporary_actresses.3F. Is there a way to calculate the number of films it takes to link two actors - based on cast member (P161)? I got up to 3 by checking each distance separately in one query, but is there a way to do it for any distance on query.wikidata.org directly ? --- Jura 08:31, 5 January 2016 (UTC) @Jura1: What you need to solve your problem is breadth-first traversal, i.e. something like this, then optionally shortest path to display the link chain for a given person like this. --- Nono314 (talk) 08:10, 13 January 2016 (UTC) How to check pairwise inequality I've got a few variables ?item1, ?item2, ..., ?itemn. How can I check if they are pairwise unequal? Do I really need to state n(n-1)/2 inequalities? --Jobu0101 (talk) 11:40, 5 January 2016 (UTC) Label of OPTIONAL SELECT ?country ?countryLabel ?capital WHERE {
   ?country wdt:P31 wd:Q3624078 .
   FILTER NOT EXISTS { ?country wdt:P31 wd:Q3024240 } .
@@ -117,5 +102,21 @@ ORDER BY DESC(?films)
      FILTER(!bound(?article)) SPARQL has three different syntaxes for negation, and they don't all always get optimised the same way. So trying this form instead just might help. What we hope the system isn't doing is building a list of all the articles in English, in order to then do a Hash_anti-join. Instead we hope it's just taking your subset, and actually running a filter on it. I believe that there are optimiser directives that can be made, to force it to process the filtering in a particular way. But it's something I have never really got to grips with; and nor did I find that part of the documentation very easy. Jheald (talk) 01:25, 18 January 2016 (UTC) It might also depend where you place it (first condition or last condition). Here \"Filter not exists\" seems to work fine. --- Jura 09:11, 18 January 2016 (UTC) @Jheald: Your solution works and it is very fast. Thank you! --Jobu0101 (talk) 10:11, 18 January 2016 (UTC) Items with P1411 without qualifier P585 I am trying to make a query to list nominated for (P1411) items that don't have a point in time (P585) qualifier. I want to display the following data: QID, Label, QID for value, label for value, Value QID for for work (P1686) (if P1686 is present) and label for values of P1686. I can't get the P1686 part to work. This is what I have so far: """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata_talk:SPARQL_query_service/queries/Archive/2016>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826714-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?item ?itemLabel ?nom ?nomLabel ?werk
+{
+  ?item wdt:P1411 ?nom .
+        FILTER NOT EXISTS { ?nom pq:P585 ?x } .
+  OPTIONAL {?item pq:P1686 ?werk} .
+  
+  
+SERVICE wikibase:label {
+    bd:serviceParam wikibase:language \"nl,en\" .
+  }
+} ORDER BY ASC(?item)""" .

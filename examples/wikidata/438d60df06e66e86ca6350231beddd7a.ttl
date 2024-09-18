@@ -6,41 +6,6 @@
 
 <https://www.wikidata.org/#query-438d60df06e66e86ca6350231beddd7a> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT DISTINCT ?item ?itemLabel ?itemDescription 
-  (ROUND(?height*100) as ?h_cm) (ROUND(?width*100) as ?w_cm) (ROUND(?height * 10 * ?width)/10 as ?size) 
-  ?img0 ?imgh ?imgw ?imgsize ?available_img_res
-WHERE
-{
-  ?item wdt:P31 wd:Q3305213;
-    wdt:P170 wd:Q725681.
-  OPTIONAL { ?item p:P2048 /psn:P2048 [wikibase:quantityAmount ?height ; wikibase:quantityUnit wd:Q11573 ] }
-  OPTIONAL { ?item p:P2049 /psn:P2049 [wikibase:quantityAmount ?width ; wikibase:quantityUnit wd:Q11573 ]. }  
-
-  OPTIONAL { 
-    ?item wdt:P18 ?img0
-    BIND(replace(wikibase:decodeUri(SUBSTR(STR(?img0), 52)),\"_\",\" \") AS ?img)
-    SERVICE wikibase:mwapi {
-      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
-      bd:serviceParam wikibase:api \"Generator\" .
-      bd:serviceParam mwapi:generator \"allpages\" .
-      bd:serviceParam mwapi:prop \"imageinfo\" .
-      bd:serviceParam mwapi:gapprefix ?img .
-      bd:serviceParam mwapi:gapnamespace \"6\" .
-      bd:serviceParam mwapi:iiprop \"timestamp|user|mediatype|metadata|dimensions\" .
-      ?imgsize wikibase:apiOutput \"imageinfo/ii/@size\".
-      ?imgw wikibase:apiOutput \"imageinfo/ii/@width\".
-      ?imgh wikibase:apiOutput \"imageinfo/ii/@height\".
-      ?imgmediatype wikibase:apiOutput \"imageinfo/ii/@mediatype\".
-    } 
-    BIND(xsd:integer(?imgw) as ?imgwi)
-    BIND(
-        IF(?imgwi < 290, \"very low\", 
-        IF(?imgwi < 750, \"low\", 
-           \"medium or higher\"))
-           as ?available_img_res)
-   }
-   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Year columns and total for year? 2 List of references for taxon name 3 How to get a pageviews for all English Wikipedia articles about species 4 List of teachers and the Querybuilder 5 How many species have English Wikipedia articles? 6 list of scholarly article (Q13442814) by a author (P50) also listing P819, P1932, and P1545 7 Otherwise great query returns duplicate results 8 Resolution of image (on item for painting) 9 People born from 1900-1939 with images on Wikidata and no article on enwiki 10 Need help with this query. 11 Display Commonscat but not from P373 12 How to get a list of taxon articles (e.g species, genus, family etc) on English Wikipedia which don't have a photo? 13 Clergy houses and Manses in Norway 14 rugby league grounds 15 Aggregation q 16 Newly created/added items that are instances of? Year columns and total for year? Hello,As you can see at https://tr.wikipedia.org/wiki/T%C3%BCrkiye%27deki_k%C3%B6m%C3%BCr_yak%C4%B1tl%C4%B1_enerji_santralleri_listesi the third column has values for 2019 and 2020. Is it possible to have each years data in a separate column? And can I get a total for each year? As I don't intend to do previous years the years can be hardcoded if necessary.RegardsChidgk1 (talk) 12:28, 28 October 2021 (UTC) @Chidgk1: I've amended the query & page. Note that Listeria queries do not require a label service nor ?itemLabel in the select, and so I have removed both ... Listeria provides labels without needing to reference the label service. --Tagishsimon (talk) 18:27, 30 October 2021 (UTC) @Tagishsimon: Thank you very much. Do you know if it is possible for me to have a total at the bottom that kind of column? Chidgk1 (talk) 05:59, 1 November 2021 (UTC) @Chidgk1: Sorry, I omitted to answer that part. Sadly no; Listeria does not, as far as I know, provide a mechanism. Neither really does SPARQL; one can aggregate and SUM, but one cannot provide row-by-row detail and SUM. Again, at least as far as I know. It would be a nice feature to have in Listeria, though. I'll get around to suggesting it to Listeria's author, sometime, although I'll not hold my breath for it to be implemented. --Tagishsimon (talk) 06:26, 1 November 2021 (UTC) List of references for taxon name Hello, I would like a query that gives the list of references stored within stated in (P248) for taxon name (P225) for one specific taxon but also for all its potential synonyms.Exemple we have: Antipathes hypnoides (Q13380337) → taxon synonym (P1420) → Tylopathes hypnoides (Q3998744) Tylopathes hypnoides (Q3998744) → taxon name (P225) → stated in (P248) → Q91631400 Antipathes hypnoides (Q13380337) → taxon name (P225) → stated in (P248) → Q100556046 Whether you search with Antipathes hypnoides (Q13380337) or Tylopathes hypnoides (Q3998744) in this specific case such a query should be able to provide you a list of 2 values: Q91631400 and Q100556046. Christian Ferrer (talk) 17:02, 7 November 2021 (UTC) @Christian Ferrer: This might do what you want. We'd need to roll back some of your changes to Q13380337 to test it, or find another candidate taxon item. Or it might not do what you want: I've interpreted your requirement as \"starting with this ***string***, give me the item values\", but you might want a query which finds these situations without being seeded with a string, in which case you may be out of luck b/c too many taxons. Or the query might not work. Who knows. SELECT distinct ?item ?itemLabel ?taxon_name ?derived ?derivedLabel WITH { SELECT ?cand ?tname ?label
 WHERE 
 {
@@ -309,5 +274,47 @@ VALUES   ?item {wd:Q49481}
  Try it!--Tagishsimon (talk) 23:20, 12 November 2021 (UTC)@Quesotiotyo: and @Tagishsimon: Thanks again for helping me building this crucial part of my application. It works like a charm! Again, will give an update once I have someting to show for (almost there). By the way; never knew that Prokofiev and Stalin died on the same day ;) Cheers, Mill 1 (talk) 09:53, 13 November 2021 (UTC) Resolution of image (on item for painting) Is there a good way to add an indication of the resolution of the available image to a list of paintings?Maybe there are three or four basic resolutions: 1. Wikipedia infobox resolution: maybe 300px wide (sample) 2. Commons/Wikipedia file description page: is that 800px ? 3. zoomable on details: depends on actual painting size (there are columns with W and H in cm), not sure what a good measure would be 4. printing quality (same size as original, dpi?). How to call the resolutions? < 1 very low < 2 low < 3 medium < 4 high 4 very high --- Jura 05:35, 13 November 2021 (UTC) I asked for help on (3) and (4) at c:Commons:Village_pump#determine_available_image_resolution_(for_a_list_of_paintings). --- Jura 10:31, 14 November 2021 (UTC)  Items used: painting (Q3305213)   , Ramon Casas (Q725681)   , metre (Q11573)   Properties used: instance of (P31)   , creator (P170)   , image (P18)   , height (P2048)   , width (P2049)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/11>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d841957-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT DISTINCT ?item ?itemLabel ?itemDescription 
+  (ROUND(?height*100) as ?h_cm) (ROUND(?width*100) as ?w_cm) (ROUND(?height * 10 * ?width)/10 as ?size) 
+  ?img0 ?imgh ?imgw ?imgsize ?available_img_res
+WHERE
+{
+  ?item wdt:P31 wd:Q3305213;
+    wdt:P170 wd:Q725681.
+  OPTIONAL { ?item p:P2048 /psn:P2048 [wikibase:quantityAmount ?height ; wikibase:quantityUnit wd:Q11573 ] }
+  OPTIONAL { ?item p:P2049 /psn:P2049 [wikibase:quantityAmount ?width ; wikibase:quantityUnit wd:Q11573 ]. }  
+
+  OPTIONAL { 
+    ?item wdt:P18 ?img0
+    BIND(replace(wikibase:decodeUri(SUBSTR(STR(?img0), 52)),\"_\",\" \") AS ?img)
+    SERVICE wikibase:mwapi {
+      bd:serviceParam wikibase:endpoint \"commons.wikimedia.org\" .
+      bd:serviceParam wikibase:api \"Generator\" .
+      bd:serviceParam mwapi:generator \"allpages\" .
+      bd:serviceParam mwapi:prop \"imageinfo\" .
+      bd:serviceParam mwapi:gapprefix ?img .
+      bd:serviceParam mwapi:gapnamespace \"6\" .
+      bd:serviceParam mwapi:iiprop \"timestamp|user|mediatype|metadata|dimensions\" .
+      ?imgsize wikibase:apiOutput \"imageinfo/ii/@size\".
+      ?imgw wikibase:apiOutput \"imageinfo/ii/@width\".
+      ?imgh wikibase:apiOutput \"imageinfo/ii/@height\".
+      ?imgmediatype wikibase:apiOutput \"imageinfo/ii/@mediatype\".
+    } 
+    BIND(xsd:integer(?imgw) as ?imgwi)
+    BIND(
+        IF(?imgwi < 290, \"very low\", 
+        IF(?imgwi < 750, \"low\", 
+           \"medium or higher\"))
+           as ?available_img_res)
+   }
+   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""" .

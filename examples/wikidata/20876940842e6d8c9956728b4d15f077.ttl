@@ -6,7 +6,35 @@
 
 <https://www.wikidata.org/#query-20876940842e6d8c9956728b4d15f077> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844957-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?speakers
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+  ?languageDescription
+
+WHERE {
+  {
+  SELECT 
+    (MAX(?speakers_) AS ?speakers)
+    ?language
+  WHERE {
+    ?language wdt:P31 wd:Q34770 ;
+              wdt:P1098 ?speakers_ .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}
+ORDER BY DESC(?speakers)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?speakers
   ?language ?languageLabel
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
@@ -25,8 +53,4 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
 }
-ORDER BY DESC(?speakers)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:language-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?speakers)""" .

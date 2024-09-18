@@ -6,7 +6,40 @@
 
 <https://www.wikidata.org/#query-1aaf11da370c7fe77fa01490f8e1e645> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT 
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:hyphenation-index>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d844426-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ontolex: <http://www.w3.org/ns/lemon/ontolex#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT 
+  ?hyphenations
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/hyphenation\") AS ?hyphenationsUrl)
+
+  ?language ?languageLabel
+  (CONCAT(\"#language/\", SUBSTR(STR(?language), 32)) AS ?languageUrl)
+
+  ?example_hyphenation
+
+WHERE {
+  {
+  SELECT 
+    (COUNT(?hyphenation) AS ?hyphenations)
+    ?language
+    (SAMPLE(?hyphenation) AS ?example_hyphenation)
+  WHERE {
+    ?lexeme dct:language ?language ;
+            ontolex:lexicalForm / wdt:P5279 ?hyphenation .
+  }
+  GROUP BY ?language
+}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
+}
+ORDER BY DESC(?hyphenations)""";
+  <http://example.org/bigdata_select> """SELECT 
   ?hyphenations
   (CONCAT(\"#language/\", SUBSTR(STR(?language), 32), \"/hyphenation\") AS ?hyphenationsUrl)
 
@@ -29,8 +62,4 @@ WHERE {
   INCLUDE %languages
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],mul,en\". }
 }
-ORDER BY DESC(?hyphenations)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Synia:hyphenation-index>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?hyphenations)""" .

@@ -6,7 +6,25 @@
 
 <https://www.wikidata.org/#query-799a4a3b37a027d6e377c686faa27508> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?identifier (COUNT(?value) AS ?cnt) (GROUP_CONCAT(?value; separator=', ') AS ?values) WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d859816-wikidata_prefixes, _:genid-4e694113159d4e3db4a1a913894a81d859816-EAF84279828CE694F763CF785D1619C5;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX p: <http://www.wikidata.org/prop/>
+SELECT ?item ?identifier (COUNT(?value) AS ?cnt) (GROUP_CONCAT(?value; separator=', ') AS ?values)  WHERE {
+  {
+  SELECT DISTINCT ?item WHERE {
+    ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
+  }
+} 
+  ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:claim ?identifierClaim; wikibase:statementProperty ?identifierStatementProperty; wikibase:reference ?ref .
+  ?item ?identifierClaim [ ?identifierStatementProperty ?value ] .
+} GROUP BY ?item ?identifier HAVING(?cnt > 1) ORDER BY DESC(?cnt)""";
+  <http://example.org/bigdata_select> """SELECT ?item ?identifier (COUNT(?value) AS ?cnt) (GROUP_CONCAT(?value; separator=', ') AS ?values) WITH {
   SELECT DISTINCT ?item WHERE {
     ?item p:P106/ps:P106/wdt:P279* wd:Q26270618 .
   }
@@ -14,8 +32,4 @@
   INCLUDE %subquery 
   ?identifier wikibase:propertyType wikibase:ExternalId; wikibase:claim ?identifierClaim; wikibase:statementProperty ?identifierStatementProperty; wikibase:reference ?ref .
   ?item ?identifierClaim [ ?identifierStatementProperty ?value ] .
-} GROUP BY ?item ?identifier HAVING(?cnt > 1) ORDER BY DESC(?cnt)""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:MisterSynergy/rowing/queries>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes, _:genid-9eb55b2583ef4ad09d9d48ff9f18ffec122759-wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+} GROUP BY ?item ?identifier HAVING(?cnt > 1) ORDER BY DESC(?cnt)""" .

@@ -6,7 +6,34 @@
 
 <https://www.wikidata.org/#query-7a30a576759e3f317f078662cc0324bd> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d843466-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?positionLabel ?start ?end  WHERE {
+  {
+  SELECT ?item ?position ?start ?end WHERE {
+    BIND(420 AS ?year)
+    BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
+    BIND(STRDT(CONCAT(STR(?year + 1), \"-01-01\"), xsd:dateTime) AS ?nextYearStart)
+    ?item p:P39 [
+      ps:P39 ?position;
+      pq:P580 ?start;
+      pq:P582 ?end
+    ].
+    FILTER(?start < ?yearStart)
+    FILTER(?end >= ?nextYearStart)
+  }
+}.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
+}""";
+  <http://example.org/bigdata_select> """SELECT ?item ?itemLabel ?positionLabel ?start ?end WITH {
   SELECT ?item ?position ?start ?end WHERE {
     BIND(420 AS ?year)
     BIND(STRDT(CONCAT(STR(?year), \"-01-01\"), xsd:dateTime) AS ?yearStart)
@@ -22,8 +49,4 @@
 } AS %results WHERE {
   INCLUDE %results.
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }
-}""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2018/04>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+}""" .

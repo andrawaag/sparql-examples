@@ -6,7 +6,16 @@
 
 <https://www.wikidata.org/#query-ead0f01aab9cdd85e7e81eaaad2f5452> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?series ?seriesLabel ?placeLabel (GROUP_CONCAT(DISTINCT(?investigatorName);separator=\", \") AS ?investigators) (COUNT(DISTINCT(?film)) AS ?count) (GROUP_CONCAT(DISTINCT(?investigatorOldName);separator=\", \") AS ?investigatorsOld) WHERE {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d88156-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?series ?seriesLabel ?placeLabel (GROUP_CONCAT(DISTINCT(?investigatorName);separator=\", \") AS ?investigators) (COUNT(DISTINCT(?film)) AS ?count) (GROUP_CONCAT(DISTINCT(?investigatorOldName);separator=\", \") AS ?investigatorsOld) WHERE {
   ?series wdt:P361 wd:Q689438
   OPTIONAL{?film wdt:P179 ?series}
   OPTIONAL{?series wdt:P840 ?place}
@@ -15,8 +24,4 @@
   SERVICE wikibase:label{bd:serviceParam wikibase:language \"de\"}
 }
 GROUP BY ?series ?seriesLabel ?place ?placeLabel
-ORDER BY DESC(?count) ?seriesLabel""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/User:Jobu0101/Tatort>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+ORDER BY DESC(?count) ?seriesLabel""" .

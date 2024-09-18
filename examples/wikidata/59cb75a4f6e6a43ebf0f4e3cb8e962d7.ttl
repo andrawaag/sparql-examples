@@ -6,15 +6,19 @@
 
 <https://www.wikidata.org/#query-59cb75a4f6e6a43ebf0f4e3cb8e962d7> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) {
+  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
+  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d837607-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX schema: <http://schema.org/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung (GROUP_CONCAT(?sitey;SEPARATOR=' ') AS ?sites) {
   OPTIONAL { ?item wdt:P536 ?ATP_Kennung. }
   ?site schema:about ?item . 
   BIND(STRAFTER(STRBEFORE(STR(?site),'.org'),'//') AS ?sitex)
   BIND(STRBEFORE(?sitex,'.') AS ?sitey)
   SERVICE wikibase:label { bd:serviceParam wikibase:language \"de,en,[AUTO_LANGUAGE]\". }
 }
-GROUP BY ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung ?sitelinks""";
-  dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/01>;
-  dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+GROUP BY ?item ?itemLabel ?sitelink_de ?sitelink_en ?ATP_Kennung ?sitelinks""" .

@@ -6,22 +6,6 @@
 
 <https://www.wikidata.org/#query-a77ced2179fb6da042cc5ab30093ccff> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """SELECT ?item ?l ?lang
-{
-  hint:Query hint:optimizer \"None\".
-  SERVICE wikibase:mwapi {
-    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
-    bd:serviceParam wikibase:api \"Generator\" .
-    bd:serviceParam mwapi:generator \"search\" .
-    bd:serviceParam mwapi:gsrsearch 'inlabel:\"e* (\" haswbstatement:P31=Q5' .
-    bd:serviceParam mwapi:gsrlimit \"max\" .    
-    bd:serviceParam mwapi:gsrnamespace \"0\" .    
-    ?item wikibase:apiOutputItem mwapi:title  .    
-  }
-  ?item rdfs:label ?l.
-  FILTER(  REGEX(?l, \"\\\\)$\")  ).  
-  bind(lang(?l) as ?lang)  
-}""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 grouping problems (Bad aggregate) 2 Get pictures for an object in Wikidata and see if this picture miss depict WD in Wikicommons 3 20 criteria for 2 or 3 focus languages 4 Wikidata query into page map 5 All movies that won the awards 6 Why is this so slow? 7 Denonym 8 Troubleshoot query-not getting the right date of birth (dob) e.g Q18810921 dob query is 1954 October 12 but shows in page as 29 September 1954Julian. e.g Q13898 has 2 dob but query returns 1 dob. 9 Row numbering 10 wiki query in python. how to pass a variable (multiple QID) into query? any specific formatting required for the variable? 11 Some improvements for map query 11.1 one more thing 12 Count of Wikipedia pages for an object 13 Subway lines that are Y 14 Scatterplot query 15 Person query 16 Featured articles that don't exist 17 Japan Search SPARQL query (Wikidata-related!) 18 specify senators who served in a particular legislative term? 19 Query for Property dashboard 20 Can’t create new item 21 For... Loop query 22 Total population 23 Creator query 24 Humans with label containing ( or ) 25 finding where a particular reference is cited 26 Get all articles in a journal; multiple authors combined 27 List of administrative divisions by country 28 Focus on a specific group of items 29 Help: Query to get the creation date (when the entity was created on Wikidata) for a particular country 30 Order text strings taking accents in account 31 Countries with the least amount of restrictions on civil laws 32 Wikinews 33 Most commons name in Germany by year of birth grouping problems (Bad aggregate) Hi @all, I definitly lack practice, so please bear with me: The data is the result of my survival project lasting thoughout the last lockdowns, and now I would like to harvest some of the first fruits ;-) … the query breaks with the grouping of the architects. I read about the group_concat bug, added 2 variables for grouping but it breaks anyway. I bet you see the problem in a second. Another open issue is the image, I know I've seen an example where the output was limited on 1 value, but I cannot find it. #defaultView:Map
 SELECT ?item ?itemLabel ?coords ?img (YEAR(?date) as ?year) (GROUP_CONCAT(DISTINCT ?architectLabel;separator=\", \") AS ?architects)  WHERE {
   ?item wdt:P166 wd:Q1795794;
@@ -845,5 +829,24 @@ group by ?udalerria ?udalerriaLabel
  Try it! But, you know, I've been wrong before. --Tagishsimon (talk) 21:24, 25 March 2021 (UTC)  """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2021/03>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d826732-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?l ?lang
+{
+  hint:Query hint:optimizer \"None\".
+  SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:endpoint \"www.wikidata.org\" .
+    bd:serviceParam wikibase:api \"Generator\" .
+    bd:serviceParam mwapi:generator \"search\" .
+    bd:serviceParam mwapi:gsrsearch 'inlabel:\"e* (\" haswbstatement:P31=Q5' .
+    bd:serviceParam mwapi:gsrlimit \"max\" .    
+    bd:serviceParam mwapi:gsrnamespace \"0\" .    
+    ?item wikibase:apiOutputItem mwapi:title  .    
+  }
+  ?item rdfs:label ?l.
+  FILTER(  REGEX(?l, \"\\\\)$\")  ).  
+  bind(lang(?l) as ?lang)  
+}""" .

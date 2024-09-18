@@ -6,17 +6,6 @@
 
 <https://www.wikidata.org/#query-599c7069980e1f6092d1453443b4021e> a sh:SPARQLExecutable,
     sh:SPARQLSelectExecutable;
-  sh:select """#defaultView:LineChart
-SELECT ?decade (COUNT(DISTINCT ?item) as ?ct) 
-{
-    hint:Query hint:optimizer \"None\".
-    ?item wdt:P735 wd:Q2829505 ; wdt:P569 ?b . 
-    ?item p:P569/psv:P569 [ wikibase:timeValue ?b ; wikibase:timePrecision ?precision ]  
-    FILTER(?precision > 7 )  
-    BIND( (FLOOR(YEAR(?b)/10)*10) as ?decade) 
-}  
-GROUP BY ?decade
-ORDER BY ?decade""";
   rdfs:comment """ This page is an archive. Please do not modify it. Use the current page, even to continue an old discussion. Contents 1 Query by wiki edits? 2 You've Lived Longer Than... 3 How many tunnels can be found in France ? in Germany ? in Italy ? in Europe ? How long and how old are these tunnels ? 4 Getting <most recently created items> to work with qualifiers 5 Communes de France 6 All items of Sci-Fi films that were initially published between 1990 to 1999 and that have articles on the Hebrew Wikipedia 7 Queries about \"John\" 8 Verify categories across languages 9 Adjacent constituencies 10 Entities Appointed By Donald Trump 11 Labels 12 Page Views 13 Help with query optimization/rewriting 14 How to get a Q id in the result? 15 Find all labels and aliases for two languages for all instances of a class 16 Number of Coronavirus cases over time 17 Problems with FILTER unequal 18 Concatenate Longitude and Latitude 19 Show labels in two different languages 20 Optimization: query to get all french communes with some datas 21 Counts by decade 22 What depicted entities wear in paintings 23 item with specific externe ID 24 how to select P properties beneath a Q item 25 Listings of women with nationality 26 List of all partnerships in the district of Offenbach 27 From Wikipedia URL to Wikidata Item 28 Label woe 29 All museums per Austrian states 30 Show only some rows 31 Dead Canadians, with a father listed, without a FamilySearch entry 32 Wikidata:Database reports/items with P569 greater than P570 33 How to get the parent taxon of the parent taxon? 34 MWAPI fu - en wiki articles lacking specified images 35 All female British writers with a Project Gutenberg identifier who published their works during the Victorian Era 36 Largest EU cities 37 How to extract the languages of labels and aliases? 38 Code = code 39 Why UNION doesn't work in the second query? Query by wiki edits? Can we include Wikidata wiki edits in a query - for example, \"people with illustrator as an occupation, whose item was created by User:pigsonthewing\"? Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 16:23, 28 January 2020 (UTC) I am pretty sure that this cannot be queried with a simple tool. Information about items is only available via SPARQL, and the user edits data is only available via SQL. One can, however, do both queries separately (\"people with illustrator as occupation\", and \"items created by User:Pigsonthewing\"), and then intersect both results sets with software. For your particular request, I can currently find 40 items (including subclasses of illustrator (Q644687) as occupations): James Lucas (Q60523543), Mary Gernat (Q64067695), Mildred Ratcliffe (Q63872518), Celia Levetus (Q34481210), August Geigenberger (Q37666506), Harry Tuck (Q56396052), Emil Schmidt (Q61000587), Hector Whistler (Q19657576), Donald Chaffin (Q21198134), Katherine Sturges Dodge (Q19857092), James Hart (Q60169477), Earl Oliver Hurst (Q61599608), Nowell Edwards (Q61946233), Reg Gammon (Q15381364), Diane Elson (Q72065094), Frederick Smallfield (Q14916854), William Hawkes Smith (Q76008343), Cecil W. Bacon (Q28031402), Leslie Ashwell Wood (Q78310140), Harry Woolley (Q78510583), Monica Walker (Q79596582), Doris Palethorpe (Q80125831), J. Inder Burns (Q80216545), Cecil Glossop (Q80325220), Althea Willoughby (Q59857851), Hazel Mead (Q81297633), Molly Blake (Q83488439), Doris Pailthorpe (Q65374766), Afua Richardson (Q29786614), Clayton Knight (Q19857082), Piero Ruggeri (Q54860430), Ian Garrard (Q63062221), Naif Al-Mutawa (Q23795283), Katharine Saunders (Q20984930), Fanny Currey (Q20085715), G. Reinert (Q62565942), Rebecca Hey (Q81721599), Bernardus Aretinus (Q60390693), F. Pollard (Q60429528), and Elaine R. Snyder Hodges (Q46998324) —MisterSynergy (talk) 18:45, 28 January 2020 (UTC) @MisterSynergy: Not the answer I hoped for, but the data you've provded is very useful, thank you. Andy Mabbett (Pigsonthewing); Talk to Andy; Andy's edits 20:37, 1 February 2020 (UTC) You've Lived Longer Than... Hello all,I'm in need of some help writing a query. I need to produce data for notable people that a user has lived longer than.User inputs birthday > calculate \"days lived\" > Query people that have shorter lifespans > return resultsI'm having trouble converting lifespan to \"days lived\" to compare with against a user's input.Any help would be greatly appreciated :) You can subtract dateTime values to get the difference in days. An example: List dead physicists who lived longer than a living person who was born 1918-01-01: SELECT ?person ?personLabel ?person_age ?dateOfBirth ?dateOfDeath
 {
   {
@@ -616,5 +605,21 @@ BIND(wikibase:decodeUri(SUBSTR(STR(?wikipediaArticle), 31)) AS ?wikipediaTitel)
  And I will use 10 requests (10001 - 20000 ... until 99999 for France) to get all datas. Thanks --- Aximem 08:27, 14 February 2020 (UTC) @Aximem: That is good idea using the postal codes to get smaller chunks of data. Be aware that not all items for communes have a value for P281, so after the 10 requests going from postal codes 0 to 99999, you will probably want to add a request to find these. For that last request replace ?commune wdt:P281 ?communePostalCode. FILTER (?communePostalCode > \"0\" && ?communePostalCode < \"10000\") with FILTER NOT EXISTS { ?commune wdt:P281 ?communePostalCode. } --Dipsacus fullonum (talk) 08:04, 14 February 2020 (UTC) @Dipsacus fullonum: You are right, thanks for the advice. --- Aximem 09:24, 14 February 2020 (UTC) Counts by decade Items used: Alain (Q2829505)   Properties used: given name (P735)   , date of birth (P569)   """@en;
   dcterms:isPartOf <https://www.wikidata.org//wiki/Wikidata:Request_a_query/Archive/2020/02>;
   dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/>;
-  sh:prefixes _:wikidata_prefixes;
-  schema:target <https://query.wikidata.org/sparql/> .
+  sh:prefixes _:genid-4e694113159d4e3db4a1a913894a81d84361-wikidata_prefixes;
+  schema:target <https://query.wikidata.org/sparql/>;
+  sh:select """PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
+PREFIX p: <http://www.wikidata.org/prop/>
+#defaultView:LineChart
+SELECT ?decade (COUNT(DISTINCT ?item) as ?ct) 
+{
+    hint:Query hint:optimizer \"None\".
+    ?item wdt:P735 wd:Q2829505 ; wdt:P569 ?b . 
+    ?item p:P569/psv:P569 [ wikibase:timeValue ?b ; wikibase:timePrecision ?precision ]  
+    FILTER(?precision > 7 )  
+    BIND( (FLOOR(YEAR(?b)/10)*10) as ?decade) 
+}  
+GROUP BY ?decade
+ORDER BY ?decade""" .
